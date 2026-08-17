@@ -1,8 +1,8 @@
 # Momoi Labs Blueprint
 
-> The shared foundation every Momoi Labs project builds on — **design tokens**, a
-> **log format**, and the engineering standards that keep the studio's output
-> consistent, recognizable, and fast to start.
+> The shared foundation every Momoi Labs project builds on — a **design
+> system** (Kiso), a **log format**, and the engineering standards that keep
+> the studio's output consistent, recognizable, and fast to start.
 
 **Blueprint** is the "floor plan" of the house. It stays deliberately small: a
 pillar is added only when a real project needs it, and each pillar is a single
@@ -12,20 +12,24 @@ source of truth that everything else generates from — never a copy.
 
 | Pillar | What it defines | Status |
 | --- | --- | --- |
-| **Design system** — *Nocturne* | color, type, spacing, shadow tokens | 🚧 epic planned |
+| **Design system** — *Kiso* | brand, principles, voice; color, type, spacing, shadow tokens | ✅ conceptual (#1) · 🚧 tokens (#2) |
 | **Log format** | one structured JSON shape, levels, privacy rules | 🚧 epic planned |
-| **Brand spec** | logo, palette, voice — source for all brand material | 🔜 later |
 | **Code standards** | commits, branches, per-language lint/format | 🔜 later |
 | **Governance** | issue/PR templates, CONTRIBUTING, code of conduct | 🔜 later |
 
-## Design system — Nocturne
+## Design system — Kiso
 
-Momoi Labs' design system already powers [momoi-labs.dev](https://momoi-labs.dev).
-Blueprint will promote it into a machine-readable token source (W3C Design
-Tokens) from which CSS and other targets are generated.
+**Kiso** (基礎, "foundation") is Momoi Labs' design system for *products* — not
+the marketing site. The marketing site ([momoi-labs.dev](https://momoi-labs.dev))
+is a vibe reference; product UI borrows its spirit, not its literal surface.
+
+The conceptual foundation — [brand](kiso/docs/brand.md),
+[principles](kiso/docs/principles.md), and
+[voice and tone](kiso/docs/voice-and-tone.md) — is in place. Machine-readable
+tokens (W3C Design Tokens) and generated CSS targets come next.
 
 - Dark theme by default, light ("slate") as the alternate
-- Accent violet `#9184d9`; neutrals tuned for both themes
+- Neutrals carry the interface; one accent carries attention
 - Inter for interface text, JetBrains Mono for code
 
 ## Log format
@@ -36,15 +40,17 @@ privacy rules — are specified in their own epic.
 
 ## Roadmap
 
-The first two pillars are driven by GitHub epics:
+The design system and log format pillars are driven by GitHub epics:
 
-1. **Brand + design tokens** — spec the brand (not a copy of today's CSS), then
-   generate tokens from that spec.
-2. **Log format** — the shape, examples of use, and the reasoning behind it.
+1. ~~**Brand & principles**~~ ✅ — conceptual foundation (brand, principles,
+   voice and tone) landed in [#1](https://github.com/momoi-labs/blueprint/issues/1).
+2. **Design tokens** — calibrate neutrals and accent to WCAG AA, then generate
+   tokens (W3C Design Tokens) and CSS targets from that spec.
+3. **Log format** — the shape, examples of use, and the reasoning behind it.
 
 ## License
 
 Code, config, and templates: **MIT**. Brand assets (name, logo, type):
-**CC BY 4.0** — a `BRAND.md` will carry the usage rules when the assets land.
+**CC BY 4.0** — brand usage rules live in [`kiso/docs/brand.md`](kiso/docs/brand.md).
 
 © 2026 Momoi Labs — [momoi-labs.dev](https://momoi-labs.dev)
