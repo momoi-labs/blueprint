@@ -8,7 +8,7 @@ predictable place. Header is a layout container, not a primitive.
 Header orients the person and exposes a small set of destinations and actions
 that remain useful across routes. It composes [Link](link.md) for navigation,
 [IconButton](icon-button.md) for icon-only actions, and optionally
-DropdownMenu for overflow. Do not replace those controls with clickable
+[DropdownMenu](dropdown-menu.md) for overflow. Do not replace those controls with clickable
 containers.
 
 ## Anatomy

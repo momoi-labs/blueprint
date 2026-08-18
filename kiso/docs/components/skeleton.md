@@ -13,7 +13,8 @@ User story #22: [Spinner](spinner.md) is indeterminate; Skeleton preserves
 layout.
 
 Table/DataTable (data slice) composes Skeleton for loading rows, together
-with EmptyState (no data) and Pagination (known data). This doc defines the
+with [EmptyState](empty-state.md) (no data) and [Pagination](pagination.md)
+(known data). This doc defines the
 placeholder; it does not define the table.
 
 ## Anatomy

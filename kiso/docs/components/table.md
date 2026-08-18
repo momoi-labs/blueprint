@@ -25,7 +25,7 @@ spec is one component.
 | Empty dataset | [EmptyState](empty-state.md) | Replaces the body; keep column headers when helpful. |
 | Error loading | [Alert](alert.md) | Above or in place of the body; retry via Button. |
 | Filter visible rows | [Search](search.md) | Standalone; not built into Table. User story #9. |
-| Page through known sets | Pagination (navigation slice) | Known total / page size. User story #11. |
+| Page through known sets | [Pagination](pagination.md) | Known total / page size. User story #11. |
 | Row actions | [DropdownMenu](dropdown-menu.md) or [IconButton](icon-button.md) | Per-row contextual actions. |
 | Bulk actions | [Button](button.md) in a selection toolbar | Appear when one or more rows are selected. |
 
@@ -245,7 +245,7 @@ checkboxes comes from those primitives; the table is semantic HTML.
 | Row actions menu | Radix / shadcn Dropdown Menu → Kiso [DropdownMenu](dropdown-menu.md) |
 | Loading rows | shadcn Skeleton "Table" example → Kiso [Skeleton](skeleton.md) |
 | Empty | Compose [EmptyState](empty-state.md); do not use a blank shadcn row |
-| Pagination | Navigation-slice Pagination (shadcn Pagination as reference later) |
+| Pagination | Kiso [Pagination](pagination.md), using shadcn Pagination as its structural reference |
 
 Map shadcn Data Table examples by *intent*: sorting state, row selection,
 toolbar bulk actions. Replace every utility color and pixel size with Kiso
