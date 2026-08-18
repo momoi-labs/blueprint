@@ -42,7 +42,6 @@
   --font-heading: Inter, system-ui, sans-serif;
   --font-body: Inter, system-ui, sans-serif;
   --font-mono: JetBrains Mono, ui-monospace, monospace;
-  --font-variant-numeric: tabular-nums;
   --type-size-metadata: 11px;
   --type-size-label: 13px;
   --type-size-body: 16px;
@@ -56,41 +55,45 @@
   --type-weight-bold: 700;
   --type-line-height-tight: 1.2;
   --type-line-height-normal: 1.5;
-  --type-line-height-relaxed: 1.75;
-  --type-letter-spacing-heading: -0.01em;
-  --type-letter-spacing-label: 0.02em;
+  --type-line-height-relaxed: 1.6;
+  --type-letter-spacing-heading: -0.01rem;
+  --type-letter-spacing-normal: 0rem;
+  --type-letter-spacing-label: 0.02rem;
   --type-role-display-font-family: var(--font-heading);
   --type-role-display-font-size: var(--type-size-display);
   --type-role-display-font-weight: var(--type-weight-medium);
-  --type-role-display-line-height: var(--type-line-height-tight);
   --type-role-display-letter-spacing: var(--type-letter-spacing-heading);
+  --type-role-display-line-height: var(--type-line-height-tight);
   --type-role-heading-font-family: var(--font-heading);
   --type-role-heading-font-size: var(--type-size-h1);
   --type-role-heading-font-weight: var(--type-weight-semibold);
-  --type-role-heading-line-height: var(--type-line-height-tight);
   --type-role-heading-letter-spacing: var(--type-letter-spacing-heading);
+  --type-role-heading-line-height: var(--type-line-height-tight);
   --type-role-body-font-family: var(--font-body);
   --type-role-body-font-size: var(--type-size-body);
   --type-role-body-font-weight: var(--type-weight-regular);
+  --type-role-body-letter-spacing: var(--type-letter-spacing-normal);
   --type-role-body-line-height: var(--type-line-height-normal);
   --type-role-label-font-family: var(--font-body);
   --type-role-label-font-size: var(--type-size-label);
   --type-role-label-font-weight: var(--type-weight-medium);
-  --type-role-label-line-height: var(--type-line-height-normal);
   --type-role-label-letter-spacing: var(--type-letter-spacing-label);
+  --type-role-label-line-height: var(--type-line-height-normal);
   --type-role-metadata-font-family: var(--font-body);
   --type-role-metadata-font-size: var(--type-size-metadata);
   --type-role-metadata-font-weight: var(--type-weight-regular);
+  --type-role-metadata-letter-spacing: var(--type-letter-spacing-normal);
   --type-role-metadata-line-height: var(--type-line-height-normal);
   --type-role-code-font-family: var(--font-mono);
   --type-role-code-font-size: var(--type-size-label);
   --type-role-code-font-weight: var(--type-weight-regular);
+  --type-role-code-letter-spacing: var(--type-letter-spacing-normal);
   --type-role-code-line-height: var(--type-line-height-normal);
   --type-role-numeric-font-family: var(--font-body);
   --type-role-numeric-font-size: var(--type-size-body);
   --type-role-numeric-font-weight: var(--type-weight-regular);
+  --type-role-numeric-letter-spacing: var(--type-letter-spacing-normal);
   --type-role-numeric-line-height: var(--type-line-height-normal);
-  --type-role-numeric-font-variant-numeric: tabular-nums;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -112,6 +115,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
+  --font-variant-numeric: tabular-nums;
 }
 
 [data-theme="light"] {
@@ -137,4 +141,3 @@
     --motion-duration-normal: 0s;
   }
 }
-
