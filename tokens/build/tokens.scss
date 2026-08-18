@@ -1,0 +1,89 @@
+
+// Do not edit directly, this file was auto-generated.
+
+$color-white: #ffffff; // Pure white. Light theme elevated surface.
+$color-black: #000000; // Pure black. Reserved for overlays and shadows.
+$color-neutral-100: #faf9f7;
+$color-neutral-200: #f4f2ee;
+$color-neutral-300: #e0dcd6;
+$color-neutral-400: #b6b2ae;
+$color-neutral-500: #8a857f;
+$color-neutral-600: #5f5b57;
+$color-neutral-700: #312f37;
+$color-neutral-800: #26252b;
+$color-neutral-900: #1b1a1e;
+$color-accent-200: #ede8fd;
+$color-accent-300: #ded5fb;
+$color-accent-400: #c4b4f5;
+$color-accent-600: #7d68d1;
+$color-accent-700: #6552b8;
+$color-accent-800: #46309e;
+$color-accent-900: #2e2170;
+$color-accent-base: #cbbdf7; // Base accent primitive. Airy lilac on dark (10.03:1) and deeper violet on light (6.36:1) — calibrated up from the marketing site accent, which fails AA in both themes.
+$color-status-success: #4ed69a; // Success status primitive.
+$color-status-warning: #e8c05a; // Warning status primitive.
+$color-status-danger: #f4867f; // Danger status primitive.
+$color-status-info: #8fc9f5; // Info status primitive.
+$semantic-background: #1b1a1e; // App canvas. Surface role, never text.
+$semantic-surface: #26252b; // Cards, panels, table rows. Surface role.
+$semantic-elevated-surface: #312f37; // Menus, popovers, dialogs. Surface role.
+$semantic-foreground: #faf9f7; // Primary text. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-muted-foreground: #b6b2ae; // Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-subtle-foreground: #8a857f; // Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy.
+$semantic-border: #5f5b57; // Dividers and input outlines. Non-text role.
+$semantic-primary: #cbbdf7; // Primary interactive colour: links, active state, primary button fill. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-accent: #ded5fb; // Emphasis and highlight. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-success: #4ed69a; // Positive state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-warning: #e8c05a; // Caution state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-danger: #f4867f; // Destructive or error state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-info: #8fc9f5; // Neutral informational state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-focus: #ded5fb; // Focus ring. Non-text role. >=3:1 against background.
+$semantic-disabled: #5f5b57; // Disabled text and controls. Exempt from contrast minimums per WCAG 1.4.3.
+$font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
+$font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
+$font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.
+$type-size-metadata: 11px; // Step -2. Captions, timestamps, footnotes, table metadata.
+$type-size-label: 13px; // Step -1. Labels, buttons, form captions, small UI text.
+$type-size-body: 16px; // Step 0. Body copy; base size for code and numeric text.
+$type-size-h3: 19px; // Step +1. Small headings, card titles.
+$type-size-h2: 23px; // Step +2. Section headings.
+$type-size-h1: 28px; // Step +3. Page headings.
+$type-size-display: 33px; // Step +4. Display headings - the calm ceiling; the 48px hero is marketing scale, not product scale.
+$type-weight-regular: 400; // Regular - body, metadata, code.
+$type-weight-medium: 500; // Medium - labels, display headings.
+$type-weight-semibold: 600; // Semibold - headings.
+$type-weight-bold: 700; // Bold - emphasis within headings.
+$type-line-height-tight: 1.2; // Display and headings.
+$type-line-height-normal: 1.5; // Body, labels, code.
+$type-line-height-relaxed: 1.6; // Long-form reading, notes. 1.6 is rationalized - 1.75 is part of the ad-hoc set and is deliberately not reused.
+$type-letter-spacing-heading: -0.01rem; // Display and headings - a hair tighter than body.
+$type-letter-spacing-normal: 0rem; // Neutral tracking - the default for body, metadata and code roles.
+$type-letter-spacing-label: 0.02rem; // Labels and small UI text.
+$type-role-display: 500 33px/1.2 Inter, system-ui, sans-serif; // Display headings.
+$type-role-heading: 600 28px/1.2 Inter, system-ui, sans-serif; // Page headings (h1); h2 and h3 step down through type.size.
+$type-role-body: 400 16px/1.5 Inter, system-ui, sans-serif; // Body copy.
+$type-role-label: 500 13px/1.5 Inter, system-ui, sans-serif; // Labels, buttons, form captions.
+$type-role-metadata: 400 11px/1.5 Inter, system-ui, sans-serif; // Captions, timestamps, footnotes.
+$type-role-code: 400 13px/1.5 'JetBrains Mono', ui-monospace, monospace; // Code and data values (monospace).
+$type-role-numeric: 400 16px/1.5 Inter, system-ui, sans-serif; // Numeric and tabular data. Carries the namespaced com.momoi-labs.kiso.fontVariantNumeric extension (tabular-nums), emitted by the formatter as the global --font-variant-numeric feature token.
+$spacing-xs: 4px; // Tight internal padding, icon gaps.
+$spacing-sm: 8px; // Component padding, small gaps.
+$spacing-md: 12px; // Default padding, form gaps.
+$spacing-lg: 16px; // Card padding, section gaps.
+$spacing-xl: 24px; // Page margins, panel gaps.
+$spacing-2xl: 32px; // Wide page margins, dialog padding.
+$spacing-3xl: 48px; // Section spacing.
+$spacing-4xl: 64px; // Large section spacing, hero padding.
+$radius-sm: 4px; // Inputs, small controls.
+$radius-md: 8px; // Cards, buttons, panels.
+$radius-lg: 12px; // Dialogs, popovers, large surfaces.
+$radius-full: 9999px; // Pills, badges, avatars.
+$shadow-sm: 0px 1px 2px 0px rgb(0% 0% 0% / 0.24); // Cards on canvas - subtle separation.
+$shadow-md: 0px 2px 8px 0px rgb(0% 0% 0% / 0.32); // Menus, popovers, dialogs - floating layers.
+$motion-duration-fast: 120ms; // Focus and hover feedback.
+$motion-duration-normal: 200ms; // Open/close and state changes.
+$motion-easing-standard: cubic-bezier(0.2, 0, 0, 1); // Ease-out - elements settle, no bounce, no delight for its own sake.
+$breakpoint-sm: 640px; // Small tablets, portrait.
+$breakpoint-md: 768px; // Tablets, landscape phones.
+$breakpoint-lg: 1024px; // Desktop.
+$breakpoint-xl: 1280px; // Wide desktop.

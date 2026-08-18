@@ -25,8 +25,13 @@ jobs:
         run: node scripts/validate-dtcg.mjs
       - name: Build tokens
         run: npx --no-install style-dictionary build --config style-dictionary.config.mjs
-      - name: Verify CSS output
-        run: test -s tokens/build/tokens.css
+      - name: Verify generated outputs
+        run: |
+          test -s tokens/build/tokens.css
+          test -s tokens/build/tokens.json
+          test -s tokens/build/tokens.d.ts
+          test -s tokens/build/tokens.scss
+          git diff --exit-code -- tokens/build/
 
   contrast:
     name: Check AA contrast

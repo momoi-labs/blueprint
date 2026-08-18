@@ -56,6 +56,14 @@ const render = (value, type) => {
   }
 };
 
+StyleDictionary.registerTransform({
+  name: 'kiso/duration-css',
+  type: 'value',
+  transitive: true,
+  filter: (token) => token.$type === 'duration',
+  transform: (token) => unitValueCss(token.$value)
+});
+
 function* walk(node, path = []) { for (const [key, value] of Object.entries(node)) { if (!value || typeof value !== 'object' || key.startsWith('$')) continue; if ('$value' in value) yield { path: [...path, key], token: value }; else yield* walk(value, [...path, key]); } }
 
 const valueForMode = (token, mode) => token.$extensions?.mode?.[mode] ?? token.$value;
@@ -127,4 +135,40 @@ StyleDictionary.registerFormat({
   }
 });
 
-export default { source: ['tokens/tokens.json'], platforms: { css: { transforms: ['attribute/cti', 'name/kebab'], buildPath: 'tokens/build/', files: [{ destination: 'tokens.css', format: 'css/kiso-themes' }] } } };
+const buildPath = 'tokens/build/';
+const webValueTransforms = [
+  'attribute/cti',
+  'kiso/duration-css',
+  'size/rem',
+  'color/css',
+  'fontFamily/css',
+  'cubicBezier/css',
+  'typography/css/shorthand',
+  'shadow/css/shorthand'
+];
+
+export default {
+  source: ['tokens/tokens.json'],
+  platforms: {
+    css: {
+      transforms: ['attribute/cti', 'name/kebab'],
+      buildPath,
+      files: [{ destination: 'tokens.css', format: 'css/kiso-themes' }]
+    },
+    json: {
+      transforms: ['name/kebab'],
+      buildPath,
+      files: [{ destination: 'tokens.json', format: 'json/flat' }]
+    },
+    typescript: {
+      transforms: ['name/camel', ...webValueTransforms],
+      buildPath,
+      files: [{ destination: 'tokens.d.ts', format: 'typescript/es6-declarations' }]
+    },
+    scss: {
+      transforms: ['name/kebab', ...webValueTransforms],
+      buildPath,
+      files: [{ destination: 'tokens.scss', format: 'scss/variables' }]
+    }
+  }
+};
