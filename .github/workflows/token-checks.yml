@@ -5,6 +5,7 @@ on:
     paths:
       - "tokens/**"
       - "style-dictionary.config.*"
+      - "scripts/**"
 
 permissions:
   contents: read
@@ -18,8 +19,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install Style Dictionary v5
-        run: npm install --no-save --ignore-scripts "style-dictionary@^5"
+      - name: Install Style Dictionary v5 and ajv
+        run: npm install --no-save --ignore-scripts "style-dictionary@^5" "ajv@^8"
+      - name: Validate DTCG 2025.10 conformance
+        run: node scripts/validate-dtcg.mjs
       - name: Build tokens
         run: npx --no-install style-dictionary build --config style-dictionary.config.mjs
       - name: Verify CSS output
