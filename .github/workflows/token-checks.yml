@@ -1,0 +1,38 @@
+name: Token checks
+
+on:
+  pull_request:
+    paths:
+      - "tokens/**"
+      - "style-dictionary.config.*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build tokens
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Style Dictionary v5
+        run: npm install --no-save --ignore-scripts "style-dictionary@^5"
+      - name: Build tokens
+        run: npx --no-install style-dictionary build --config style-dictionary.config.mjs
+      - name: Verify CSS output
+        run: test -s tokens/build/tokens.css
+
+  contrast:
+    name: Check AA contrast
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check semantic token contrast
+        run: node scripts/check-contrast.mjs tokens/tokens.json
