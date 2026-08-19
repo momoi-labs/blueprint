@@ -20,4 +20,5 @@ Kiso consumers need an explicit, reviewable version boundary instead of copying 
 
 - Compatible fixes and clarifications use patch releases, backward-compatible additions use minor releases, and breaking token or contract changes use major releases.
 - A pull request that changes the published surface must include a changeset; release PRs consume those changesets and update the package version and changelog.
-- Publishing requires a maintainer to manually dispatch the protected `npm` environment with an explicit confirmation phrase; the first release additionally requires the `@momoi-labs` npm organization to grant publish access for `@momoi-labs/kiso` and configure this workflow as its trusted publisher.
+- The initial `0.1.0` release bootstraps the package through an authenticated npm publish, preferably staged and approved with 2FA. Once the package exists, a maintainer configures this repository's `release.yml` workflow and `npm` environment as its trusted publisher.
+- Subsequent publishing requires a maintainer to manually dispatch the protected `npm` environment with an explicit confirmation phrase; no long-lived publish token is stored in GitHub.
