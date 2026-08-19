@@ -6,7 +6,7 @@ pattern composes the [Pagination](../components/pagination.md) component below a
 model versus [large-data-tables](large-data-tables.md) virtualization or
 incremental loading.
 
-User stories #3, #11.
+User story #3.
 
 ## Purpose
 
