@@ -1,5 +1,7 @@
 ## Agent skills
 
+For design-system consumption rules, read [`kiso/AGENTS.md`](kiso/AGENTS.md).
+
 ### Issue tracker
 
 Issues and specs for this repository live in GitHub Issues. See
