@@ -36,8 +36,9 @@ Input root.
 - **Medium** — default for most forms.
 - **Large** — rare, high-emphasis entry points.
 
-Size changes height and internal spacing through semantic size and spacing
-tokens. It does not reduce text or target size below accessible product norms.
+Size changes internal padding from `--spacing-xs` / `--spacing-sm` for small,
+to `--spacing-sm` / `--spacing-md` for medium, to `--spacing-md` / `--spacing-lg`
+for large. It does not reduce text or target size below accessible product norms.
 
 ## States
 
@@ -85,8 +86,11 @@ silently disable a field merely to show activity.
 
 Use only semantic roles: `--color-surface`, `--color-foreground`,
 `--color-subtle-foreground`, `--color-border`, `--color-focus`,
-`--color-disabled`, and `--color-danger`, plus semantic typography, spacing,
-radius, shadow, and motion tokens. Never use palette primitives or raw values.
+`--color-disabled`, and `--color-danger`; the five property-qualified body
+typography tokens; `--spacing-xs`, `--spacing-sm`, `--spacing-md`, and
+`--spacing-lg` as mapped above; `--radius-md`; `--shadow-sm` for elevated
+contexts only; `--motion-duration-fast`; and `--motion-easing-standard`. Never
+use palette primitives or raw values.
 
 ## Radix/shadcn mapping
 

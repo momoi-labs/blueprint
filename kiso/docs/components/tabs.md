@@ -18,8 +18,9 @@ Tabs
 ```
 
 Tabs use `--color-foreground`, `--color-muted-foreground`,
-`--color-primary`, `--color-border`, and `--color-focus`, with semantic
-spacing, type, and motion tokens.
+`--color-primary`, `--color-border`, and `--color-focus`; `--spacing-sm` block
+and `--spacing-md` inline tab padding; the five property-qualified label
+typography tokens; `--motion-duration-fast`; and `--motion-easing-standard`.
 
 ## Variants
 

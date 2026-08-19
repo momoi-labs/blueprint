@@ -27,8 +27,9 @@ feedback.
 
 ## Sizes
 
-HelperText has one typography size: the semantic metadata/supporting role. Its
-line length and wrapping follow the control width. Use semantic spacing between
+HelperText has one typography size: `--type-role-metadata-font-size` with
+`--type-role-metadata-line-height`. Its line length and wrapping follow the
+control width. Use `--spacing-xs` between
 the control, HelperText, and ValidationMessage.
 
 ## States
@@ -70,8 +71,10 @@ the control, HelperText, and ValidationMessage.
 
 ## Tokens
 
-Use `--color-muted-foreground`, the semantic metadata/supporting typography
-role, and semantic spacing tokens. `--color-subtle-foreground` is not suitable
+Use `--color-muted-foreground`; `--type-role-metadata-font-family`,
+`--type-role-metadata-font-size`, `--type-role-metadata-font-weight`,
+`--type-role-metadata-letter-spacing`, and `--type-role-metadata-line-height`;
+and `--spacing-xs`. `--color-subtle-foreground` is not suitable
 for ordinary small helper copy because it is restricted to large or
 non-essential hints. No primitive colors or raw values.
 

@@ -40,7 +40,7 @@ Variants are shapes, not colors.
 
 | Variant | Shape tokens | Stands in for |
 | --- | --- | --- |
-| `text` | Height of the target type role (`--type-role-body` / `label` / `heading`), width a fraction of the column, radius `--radius-sm` | Titles, labels, table cells, descriptions. |
+| `text` | Height of the target role's `--type-role-body-line-height`, `--type-role-label-line-height`, or `--type-role-heading-line-height`; width a fraction of the column; radius `--radius-sm` | Titles, labels, table cells, descriptions. |
 | `block` | Radius `--radius-md` (or `--radius-lg` when replacing a Card) | Cards, images, chart frames, table bodies as a whole. |
 | `circle` | Radius `--radius-full`, equal width and height | Avatars and circular IconButtons. |
 
@@ -52,7 +52,8 @@ Pulse (if any) interpolates opacity between the fill and `--color-surface`
 using `--motion-duration-normal` and `--motion-easing-standard`.
 
 **Reduced motion:** no pulse. Static `--color-border` placeholders. The
-tokens already zero out `--motion-duration-*`; do not add a second
+tokens already zero out `--motion-duration-fast` and
+`--motion-duration-normal`; do not add a second
 animation that ignores them.
 
 ## Sizes
@@ -62,7 +63,7 @@ replaces**:
 
 | Replacing | Skeleton |
 | --- | --- |
-| Body line | `text` at `--type-role-body` height, width ~ ⅔ of the column |
+| Body line | `text` at `--type-role-body-line-height`, width ~ ⅔ of the column |
 | Label / heading | `text` at that role's height, shorter width |
 | Button | `block` with the Button size's padding box |
 | Table row | A row of `text` cells aligned to column widths |
@@ -132,7 +133,8 @@ No Radix Skeleton primitive.
 | Card / text / avatar | shadcn Card / Text / Avatar examples as shape references only |
 
 Do not copy shadcn examples that set raw pixel widths. Map height to type
-roles and padding to `--spacing-*`.
+roles and padding to one of `--spacing-xs`, `--spacing-sm`, `--spacing-md`,
+`--spacing-lg`, or `--spacing-xl`, matching the content being replaced.
 
 Compose with Table/DataTable in the data slice: loading → Skeleton rows;
 empty → EmptyState; error → Alert; populated → rows + Pagination.

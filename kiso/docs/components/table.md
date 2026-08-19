@@ -82,8 +82,8 @@ Density is a presentation choice, not a named color variant:
 
 | Density | Use | Tokens |
 | --- | --- | --- |
-| `comfortable` | Default for most product tables. | Cell padding `--spacing-sm` block, `--spacing-md` inline. Type `--type-role-body`. |
-| `compact` | Ops dashboards, wide schemas, log-like grids. | Cell padding `--spacing-xs` block, `--spacing-sm` inline. Type still `--type-role-body` (do not shrink below readable). |
+| `comfortable` | Default for most product tables. | Cell padding `--spacing-sm` block, `--spacing-md` inline. All five body typography properties. |
+| `compact` | Ops dashboards, wide schemas, log-like grids. | Cell padding `--spacing-xs` block, `--spacing-sm` inline. Same five body typography properties (do not shrink below readable). |
 
 Header background `--color-surface`. Body rows `--color-surface` on
 `--color-background` page canvas, or zebra with alternating
@@ -97,7 +97,7 @@ cell metadata `--color-muted-foreground`.
 | --- | --- |
 | **Sortable** | Header exposes sort control. One primary sort column at a time unless the product explicitly supports multi-sort (rare; document in the screen). Cycle: unsorted → ascending → descending → unsorted (or omit unsorted if a default sort is required). |
 | **Sticky header** | Header stays visible while the body scrolls inside a scrollport. Use when the table is taller than the viewport. Sticky uses the same `--color-surface` as the header so rows do not show through. |
-| **Column resize** | Optional. Drag handle on the header edge. Persist width in product state when useful. Minimum width must keep the header label readable; do not specify px — use ch / type-role and `--spacing-*`. |
+| **Column resize** | Optional. Drag handle on the header edge. Persist width in product state when useful. Minimum width must keep the header label readable; do not specify px — use ch, the label typography properties, and `--spacing-sm`. |
 | **Virtualization** | Guidance, not a separate variant. For large client-side sets (thousands of rows), virtualize the body so only visible rows mount. Keep header, selection model, and keyboard navigation correct. Prefer server-side Pagination when the dataset is known and paged; virtualize when scrolling one large loaded set. |
 
 Filtering is **not** a Table variant. [Search](search.md) (and optional
@@ -109,8 +109,8 @@ Table has no `sm` / `md` / `lg` control scale like Button. Size comes from:
 
 | Axis | Token / rule |
 | --- | --- |
-| Type | `--type-role-body` for cells; `--type-role-label` for headers. |
-| Cell padding | Density table above (`--spacing-*`). |
+| Type | All five property-qualified body typography tokens for cells; all five property-qualified label typography tokens for headers. |
+| Cell padding | Density table above (`--spacing-xs`, `--spacing-sm`, and `--spacing-md`). |
 | Radius | Outer wrapper `--radius-md` when the table sits in a framed panel; internal cells are square. |
 | Checkbox / IconButton in cells | `sm` controls so row height stays dense. |
 
@@ -229,8 +229,10 @@ Alert.
 Consume only semantic roles: `--color-background`, `--color-surface`,
 `--color-elevated-surface`, `--color-foreground`, `--color-muted-foreground`,
 `--color-border`, `--color-primary`, `--color-focus`, `--color-disabled`,
-`--color-danger` (via Alert on error), plus `--type-role-*`, `--spacing-*`,
-`--radius-*`, `--motion-*`. No palette primitives, no raw hex/px.
+`--color-danger` (via Alert on error); the five property-qualified body and
+label typography tokens; `--spacing-xs`, `--spacing-sm`, `--spacing-md`;
+`--radius-md`; `--motion-duration-fast`; and `--motion-easing-standard`. No
+palette primitives, no raw hex/px.
 
 ## Radix/shadcn mapping
 

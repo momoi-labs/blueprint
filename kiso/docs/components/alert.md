@@ -61,7 +61,12 @@ Four severities. There is no extra "destructive" variant — that is `error`.
 | `error` | `role="alert"` (assertive) | `--color-danger` (the danger role *is* error). |
 
 Radius `--radius-md`. Padding `--spacing-md`. Gap `--spacing-sm`. Title
-uses `--type-role-label`; description uses `--type-role-body`.
+uses the five `--type-role-label-font-family`, `--type-role-label-font-size`,
+`--type-role-label-font-weight`, `--type-role-label-letter-spacing`, and
+`--type-role-label-line-height` properties. Description uses the corresponding
+`--type-role-body-font-family`, `--type-role-body-font-size`,
+`--type-role-body-font-weight`, `--type-role-body-letter-spacing`, and
+`--type-role-body-line-height` properties.
 
 Do not fill the Alert with the status color. Status color is border, icon,
 and (optionally) title. A solid `--color-danger` panel fights contrast and
@@ -145,7 +150,7 @@ There is **no** Radix primitive for in-page Alert.
 | Structure, icon + title + description + action | shadcn [Alert](https://ui.shadcn.com/docs/components/alert) (`Alert`, `AlertTitle`, `AlertDescription`, `AlertAction`) |
 | Dismiss | Compose [IconButton](icon-button.md); shadcn has no dedicated dismiss slot |
 | `error` | shadcn `variant="destructive"` restyled to `--color-danger` (border/icon, not a filled danger panel) |
-| `info` / `success` / `warning` | shadcn `default` plus the matching `--color-info|success|warning` — **not** the shadcn "Custom Colors" utility-class example (`bg-amber-50`, etc.) |
+| `info` / `success` / `warning` | shadcn `default` plus the matching `--color-info`, `--color-success`, or `--color-warning` — **not** the shadcn "Custom Colors" utility-class example (`bg-amber-50`, etc.) |
 
 Do **not** map this component to Radix
 [Alert Dialog](https://www.radix-ui.com/primitives/docs/components/alert-dialog)

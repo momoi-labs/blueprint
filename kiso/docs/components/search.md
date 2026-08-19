@@ -128,7 +128,9 @@ a different global binding.
 
 Same semantic set as Input: `--color-surface`, `--color-foreground`,
 `--color-subtle-foreground`, `--color-muted-foreground`, `--color-border`,
-`--color-focus`, `--color-disabled`, plus spacing, radius, type, motion.
+`--color-focus`, `--color-disabled`, `--spacing-sm` block and `--spacing-md`
+inline padding, `--radius-md`, the five property-qualified body typography
+tokens, `--motion-duration-fast`, and `--motion-easing-standard`.
 Spinner and IconButton bring their own tokens. No raw hex/px.
 
 ## Radix/shadcn mapping

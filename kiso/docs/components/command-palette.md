@@ -72,7 +72,8 @@ a quiet `--color-primary` indicator without filling the row in primary ink.
 One size. The palette is a centered (or top-anchored) elevated panel with
 max width from layout tokens / spacing rhythm — not Button `sm|md|lg`.
 Item row padding `--spacing-sm` block, `--spacing-md` inline. Type:
-`--type-role-body` for items; `--type-role-label` for group headings.
+the five body typography properties for items; the five label typography
+properties for group headings.
 
 ## States
 
@@ -144,8 +145,12 @@ Item row padding `--spacing-sm` block, `--spacing-md` inline. Type:
 `--color-elevated-surface`, `--color-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-subtle-foreground`, `--color-border`,
 `--color-primary` (highlight affordance only), `--color-focus`,
-`--color-disabled`, `--shadow-sm`, plus spacing, radius, type, and motion
-semantic tokens. No raw hex/px.
+`--color-disabled`, `--shadow-sm`, `--spacing-sm` / `--spacing-md`,
+`--radius-lg`, `--motion-duration-fast`, and `--motion-easing-standard`.
+Items use `--type-role-body-font-family`, `--type-role-body-font-size`,
+`--type-role-body-font-weight`, `--type-role-body-letter-spacing`, and
+`--type-role-body-line-height`; group headings use the equivalent five
+property-qualified label tokens. No raw hex/px.
 
 ## Radix/shadcn mapping
 

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tokens/**"
+      - "kiso/docs/components/**"
       - "style-dictionary.config.*"
       - "scripts/**"
 
@@ -32,6 +33,8 @@ jobs:
           test -s tokens/build/tokens.d.ts
           test -s tokens/build/tokens.scss
           git diff --exit-code -- tokens/build/
+      - name: Check component token references
+        run: node scripts/check-component-token-refs.mjs
 
   contrast:
     name: Check AA contrast

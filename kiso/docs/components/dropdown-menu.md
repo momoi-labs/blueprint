@@ -83,7 +83,7 @@ Content tokens: background `--color-elevated-surface`, border
 | Axis | Rule |
 | --- | --- |
 | Trigger | IconButton/Button `sm` in tables and dense chrome; `md` in headers. |
-| Content | Min width fits labels; match trigger width only when it helps. No raw px — spacing and type roles. |
+| Content | Min width fits labels; match trigger width only when it helps. No raw px: measure from the body/label typography properties and add the `--spacing-md` inline item padding. |
 | Items | One density; do not ship `sm`/`lg` item scales. |
 
 ## States
@@ -155,8 +155,12 @@ Content tokens: background `--color-elevated-surface`, border
 
 `--color-elevated-surface`, `--color-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-border`, `--color-danger`,
-`--color-focus`, `--color-disabled`, plus spacing, radius, shadow, type,
-motion. Trigger consumes Button/IconButton tokens. No raw hex/px.
+`--color-focus`, `--color-disabled`, `--spacing-xs` list padding,
+`--spacing-sm` / `--spacing-md` item padding, `--radius-md`, `--shadow-sm`,
+the five property-qualified body typography tokens for items, the five label
+typography tokens for group labels, `--motion-duration-fast`, and
+`--motion-easing-standard`. Trigger consumes Button/IconButton tokens. No raw
+hex/px.
 
 ## Radix/shadcn mapping
 

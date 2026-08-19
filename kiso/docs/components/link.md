@@ -69,10 +69,10 @@ Links inherit the surrounding type role. Do not invent a parallel size scale.
 
 | Context | Type role |
 | --- | --- |
-| Body copy | `--type-role-body` |
-| Navigation, labels | `--type-role-label` |
-| Chrome / metadata | `--type-role-metadata` |
-| `button-look` | Same padding, radius, and `--type-role-label` as the matching [Button](button.md) size (`sm` / `md` / `lg`) |
+| Body copy | All five property-qualified body typography tokens |
+| Navigation, labels | All five property-qualified label typography tokens |
+| Chrome / metadata | All five property-qualified metadata typography tokens |
+| `button-look` | Same padding, radius, and five property-qualified label typography tokens as the matching [Button](button.md) size (`sm` / `md` / `lg`) |
 
 ## States
 

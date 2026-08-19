@@ -30,7 +30,8 @@ that takes effect as on/off; Select is for exactly one value from many.
   Label activation target.
 - **Medium** — default.
 
-Indicator and gap scale together via semantic size and spacing tokens. Avoid a
+Indicator follows `--type-role-label-font-size`; its label gap is
+`--spacing-sm`. Avoid a
 large decorative variant; hierarchy belongs in the text and layout.
 
 ## States
@@ -79,7 +80,8 @@ actual value with a recovery action.
 
 Use `--color-border`, `--color-surface`, `--color-foreground`,
 `--color-primary`, `--color-focus`, `--color-disabled`, and `--color-danger`,
-plus semantic spacing, radius, typography, and motion tokens.
+plus `--spacing-sm`, `--radius-sm`, the five property-qualified label
+typography tokens, `--motion-duration-fast`, and `--motion-easing-standard`.
 
 ## Radix/shadcn mapping
 

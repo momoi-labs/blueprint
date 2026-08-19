@@ -24,8 +24,9 @@ Dialog Root
 ```
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
-`--color-border`, semantic radius/spacing, and `--shadow-lg`. Overlay and
-motion consume semantic color/motion tokens only.
+`--color-border`, `--radius-lg`, `--spacing-lg` padding, and `--shadow-md`.
+Overlay transitions use `--motion-duration-normal` and
+`--motion-easing-standard`.
 
 ## Variants
 

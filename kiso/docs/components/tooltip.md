@@ -41,9 +41,11 @@ or Alert, and they are essential — they cannot live in a Tooltip.
 
 | Treatment | Tokens |
 | --- | --- |
-| Default | Background `--color-elevated-surface`, text `--color-foreground`, border `--color-border`, radius `--radius-sm`, padding `--spacing-xs` `--spacing-sm`, type `--type-role-metadata`, shadow `--shadow-sm`. |
+| Default | Background `--color-elevated-surface`, text `--color-foreground`, border `--color-border`, radius `--radius-sm`, padding `--spacing-xs` `--spacing-sm`, all five property-qualified metadata typography tokens, shadow `--shadow-sm`. |
 
-Keyboard shortcut inside Content uses `--type-role-code` / `--font-mono`.
+Keyboard shortcut inside Content uses `--type-role-code-font-family`,
+`--type-role-code-font-size`, `--type-role-code-font-weight`,
+`--type-role-code-letter-spacing`, and `--type-role-code-line-height`.
 
 Placement: `top` by default, flip on collision (`side` + `align` from the
 Radix reference). Offset `--spacing-xs` from the trigger. Do not specify
@@ -51,7 +53,9 @@ the offset in raw pixels.
 
 ## Sizes
 
-One size: `--type-role-metadata`. Content wraps; max width is a reading
+One size: `--type-role-metadata-font-family`, `--type-role-metadata-font-size`,
+`--type-role-metadata-font-weight`, `--type-role-metadata-letter-spacing`, and
+`--type-role-metadata-line-height`. Content wraps; max width is a reading
 measure of a short phrase (about three or four words per line, a couple of
 lines). If you need a paragraph, you need HelperText, Alert, or Popover.
 

@@ -18,7 +18,9 @@ Navigation
 ```
 
 Presentation inherits its host. Links use `--color-foreground`,
-`--color-primary`, and `--color-focus`; spacing and type use semantic tokens.
+`--color-primary`, and `--color-focus`. Items use `--spacing-sm` block and
+`--spacing-md` inline spacing plus the five property-qualified label typography
+tokens.
 
 ## Variants
 

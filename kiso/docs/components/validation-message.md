@@ -29,8 +29,9 @@ the person can do now. Avoid blame, codes without context, and dead ends.
 
 ## Sizes
 
-ValidationMessage has one typography size using the semantic supporting role.
-It wraps to the FormField width and uses semantic spacing. An optional icon
+ValidationMessage uses `--type-role-metadata-font-size` and
+`--type-role-metadata-line-height`. It wraps to the FormField width and uses
+`--spacing-xs` from the control. An optional icon
 aligns with the first line and does not create a separate size variant.
 
 ## States
@@ -80,8 +81,10 @@ do not flash an error before the result exists.
 
 ## Tokens
 
-Use `--color-danger` for error text and error affordances, semantic supporting
-typography, and semantic spacing tokens. Surfaces and focus indicators retain
+Use `--color-danger` for error text and error affordances;
+`--type-role-metadata-font-family`, `--type-role-metadata-font-size`,
+`--type-role-metadata-font-weight`, `--type-role-metadata-letter-spacing`, and
+`--type-role-metadata-line-height`; and `--spacing-xs`. Surfaces and focus indicators retain
 their own semantic roles. Do not use a primitive status color or raw value.
 
 ## Radix/shadcn mapping

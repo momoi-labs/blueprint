@@ -67,9 +67,9 @@ Square hit targets. Icon centered. Radius `--radius-md` (`sm` size uses
 
 | Size | Type / icon | Padding | Use |
 | --- | --- | --- | --- |
-| `sm` | Icon scaled to `--type-role-metadata` | `--spacing-xs` | Inside Alert, Badge-adjacent chrome, dense tables. |
-| `md` (default) | Icon scaled to `--type-role-label` | `--spacing-sm` | Toolbars, Card actions, Header. |
-| `lg` | Icon scaled to `--type-role-body` | `--spacing-md` | Rare; empty-state or touch-first primary icon. |
+| `sm` | Icon scaled to `--type-role-metadata-font-size` | `--spacing-xs` | Inside Alert, Badge-adjacent chrome, dense tables. |
+| `md` (default) | Icon scaled to `--type-role-label-font-size` | `--spacing-sm` | Toolbars, Card actions, Header. |
+| `lg` | Icon scaled to `--type-role-body-font-size` | `--spacing-md` | Rare; empty-state or touch-first primary icon. |
 
 The hit target must remain easy to activate; do not shrink `sm` below the
 spacing tokens above.

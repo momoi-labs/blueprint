@@ -30,8 +30,8 @@ default because it remains clear across composed layouts.
 ## Sizes
 
 Label follows the associated control size rather than exposing an independent
-size API. Use the semantic label typography role. Keep the label-to-control gap
-consistent with the form layout spacing tokens.
+size API. Use all five property-qualified label typography tokens. Keep the
+label-to-control gap at `--spacing-sm`.
 
 ## States
 
@@ -74,8 +74,11 @@ consistent with the form layout spacing tokens.
 ## Tokens
 
 Use `--color-foreground` for label text, `--color-muted-foreground` for an
-optional qualifier, `--color-disabled` for disabled text, and the semantic
-label typography and spacing tokens. Do not use primitive colors or raw values.
+optional qualifier, `--color-disabled` for disabled text;
+`--type-role-label-font-family`, `--type-role-label-font-size`,
+`--type-role-label-font-weight`, `--type-role-label-letter-spacing`, and
+`--type-role-label-line-height`; and `--spacing-sm`. Do not use primitive colors
+or raw values.
 
 ## Radix/shadcn mapping
 

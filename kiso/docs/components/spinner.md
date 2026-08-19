@@ -49,9 +49,9 @@ the Spinner.
 
 | Size | Scale | Use |
 | --- | --- | --- |
-| `sm` | Matches `--type-role-metadata` | Inside Button `sm`, Badge, inline meta. |
-| `md` (default) | Matches `--type-role-label` | Inside Button `md`, IconButton `md`, inline waits. |
-| `lg` | Matches `--type-role-body` | Region-level wait when layout is unknown. |
+| `sm` | Matches `--type-role-metadata-font-size` | Inside Button `sm`, Badge, inline meta. |
+| `md` (default) | Matches `--type-role-label-font-size` | Inside Button `md`, IconButton `md`, inline waits. |
+| `lg` | Matches `--type-role-body-font-size` | Region-level wait when layout is unknown. |
 
 ## States
 
@@ -66,7 +66,8 @@ the Spinner.
 Motion uses `--motion-duration-normal` and `--motion-easing-standard` for
 fade-in. The spin loop itself is continuous.
 
-**Reduced motion:** the generated tokens set `--motion-duration-*` to `0s`
+**Reduced motion:** the generated tokens set `--motion-duration-fast` and
+`--motion-duration-normal` to `0s`
 under `prefers-reduced-motion: reduce`. A spinning loop with duration zero
 is invisible or broken. In that case show a **static** indicator (the same
 graphic, not rotating) plus the label. Never communicate loading only with

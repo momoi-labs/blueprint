@@ -41,7 +41,7 @@ only through thumb position or color; the accessible state remains required.
 | Default | Clearly presents off or on state. |
 | Hover | Track/label pair receives quiet interactive emphasis. |
 | Focus | Root has a visible `--color-focus` ring. |
-| Active | Brief pressed feedback; thumb movement uses semantic motion tokens. |
+| Active | Brief pressed feedback; thumb movement uses `--motion-duration-fast` and `--motion-easing-standard`. |
 | Disabled | Cannot toggle and uses `--color-disabled`. |
 | Loading | Retains the intended or confirmed state, shows pending status, and prevents duplicate changes only when necessary. |
 | Error | Persistence failure is explained with `--color-danger` feedback and a recovery action; do not leave the displayed state ambiguous. |
@@ -80,7 +80,9 @@ with an explicit retry path.
 
 Use `--color-border`, `--color-surface`, `--color-foreground`,
 `--color-primary`, `--color-focus`, `--color-disabled`, and `--color-danger`,
-plus semantic spacing, radius, typography, and motion tokens.
+plus `--spacing-sm` label gap, `--radius-full`, the five property-qualified
+label typography tokens, `--motion-duration-fast`, and
+`--motion-easing-standard`.
 
 ## Radix/shadcn mapping
 
