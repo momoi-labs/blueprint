@@ -27,6 +27,17 @@ Use `--color-surface`, `--color-foreground`, and `--color-border`; spacing,
 type, radius, and motion use their semantic token families. The current Link
 uses `aria-current="page"` and `--color-primary`.
 
+## Variants
+
+No visual variants. Header has one structural treatment; its child Navigation
+and actions determine the composition, while narrow-viewport collapse is a
+state rather than a separate variant.
+
+## Sizes
+
+No named sizes. Header spacing adapts responsively with semantic spacing tokens;
+child Links, IconButtons, and DropdownMenu triggers keep their own sizes.
+
 ## States
 
 | State | Behavior |

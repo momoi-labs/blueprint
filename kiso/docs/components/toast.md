@@ -25,6 +25,17 @@ Use `--color-elevated-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-border`, semantic status colors where
 severity must be shown, semantic spacing/radius, and `--shadow-md`.
 
+## Variants
+
+Four semantic variants: `neutral` (default), `success`, `warning`, and `error`.
+Status variants change the announcement urgency and semantic accent only; they
+do not turn the whole Toast into a status-colored surface.
+
+## Sizes
+
+One compact size. Toast has no `sm` / `lg` scales; title, optional description,
+and at most one Action must remain brief enough for the standard treatment.
+
 ## States
 
 | State | Behavior |

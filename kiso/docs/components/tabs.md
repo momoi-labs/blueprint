@@ -21,6 +21,16 @@ Tabs use `--color-foreground`, `--color-muted-foreground`,
 `--color-primary`, `--color-border`, and `--color-focus`, with semantic
 spacing, type, and motion tokens.
 
+## Variants
+
+Two orientations: horizontal (default) and vertical. Orientation changes the
+TabList layout and arrow-key axis, not the selection or panel semantics.
+
+## Sizes
+
+One size. Tabs use a single label and spacing treatment; do not add compact or
+large scales. The host layout controls available panel width.
+
 ## States
 
 | State | Behavior |

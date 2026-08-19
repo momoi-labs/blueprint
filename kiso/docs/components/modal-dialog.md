@@ -27,6 +27,18 @@ Content uses `--color-elevated-surface`, `--color-foreground`,
 `--color-border`, semantic radius/spacing, and `--shadow-lg`. Overlay and
 motion consume semantic color/motion tokens only.
 
+## Variants
+
+Two behavioral variants: task Dialog (default) and Alert Dialog for a
+confirmation that must prevent outside dismissal. Both keep the same labelled,
+modal focus behavior; an in-page Alert is not a Dialog variant.
+
+## Sizes
+
+One responsive size. Content uses a readable bounded width and becomes
+viewport-limited when space is tight; use Drawer when the task needs a distinct
+small-viewport presentation instead of adding `sm` / `lg` Dialog sizes.
+
 ## States
 
 | State | Behavior |

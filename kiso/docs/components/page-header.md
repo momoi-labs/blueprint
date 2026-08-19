@@ -22,6 +22,16 @@ Title uses the page-heading semantic type role and `--color-foreground`;
 subtitle uses `--color-muted-foreground`. Layout and gaps use semantic spacing
 tokens. Actions retain Button tokens and behavior.
 
+## Variants
+
+No visual variants. Subtitle and actions are optional anatomy; their presence
+does not create separate PageHeader variants.
+
+## Sizes
+
+One size. The title keeps the page-heading type role; responsive wrapping is a
+compact state, while child Buttons retain their own sizes.
+
 ## States
 
 | State | Behavior |

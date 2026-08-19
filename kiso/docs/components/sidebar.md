@@ -26,6 +26,16 @@ Surface uses `--color-surface`, divider `--color-border`, primary text
 `--color-foreground`, and current items `--color-primary`. Layout uses semantic
 spacing and type tokens only.
 
+## Variants
+
+No visual variants. Sidebar has one navigation treatment; expanded and
+collapsed are states of the same component, not separate variants.
+
+## Sizes
+
+No `sm` / `md` / `lg` sizes. Width belongs to the host layout, and internal
+spacing uses semantic tokens without changing Link or disclosure-control sizes.
+
 ## States
 
 | State | Behavior |

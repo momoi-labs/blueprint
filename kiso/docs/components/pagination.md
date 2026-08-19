@@ -24,6 +24,16 @@ whose URL intentionally does not change. Apply `--color-primary`,
 `--color-foreground`, `--color-border`, `--color-disabled`, and
 `--color-focus`, plus semantic spacing and type tokens.
 
+## Variants
+
+No visual variants. Pagination uses the numbered model shown above; optional
+ellipsis and result summary are composition choices, not variants.
+
+## Sizes
+
+One size. Page controls keep one consistent target and label treatment; use
+semantic spacing rather than introducing `sm` or `lg` pagination.
+
 ## States
 
 | State | Behavior |

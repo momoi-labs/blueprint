@@ -20,6 +20,16 @@ Navigation
 Presentation inherits its host. Links use `--color-foreground`,
 `--color-primary`, and `--color-focus`; spacing and type use semantic tokens.
 
+## Variants
+
+No visual variants. Navigation is semantic structure and inherits horizontal,
+vertical, or other presentation from its Header, Sidebar, footer, or section.
+
+## Sizes
+
+No sizes of its own. The host controls layout and spacing; Links keep the sizes
+defined by their component guidance.
+
 ## States
 
 | State | Behavior |
