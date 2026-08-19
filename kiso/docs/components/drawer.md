@@ -26,8 +26,9 @@ Drawer Root
 ```
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
-`--color-border`, semantic spacing/radius, and `--shadow-lg`. Entry/exit uses
-semantic motion tokens and no travel under reduced motion.
+`--color-border`, `--spacing-lg` padding, `--radius-lg`, and `--shadow-md`.
+Entry/exit uses `--motion-duration-normal` and `--motion-easing-standard`, with
+no travel under reduced motion.
 
 ## States
 

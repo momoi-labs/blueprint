@@ -46,8 +46,10 @@ ValidationMessage
 - **Medium** — default.
 - **Large** — inherits the large control size where that control supports it.
 
-FormField does not scale text independently. Label and supporting text use
-their semantic typography roles; gaps use spacing tokens.
+FormField does not scale text independently. Label uses the five
+property-qualified label typography tokens; supporting text uses the five
+property-qualified metadata typography tokens. Use `--spacing-xs` between a
+control and supporting text and `--spacing-sm` between the label and control.
 
 ## States
 
@@ -98,7 +100,8 @@ control, Label, or existing help to lose their associations.
 
 ## Tokens
 
-FormField consumes semantic spacing and typography tokens for layout. Its
+FormField consumes `--spacing-xs`, `--spacing-sm`, and the label and metadata
+typography properties named above for layout. Its
 children own colors: foreground/muted text, surface/border, focus, disabled,
 and danger. The composition introduces no primitive token or raw value.
 

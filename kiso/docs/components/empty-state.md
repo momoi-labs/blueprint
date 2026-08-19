@@ -63,7 +63,7 @@ the surrounding `--color-surface` or `--color-background`. Icon uses
 
 | Size | Use | Tokens |
 | --- | --- | --- |
-| `md` (default) | Table bodies, Card content, list panels. | Title `--type-role-heading` or label emphasis; description `--type-role-body`; padding `--spacing-lg`; gap `--spacing-sm`. |
+| `md` (default) | Table bodies, Card content, list panels. | Title uses the five heading typography properties, or the five label typography properties for label emphasis; description uses the five body typography properties; padding `--spacing-lg`; gap `--spacing-sm`. |
 | `sm` | Narrow side panels or compact nested regions. | Tighter padding `--spacing-md`; smaller icon; same type roles if readable. |
 
 Action Buttons use Button `md` by default; `sm` only inside `sm` EmptyState
@@ -122,8 +122,10 @@ PageHeader.
 ## Tokens
 
 `--color-foreground`, `--color-muted-foreground`, `--color-surface` /
-`--color-background`, optional icon `--color-muted-foreground`, spacing /
-type / radius / motion semantic tokens only. Action consumes Button/Link
+`--color-background`, optional icon `--color-muted-foreground`, `--spacing-lg`
+padding (`--spacing-md` for `sm`), `--spacing-sm` gap, `--radius-md`, and
+`--motion-duration-fast` / `--motion-easing-standard`. Typography uses every
+property of the selected heading, label, and body roles named above. Action consumes Button/Link
 tokens. No raw hex/px.
 
 ## Radix/shadcn mapping

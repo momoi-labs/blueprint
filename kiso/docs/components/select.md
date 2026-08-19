@@ -89,10 +89,13 @@ the current value.
 
 ## Tokens
 
-Trigger uses semantic control tokens. Content uses `--color-elevated-surface`,
-`--color-foreground`, `--color-border`, semantic shadow and radius tokens;
+Trigger uses the Input token mapping. Content uses `--color-elevated-surface`,
+`--color-foreground`, `--color-border`, `--shadow-sm`, and `--radius-md`;
 focused/selected items use `--color-accent` or `--color-primary` according to
-hierarchy, focus uses `--color-focus`, and error uses `--color-danger`.
+hierarchy, focus uses `--color-focus`, and error uses `--color-danger`. List
+padding uses `--spacing-xs`, item padding uses `--spacing-sm` block and
+`--spacing-md` inline, and transitions use `--motion-duration-fast` with
+`--motion-easing-standard`.
 
 ## Radix/shadcn mapping
 

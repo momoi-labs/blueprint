@@ -23,8 +23,9 @@ Sidebar
 ```
 
 Surface uses `--color-surface`, divider `--color-border`, primary text
-`--color-foreground`, and current items `--color-primary`. Layout uses semantic
-spacing and type tokens only.
+`--color-foreground`, and current items `--color-primary`. Layout uses
+`--spacing-sm` between items, `--spacing-md` section gaps, and the five
+property-qualified label typography tokens.
 
 ## States
 

@@ -60,8 +60,8 @@ An optional `outline` look is `neutral` with transparent background — still
 
 | Size | Type role | Padding | Radius |
 | --- | --- | --- | --- |
-| `sm` (default) | `--type-role-metadata` | `--spacing-xs` | `--radius-sm` |
-| `md` | `--type-role-label` | `--spacing-xs` block, `--spacing-sm` inline | `--radius-sm` |
+| `sm` (default) | Metadata properties (`--type-role-metadata-font-family`, `--type-role-metadata-font-size`, `--type-role-metadata-font-weight`, `--type-role-metadata-letter-spacing`, `--type-role-metadata-line-height`) | `--spacing-xs` | `--radius-sm` |
+| `md` | Label properties (`--type-role-label-font-family`, `--type-role-label-font-size`, `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, `--type-role-label-line-height`) | `--spacing-xs` block, `--spacing-sm` inline | `--radius-sm` |
 
 Do not use `--radius-full` (pill). Badges are compact labels, not tags in
 a marketing cluster.
@@ -126,7 +126,7 @@ No Radix Badge primitive. Visual reference: shadcn
 | Kiso | shadcn |
 | --- | --- |
 | `neutral` | `secondary` or `outline` restyled to `--color-surface` / `--color-border` / `--color-foreground` |
-| `info` / `success` / `warning` / `danger` | Do not use arbitrary `bg-green-*` utilities from the shadcn "Custom Colors" example. Map to `--color-info|success|warning|danger` |
+| `info` / `success` / `warning` / `danger` | Do not use arbitrary `bg-green-*` utilities from the shadcn "Custom Colors" example. Map respectively to `--color-info`, `--color-success`, `--color-warning`, or `--color-danger`. |
 | shadcn `destructive` | Closest to Kiso `danger` |
 | shadcn `default` (accent fill) | Do not use as a status; it competes with primary actions |
 | shadcn `variant="link"` | Do not use; navigation is [Link](link.md) |

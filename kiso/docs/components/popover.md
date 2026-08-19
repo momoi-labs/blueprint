@@ -21,9 +21,9 @@ Popover
 ```
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
-`--color-border`, semantic radius/spacing, and `--shadow-md`. Placement offset
-and collision padding use semantic spacing tokens; motion uses semantic motion
-tokens.
+`--color-border`, `--radius-md`, `--spacing-md` padding, and `--shadow-md`.
+Placement offset uses `--spacing-xs`, collision padding uses `--spacing-md`,
+and motion uses `--motion-duration-fast` with `--motion-easing-standard`.
 
 ## States
 

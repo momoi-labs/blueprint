@@ -18,9 +18,12 @@ PageHeader
     └── Button(s)
 ```
 
-Title uses the page-heading semantic type role and `--color-foreground`;
-subtitle uses `--color-muted-foreground`. Layout and gaps use semantic spacing
-tokens. Actions retain Button tokens and behavior.
+Title uses `--type-role-heading-font-family`, `--type-role-heading-font-size`,
+`--type-role-heading-font-weight`, `--type-role-heading-letter-spacing`, and
+`--type-role-heading-line-height` with `--color-foreground`; subtitle uses the
+five property-qualified body typography tokens and `--color-muted-foreground`.
+Layout uses `--spacing-lg` between regions and `--spacing-sm` between title and
+subtitle. Actions retain Button tokens and behavior.
 
 ## States
 

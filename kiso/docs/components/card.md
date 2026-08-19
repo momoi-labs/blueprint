@@ -31,13 +31,21 @@ Every part except the root is optional, but a Card with no content is
 decorative and does not belong. Prefer Title + Content as the minimum useful
 shape.
 
-- **Title.** `--type-role-heading` only when the Card is a true section;
-  otherwise `--type-role-label`. One title.
-- **Description.** `--type-role-body` or `--type-role-metadata`. Secondary;
+- **Title.** Use the heading typography properties (`--type-role-heading-font-family`,
+  `--type-role-heading-font-size`, `--type-role-heading-font-weight`,
+  `--type-role-heading-letter-spacing`, `--type-role-heading-line-height`) only
+  when the Card is a true section; otherwise use the equivalent five
+  `--type-role-label-font-family`, `--type-role-label-font-size`,
+  `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, and
+  `--type-role-label-line-height` properties. One title.
+- **Description.** Use the five body typography properties or the five metadata
+  typography properties listed in `tokens/build/tokens.css`. Secondary;
   `--color-muted-foreground`.
 - **Action.** One compact control aligned with the title — not a toolbar.
-- **Content.** The payload. Default type `--type-role-body`, color
-  `--color-foreground`.
+- **Content.** The payload. Default type uses `--type-role-body-font-family`,
+  `--type-role-body-font-size`, `--type-role-body-font-weight`,
+  `--type-role-body-letter-spacing`, and `--type-role-body-line-height`; color
+  uses `--color-foreground`.
 - **Footer.** Actions that apply to the whole Card, typically
   [Button](button.md) `sm` / `md`.
 
@@ -139,8 +147,8 @@ No Radix Card primitive. Structure follows shadcn
 | Action | `CardAction` |
 | Content | `CardContent` |
 | Footer | `CardFooter` |
-| `sm` / `md` | `size="sm"` / default; map padding to `--spacing-*`, not raw values |
+| `sm` / `md` | `size="sm"` / default; map padding to `--spacing-md` / `--spacing-lg`, not raw values |
 | `plain` / `elevated` | Default shadcn Card uses its `bg-card` token — restyle to `--color-surface` or `--color-elevated-surface` |
 
 Ignore shadcn's invitation to hard-code spacing utilities. Card spacing
-consumes `--spacing-md|lg|xl` only.
+consumes `--spacing-md`, `--spacing-lg`, or `--spacing-xl` only.

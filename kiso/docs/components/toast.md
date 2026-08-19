@@ -22,8 +22,9 @@ Toast Provider
 ```
 
 Use `--color-elevated-surface`, `--color-foreground`,
-`--color-muted-foreground`, `--color-border`, semantic status colors where
-severity must be shown, semantic spacing/radius, and `--shadow-md`.
+`--color-muted-foreground`, `--color-border`, `--color-info`, `--color-success`,
+`--color-warning`, or `--color-danger` where severity must be shown;
+`--spacing-md` padding; `--spacing-sm` gap; `--radius-md`; and `--shadow-md`.
 
 ## States
 

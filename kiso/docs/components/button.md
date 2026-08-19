@@ -68,9 +68,9 @@ If a destructive action is not irreversible (archive, disable, hide), use
 
 | Size | Type role | Padding | Radius | Use |
 | --- | --- | --- | --- | --- |
-| `sm` | `--type-role-label` | `--spacing-xs` block, `--spacing-sm` inline | `--radius-sm` | Dense tables, Card footers, compact filters. |
-| `md` (default) | `--type-role-label` | `--spacing-sm` block, `--spacing-md` inline | `--radius-md` | Forms, page actions, dialogs. |
-| `lg` | `--type-role-label` | `--spacing-md` block, `--spacing-lg` inline | `--radius-md` | Rare; empty-state or onboarding primary actions. |
+| `sm` | Label properties (`--type-role-label-font-family`, `--type-role-label-font-size`, `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, `--type-role-label-line-height`) | `--spacing-xs` block, `--spacing-sm` inline | `--radius-sm` | Dense tables, Card footers, compact filters. |
+| `md` (default) | Same label properties | `--spacing-sm` block, `--spacing-md` inline | `--radius-md` | Forms, page actions, dialogs. |
+| `lg` | Same label properties | `--spacing-md` block, `--spacing-lg` inline | `--radius-md` | Rare; empty-state or onboarding primary actions. |
 
 Do not invent a fourth size. Page-level calls to action still use `md` or
 `lg`. PageHeader (navigation slice) composes Buttons; it is not a Button

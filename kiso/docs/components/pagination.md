@@ -22,7 +22,9 @@ Pagination navigation
 Use Link for URL-addressable pages and Button only for a client-side dataset
 whose URL intentionally does not change. Apply `--color-primary`,
 `--color-foreground`, `--color-border`, `--color-disabled`, and
-`--color-focus`, plus semantic spacing and type tokens.
+`--color-focus`, `--spacing-xs` between controls, `--spacing-sm` block and
+inline control padding, and the five property-qualified label typography
+tokens.
 
 ## States
 

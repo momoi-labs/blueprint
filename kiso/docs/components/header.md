@@ -23,8 +23,11 @@ Header
     └── DropdownMenu (optional, triggered by IconButton)
 ```
 
-Use `--color-surface`, `--color-foreground`, and `--color-border`; spacing,
-type, radius, and motion use their semantic token families. The current Link
+Use `--color-surface`, `--color-foreground`, and `--color-border`;
+`--spacing-md` block and `--spacing-lg` inline padding; `--spacing-md` item
+gaps; the five property-qualified label typography tokens; `--radius-md` for
+interactive children; `--motion-duration-fast`; and
+`--motion-easing-standard`. The current Link
 uses `aria-current="page"` and `--color-primary`.
 
 ## States
