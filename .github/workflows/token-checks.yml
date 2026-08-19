@@ -3,6 +3,8 @@ name: Token checks
 on:
   pull_request:
     paths:
+      - "package.json"
+      - "package-lock.json"
       - "tokens/**"
       - "kiso/docs/components/**"
       - "style-dictionary.config.*"
@@ -20,12 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install Style Dictionary v5 and ajv
-        run: npm install --no-save --ignore-scripts "style-dictionary@^5" "ajv@^8"
+      - name: Install dependencies
+        run: npm ci
       - name: Validate DTCG 2025.10 conformance
         run: node scripts/validate-dtcg.mjs
       - name: Build tokens
-        run: npx --no-install style-dictionary build --config style-dictionary.config.mjs
+        run: npm run build
       - name: Verify generated outputs
         run: |
           test -s tokens/build/tokens.css
