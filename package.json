@@ -1,0 +1,38 @@
+{
+  "name": "@momoi-labs/kiso",
+  "version": "0.1.0",
+  "description": "Kiso design-system contracts and generated design tokens",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "kiso/",
+    "tokens/build/"
+  ],
+  "exports": {
+    "./tokens.css": "./tokens/build/tokens.css",
+    "./tokens.json": "./tokens/build/tokens.json",
+    "./tokens.scss": "./tokens/build/tokens.scss",
+    "./tokens.d.ts": "./tokens/build/tokens.d.ts",
+    "./contracts/*": "./kiso/*"
+  },
+  "scripts": {
+    "build": "style-dictionary build --config style-dictionary.config.mjs",
+    "check": "npm run build && npm run check:generated && npm run check:tokens",
+    "check:generated": "git diff --exit-code -- tokens/build/",
+    "check:tokens": "node scripts/validate-dtcg.mjs && node scripts/check-contrast.mjs tokens/tokens.json && node scripts/check-component-token-refs.mjs",
+    "changeset": "changeset",
+    "release": "changeset publish"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.7",
+    "ajv": "^8.17.1",
+    "style-dictionary": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

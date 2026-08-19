@@ -6,10 +6,11 @@ names the roles a product needs. Components consume semantic colors only; they
 must not use a primitive, a generated primitive variable, or a raw hex value.
 If no semantic role fits, propose a role instead of bypassing this interface.
 
-Build with Style Dictionary v5:
+Install dependencies and build with Style Dictionary v5:
 
 ```sh
-npx style-dictionary build --config style-dictionary.config.mjs
+npm ci
+npm run build
 ```
 
 The build emits `tokens/build/tokens.css`, `tokens.json`, `tokens.d.ts`, and
@@ -86,3 +87,9 @@ artifacts directly consumable without requiring downstream projects to install
 Style Dictionary. Do not edit them: change `tokens/tokens.json` or the build
 configuration and regenerate. CI rebuilds the artifacts and fails if the
 committed output has drifted, so `tokens/build/` is intentionally not ignored.
+
+Published releases expose the artifacts as `@momoi-labs/kiso/tokens.css`,
+`@momoi-labs/kiso/tokens.json`, `@momoi-labs/kiso/tokens.scss`, and
+`@momoi-labs/kiso/tokens.d.ts`. Kiso's Markdown contracts are available below
+`@momoi-labs/kiso/contracts/` so consumers can pin the contracts and generated
+tokens to the same version.
