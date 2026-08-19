@@ -4,7 +4,7 @@ Search-driven interaction for narrowing a visible collection by query. This
 pattern composes the [Search](../components/search.md) component into a list or
 table toolbar and governs when, how, and where filtering by query happens.
 
-User stories #6, #9, #19.
+User story #6.
 
 ## Purpose
 
