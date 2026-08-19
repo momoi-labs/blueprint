@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Kiso design-system contracts and generated design tokens",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momoi-labs/blueprint.git"
+  },
   "type": "module",
   "files": [
     "kiso/",
