@@ -21,6 +21,16 @@ Use `--color-muted-foreground` for ancestors, `--color-foreground` for the
 current page, `--color-primary` for Link interaction, and `--color-focus` for
 focus. Separators use the muted role and are hidden from assistive technology.
 
+## Variants
+
+No visual variants. Breadcrumb always represents one hierarchy; overflow is a
+state that collapses middle ancestors, not a separate variant.
+
+## Sizes
+
+One size. Use the standard body/link treatment and semantic spacing; do not
+create compact or large breadcrumb scales.
+
 ## States
 
 | State | Behavior |

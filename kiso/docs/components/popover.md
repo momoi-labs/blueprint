@@ -25,6 +25,16 @@ Content uses `--color-elevated-surface`, `--color-foreground`,
 and collision padding use semantic spacing tokens; motion uses semantic motion
 tokens.
 
+## Variants
+
+No visual variants. Side, alignment, collision flipping, and an optional Arrow
+are placement/composition options, not separate Popover variants.
+
+## Sizes
+
+One content-sized treatment with a readable maximum width. Do not add named
+sizes; content that needs substantially more room belongs in Dialog or Drawer.
+
 ## States
 
 | State | Behavior |
