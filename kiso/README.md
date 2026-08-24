@@ -3,9 +3,11 @@
 Kiso is the Momoi Labs product design system. It combines product identity,
 semantic tokens, component contracts, and reusable screen patterns so products
 with different purposes still belong to the same family. Kiso is spec-first:
-it documents what to build and how it behaves, and it does not ship component
-implementation code — with one exception, [`blocks/`](blocks/README.md), which
-holds reference screens to copy from. If a block and a contract disagree, the
+its Markdown files document what to build and how it behaves, and they carry
+no implementation. Two files are the exception: [`ui.css`](ui.css), the
+component layer every contract's visual values resolve through, and
+[`blocks/`](blocks/README.md), reference screens built from it to copy from.
+Neither overrides a contract — if a block and a contract disagree, the
 contract is right.
 
 ## For agents
@@ -41,6 +43,7 @@ keyboard flow where relevant.
 | Path | Purpose |
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | Consumption contract and decision boundaries |
+| [`ui.css`](ui.css) | Component layer — published as `@momoi-labs/kiso/ui.css` |
 | [`docs/brand.md`](docs/brand.md) | Product personality and visual direction |
 | [`docs/principles.md`](docs/principles.md) | Design principles and tie-breakers |
 | [`docs/voice-and-tone.md`](docs/voice-and-tone.md) | Product UI copy rules |
@@ -50,9 +53,26 @@ keyboard flow where relevant.
 | [`docs/data-interfaces.md`](docs/data-interfaces.md) | Data-heavy interface rules |
 | [`docs/accessibility.md`](docs/accessibility.md) | Accessibility requirements across all layers |
 | [`docs/evolution.md`](docs/evolution.md) | Deliberate deferrals and evidence-based growth |
+| [`blocks/`](blocks/README.md) | Reference screens built from `ui.css` (not published) |
 
 Token sources and generated artifacts live in the repository-level `tokens/`
 directory; validation scripts live in `scripts/`.
+
+## Installing
+
+Contracts, tokens, and the component layer ship in one versioned package, so a
+project pins the whole system to a single version:
+
+```bash
+npm install @momoi-labs/kiso
+```
+
+```css
+@import "@momoi-labs/kiso/tokens.css";
+@import "@momoi-labs/kiso/ui.css";
+```
+
+`ui.css` reads tokens as custom properties, so import it after `tokens.css`.
 
 ## Proposing a change
 
