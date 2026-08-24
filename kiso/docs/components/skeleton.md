@@ -41,7 +41,7 @@ Variants are shapes, not colors.
 | Variant | Shape tokens | Stands in for |
 | --- | --- | --- |
 | `text` | Height of the target role's `--type-role-body-line-height`, `--type-role-label-line-height`, or `--type-role-heading-line-height`; width a fraction of the column; radius `--radius-sm` | Titles, labels, table cells, descriptions. |
-| `block` | Radius `--radius-md` (or `--radius-lg` when replacing a Card) | Cards, images, chart frames, table bodies as a whole. |
+| `block` | Radius `--radius-md` (or `--radius-surface` when replacing a Card or panel) | Cards, images, chart frames, table bodies as a whole. |
 | `circle` | Radius `--radius-full`, equal width and height | Avatars and circular IconButtons. |
 
 Fill is `--color-border` on the surrounding `--color-surface` or

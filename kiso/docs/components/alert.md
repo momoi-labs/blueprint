@@ -60,7 +60,10 @@ Four severities. There is no extra "destructive" variant — that is `error`.
 | `warning` | `role="status"` (polite) unless the person must stop; then `role="alert"` | `--color-warning`. |
 | `error` | `role="alert"` (assertive) | `--color-danger` (the danger role *is* error). |
 
-Radius `--radius-md`. Padding `--spacing-md`. Gap `--spacing-sm`. Title
+Radius `--radius-lg`; an Alert is a callout inside content, not a panel, so it
+carries no corner marks. Tinted variants use `--color-success-surface` /
+`--color-warning-surface` / `--color-danger-surface` / `--color-info-surface`
+with the matching `*-border`. Padding `--spacing-md`. Gap `--spacing-sm`. Title
 uses the five `--type-role-label-font-family`, `--type-role-label-font-size`,
 `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, and
 `--type-role-label-line-height` properties. Description uses the corresponding

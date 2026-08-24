@@ -82,7 +82,8 @@ is acceleration, not a bypass for the gate.
 ```
 
 The palette is centered or top-anchored, elevated (`--color-elevated-surface`,
-`--shadow-sm`, `--radius-lg`). The active (highlighted) item uses a quiet
+`--shadow-lg`, `--radius-surface`, with corner marks). The active (highlighted)
+item uses a quiet
 `--color-surface` or `--color-primary` indicator — not a filled primary row.
 
 ## Rules

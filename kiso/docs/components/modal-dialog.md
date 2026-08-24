@@ -24,7 +24,10 @@ Dialog Root
 ```
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
-`--color-border`, `--radius-lg`, `--spacing-lg` padding, and `--shadow-md`.
+`--color-border`, `--radius-surface`, `--spacing-lg` padding, and
+`--shadow-lg`. A Dialog is a panel: it carries corner marks. The scrim uses
+`--color-overlay`. Panels are square (`--radius-surface`) and carry corner marks. See
+[Card](card.md#corner-marks) for the shared panel contract.
 Overlay transitions use `--motion-duration-normal` and
 `--motion-easing-standard`.
 

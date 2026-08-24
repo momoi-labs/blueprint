@@ -29,8 +29,24 @@ a keyboard, screen reader, touch input, or reduced-motion preference.
 - Every interactive element must be reachable and operable by keyboard, with a
   visible focus indicator. Keep focus order aligned with reading and visual
   order; do not use positive `tabindex` values.
-- Interactive touch targets must be at least 44 by 44 CSS pixels. A visible
-  control may be smaller only when its interactive hit area reaches that size
+- <a id="target-size"></a>**Target size applies to coarse pointers.** On a
+  coarse pointer, interactive targets must be at least 44 by 44 CSS pixels
+  (`--size-touch-min`). Apply it as a `min-height` inside
+  `@media (pointer: coarse)`, on top of the control's own
+  own control-size height:
+
+  ```css
+  .btn { height: var(--size-control-md); }        /* 36px */
+
+  @media (pointer: coarse) {
+    .btn { min-height: var(--size-touch-min); }   /* 44px */
+  }
+  ```
+
+  Do not use 44px as the control height on a fine pointer. It is an
+  accessibility floor for fingers, not a design value, and applying it on the
+  desktop is what makes a dense interface look like a toy. A visible control
+  may be smaller than its hit area, provided the hit area reaches the minimum
   without overlapping another target.
 - Give icon-only controls an accessible name. Decorative icons must be hidden
   from assistive technology.

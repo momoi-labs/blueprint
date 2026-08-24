@@ -153,7 +153,8 @@ and the detail view contains the same explanation.
 - Use inline code for a value that fits in the surrounding sentence or cell.
   Use a code block for multi-line SQL, logs, config, or any value where line
   breaks and indentation matter.
-- Code blocks use `--color-surface`, `--color-border`, `--radius-md`,
+- Code blocks are panels: `--color-surface`, `--color-border`,
+  `--radius-surface` with corner marks,
   `--spacing-md`, and `--type-role-code`. Inline code uses
   `--color-elevated-surface`, `--radius-sm`, horizontal `--spacing-xs`, and
   `--type-role-code`.

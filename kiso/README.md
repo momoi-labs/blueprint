@@ -2,9 +2,11 @@
 
 Kiso is the Momoi Labs product design system. It combines product identity,
 semantic tokens, component contracts, and reusable screen patterns so products
-with different purposes still belong to the same family. Kiso v1 is spec-first:
-it documents what to build and how it behaves; it does not ship component
-implementation code.
+with different purposes still belong to the same family. Kiso is spec-first:
+it documents what to build and how it behaves, and it does not ship component
+implementation code — with one exception, [`blocks/`](blocks/README.md), which
+holds reference screens to copy from. If a block and a contract disagree, the
+contract is right.
 
 ## For agents
 

@@ -22,6 +22,7 @@ token consumption, and a Radix/shadcn behavioral reference where one exists.
 - [Spinner](spinner.md) — Signals indeterminate work when the final layout is not represented.
 - [Switch](switch.md) — Changes one immediately applied boolean setting.
 - [Textarea](textarea.md) — Collects multi-line free-form text.
+- [ThemeSelector](theme-selector.md) — Chooses between following the system colour scheme, forcing light, or forcing dark.
 - [Tooltip](tooltip.md) — Adds nonessential pointer or keyboard context as progressive enhancement.
 - [ValidationMessage](validation-message.md) — Explains a field-level validation error and how to fix it.
 

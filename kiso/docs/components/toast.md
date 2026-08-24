@@ -24,7 +24,8 @@ Toast Provider
 Use `--color-elevated-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-border`, `--color-info`, `--color-success`,
 `--color-warning`, or `--color-danger` where severity must be shown;
-`--spacing-md` padding; `--spacing-sm` gap; `--radius-md`; and `--shadow-md`.
+`--spacing-md` padding; `--spacing-sm` gap; `--radius-lg`; and `--shadow-md`.
+Transient chrome, not a panel: no corner marks.
 
 ## Variants
 

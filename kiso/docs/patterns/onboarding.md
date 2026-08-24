@@ -22,7 +22,7 @@ The issue calls the progress composition “Steps”, but Kiso has no Steps
 component. Represent progress as a semantic ordered list with current and
 completed text states; do not invent a new component in this pattern.
 
-Cards use `--color-surface`, `--color-border`, `--radius-lg`, and semantic
+Cards use `--color-card`, `--color-border`, `--radius-surface`, and semantic
 spacing. Current-step emphasis uses `--color-primary`; completed status may use
 `--color-success`; primary and secondary copy use `--color-foreground` and
 `--color-muted-foreground`. Keyboard focus uses `--color-focus`.

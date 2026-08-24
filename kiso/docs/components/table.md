@@ -111,7 +111,7 @@ Table has no `sm` / `md` / `lg` control scale like Button. Size comes from:
 | --- | --- |
 | Type | All five property-qualified body typography tokens for cells; all five property-qualified label typography tokens for headers. |
 | Cell padding | Density table above (`--spacing-xs`, `--spacing-sm`, and `--spacing-md`). |
-| Radius | Outer wrapper `--radius-md` when the table sits in a framed panel; internal cells are square. |
+| Radius | Outer wrapper `--radius-surface`; internal cells are square. The wrapper is a panel and carries corner marks. Scrolling moves to an inner element so the marks, which sit just outside the frame, are not clipped. |
 | Checkbox / IconButton in cells | `sm` controls so row height stays dense. |
 
 Do not invent a fourth density. Do not set row height in raw pixels.
@@ -231,7 +231,11 @@ Consume only semantic roles: `--color-background`, `--color-surface`,
 `--color-border`, `--color-primary`, `--color-focus`, `--color-disabled`,
 `--color-danger` (via Alert on error); the five property-qualified body and
 label typography tokens; `--spacing-xs`, `--spacing-sm`, `--spacing-md`;
-`--radius-md`; `--motion-duration-fast`; and `--motion-easing-standard`. No
+`--radius-surface`; `--color-muted` for the header and footer bands;
+`--color-selected` for a selected row; `--color-accent-surface` for row hover;
+`--size-control-lg` for row height; `--color-corner-mark`, `--corner-mark`,
+`--corner-mark-tick`, `--corner-mark-gap`; `--motion-duration-fast`; and
+`--motion-easing-standard`. No
 palette primitives, no raw hex/px.
 
 ## Radix/shadcn mapping

@@ -63,7 +63,8 @@ Do not ship separate palettes per page unless the product truly scopes
 commands; default is one app-level palette.
 
 Surface: `--color-elevated-surface`, border `--color-border`, shadow
-`--shadow-sm`, radius `--radius-lg`. Input and items use foreground /
+`--shadow-lg`, radius `--radius-surface`, with corner marks — the palette is a
+panel. Input and items use foreground /
 muted-foreground roles. Active (highlighted) item uses `--color-surface` or
 a quiet `--color-primary` indicator without filling the row in primary ink.
 
@@ -145,8 +146,10 @@ properties for group headings.
 `--color-elevated-surface`, `--color-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-subtle-foreground`, `--color-border`,
 `--color-primary` (highlight affordance only), `--color-focus`,
-`--color-disabled`, `--shadow-sm`, `--spacing-sm` / `--spacing-md`,
-`--radius-lg`, `--motion-duration-fast`, and `--motion-easing-standard`.
+`--color-disabled`, `--shadow-lg`, `--spacing-sm` / `--spacing-md`,
+`--radius-surface`, `--color-popover`, `--color-selected`,
+`--color-corner-mark`, `--corner-mark`, `--corner-mark-tick`,
+`--corner-mark-gap`, `--motion-duration-fast`, and `--motion-easing-standard`.
 Items use `--type-role-body-font-family`, `--type-role-body-font-size`,
 `--type-role-body-font-weight`, `--type-role-body-letter-spacing`, and
 `--type-role-body-line-height`; group headings use the equivalent five

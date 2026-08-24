@@ -75,7 +75,8 @@ Content tokens: background `--color-elevated-surface`, border
 `--color-border`, text `--color-foreground`, muted hints
 `--color-muted-foreground`, destructive `--color-danger`, focus/highlight
 `--color-focus` / quiet `--color-surface` for the highlighted item. Radius
-`--radius-md`. Padding `--spacing-xs` around the list; item padding
+`--radius-lg` on the menu, `--radius-md` on each item; transient chrome, so no
+corner marks. Padding `--spacing-xs` around the list; item padding
 `--spacing-sm` / `--spacing-md`.
 
 ## Sizes
@@ -156,7 +157,8 @@ Content tokens: background `--color-elevated-surface`, border
 `--color-elevated-surface`, `--color-surface`, `--color-foreground`,
 `--color-muted-foreground`, `--color-border`, `--color-danger`,
 `--color-focus`, `--color-disabled`, `--spacing-xs` list padding,
-`--spacing-sm` / `--spacing-md` item padding, `--radius-md`, `--shadow-sm`,
+`--spacing-sm` / `--spacing-md` item padding, `--radius-lg`, `--radius-md`,
+`--color-popover`, `--color-selected`, `--shadow-md`,
 the five property-qualified body typography tokens for items, the five label
 typography tokens for group labels, `--motion-duration-fast`, and
 `--motion-easing-standard`. Trigger consumes Button/IconButton tokens. No raw

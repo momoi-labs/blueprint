@@ -50,29 +50,39 @@ Four variants. Do not add a "link" variant; navigation is [Link](link.md).
 
 | Variant | When | Tokens |
 | --- | --- | --- |
-| `default` | Secondary action on the current task. Most buttons. | Background `--color-surface`, text `--color-foreground`, border `--color-border`. Hover background `--color-elevated-surface`. |
-| `primary` | The one action that advances the current task. At most one primary Button per region. | Background `--color-surface`, text and border `--color-primary`, label `--type-weight-semibold`. Hover background `--color-elevated-surface`. |
-| `destructive` | Irreversible or destructive action (delete, drop, disconnect). User story #4. | Background `--color-surface`, text and border `--color-danger`. Hover background `--color-elevated-surface`. Match confirmation weight to stakes; see voice-and-tone. |
-| `ghost` | Low-emphasis action in chrome, toolbars, or inside a Card. | Transparent background and border. Text `--color-foreground`. Hover background `--color-surface`. |
+| `default` | Secondary action on the current task. Most buttons. | Background `--color-card`, border `--color-input`, text `--color-foreground`, `--shadow-xs`. Hover background `--color-accent-surface`. |
+| `primary` | The one action that advances the current task. At most one primary Button per region. | Background `--color-primary`, text `--color-primary-foreground`, transparent border, `--shadow-xs`. Hover background `--color-primary-hover`. |
+| `destructive` | Irreversible or destructive action (delete, drop, disconnect). User story #4. | Background `--color-danger`, text `--color-danger-foreground`, transparent border, `--shadow-xs`. Match confirmation weight to stakes; see voice-and-tone. |
+| `ghost` | Low-emphasis action in chrome, toolbars, or inside a Card. | Transparent background and border. Text `--color-muted-foreground`. Hover background `--color-accent-surface-hover`, text `--color-foreground`. |
 
-`primary` and `danger` are text roles (checked against surfaces in the AA
-gate). `--color-background` is canvas and is never text, so these variants
-are **not** filled inversions. A filled "on-primary" treatment would need a
-new semantic role; do not invent one here and do not borrow the canvas
-role as ink.
+`primary` and `destructive` are **solid fills**. The accent is the fill; the
+label is `--color-primary-foreground` or `--color-danger-foreground`, which
+inverts with the fill and is gated at 4.5:1 against it.
+
+Do not render `primary` as an outline — accent text on a surface with an accent
+border. That treatment reads as a secondary control, and in a violet system it
+is what makes the primary action look grey.
 
 If a destructive action is not irreversible (archive, disable, hide), use
 `default` or `ghost`, not `destructive`.
 
 ## Sizes
 
-| Size | Type role | Padding | Radius | Use |
-| --- | --- | --- | --- | --- |
-| `sm` | Label properties (`--type-role-label-font-family`, `--type-role-label-font-size`, `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, `--type-role-label-line-height`) | `--spacing-xs` block, `--spacing-sm` inline | `--radius-sm` | Dense tables, Card footers, compact filters. |
-| `md` (default) | Same label properties | `--spacing-sm` block, `--spacing-md` inline | `--radius-md` | Forms, page actions, dialogs. |
-| `lg` | Same label properties | `--spacing-md` block, `--spacing-lg` inline | `--radius-md` | Rare; empty-state or onboarding primary actions. |
+Height comes from a control-size token, not from padding. Padding sets the inline
+measure only.
 
-Do not invent a fourth size. Page-level calls to action still use `md` or
+| Size | Height | Type role | Inline padding | Radius | Use |
+| --- | --- | --- | --- | --- | --- |
+| `xs` | `--size-control-xs` | Label properties | `--spacing-sm` | `--radius-sm` | Inline row actions in dense tables. |
+| `sm` | `--size-control-sm` | Label properties (`--type-role-label-font-family`, `--type-role-label-font-size`, `--type-role-label-font-weight`, `--type-role-label-letter-spacing`, `--type-role-label-line-height`) | `--spacing-md` | `--radius-md` | Toolbars, Card footers, compact filters. |
+| `md` (default) | `--size-control-md` | Body properties | `--spacing-md` | `--radius-md` | Forms, page actions, dialogs. |
+| `lg` | `--size-control-lg` | Body properties | `--spacing-lg` | `--radius-md` | Rare; empty-state or onboarding primary actions. |
+
+`md` is 36px. It is **not** `--size-touch-min`: on a coarse pointer, add
+`min-height: var(--size-touch-min)` inside `@media (pointer: coarse)` and leave
+the desktop height alone. See [Accessibility](../accessibility.md#target-size).
+
+Do not invent a fifth size. Page-level calls to action still use `md` or
 `lg`. PageHeader (navigation slice) composes Buttons; it is not a Button
 size.
 
