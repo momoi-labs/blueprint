@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiso v1.1 — component gallery</title>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem("kiso-theme");if(t&&t!=="system")r.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+  /* Gallery chrome only — not part of the design system. */
+  .gallery { display: grid; grid-template-columns: 200px minmax(0,1fr); min-height: 100vh; }
+  .gallery-nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    border-inline-end: 1px solid var(--color-border); background: var(--color-sidebar); padding: var(--spacing-md); }
+  .gallery-main { padding: var(--spacing-xl) var(--spacing-2xl) var(--spacing-4xl); display: grid; gap: var(--spacing-3xl); max-width: 1100px; }
+  .demo { display: grid; gap: var(--spacing-md); }
+  .demo-head { display: grid; gap: var(--spacing-2xs); padding-block-end: var(--spacing-sm); border-bottom: 1px solid var(--color-border); }
+  .demo-grid { display: grid; gap: var(--spacing-lg); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--spacing-sm); }
+  .sw { display: grid; gap: var(--spacing-2xs); }
+  .sw i { display: block; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+  .frame { border: 1px dashed var(--color-border-strong); border-radius: var(--radius-lg); padding: var(--spacing-lg); display: flex; flex-wrap: wrap; gap: var(--spacing-md); align-items: center; }
+  .frame-stack { display: block; }
+  .frame-stack > * + * { margin-block-start: var(--spacing-md); }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding: var(--spacing-xs) 0; }
+  .theme-menu-wrap { position: relative; }
+  .theme-menu-wrap .menu { position: absolute; inset-block-start: calc(100% + var(--spacing-xs)); inset-inline-start: 0; z-index: 5; }
+  .menu-check { margin-inline-start: auto; visibility: hidden; }
+  .menu-item[aria-checked="true"] .menu-check { visibility: visible; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M8 5v3.5M8 11h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.5V11M8 5h.01"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M2.5 5L8 2l5.5 3v6L8 14l-5.5-3z"/><path d="M2.5 5L8 8l5.5-3M8 8v6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2 13.5h12"/><path d="M4 11V7M8 11V3M12 11V9"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.25"/><path d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1M12.6 12.6l-1.1-1.1M4.5 4.5L3.4 3.4"/></symbol>
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5" cy="11" r="2.75"/><path d="M7 9l6-6M11 5l1.5 1.5M9.5 6.5L11 8"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h7M3 12.5h4"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M1.8 8h12.4M8 1.75c3.2 3.4 3.2 9.1 0 12.5-3.2-3.4-3.2-9.1 0-12.5z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M3.5 11.5L7 8l2.5 2.5L13 5"/><path d="M13 8V5h-3"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M3.5 4.5L7 8l2.5-2.5L13 9"/><path d="M13 6v3h-3"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><circle cx="8" cy="3.5" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="12.5" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.75 4h10.5M6 4V2.75h4V4M4 4l.6 9h6.8l.6-9"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-1a1.5 1.5 0 00-1.5-1.5H4a1.5 1.5 0 00-1.5 1.5V9A1.5 1.5 0 004 10.5h1"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 16 16"><rect x="1.75" y="2.75" width="12.5" height="8.5" rx="1.25"/><path d="M5.5 14h5M8 11.25V14"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.9 3.1l-1 1M4.1 11.9l-1 1M12.9 12.9l-1-1M4.1 4.1l-1-1"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.5 9.5A5.75 5.75 0 016.5 2.5a5.75 5.75 0 107 7z"/></symbol>
+</defs></svg>
+
+<div class="gallery">
+  <nav class="gallery-nav">
+    <div class="stack-sm">
+      <div class="brand">
+        <span class="brand-mark">K</span>
+        <div class="grow truncate">
+          <div class="t-label">Kiso v1.1</div>
+          <div class="t-metadata muted">proposal</div>
+        </div>
+      </div>
+      <hr class="separator">
+      <div class="nav-group">
+        <a class="nav-item" href="#foundations">Foundations</a>
+        <a class="nav-item" href="#buttons">Buttons</a>
+        <a class="nav-item" href="#badges">Badges &amp; status</a>
+        <a class="nav-item" href="#forms">Form controls</a>
+        <a class="nav-item" href="#cards">Cards &amp; stats</a>
+        <a class="nav-item" href="#tables">Tables</a>
+        <a class="nav-item" href="#navigation">Navigation</a>
+        <a class="nav-item" href="#theme-select">Theme selector</a>
+        <a class="nav-item" href="#feedback">Feedback</a>
+        <a class="nav-item" href="#overlays">Overlays</a>
+        <a class="nav-item" href="#hatch">Hatch</a>
+        <a class="nav-item" href="#developer">Developer surfaces</a>
+      </div>
+      <hr class="separator">
+      <a class="nav-item" href="console.html"><svg class="icon icon-sm"><use href="#i-chart"/></svg>Console screen →</a>
+<div class="settings-row"><span class="t-label">Theme</span><div class="segmented" role="tablist"><button role="tab" data-theme-value="system" aria-label="Follow system" title="System"><svg class="icon icon-sm"><use href="#i-monitor"/></svg></button><button role="tab" data-theme-value="light" aria-label="Light theme" title="Light"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button><button role="tab" data-theme-value="dark" aria-label="Dark theme" title="Dark"><svg class="icon icon-sm"><use href="#i-moon"/></svg></button></div></div>
+    </div>
+  </nav>
+
+  <main class="gallery-main">
+    <header class="page-header">
+      <p class="t-caps">Momoi Labs · design system proposal</p>
+      <h1 class="t-h1">Kiso v1.1 component gallery</h1>
+      <p class="muted">Neutrals carry the interface; the violet accent is reserved for focus, selection, and links. Base text 14px, default control height 36px.</p>
+    </header>
+
+    <!-- ============================ FOUNDATIONS ======================= -->
+    <section class="demo" id="foundations">
+      <div class="demo-head">
+        <h2 class="t-h2">Foundations</h2>
+        <p class="muted t-label">Single-hue neutral ramp, demoted accent, two-calibration status colors.</p>
+      </div>
+
+      <p class="t-caps">Neutral</p>
+      <div class="swatches">
+        <div class="sw"><i style="background:var(--color-neutral-50)"></i><span class="t-metadata muted mono">50</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-100)"></i><span class="t-metadata muted mono">100</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-200)"></i><span class="t-metadata muted mono">200</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-300)"></i><span class="t-metadata muted mono">300</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-400)"></i><span class="t-metadata muted mono">400</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-500)"></i><span class="t-metadata muted mono">500</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-600)"></i><span class="t-metadata muted mono">600</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-700)"></i><span class="t-metadata muted mono">700</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-800)"></i><span class="t-metadata muted mono">800</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-900)"></i><span class="t-metadata muted mono">900</span></div>
+        <div class="sw"><i style="background:var(--color-neutral-950)"></i><span class="t-metadata muted mono">950</span></div>
+      </div>
+
+      <p class="t-caps">Accent — focus, selection, links only</p>
+      <div class="swatches">
+        <div class="sw"><i style="background:var(--color-accent-50)"></i><span class="t-metadata muted mono">50</span></div>
+        <div class="sw"><i style="background:var(--color-accent-100)"></i><span class="t-metadata muted mono">100</span></div>
+        <div class="sw"><i style="background:var(--color-accent-200)"></i><span class="t-metadata muted mono">200</span></div>
+        <div class="sw"><i style="background:var(--color-accent-300)"></i><span class="t-metadata muted mono">300</span></div>
+        <div class="sw"><i style="background:var(--color-accent-400)"></i><span class="t-metadata muted mono">400</span></div>
+        <div class="sw"><i style="background:var(--color-accent-500)"></i><span class="t-metadata muted mono">500</span></div>
+        <div class="sw"><i style="background:var(--color-accent-600)"></i><span class="t-metadata muted mono">600</span></div>
+        <div class="sw"><i style="background:var(--color-accent-700)"></i><span class="t-metadata muted mono">700</span></div>
+        <div class="sw"><i style="background:var(--color-accent-800)"></i><span class="t-metadata muted mono">800</span></div>
+        <div class="sw"><i style="background:var(--color-accent-900)"></i><span class="t-metadata muted mono">900</span></div>
+        <div class="sw"><i style="background:var(--color-accent-950)"></i><span class="t-metadata muted mono">950</span></div>
+      </div>
+
+      <p class="t-caps">Semantic surfaces</p>
+      <div class="swatches">
+        <div class="sw"><i style="background:var(--color-background)"></i><span class="t-metadata muted mono">background</span></div>
+        <div class="sw"><i style="background:var(--color-card)"></i><span class="t-metadata muted mono">card</span></div>
+        <div class="sw"><i style="background:var(--color-muted)"></i><span class="t-metadata muted mono">muted</span></div>
+        <div class="sw"><i style="background:var(--color-secondary)"></i><span class="t-metadata muted mono">secondary</span></div>
+        <div class="sw"><i style="background:var(--color-primary)"></i><span class="t-metadata muted mono">primary</span></div>
+        <div class="sw"><i style="background:var(--color-selected)"></i><span class="t-metadata muted mono">selected</span></div>
+        <div class="sw"><i style="background:var(--color-ring)"></i><span class="t-metadata muted mono">ring</span></div>
+        <div class="sw"><i style="background:var(--color-success)"></i><span class="t-metadata muted mono">success</span></div>
+        <div class="sw"><i style="background:var(--color-warning)"></i><span class="t-metadata muted mono">warning</span></div>
+        <div class="sw"><i style="background:var(--color-danger)"></i><span class="t-metadata muted mono">danger</span></div>
+        <div class="sw"><i style="background:var(--color-info)"></i><span class="t-metadata muted mono">info</span></div>
+      </div>
+
+      <p class="t-caps">Type scale</p>
+      <div class="frame frame-stack">
+        <p class="t-display">Display 30 · 1,284 ms</p>
+        <p class="t-h1">Heading 1 — 22px semibold</p>
+        <p class="t-h2">Heading 2 — 18px semibold</p>
+        <p class="t-h3">Heading 3 — 16px semibold</p>
+        <p class="t-body">Body — 14px regular. The default reading size for every product surface.</p>
+        <p class="t-label muted">Label — 12px medium, for field labels and dense chrome.</p>
+        <p class="t-metadata muted">Metadata — 11px, for timestamps, counts, and hints.</p>
+        <p class="t-mono">Code — JetBrains Mono at the label size · sha256:9f2b…c1a</p>
+        <p class="t-caps">Section label — 11px uppercase, tracked</p>
+      </div>
+    </section>
+
+    <!-- ============================ BUTTONS =========================== -->
+    <section class="demo" id="buttons">
+      <div class="demo-head">
+        <h2 class="t-h2">Buttons</h2>
+        <p class="muted t-label">One solid primary per view. Everything else is outline, secondary, or ghost.</p>
+      </div>
+
+      <p class="t-caps">Variants</p>
+      <div class="frame">
+        <button class="btn btn-primary">Deploy application</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Delete</button>
+        <button class="btn btn-danger-ghost">Revoke</button>
+        <button class="btn btn-link">Learn more</button>
+      </div>
+
+      <p class="t-caps">Sizes — 24 / 32 / 36 (default) / 40</p>
+      <div class="frame">
+        <button class="btn btn-outline btn-xs">Extra small</button>
+        <button class="btn btn-outline btn-sm">Small</button>
+        <button class="btn btn-outline">Default</button>
+        <button class="btn btn-outline btn-lg">Large</button>
+      </div>
+
+      <p class="t-caps">With icons, icon-only, and groups</p>
+      <div class="frame">
+        <button class="btn btn-primary"><svg class="icon icon-sm"><use href="#i-plus"/></svg>New app</button>
+        <button class="btn btn-outline">Filter<svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button>
+        <button class="btn btn-outline btn-icon" aria-label="More actions"><svg class="icon"><use href="#i-dots"/></svg></button>
+        <button class="btn btn-ghost btn-icon btn-sm" aria-label="Copy"><svg class="icon icon-sm"><use href="#i-copy"/></svg></button>
+        <div class="btn-group">
+          <button class="btn btn-sm" aria-pressed="true">Day</button>
+          <button class="btn btn-sm" aria-pressed="false">Week</button>
+          <button class="btn btn-sm" aria-pressed="false">Month</button>
+        </div>
+        <div class="segmented" role="tablist">
+          <button role="tab" aria-selected="true">Last 3 months</button>
+          <button role="tab" aria-selected="false">Last 30 days</button>
+          <button role="tab" aria-selected="false">Last 7 days</button>
+        </div>
+      </div>
+
+      <p class="t-caps">States</p>
+      <div class="frame">
+        <button class="btn btn-primary" data-loading="true">Deploying</button>
+        <button class="btn btn-outline" disabled>Disabled</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+        <button class="btn btn-outline" autofocus>Focus ring (tab here)</button>
+      </div>
+    </section>
+
+    <!-- ============================ BADGES ============================ -->
+    <section class="demo" id="badges">
+      <div class="demo-head">
+        <h2 class="t-h2">Badges &amp; status</h2>
+        <p class="muted t-label">Status colour is never the only signal — a dot, an icon, or a word carries it too.</p>
+      </div>
+      <div class="frame">
+        <span class="badge badge-solid">Solid</span>
+        <span class="badge badge-neutral">Neutral</span>
+        <span class="badge badge-outline">Outline</span>
+        <span class="badge badge-success"><span class="dot"></span>Running</span>
+        <span class="badge badge-warning"><span class="dot"></span>Degraded</span>
+        <span class="badge badge-danger"><span class="dot"></span>Crashed</span>
+        <span class="badge badge-info"><span class="dot"></span>Building</span>
+        <span class="badge badge-neutral badge-pill">v1.4.2</span>
+        <span class="badge badge-solid badge-count">7</span>
+        <span class="badge badge-outline mono">sha 9f2bc1a</span>
+      </div>
+      <div class="frame">
+        <span class="row success"><span class="dot dot-lg dot-pulse"></span><span class="t-label fg">Platform healthy</span></span>
+        <span class="separator-v" style="height:16px"></span>
+        <span class="row warning"><span class="dot dot-lg"></span><span class="t-label fg">2 apps degraded</span></span>
+        <span class="separator-v" style="height:16px"></span>
+        <span class="row danger"><span class="dot dot-lg"></span><span class="t-label fg">DNS unreachable</span></span>
+      </div>
+    </section>
+
+    <!-- ============================ FORMS ============================= -->
+    <section class="demo" id="forms">
+      <div class="demo-head">
+        <h2 class="t-h2">Form controls</h2>
+        <p class="muted t-label">36px height, 6px radius, hairline border, one-pixel inner shadow.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card"><div class="card-body">
+          <div class="field">
+            <label for="f-name">Application name <span class="field-required" aria-hidden="true">*</span></label>
+            <input class="input" id="f-name" placeholder="my-app" value="grafana">
+            <p class="field-hint">Lowercase letters, numbers and hyphens. Max 63 characters.</p>
+          </div>
+          <div class="field">
+            <label for="f-image">Container image</label>
+            <input class="input mono" id="f-image" placeholder="nginx:alpine">
+          </div>
+          <div class="field">
+            <label for="f-search">Search</label>
+            <div class="input-group">
+              <svg class="icon icon-sm"><use href="#i-search"/></svg>
+              <input class="input" id="f-search" placeholder="Filter applications…">
+              <span class="affix"><kbd>⌘</kbd><kbd>K</kbd></span>
+            </div>
+          </div>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <div class="field">
+            <label for="f-suffix">DNS suffix</label>
+            <select class="select" id="f-suffix">
+              <option>home.lan</option><option>lab.lan</option><option>internal.lan</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-bad">Hostname</label>
+            <input class="input" id="f-bad" value="My App!" aria-invalid="true" aria-describedby="f-bad-err">
+            <p class="field-error" id="f-bad-err"><svg class="icon icon-sm"><use href="#i-alert"/></svg>Only lowercase letters, numbers, and hyphens.</p>
+          </div>
+          <div class="field">
+            <label for="f-off">Registry credentials</label>
+            <input class="input" id="f-off" value="inherited from host" disabled>
+          </div>
+          <div class="field">
+            <label for="f-notes">Notes</label>
+            <textarea class="textarea" id="f-notes" placeholder="Optional context for the operator…"></textarea>
+          </div>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <p class="t-caps">Selection</p>
+          <label class="check"><input type="checkbox" checked><span class="check-text"><span>Restart on failure</span><span class="field-hint">Restarts the container up to 5 times.</span></span></label>
+          <label class="check"><input type="checkbox"><span class="check-text"><span>Expose on the LAN</span></span></label>
+          <label class="check"><input type="checkbox" disabled><span class="check-text"><span class="muted">Enable TLS (needs a CA)</span></span></label>
+          <hr class="separator">
+          <label class="check"><input type="radio" name="src" checked><span class="check-text"><span>From a container image</span></span></label>
+          <label class="check"><input type="radio" name="src"><span class="check-text"><span>From a local build context</span></span></label>
+          <hr class="separator">
+          <div class="between"><span class="t-label">Stream logs</span><label class="switch"><input type="checkbox" checked></label></div>
+          <div class="between"><span class="t-label">Verbose collector output</span><label class="switch"><input type="checkbox"></label></div>
+          <div class="between"><span class="t-label muted">Experimental scheduler</span><label class="switch"><input type="checkbox" disabled></label></div>
+          <hr class="separator">
+          <div class="field">
+            <div class="between"><label for="f-range">Memory limit</label><span class="t-label mono">512 MiB</span></div>
+            <input class="range" type="range" id="f-range" value="35">
+          </div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ============================ CARDS ============================= -->
+    <section class="demo" id="cards">
+      <div class="demo-head">
+        <h2 class="t-h2">Cards &amp; stat tiles</h2>
+        <p class="muted t-label">10px radius, hairline border, near-flat elevation. Depth comes from the border, not the shadow.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">Applications</span><span class="badge badge-outline stat-delta success"><svg class="icon icon-sm"><use href="#i-up"/></svg>+2</span></div>
+          <span class="stat-value">12</span>
+          <span class="stat-foot">3 deployed this week</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">Requests / min</span><span class="badge badge-outline stat-delta danger"><svg class="icon icon-sm"><use href="#i-down"/></svg>-18%</span></div>
+          <span class="stat-value">1,284</span>
+          <span class="stat-foot">Down from 1,566 yesterday</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <span class="stat-label">Host memory</span>
+          <span class="stat-value">6.4<span class="muted" style="font-size:var(--type-size-h3)"> / 16 GiB</span></span>
+          <div class="progress" style="margin-block-start:var(--spacing-sm)"><span style="width:40%"></span></div>
+          <span class="stat-foot">40% used · 9.6 GiB free</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <span class="stat-label">Uptime</span>
+          <span class="stat-value">18d</span>
+          <div class="bars" style="margin-block-start:var(--spacing-sm)">
+            <i class="on" style="height:40%"></i><i class="on" style="height:65%"></i><i class="on" style="height:55%"></i>
+            <i class="on" style="height:80%"></i><i style="height:35%"></i><i class="on" style="height:70%"></i>
+            <i class="on" style="height:90%"></i><i class="on" style="height:60%"></i><i style="height:45%"></i>
+            <i class="on" style="height:75%"></i><i class="on" style="height:50%"></i><i class="on" style="height:85%"></i>
+          </div>
+          <span class="stat-foot">Since the last platform restart</span>
+        </div></div>
+      </div>
+
+      <div class="demo-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="t-h3">Deploy application</h3>
+            <p class="muted t-label">Create an application from a container image.</p>
+          </div>
+          <div class="card-body">
+            <div class="field"><label for="c-name">Name</label><input class="input" id="c-name" placeholder="my-app"></div>
+            <div class="field"><label for="c-img">Image</label><input class="input mono" id="c-img" placeholder="nginx:alpine"></div>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-ghost">Cancel</button>
+            <button class="btn btn-primary">Deploy</button>
+          </div>
+        </div>
+        <div class="card card-interactive">
+          <div class="card-body">
+            <div class="between">
+              <div class="row"><svg class="icon icon-lg muted"><use href="#i-box"/></svg><span class="t-h3">grafana</span></div>
+              <span class="badge badge-success"><span class="dot"></span>Running</span>
+            </div>
+            <dl class="kv">
+              <dt>Hostname</dt><dd>grafana.home.lan</dd>
+              <dt>Image</dt><dd>grafana/grafana:11.2.0</dd>
+              <dt>Ports</dt><dd>3000 → 80</dd>
+              <dt>Started</dt><dd>2026-08-21 14:02 UTC</dd>
+            </dl>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-ghost btn-sm">Restart</button>
+            <button class="btn btn-outline btn-sm">Open</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ TABLES ============================ -->
+    <section class="demo" id="tables">
+      <div class="demo-head">
+        <h2 class="t-h2">Table</h2>
+        <p class="muted t-label">40px rows, 12px header labels, muted header band, hairline row rules.</p>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="input-group grow" style="max-width:280px">
+            <svg class="icon icon-sm"><use href="#i-search"/></svg>
+            <input class="input input-sm" placeholder="Filter applications…">
+          </div>
+          <span class="grow"></span>
+          <button class="btn btn-outline btn-sm">Status<svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button>
+          <button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Columns</button>
+          <button class="btn btn-primary btn-sm"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy</button>
+        </div>
+        <div class="table-scroll">
+        <table class="table">
+          <thead><tr>
+            <th class="col-tight"><label class="check"><input type="checkbox" aria-label="Select all"></label></th>
+            <th><button class="th-sort">Application<svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button></th>
+            <th>Hostname</th>
+            <th>Image</th>
+            <th>Status</th>
+            <th class="num">Restarts</th>
+            <th class="col-tight"></th>
+          </tr></thead>
+          <tbody>
+            <tr aria-selected="true">
+              <td><label class="check"><input type="checkbox" checked aria-label="Select grafana"></label></td>
+              <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>grafana</span></td>
+              <td class="mono muted">grafana.home.lan</td>
+              <td class="mono muted">grafana/grafana:11.2.0</td>
+              <td><span class="badge badge-success"><span class="dot"></span>Running</span></td>
+              <td class="num mono">0</td>
+              <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+            </tr>
+            <tr>
+              <td><label class="check"><input type="checkbox" aria-label="Select paperless"></label></td>
+              <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>paperless</span></td>
+              <td class="mono muted">paperless.home.lan</td>
+              <td class="mono muted">paperlessngx:2.11</td>
+              <td><span class="badge badge-warning"><span class="dot"></span>Degraded</span></td>
+              <td class="num mono">3</td>
+              <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+            </tr>
+            <tr>
+              <td><label class="check"><input type="checkbox" aria-label="Select jellyfin"></label></td>
+              <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>jellyfin</span></td>
+              <td class="mono muted">jellyfin.home.lan</td>
+              <td class="mono muted">jellyfin/jellyfin:10.9</td>
+              <td><span class="badge badge-danger"><span class="dot"></span>Crashed</span></td>
+              <td class="num mono">12</td>
+              <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+            </tr>
+            <tr>
+              <td><label class="check"><input type="checkbox" aria-label="Select vaultwarden"></label></td>
+              <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>vaultwarden</span></td>
+              <td class="mono muted">vault.home.lan</td>
+              <td class="mono muted">vaultwarden/server:1.32</td>
+              <td><span class="badge badge-info"><span class="dot"></span>Building</span></td>
+              <td class="num mono">0</td>
+              <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="table-footer">
+          <span>1 of 4 rows selected.</span>
+          <div class="pagination">
+            <button class="btn btn-outline btn-sm" disabled>Previous</button>
+            <button class="btn btn-ghost btn-sm" aria-current="page">1</button>
+            <button class="btn btn-ghost btn-sm">2</button>
+            <button class="btn btn-ghost btn-sm">3</button>
+            <button class="btn btn-outline btn-sm">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ NAVIGATION ======================== -->
+    <section class="demo" id="navigation">
+      <div class="demo-head">
+        <h2 class="t-h2">Navigation</h2>
+        <p class="muted t-label">Sidebar items are 32px. The violet selected state is the accent's second job.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card" style="padding:var(--spacing-sm)">
+          <div class="nav-group">
+            <p class="t-caps">Platform</p>
+            <a class="nav-item" href="#navigation" aria-current="page"><svg class="icon icon-sm"><use href="#i-chart"/></svg>Overview</a>
+            <a class="nav-item" href="#navigation"><svg class="icon icon-sm"><use href="#i-box"/></svg>Applications<span class="badge badge-neutral badge-count">12</span></a>
+            <a class="nav-item" href="#navigation"><svg class="icon icon-sm"><use href="#i-globe"/></svg>DNS &amp; routing</a>
+            <a class="nav-item" href="#navigation"><svg class="icon icon-sm"><use href="#i-logs"/></svg>Logs</a>
+            <a class="nav-item" href="#navigation"><svg class="icon icon-sm"><use href="#i-key"/></svg>API keys</a>
+          </div>
+        </div>
+        <div class="frame frame-stack">
+          <nav class="breadcrumb">
+            <a href="#navigation">Console</a><span class="sep">/</span>
+            <a href="#navigation">Applications</a><span class="sep">/</span>
+            <span aria-current="page">grafana</span>
+          </nav>
+          <div class="tabs" role="tablist">
+            <button role="tab" aria-selected="true">Overview</button>
+            <button role="tab" aria-selected="false">Configuration</button>
+            <button role="tab" aria-selected="false">Logs</button>
+            <button role="tab" aria-selected="false">Events</button>
+          </div>
+          <div class="topbar" style="position:static;border-radius:var(--radius-lg);border:1px solid var(--color-border)">
+            <span class="t-h3">Applications</span>
+            <span class="grow"></span>
+            <span class="row success t-label"><span class="dot dot-pulse"></span><span class="fg">Healthy</span></span>
+            <span class="avatar">SW</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ========================= THEME SELECTOR ======================= -->
+    <section class="demo" id="theme-select">
+      <div class="demo-head">
+        <h2 class="t-h2">Theme selector</h2>
+        <p class="muted t-label">Three states, in a settings row: name on the left, control flushed right.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card"><div class="card-body">
+          <div class="between"><span class="t-label">Theme</span>
+            <div class="segmented" role="tablist">
+              <button role="tab" data-theme-value="system" aria-label="Follow system" title="System"><svg class="icon icon-sm"><use href="#i-monitor"/></svg></button>
+              <button role="tab" data-theme-value="light" aria-label="Light theme" title="Light"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+              <button role="tab" data-theme-value="dark" aria-label="Dark theme" title="Dark"><svg class="icon icon-sm"><use href="#i-moon"/></svg></button>
+            </div>
+          </div>
+          <p class="field-hint">Icon-only, so it fits a toolbar or a sidebar footer. Each button carries an <code>aria-label</code> and a tooltip — a monitor glyph for "system" is a convention, not self-evident.</p>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <p class="t-caps">The state model</p>
+          <dl class="kv">
+            <dt>System</dt><dd>no attribute — <code>color-scheme</code> follows the OS</dd>
+            <dt>Light</dt><dd><code>data-theme="light"</code></dd>
+            <dt>Dark</dt><dd><code>data-theme="dark"</code></dd>
+          </dl>
+          <p class="field-hint"><strong>System is the default.</strong> An explicit choice is what gets stored, and it survives a reload. "System" is not a third colour — it is the absence of a choice, which is why it is a state and not a checkbox.</p>
+        </div></div>
+      </div>
+
+      <div class="alert alert-info">
+        <svg class="icon"><use href="#i-info"/></svg>
+        <div><p class="alert-title">Live check</p><p class="alert-body">Pick <em>System</em>, then change your OS appearance — the page follows without a reload. That is what separates a real system mode from one that reads the preference once at boot.</p></div>
+      </div>
+    </section>
+
+    <!-- ============================ FEEDBACK ========================== -->
+    <section class="demo" id="feedback">
+      <div class="demo-head">
+        <h2 class="t-h2">Feedback</h2>
+        <p class="muted t-label">Alerts, progress, skeletons, and empty states.</p>
+      </div>
+      <div class="stack">
+        <div class="alert alert-info">
+          <svg class="icon"><use href="#i-info"/></svg>
+          <div><p class="alert-title">DNS suffix is <code>home.lan</code></p><p class="alert-body">Change it with <code>self-host init --dns</code>. Existing hostnames are not rewritten.</p></div>
+        </div>
+        <div class="alert alert-success">
+          <svg class="icon"><use href="#i-check"/></svg>
+          <div><p class="alert-title">grafana is running</p><p class="alert-body">Reachable at grafana.home.lan since 14:02 UTC.</p></div>
+        </div>
+        <div class="alert alert-warning">
+          <svg class="icon"><use href="#i-alert"/></svg>
+          <div><p class="alert-title">paperless restarted 3 times in the last hour</p><p class="alert-body">The container exits with code 1 shortly after start.</p></div>
+        </div>
+        <div class="alert alert-danger">
+          <svg class="icon"><use href="#i-alert"/></svg>
+          <div class="grow"><p class="alert-title">Could not reach the platform database</p><p class="alert-body">Connection refused on 127.0.0.1:5432. The platform will not serve requests until it recovers.</p></div>
+          <button class="btn btn-outline btn-sm">Retry</button>
+        </div>
+      </div>
+
+      <div class="demo-grid">
+        <div class="card"><div class="card-body">
+          <p class="t-caps">Progress &amp; loading</p>
+          <div class="field"><div class="between"><span class="t-label">Pulling image</span><span class="t-label mono muted">64%</span></div><div class="progress"><span style="width:64%"></span></div></div>
+          <div class="row"><span class="spinner"></span><span class="t-label muted">Waiting for the health check…</span></div>
+          <button class="btn btn-primary btn-block" data-loading="true">Deploying</button>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <p class="t-caps">Skeleton</p>
+          <div class="row"><div class="skeleton" style="width:32px;height:32px;border-radius:var(--radius-full)"></div>
+            <div class="grow stack-xs"><div class="skeleton" style="height:12px;width:60%"></div><div class="skeleton" style="height:10px;width:35%"></div></div></div>
+          <div class="skeleton" style="height:10px"></div>
+          <div class="skeleton" style="height:10px;width:85%"></div>
+          <div class="skeleton" style="height:10px;width:45%"></div>
+        </div></div>
+
+        <div class="card"><div class="empty">
+          <span class="empty-icon"><svg class="icon"><use href="#i-box"/></svg></span>
+          <p class="t-h3">No applications yet</p>
+          <p>Deploy your first application from a container image and it will be reachable on your LAN.</p>
+          <button class="btn btn-primary btn-sm" style="margin-block-start:var(--spacing-sm)"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ============================ OVERLAYS ========================== -->
+    <section class="demo" id="overlays">
+      <div class="demo-head">
+        <h2 class="t-h2">Overlays</h2>
+        <p class="muted t-label">Dialog, menu, tooltip, toast, and command palette — shown inline so they can be reviewed side by side.</p>
+      </div>
+      <div class="frame">
+        <button class="btn btn-outline" data-open-dialog>Open dialog</button>
+        <button class="btn btn-outline" data-open-palette>Command palette <kbd>⌘</kbd><kbd>K</kbd></button>
+        <button class="btn btn-outline" data-open-toast>Fire a toast</button>
+      </div>
+
+      <div class="demo-grid">
+        <div class="dialog" style="max-width:none">
+          <div class="dialog-header">
+            <h3 class="t-h3">Revoke API key?</h3>
+            <p class="muted t-label">This cannot be undone.</p>
+          </div>
+          <div class="dialog-body">
+            <p class="t-body">Any client using <code>ops-laptop</code> will start receiving <code>401 Unauthorized</code> immediately.</p>
+          </div>
+          <div class="dialog-footer">
+            <button class="btn btn-ghost">Cancel</button>
+            <button class="btn btn-danger">Revoke key</button>
+          </div>
+        </div>
+
+        <div class="menu">
+          <p class="t-caps menu-label">grafana</p>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-globe"/></svg>Open in browser<span class="kbd">↵</span></button>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-copy"/></svg>Copy hostname</button>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-logs"/></svg>View logs</button>
+          <div class="menu-separator"></div>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Configuration</button>
+          <button class="menu-item is-danger"><svg class="icon icon-sm"><use href="#i-trash"/></svg>Remove application</button>
+        </div>
+
+        <div class="stack">
+          <div><span class="tooltip">Restarts the container without a rebuild</span></div>
+          <div class="toast">
+            <svg class="icon success"><use href="#i-check"/></svg>
+            <div class="grow"><p class="alert-title">Application deployed</p><p class="alert-body">grafana is reachable at grafana.home.lan.</p></div>
+            <button class="btn btn-ghost btn-icon btn-xs" aria-label="Dismiss"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+          </div>
+          <div class="toast">
+            <svg class="icon danger"><use href="#i-alert"/></svg>
+            <div class="grow"><p class="alert-title">Deploy failed</p><p class="alert-body">Image <code>nginx:nope</code> not found in the registry.</p></div>
+            <button class="btn btn-ghost btn-icon btn-xs" aria-label="Dismiss"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="palette" style="max-width:520px">
+        <div class="palette-input">
+          <svg class="icon muted"><use href="#i-search"/></svg>
+          <input placeholder="Type a command or search…" value="log">
+          <kbd>esc</kbd>
+        </div>
+        <div class="palette-list">
+          <p class="t-caps menu-label">Applications</p>
+          <button class="menu-item" aria-selected="true"><svg class="icon icon-sm"><use href="#i-logs"/></svg>View logs — grafana<span class="kbd">↵</span></button>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-logs"/></svg>View logs — paperless</button>
+          <div class="menu-separator"></div>
+          <p class="t-caps menu-label">Platform</p>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-logs"/></svg>Stream platform logs</button>
+          <button class="menu-item"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================ HATCH ============================= -->
+    <section class="demo" id="hatch">
+      <div class="demo-head">
+        <h2 class="t-h2">Hatch</h2>
+        <p class="muted t-label">Companion to the corner marks: hatching marks a region as <em>not data</em>. Three sanctioned uses, and no others.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card"><div class="empty hatch">
+          <span class="empty-icon"><svg class="icon"><use href="#i-box"/></svg></span>
+          <p class="t-h3">No applications yet</p>
+          <p>Deploy your first application and it will be reachable on your LAN.</p>
+          <button class="btn btn-primary btn-sm" style="margin-block-start:var(--spacing-sm)"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+        </div></div>
+
+        <div class="card">
+          <div class="band hatch">
+            <nav class="breadcrumb" style="margin-block-end:var(--spacing-xs)"><a href="#hatch">Applications</a><span class="sep">/</span><span aria-current="page">grafana</span></nav>
+            <h3 class="t-h2">grafana</h3>
+            <div class="row" style="margin-block-start:var(--spacing-md)">
+              <label class="switch t-label"><input type="checkbox" checked><span class="muted">Autostart</span></label>
+            </div>
+          </div>
+          <div class="card-body">
+            <dl class="kv"><dt>Hostname</dt><dd>grafana.home.lan</dd><dt>Ports</dt><dd>3000 → 80</dd></dl>
+            <p class="t-metadata muted">The band above is chrome. The list below is data — and is not hatched.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="between"><h3 class="t-h3">jellyfin</h3><span class="badge badge-danger"><span class="dot"></span>Crashed</span></div>
+            <p class="muted t-label">Resource metrics</p>
+          </div>
+          <div class="card-body">
+            <div class="hatch" style="border:1px solid var(--color-border);display:grid;place-items:center;gap:var(--spacing-xs);padding:var(--spacing-2xl);text-align:center">
+              <p class="t-label">No metrics while the container is down</p>
+              <p class="t-metadata muted">Last sample 09:41:04 UTC, 18 minutes ago.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        <svg class="icon"><use href="#i-alert"/></svg>
+        <div><p class="alert-title">Where hatch must not go</p><p class="alert-body">Behind table rows, log output, charts, or any value the operator has to read. Hatch competes with dense text, and a decorative texture behind data is exactly the "flashy" the brand doc rules out. If it is loud enough to notice while reading, it is in the wrong place.</p></div>
+      </div>
+    </section>
+
+    <!-- ============================ DEVELOPER ========================= -->
+    <section class="demo" id="developer">
+      <div class="demo-head">
+        <h2 class="t-h2">Developer surfaces</h2>
+        <p class="muted t-label">Kiso's developer-oriented-interfaces pattern: monospace values, copyable identifiers, raw log output.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="card"><div class="card-body">
+          <p class="t-caps">Key / value</p>
+          <dl class="kv">
+            <dt>Container</dt><dd>a1f4c9e2b7d8</dd>
+            <dt>Image digest</dt><dd>sha256:9f2b3c…c1a</dd>
+            <dt>Created</dt><dd>2026-08-21T14:02:11Z</dd>
+            <dt>Command</dt><dd>/run.sh --config /etc/grafana</dd>
+            <dt>Env</dt><dd>GF_SECURITY_ADMIN_PASSWORD=<span class="muted">•••••••</span></dd>
+          </dl>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <p class="t-caps">Command</p>
+          <pre><code>$ self-host deploy grafana \
+    --image grafana/grafana:11.2.0 \
+    --port 3000</code></pre>
+          <div class="row"><button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-copy"/></svg>Copy</button><span class="t-metadata muted">Runs on the Host, not in the browser.</span></div>
+        </div></div>
+      </div>
+      <div class="logview" style="max-height:220px">
+<div><span class="log-time">14:02:11.204</span><span class="log-info">INFO </span> starting grafana version=11.2.0</div>
+<div><span class="log-time">14:02:11.318</span><span class="log-info">INFO </span> migrations completed count=412 duration=98ms</div>
+<div><span class="log-time">14:02:11.902</span><span class="log-info">INFO </span> http server listening addr=0.0.0.0:3000</div>
+<div><span class="log-time">14:02:12.044</span><span class="log-warn">WARN </span> plugin signature invalid plugin=grafana-clock-panel</div>
+<div><span class="log-time">14:02:12.510</span><span class="log-info">INFO </span> health check ok</div>
+<div><span class="log-time">14:04:47.881</span><span class="log-error">ERROR</span> datasource query failed ds=prometheus err="dial tcp 127.0.0.1:9090: connect: connection refused"</div>
+<div><span class="log-time">14:04:48.002</span><span class="log-info">INFO </span> retrying in 5s</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- live overlays -->
+<div class="overlay hidden" data-dialog>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-t">
+    <div class="dialog-header">
+      <div class="between"><h3 class="t-h3" id="dlg-t">Deploy application</h3>
+        <button class="btn btn-ghost btn-icon btn-sm" data-close aria-label="Close"><svg class="icon icon-sm"><use href="#i-x"/></svg></button></div>
+      <p class="muted t-label">Create an application from a container image.</p>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label for="d-name">Application name</label><input class="input" id="d-name" placeholder="my-app"><p class="field-hint">It will be reachable at <code>my-app.home.lan</code>.</p></div>
+      <div class="field"><label for="d-img">Container image</label><input class="input mono" id="d-img" placeholder="nginx:alpine"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-primary">Deploy</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" data-palette style="align-items:start;padding-block-start:12vh">
+  <div class="palette">
+    <div class="palette-input">
+      <svg class="icon muted"><use href="#i-search"/></svg>
+      <input placeholder="Type a command or search…" autofocus>
+      <kbd>esc</kbd>
+    </div>
+    <div class="palette-list">
+      <p class="t-caps menu-label">Applications</p>
+      <button class="menu-item" aria-selected="true"><svg class="icon icon-sm"><use href="#i-box"/></svg>grafana<span class="kbd">↵</span></button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-box"/></svg>paperless</button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-box"/></svg>jellyfin</button>
+      <div class="menu-separator"></div>
+      <p class="t-caps menu-label">Actions</p>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Platform settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-region" data-toasts></div>
+
+<script src="app.js"></script>
+</body>
+</html>
