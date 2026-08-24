@@ -1,0 +1,5 @@
+# Installed dependencies. Not ignored anywhere in the repo until now, which is
+# why the release workflow committed 6821 node_modules files into
+# changeset-release/main: contributors have it covered by a personal
+# .git/info/exclude or global ignore, and a CI runner has neither.
+node_modules/
