@@ -10,6 +10,7 @@
   "type": "module",
   "files": [
     "kiso/",
+    "!kiso/blocks/",
     "tokens/build/"
   ],
   "exports": {
