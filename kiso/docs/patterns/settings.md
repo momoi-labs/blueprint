@@ -24,9 +24,32 @@ immediate vs deferred persistence, and unambiguous save feedback.
 | Feedback | [Toast](../components/toast.md), [Alert](../components/alert.md), [ValidationMessage](../components/validation-message.md) | Saved confirmation; section errors; field errors |
 | Shell | [Application shell](application-shell.md) | Authenticated framing |
 
-Tokens: `--color-background` canvas, `--color-surface` Cards, `--color-border`
+Tokens: `--color-background` canvas, `--color-card` Cards, `--color-border`
 separators, `--color-foreground` / `--color-muted-foreground` copy,
-`--color-primary` for current section/nav, `--color-focus` on controls.
+`--color-primary` for current section/nav, `--color-ring` on controls.
+
+## Theme
+
+Appearance is a settings row like any other: label left, control right, inside
+a Card with the rest of the preferences. Use
+[ThemeSelector](../components/theme-selector.md); that contract owns the
+values, persistence, and markup.
+
+Three points bind here rather than there:
+
+- The default is `system` — no `data-theme` attribute on `<html>` — and it
+  keeps following the OS while the page is open.
+- The choice is local and instant. It persists to `localStorage` under
+  `kiso-theme`; it does not go through the section's Save button, and it does
+  not raise a "Settings saved" Toast.
+- It is exempt from the explicit-save rule above for the same reason a Switch
+  is: the person sees the result immediately, so a confirmation would only
+  restate what already happened.
+
+```text
+Card: Appearance
+  Theme                                   [ ▣ ][ ☀ ][ ☾ ]
+```
 
 ## Flow
 

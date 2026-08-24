@@ -53,16 +53,52 @@ shape.
 
 | Variant | When | Tokens |
 | --- | --- | --- |
-| `plain` (default) | Grouping on the page canvas. | Background `--color-surface`, border `--color-border`, radius `--radius-lg`, padding `--spacing-lg`. No shadow. |
-| `elevated` | The grouping must lift above nearby surfaces (a floating picker, a featured summary). | Background `--color-elevated-surface`, border `--color-border`, shadow `--shadow-sm`. Same radius and padding. |
+| `plain` (default) | Grouping on the page canvas. | Background `--color-card`, border `--color-border`, radius `--radius-surface`, padding `--spacing-lg`, `--shadow-xs`. |
+| `elevated` | The grouping must lift above nearby surfaces (a floating picker, a featured summary). | Background `--color-popover`, border `--color-border`, shadow `--shadow-sm`. Same radius and padding. |
 
-Default is `plain`. Tokens.md assigns `--color-surface` to "cards, panels,
-and table rows" and `--color-elevated-surface` to "menus, popovers, and
-dialogs". Use `elevated` only when the Card is competing with other surfaces
-and needs that lift — not on every tile.
+Default is `plain`. `--color-card` is the panel fill and `--color-popover` the
+elevated one. Use `elevated` only when the Card is competing with other
+surfaces and needs that lift — not on every tile. A recessed band inside a Card
+— header strip, footer, table head — uses `--color-muted`.
 
 Do not add outline/ghost Card variants. If the grouping needs no surface,
 it is a section with a heading, not a Card.
+
+## Corner marks
+
+This is the shared panel contract. Card, [Table](table.md) wrapper,
+[ModalDialog](modal-dialog.md), [Drawer](drawer.md),
+[CommandPalette](command-palette.md), and code or log blocks are **panels**:
+square (`--radius-surface`) with corner marks. Popover, DropdownMenu, Toast,
+Alert, and Tooltip are transient chrome, not panels: they keep a small radius
+and carry no marks.
+
+A corner mark is an open registration mark: **two 1px ticks per corner**, each
+lying along the frame line it extends and stopping `--corner-mark-gap` short of
+it, so the mark points at the corner without touching it.
+
+| Token | Value | Meaning |
+| --- | --- | --- |
+| `--color-corner-mark` | `--color-border-strong` | Tick colour. |
+| `--corner-mark` | `1` | Opacity: marks on (`1`) or off (`0`). |
+| `--corner-mark-tick` | 4px | Length of one tick. |
+| `--corner-mark-gap` | 2px | Distance from tick end to the frame. |
+
+Two ticks, not four. A full cross puts its other two arms directly on top of
+the panel's 1px border, where they are invisible — the mark reads as a bracket
+regardless. Drawing four is wasted paint and makes the hollow centre look
+accidental.
+
+The gap is the mark. Close it and this is just a thicker border.
+
+Marks go on every panel, without exception. There is no rounded mode and no
+`data-corners` attribute; the corner language was decided once and is not a
+per-product setting.
+
+Draw them on one pseudo-element inset by `calc(-1 * (var(--corner-mark-tick) +
+var(--corner-mark-gap)))`, so no markup and no images are needed. If the panel
+scrolls, move `overflow` to an inner element — the marks sit just outside the
+frame and a scrolling wrapper clips them away.
 
 ## Sizes
 

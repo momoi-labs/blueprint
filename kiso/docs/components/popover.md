@@ -21,7 +21,9 @@ Popover
 ```
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
-`--color-border`, `--radius-md`, `--spacing-md` padding, and `--shadow-md`.
+`--color-popover`, `--color-border`, `--radius-lg`, `--spacing-md` padding,
+and `--shadow-md`. A Popover is transient chrome, not a panel: it keeps a small
+radius and carries no corner marks.
 Placement offset uses `--spacing-xs`, collision padding uses `--spacing-md`,
 and motion uses `--motion-duration-fast` with `--motion-easing-standard`.
 

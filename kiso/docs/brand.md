@@ -68,7 +68,9 @@ afterthought — starts here.
 Kiso's palette is dark-first, with a light alternate, mirroring the marketing
 site's spirit:
 
-- **Dark theme** is the default product surface.
+- **Dark theme** is the reference surface: the one the palette is designed
+  against. It is not the default *setting* — the default is to follow the
+  operating system. See [ThemeSelector](components/theme-selector.md).
 - **Light theme** ("slate") is a first-class alternate, not an afterthought.
 - **Neutrals** carry the interface; one **accent** carries attention.
 - **Inter** for interface text, **JetBrains Mono** for code and data values.

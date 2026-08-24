@@ -123,7 +123,9 @@ PageHeader.
 
 `--color-foreground`, `--color-muted-foreground`, `--color-surface` /
 `--color-background`, optional icon `--color-muted-foreground`, `--spacing-lg`
-padding (`--spacing-md` for `sm`), `--spacing-sm` gap, `--radius-md`, and
+padding (`--spacing-md` for `sm`), `--spacing-sm` gap, `--radius-lg` on the
+icon frame, the hatch tokens (`--color-hatch`, `--hatch-line`,
+`--hatch-period`, `--hatch-angle`), and
 `--motion-duration-fast` / `--motion-easing-standard`. Typography uses every
 property of the selected heading, label, and body roles named above. Action consumes Button/Link
 tokens. No raw hex/px.
