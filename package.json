@@ -15,6 +15,7 @@
   ],
   "exports": {
     "./tokens.css": "./tokens/build/tokens.css",
+    "./ui.css": "./kiso/ui.css",
     "./tokens.json": "./tokens/build/tokens.json",
     "./tokens.scss": "./tokens/build/tokens.scss",
     "./tokens.d.ts": "./tokens/build/tokens.d.ts",

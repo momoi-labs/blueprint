@@ -45,11 +45,13 @@ documented; it does not become Kiso by repetition or copy-paste.
 6. If no contract fits, describe the gap and propose an addition. Do not
    create a parallel local system.
 
-Kiso is spec-first, with one exception: everywhere except
-[`blocks/`](blocks/README.md), its Markdown files are contracts and carry no
-implementation code. `blocks/` is the exception — reference screens built from
-the contracts, meant to be copied. Blocks are illustrations, not rules: when a
-block and a contract disagree, the contract is right and the block is the bug.
+Kiso is spec-first: its Markdown files are contracts and carry no
+implementation code. Two files carry implementation instead —
+[`ui.css`](ui.css), the component layer, published as
+`@momoi-labs/kiso/ui.css`; and [`blocks/`](blocks/README.md), reference
+screens built from it, meant to be copied and not published. Neither is a
+contract: when one disagrees with a contract, the contract is right and the
+implementation is the bug.
 
 Deliberate omissions and the evidence-based growth model are recorded in
 [`docs/evolution.md`](docs/evolution.md).

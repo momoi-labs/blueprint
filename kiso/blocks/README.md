@@ -22,13 +22,13 @@ to re-derive a working screen from prose.
 | --- | --- |
 | `index.html` | Every component, in every documented state. The thing to look at when you are choosing one. |
 | `console.html` | A full product screen — sidebar, stat row, chart, table, list-detail — composed only from those components. |
-| `ui.css` | The component layer. Every value resolves to a token; no raw hex, no raw px where a token exists. |
 | `app.js` | Enough behaviour to review states. Not production code. |
 
-There is no `tokens.css` here on purpose. Both pages link
-`../../tokens/build/tokens.css` directly, so a block can never drift from what
-the system actually emits — if a token changes, these screens change with it or
-they visibly break, which is the point.
+Neither `tokens.css` nor `ui.css` lives here, on purpose. Both pages link
+`../../tokens/build/tokens.css` and `../ui.css` directly, so a block can never
+drift from what the system actually ships — if a token or the component layer
+changes, these screens change with it or they visibly break, which is the
+point.
 
 ## Running it
 
@@ -43,4 +43,6 @@ step beyond `npm run build` for the tokens themselves.
 ## Not published
 
 `kiso/blocks/` is excluded from the npm package. It is for people reading and
-copying from this repo, not a runtime dependency.
+copying from this repo, not a runtime dependency. The component layer it is
+built from *is* published, as `@momoi-labs/kiso/ui.css` — see
+[`../ui.css`](../ui.css).
