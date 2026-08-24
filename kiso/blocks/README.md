@@ -23,21 +23,12 @@ to re-derive a working screen from prose.
 | `index.html` | Every component, in every documented state. The thing to look at when you are choosing one. |
 | `console.html` | A full product screen — sidebar, stat row, chart, table, list-detail — composed only from those components. |
 | `ui.css` | The component layer. Every value resolves to a token; no raw hex, no raw px where a token exists. |
-| `tokens.css` | See the warning below. |
 | `app.js` | Enough behaviour to review states. Not production code. |
-| `HANDOFF.md` | The Kiso v1.1 proposal these screens demonstrate. |
-| `BLUEPRINT-PROMPT.md` | A self-contained prompt for implementing that proposal in this repo. |
 
-## `tokens.css` is ahead of `tokens/build/`
-
-Right now it is **not** a copy. It holds the tokens proposed in
-[`HANDOFF.md`](./HANDOFF.md), which have not landed in `tokens/tokens.json`
-yet — that is a separate change. Until it does, these screens show what the
-system *would* look like, not what it currently emits.
-
-Once the token change lands, this file becomes a plain copy of
-`tokens/build/tokens.css`, regenerated rather than hand-edited, and a diff
-between the two is a bug in this folder.
+There is no `tokens.css` here on purpose. Both pages link
+`../../tokens/build/tokens.css` directly, so a block can never drift from what
+the system actually emits — if a token changes, these screens change with it or
+they visibly break, which is the point.
 
 ## Running it
 
@@ -45,4 +36,11 @@ between the two is a bug in this folder.
 python3 -m http.server 8777
 ```
 
-Any static server works; there is no build step.
+Then open `/kiso/blocks/index.html`. Serve from the repo root, not from this
+folder, or the token link resolves above the server root. There is no build
+step beyond `npm run build` for the tokens themselves.
+
+## Not published
+
+`kiso/blocks/` is excluded from the npm package. It is for people reading and
+copying from this repo, not a runtime dependency.
