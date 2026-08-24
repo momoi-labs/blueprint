@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>self-host console — Kiso v1.1</title>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem("kiso-theme");if(t&&t!=="system")r.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding: var(--spacing-xs) var(--spacing-sm); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M8 5v3.5M8 11h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.5V11M8 5h.01"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M2.5 5L8 2l5.5 3v6L8 14l-5.5-3z"/><path d="M2.5 5L8 8l5.5-3M8 8v6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2 13.5h12"/><path d="M4 11V7M8 11V3M12 11V9"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.25"/><path d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1M12.6 12.6l-1.1-1.1M4.5 4.5L3.4 3.4"/></symbol>
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5" cy="11" r="2.75"/><path d="M7 9l6-6M11 5l1.5 1.5M9.5 6.5L11 8"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h7M3 12.5h4"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25"/><path d="M1.8 8h12.4M8 1.75c3.2 3.4 3.2 9.1 0 12.5-3.2-3.4-3.2-9.1 0-12.5z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M3.5 11.5L7 8l2.5 2.5L13 5"/><path d="M13 8V5h-3"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M3.5 4.5L7 8l2.5-2.5L13 9"/><path d="M13 6v3h-3"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><circle cx="8" cy="3.5" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="12.5" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.75 4h10.5M6 4V2.75h4V4M4 4l.6 9h6.8l.6-9"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-1a1.5 1.5 0 00-1.5-1.5H4a1.5 1.5 0 00-1.5 1.5V9A1.5 1.5 0 004 10.5h1"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 16 16"><rect x="1.75" y="2.75" width="12.5" height="8.5" rx="1.25"/><path d="M5.5 14h5M8 11.25V14"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.9 3.1l-1 1M4.1 11.9l-1 1M12.9 12.9l-1-1M4.1 4.1l-1-1"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.5 9.5A5.75 5.75 0 016.5 2.5a5.75 5.75 0 107 7z"/></symbol>
+</defs></svg>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-mark">H</span>
+        <div class="grow truncate">
+          <div class="t-label">homelab</div>
+          <div class="t-metadata muted mono">home.lan</div>
+        </div>
+        <button class="btn btn-ghost btn-icon btn-sm" aria-label="Switch host"><svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button>
+      </div>
+      <button class="btn btn-primary btn-sm btn-block"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+    </div>
+
+    <div class="sidebar-body">
+      <div class="nav-group">
+        <a class="nav-item" href="#" aria-current="page"><svg class="icon icon-sm"><use href="#i-chart"/></svg>Overview</a>
+        <a class="nav-item" href="#"><svg class="icon icon-sm"><use href="#i-box"/></svg>Applications<span class="badge badge-neutral badge-count">4</span></a>
+        <a class="nav-item" href="#"><svg class="icon icon-sm"><use href="#i-globe"/></svg>DNS &amp; routing</a>
+        <a class="nav-item" href="#"><svg class="icon icon-sm"><use href="#i-logs"/></svg>Platform logs</a>
+      </div>
+
+      <div class="nav-group">
+        <p class="t-caps">Applications</p>
+        <a class="nav-item" href="#"><span class="dot success"></span>grafana</a>
+        <a class="nav-item" href="#"><span class="dot warning"></span>paperless</a>
+        <a class="nav-item" href="#"><span class="dot danger"></span>jellyfin</a>
+        <a class="nav-item" href="#"><span class="dot info"></span>vaultwarden</a>
+        <a class="nav-item muted" href="#"><svg class="icon icon-sm"><use href="#i-dots"/></svg>More</a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#"><svg class="icon icon-sm"><use href="#i-key"/></svg>API keys</a>
+      <a class="nav-item" href="#"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Settings</a>
+<div class="settings-row"><span class="t-label">Theme</span><div class="segmented" role="tablist"><button role="tab" data-theme-value="system" aria-label="Follow system" title="System"><svg class="icon icon-sm"><use href="#i-monitor"/></svg></button><button role="tab" data-theme-value="light" aria-label="Light theme" title="Light"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button><button role="tab" data-theme-value="dark" aria-label="Dark theme" title="Dark"><svg class="icon icon-sm"><use href="#i-moon"/></svg></button></div></div>
+      <hr class="separator">
+      <a class="nav-item" href="#">
+        <span class="avatar">SW</span>
+        <span class="grow truncate"><span class="t-label fg">Sebastian</span><br><span class="t-metadata muted">operator</span></span>
+        <svg class="icon icon-sm"><use href="#i-dots"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <main class="grow" style="min-width:0">
+    <header class="topbar">
+      <nav class="breadcrumb">
+        <a href="#">Console</a><span class="sep">/</span><span aria-current="page">Overview</span>
+      </nav>
+      <span class="grow"></span>
+      <button class="btn btn-ghost btn-sm" data-open-palette><svg class="icon icon-sm"><use href="#i-search"/></svg>Search<kbd>⌘</kbd><kbd>K</kbd></button>
+      <span class="separator-v" style="height:20px"></span>
+      <span class="row success t-label"><span class="dot dot-pulse"></span><span class="fg">Platform healthy</span></span>
+    </header>
+
+    <div class="page" style="max-width:none">
+      <div class="between">
+        <div class="page-header">
+          <h1 class="t-h1">Overview</h1>
+          <p class="muted t-label">4 applications on <code>home.lan</code> · platform up 18 days</p>
+        </div>
+        <div class="row">
+          <button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-logs"/></svg>Platform logs</button>
+          <button class="btn btn-primary btn-sm"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy</button>
+        </div>
+      </div>
+
+      <!-- stat row -->
+      <div style="display:grid;gap:var(--spacing-lg);grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">Applications</span><span class="badge badge-outline stat-delta success"><svg class="icon icon-sm"><use href="#i-up"/></svg>+2</span></div>
+          <span class="stat-value">4</span>
+          <span class="stat-foot">3 running · 1 crashed</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">Requests / min</span><span class="badge badge-outline stat-delta danger"><svg class="icon icon-sm"><use href="#i-down"/></svg>-18%</span></div>
+          <span class="stat-value">1,284</span>
+          <span class="stat-foot">Down from 1,566 yesterday</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">Host memory</span><span class="badge badge-outline stat-delta">40%</span></div>
+          <span class="stat-value">6.4<span class="muted" style="font-size:var(--type-size-h3);font-weight:var(--type-weight-regular)"> / 16 GiB</span></span>
+          <div class="progress" style="margin-block-start:var(--spacing-sm)"><span style="width:40%"></span></div>
+          <span class="stat-foot">9.6 GiB free on the Host</span>
+        </div></div>
+        <div class="card"><div class="stat">
+          <div class="between"><span class="stat-label">DNS queries</span><span class="badge badge-outline stat-delta success"><svg class="icon icon-sm"><use href="#i-up"/></svg>+4.5%</span></div>
+          <span class="stat-value">38.2k</span>
+          <span class="stat-foot">dnsmasq, last 24 hours</span>
+        </div></div>
+      </div>
+
+      <!-- chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="between">
+            <div>
+              <h2 class="t-h3">LAN traffic</h2>
+              <p class="muted t-label">Requests proxied to applications, last 3 months</p>
+            </div>
+            <div class="segmented" role="tablist">
+              <button role="tab" aria-selected="true">3 months</button>
+              <button role="tab" aria-selected="false">30 days</button>
+              <button role="tab" aria-selected="false">7 days</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <svg class="chart" viewBox="0 0 800 200" preserveAspectRatio="none" role="img" aria-label="Requests per day over the last three months">
+            <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="currentColor" stop-opacity="0.20"/>
+              <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+            </linearGradient></defs>
+            <line class="grid" x1="0" y1="50" x2="800" y2="50"/>
+            <line class="grid" x1="0" y1="100" x2="800" y2="100"/>
+            <line class="grid" x1="0" y1="150" x2="800" y2="150"/>
+            <line class="grid" x1="0" y1="199" x2="800" y2="199"/>
+            <path class="area" d="M0,150.0 C5.2,144.8 19.5,118.2 30,120.0 C40.5,121.8 49.5,165.2 60,160.0 C70.5,154.8 79.5,95.2 90,90.0 C100.5,84.8 109.5,133.5 120,130.0 C130.5,126.5 139.5,68.2 150,70.0 C160.5,71.8 169.5,134.8 180,140.0 C190.5,145.2 199.5,115.8 210,100.0 C220.5,84.2 229.5,46.5 240,50.0 C250.5,53.5 259.5,114.8 270,120.0 C280.5,125.2 289.5,74.8 300,80.0 C310.5,85.2 319.5,153.5 330,150.0 C340.5,146.5 349.5,67.0 360,60.0 C370.5,53.0 379.5,113.5 390,110.0 C400.5,106.5 409.5,36.5 420,40.0 C430.5,43.5 439.5,121.2 450,130.0 C460.5,138.8 469.5,86.5 480,90.0 C490.5,93.5 499.5,153.5 510,150.0 C520.5,146.5 529.5,75.2 540,70.0 C550.5,64.8 559.5,124.4 570,120.0 C580.5,115.6 589.5,41.5 600,45.0 C610.5,48.5 619.5,133.0 630,140.0 C640.5,147.0 649.5,87.6 660,85.0 C670.5,82.4 679.5,130.2 690,125.0 C700.5,119.8 709.5,57.6 720,55.0 C730.5,52.4 739.5,107.4 750,110.0 C760.5,112.6 771.2,72.6 780,70.0 C788.8,67.4 796.5,90.6 800,95.0 L800,200 L0,200 Z"/>
+            <path class="line" d="M0,150.0 C5.2,144.8 19.5,118.2 30,120.0 C40.5,121.8 49.5,165.2 60,160.0 C70.5,154.8 79.5,95.2 90,90.0 C100.5,84.8 109.5,133.5 120,130.0 C130.5,126.5 139.5,68.2 150,70.0 C160.5,71.8 169.5,134.8 180,140.0 C190.5,145.2 199.5,115.8 210,100.0 C220.5,84.2 229.5,46.5 240,50.0 C250.5,53.5 259.5,114.8 270,120.0 C280.5,125.2 289.5,74.8 300,80.0 C310.5,85.2 319.5,153.5 330,150.0 C340.5,146.5 349.5,67.0 360,60.0 C370.5,53.0 379.5,113.5 390,110.0 C400.5,106.5 409.5,36.5 420,40.0 C430.5,43.5 439.5,121.2 450,130.0 C460.5,138.8 469.5,86.5 480,90.0 C490.5,93.5 499.5,153.5 510,150.0 C520.5,146.5 529.5,75.2 540,70.0 C550.5,64.8 559.5,124.4 570,120.0 C580.5,115.6 589.5,41.5 600,45.0 C610.5,48.5 619.5,133.0 630,140.0 C640.5,147.0 649.5,87.6 660,85.0 C670.5,82.4 679.5,130.2 690,125.0 C700.5,119.8 709.5,57.6 720,55.0 C730.5,52.4 739.5,107.4 750,110.0 C760.5,112.6 771.2,72.6 780,70.0 C788.8,67.4 796.5,90.6 800,95.0"/>
+          </svg>
+          <div class="chart-axis"><span>Jun 1</span><span>Jun 15</span><span>Jul 1</span><span>Jul 15</span><span>Aug 1</span><span>Aug 15</span><span>Aug 23</span></div>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div class="stack">
+        <div class="between">
+          <div class="tabs" role="tablist" style="border:0">
+            <button role="tab" aria-selected="true">Applications <span class="badge badge-neutral badge-count">4</span></button>
+            <button role="tab" aria-selected="false">Routes <span class="badge badge-neutral badge-count">6</span></button>
+            <button role="tab" aria-selected="false">Recent events</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Columns<svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button>
+            <button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Add route</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-scroll">
+          <table class="table">
+            <thead><tr>
+              <th class="col-tight"><label class="check"><input type="checkbox" aria-label="Select all"></label></th>
+              <th><button class="th-sort">Application<svg class="icon icon-sm"><use href="#i-chevron" style="rotate:90deg;transform-origin:center"/></svg></button></th>
+              <th>Hostname</th>
+              <th>Image</th>
+              <th>Status</th>
+              <th class="num">CPU</th>
+              <th class="num">Memory</th>
+              <th class="num">Restarts</th>
+              <th class="col-tight"></th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><label class="check"><input type="checkbox" aria-label="Select grafana"></label></td>
+                <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>grafana</span></td>
+                <td class="mono muted">grafana.home.lan</td>
+                <td class="mono muted">grafana/grafana:11.2.0</td>
+                <td><span class="badge badge-success"><span class="dot"></span>Running</span></td>
+                <td class="num mono">3.1%</td>
+                <td class="num mono">412 MiB</td>
+                <td class="num mono">0</td>
+                <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions for grafana"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><label class="check"><input type="checkbox" aria-label="Select paperless"></label></td>
+                <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>paperless</span></td>
+                <td class="mono muted">paperless.home.lan</td>
+                <td class="mono muted">paperlessngx:2.11</td>
+                <td><span class="badge badge-warning"><span class="dot"></span>Degraded</span></td>
+                <td class="num mono">18.7%</td>
+                <td class="num mono">1.2 GiB</td>
+                <td class="num mono">3</td>
+                <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions for paperless"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><label class="check"><input type="checkbox" aria-label="Select jellyfin"></label></td>
+                <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>jellyfin</span></td>
+                <td class="mono muted">jellyfin.home.lan</td>
+                <td class="mono muted">jellyfin/jellyfin:10.9</td>
+                <td><span class="badge badge-danger"><span class="dot"></span>Crashed</span></td>
+                <td class="num mono muted">—</td>
+                <td class="num mono muted">—</td>
+                <td class="num mono">12</td>
+                <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions for jellyfin"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><label class="check"><input type="checkbox" aria-label="Select vaultwarden"></label></td>
+                <td><span class="row"><svg class="icon icon-sm muted"><use href="#i-box"/></svg>vaultwarden</span></td>
+                <td class="mono muted">vault.home.lan</td>
+                <td class="mono muted">vaultwarden/server:1.32</td>
+                <td><span class="badge badge-info"><span class="dot"></span>Building</span></td>
+                <td class="num mono">62.4%</td>
+                <td class="num mono">248 MiB</td>
+                <td class="num mono">0</td>
+                <td><button class="btn btn-ghost btn-icon btn-sm" aria-label="Actions for vaultwarden"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <div class="table-footer">
+            <span>4 applications · 0 selected</span>
+            <div class="pagination">
+              <button class="btn btn-outline btn-sm" disabled>Previous</button>
+              <button class="btn btn-outline btn-sm" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- list-detail split: config | logs -->
+      <div class="card" style="overflow:hidden">
+        <div class="band hatch">
+          <div class="between">
+            <div class="row-md">
+              <svg class="icon icon-lg muted"><use href="#i-box"/></svg>
+              <div>
+                <h2 class="t-h3">paperless</h2>
+                <p class="muted t-metadata mono">paperless.home.lan · restarted 3 times in the last hour</p>
+              </div>
+              <span class="badge badge-warning"><span class="dot"></span>Degraded</span>
+            </div>
+            <div class="row">
+              <button class="btn btn-outline btn-sm">Restart</button>
+              <button class="btn btn-outline btn-sm"><svg class="icon icon-sm"><use href="#i-globe"/></svg>Open</button>
+              <button class="btn btn-ghost btn-icon btn-sm" aria-label="More actions"><svg class="icon icon-sm"><use href="#i-dots"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="split" style="height:300px">
+          <div class="pane" style="flex:0 0 42%;padding:var(--spacing-lg)">
+            <div class="stack">
+              <p class="t-caps">Configuration</p>
+              <dl class="kv">
+                <dt>Image</dt><dd>paperlessngx:2.11</dd>
+                <dt>Container</dt><dd>a1f4c9e2b7d8</dd>
+                <dt>Ports</dt><dd>8000 → 80</dd>
+                <dt>Restart</dt><dd>on-failure (5)</dd>
+                <dt>Created</dt><dd>2026-08-19T09:41:02Z</dd>
+                <dt>Volumes</dt><dd>/srv/paperless/data → /usr/src/data</dd>
+              </dl>
+              <div class="alert alert-warning">
+                <svg class="icon"><use href="#i-alert"/></svg>
+                <div><p class="alert-title">Exiting shortly after start</p><p class="alert-body">Exit code 1, three times in the last hour.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="splitter" data-splitter aria-hidden="true"></div>
+          <div class="pane grow" style="padding:var(--spacing-lg)">
+            <div class="between" style="margin-block-end:var(--spacing-sm)">
+              <p class="t-caps">Logs</p>
+              <label class="switch t-label"><input type="checkbox" checked><span class="muted">Follow</span></label>
+            </div>
+            <div class="logview" style="height:calc(100% - 32px)">
+<div><span class="log-time">09:41:02.114</span><span class="log-info">INFO </span> paperless-ngx 2.11 starting</div>
+<div><span class="log-time">09:41:02.482</span><span class="log-info">INFO </span> applying migrations</div>
+<div><span class="log-time">09:41:03.901</span><span class="log-warn">WARN </span> redis unavailable, falling back to in-process queue</div>
+<div><span class="log-time">09:41:04.120</span><span class="log-error">ERROR</span> could not open /usr/src/data: permission denied</div>
+<div><span class="log-time">09:41:04.121</span><span class="log-error">ERROR</span> exiting with status 1</div>
+<div><span class="log-time">09:46:04.310</span><span class="log-info">INFO </span> restart 3/5</div>
+<div><span class="log-time">09:46:04.998</span><span class="log-info">INFO </span> paperless-ngx 2.11 starting</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="overlay hidden" data-palette style="align-items:start;padding-block-start:12vh">
+  <div class="palette">
+    <div class="palette-input">
+      <svg class="icon muted"><use href="#i-search"/></svg>
+      <input placeholder="Type a command or search…">
+      <kbd>esc</kbd>
+    </div>
+    <div class="palette-list">
+      <p class="t-caps menu-label">Applications</p>
+      <button class="menu-item" aria-selected="true"><svg class="icon icon-sm"><use href="#i-box"/></svg>grafana<span class="kbd">↵</span></button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-box"/></svg>paperless</button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-box"/></svg>jellyfin</button>
+      <div class="menu-separator"></div>
+      <p class="t-caps menu-label">Actions</p>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-plus"/></svg>Deploy application</button>
+      <button class="menu-item"><svg class="icon icon-sm"><use href="#i-gear"/></svg>Platform settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-region" data-toasts></div>
+<script src="app.js"></script>
+</body>
+</html>
