@@ -22,7 +22,9 @@
   .frame { border: 1px dashed var(--color-border-strong); border-radius: var(--radius-lg); padding: var(--spacing-lg); display: flex; flex-wrap: wrap; gap: var(--spacing-md); align-items: center; }
   .frame-stack { display: block; }
   .frame-stack > * + * { margin-block-start: var(--spacing-md); }
-  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding: var(--spacing-xs) 0; }
+  /* The gallery's own nav is page chrome, not a Kiso Sidebar, so it re-adds
+     the nav item's inset itself rather than ui.css knowing about it. */
+  .gallery-nav .settings-row { padding-inline: var(--spacing-sm); }
   .theme-menu-wrap { position: relative; }
   .theme-menu-wrap .menu { position: absolute; inset-block-start: calc(100% + var(--spacing-xs)); inset-inline-start: 0; z-index: 5; }
   .menu-check { margin-inline-start: auto; visibility: hidden; }
@@ -243,7 +245,7 @@
     <section class="demo" id="forms">
       <div class="demo-head">
         <h2 class="t-h2">Form controls</h2>
-        <p class="muted t-label">36px height, 6px radius, hairline border, one-pixel inner shadow.</p>
+        <p class="muted t-label">36px height, 4px radius, hairline border, one-pixel contact shadow.</p>
       </div>
       <div class="demo-grid">
         <div class="card"><div class="card-body">
@@ -313,7 +315,7 @@
     <section class="demo" id="cards">
       <div class="demo-head">
         <h2 class="t-h2">Cards &amp; stat tiles</h2>
-        <p class="muted t-label">10px radius, hairline border, near-flat elevation. Depth comes from the border, not the shadow.</p>
+        <p class="muted t-label">Square corners with registration marks, hairline border, near-flat elevation. Depth comes from the border, not the shadow.</p>
       </div>
       <div class="demo-grid">
         <div class="card"><div class="stat">
@@ -510,7 +512,7 @@
       </div>
       <div class="demo-grid">
         <div class="card"><div class="card-body">
-          <div class="between"><span class="t-label">Theme</span>
+          <div class="settings-row"><span class="t-label">Theme</span>
             <div class="segmented" role="tablist">
               <button role="tab" data-theme-value="system" aria-label="Follow system" title="System"><svg class="icon icon-sm"><use href="#i-monitor"/></svg></button>
               <button role="tab" data-theme-value="light" aria-label="Light theme" title="Light"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
