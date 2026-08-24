@@ -1,6 +1,7 @@
 import StyleDictionary from 'style-dictionary';
 
-const MODES = ['dark', 'light'];
+// Order matters: light-dark() takes the light value first.
+const MODES = ['light', 'dark'];
 // Must match the $extensions key in tokens/tokens.json: { "$extensions": { "com.momoi-labs.kiso": { "fontVariantNumeric": ... } } }.
 const NAMESPACE = 'com.momoi-labs.kiso';
 
@@ -37,7 +38,10 @@ const cubicBezierCss = (v) => {
 
 const shadowCss = (v) => {
   if (!v || typeof v !== 'object') return fail('shadow must be an object, got ' + JSON.stringify(v));
-  return ['offsetX', 'offsetY', 'blur', 'spread'].map((k) => unitValueCss(v[k])).concat(colorCss(v.color)).join(' ');
+  // The shadow colour is a token in its own right (color.shadow.*), so it
+  // arrives here as an alias and must stay a var() indirection.
+  const color = isRef(v.color) ? refVar(v.color) : colorCss(v.color);
+  return ['offsetX', 'offsetY', 'blur', 'spread'].map((k) => unitValueCss(v[k])).concat(color).join(' ');
 };
 
 // Serialize a value by its DTCG $type (not by JavaScript shape heuristics).
@@ -55,6 +59,17 @@ const render = (value, type) => {
     default: return fail('unsupported $type ' + type);
   }
 };
+
+// DTCG's $type enum has no angle, so hatch.angle is a number whose CSS unit
+// rides in the namespaced extension. Without this the SCSS and TypeScript
+// artifacts ship a bare `45` where a gradient needs `45deg`.
+StyleDictionary.registerTransform({
+  name: 'kiso/unit-extension',
+  type: 'value',
+  transitive: true,
+  filter: (token) => Boolean(token.$extensions?.[NAMESPACE]?.unit),
+  transform: (token) => String(token.$value) + token.$extensions[NAMESPACE].unit
+});
 
 StyleDictionary.registerTransform({
   name: 'kiso/duration-css',
@@ -102,7 +117,10 @@ StyleDictionary.registerFormat({
         const fontVariantNumeric = src.$extensions?.[NAMESPACE]?.fontVariantNumeric;
         if (fontVariantNumeric) globalFontVariantNumeric = globalFontVariantNumeric ?? fontVariantNumeric;
       } else {
-        expanded.push({ path, value: (mode) => render(valueForMode(src, mode), type) });
+        // DTCG has no angle type, so hatch.angle is a number carrying its CSS
+        // unit in the namespaced extension.
+        const unit = src.$extensions?.[NAMESPACE]?.unit ?? '';
+        expanded.push({ path, value: (mode) => render(valueForMode(src, mode), type) + unit });
       }
     }
 
@@ -112,11 +130,14 @@ StyleDictionary.registerFormat({
     // --font-variant-numeric feature token.
     if (globalFontVariantNumeric) expanded.push({ path: ['font', 'variant-numeric'], value: (mode) => globalFontVariantNumeric });
 
-    const rendered = {};
-    for (const mode of MODES) rendered[mode] = expanded.map(({ path, value }) => [varName(path), value(mode)]);
-
-    const dark = new Map(rendered.dark);
-    const lightDelta = rendered.light.filter(([n, v]) => dark.get(n) !== v);
+    // Every custom property is declared exactly once. A token whose two modes
+    // differ is emitted as CSS light-dark(), which resolves against the
+    // inherited color-scheme — so "follow the OS" needs no media query and no
+    // JS, and an explicit choice only has to flip color-scheme.
+    const rendered = expanded.map(({ path, value }) => {
+      const [light, dark] = MODES.map((mode) => value(mode));
+      return [varName(path), light === dark ? dark : 'light-dark(' + light + ', ' + dark + ')'];
+    });
 
     const reducedMotion = tokens
       .filter(({ path }) => path[0] === 'motion' && path[1] === 'duration')
@@ -124,8 +145,9 @@ StyleDictionary.registerFormat({
 
     const out = [
       '/* Kiso design tokens — generated from tokens/tokens.json. Do not edit. */',
-      block(':root', rendered.dark),
-      block('[data-theme="light"]', lightDelta)
+      block(':root', [['color-scheme', 'light dark'], ...rendered]),
+      block('[data-theme="light"]', [['color-scheme', 'light']]),
+      block('[data-theme="dark"]', [['color-scheme', 'dark']])
     ];
     if (reducedMotion.length) {
       const mediaBody = block(':root', reducedMotion).split('\n').map((l) => '  ' + l).join('\n');
@@ -139,6 +161,7 @@ const buildPath = 'tokens/build/';
 const webValueTransforms = [
   'attribute/cti',
   'kiso/duration-css',
+  'kiso/unit-extension',
   'size/rem',
   'color/css',
   'fontFamily/css',

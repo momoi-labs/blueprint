@@ -3,6 +3,7 @@
 
 $color-white: #ffffff; // Pure white. Light theme elevated surface.
 $color-black: #000000; // Pure black. Reserved for overlays and shadows.
+$color-neutral-50: #fffefc; // Lightest neutral. Light-theme elevated surface above neutral.100.
 $color-neutral-100: #faf9f7;
 $color-neutral-200: #f4f2ee;
 $color-neutral-300: #e0dcd6;
@@ -12,13 +13,17 @@ $color-neutral-600: #5f5b57;
 $color-neutral-700: #312f37;
 $color-neutral-800: #26252b;
 $color-neutral-900: #1b1a1e;
+$color-neutral-950: #131217; // Darkest neutral. Sidebar and log surfaces that must sit below the app canvas.
+$color-accent-50: #f7f4ff; // Lightest lilac. Light-theme tinted surface (row hover, ghost hover).
 $color-accent-200: #ede8fd;
 $color-accent-300: #ded5fb;
 $color-accent-400: #c4b4f5;
+$color-accent-500: #a690ea; // Mid lilac. Closes the ramp between 400 and 600; accent.base stays the mode-aware base.
 $color-accent-600: #7d68d1;
 $color-accent-700: #6552b8;
 $color-accent-800: #46309e;
 $color-accent-900: #2e2170;
+$color-accent-950: #211741; // Darkest lilac. Dark-theme tinted surface, the counterpart to accent.50.
 $color-accent-base: #cbbdf7; // Base accent primitive. Airy lilac on dark (10.03:1) and deeper violet on light (6.36:1) — calibrated up from the marketing site accent, which fails AA in both themes.
 $color-status-success: #4ed69a; // Success status primitive.
 $color-status-warning: #e8c05a; // Warning status primitive.
@@ -39,16 +44,55 @@ $semantic-danger: #f4867f; // Destructive or error state. Text-eligible: passes 
 $semantic-info: #8fc9f5; // Neutral informational state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
 $semantic-focus: #ded5fb; // Focus ring. Non-text role. >=3:1 against background.
 $semantic-disabled: #5f5b57; // Disabled text and controls. Exempt from contrast minimums per WCAG 1.4.3.
+$semantic-card: #26252b; // Panel and card fill. Alias of surface, named for the component that owns it.
+$semantic-card-foreground: #faf9f7; // Text on card.
+$semantic-popover: #312f37; // Menus, dialogs, command palette. Alias of elevated-surface.
+$semantic-popover-foreground: #faf9f7; // Text on popover.
+$semantic-muted: #312f37; // Recessed fill one step off card: table headers, card footers, segmented tracks. Surface role.
+$semantic-sidebar: #131217; // Application shell navigation column. Sits below the canvas on dark, above it on light.
+$semantic-sidebar-border: #5f5b57; // Divider between sidebar and content.
+$semantic-border-strong: #8a857f; // Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes.
+$semantic-input: #5f5b57; // Form control outline at rest.
+$semantic-primary-foreground: #1b1a1e; // Text and icons on a primary fill. Inverts with the fill: white on the light-theme violet, near-black on the dark-theme lilac. Passes AA on primary in both themes.
+$semantic-primary-hover: #ded5fb; // Primary fill on hover — one ramp step away from primary, in the direction that keeps primary-foreground legible.
+$semantic-link: #cbbdf7; // Inline and standalone links.
+$semantic-accent-surface: #211741; // Faintest accent tint: row hover, ghost-button hover. Non-text role.
+$semantic-accent-surface-hover: #2e2170; // Accent tint one step stronger. Non-text role.
+$semantic-selected: #2e2170; // Selected row, active navigation item, highlighted palette result. Non-text role.
+$semantic-selected-foreground: #faf9f7; // Text on a selected row.
+$semantic-secondary: #312f37; // Neutral button fill, range track, count badge. Non-text role.
+$semantic-secondary-foreground: #faf9f7; // Text on a secondary fill.
+$semantic-secondary-hover: #5f5b57; // Secondary fill on hover. Non-text role.
+$semantic-ring: #ded5fb; // Focus ring, drag handle active state. Alias of focus, named for the property it sets.
+$semantic-disabled-surface: #26252b; // Fill of a disabled control. Exempt from contrast minimums per WCAG 1.4.3.
+$semantic-skeleton: #312f37; // Loading placeholder fill. Non-text role.
+$semantic-overlay: rgba(0, 0, 0, 0.6); // Scrim behind a modal layer. Non-text role.
+$semantic-hatch: #312f37; // Hatch stripe marking a region that is not data. One step off the surface it sits on — never raise it further, it is a texture, not a message.
+$semantic-corner-mark: #8a857f; // Corner registration marks. Non-text role.
+$semantic-shadow-hairline: rgba(0, 0, 0, 0.3); // Shadow colour for the 1px contact shadow under a resting control.
+$semantic-shadow-contact: rgba(0, 0, 0, 0.4); // Shadow colour for separated and floating layers. Darker on dark, where a shadow has to work harder.
+$semantic-success-surface: rgba(78, 214, 154, 0.12); // Success tinted fill for badges and callouts — the success hue at low alpha. Non-text role.
+$semantic-success-border: rgba(78, 214, 154, 0.35); // Success outline for badges and callouts. Non-text role.
+$semantic-warning-surface: rgba(232, 192, 90, 0.12); // Warning tinted fill for badges and callouts — the warning hue at low alpha. Non-text role.
+$semantic-warning-border: rgba(232, 192, 90, 0.35); // Warning outline for badges and callouts. Non-text role.
+$semantic-danger-surface: rgba(244, 134, 127, 0.12); // Danger tinted fill for badges and callouts — the danger hue at low alpha. Non-text role.
+$semantic-danger-border: rgba(244, 134, 127, 0.35); // Danger outline for badges and callouts. Non-text role.
+$semantic-info-surface: rgba(143, 201, 245, 0.12); // Info tinted fill for badges and callouts — the info hue at low alpha. Non-text role.
+$semantic-info-border: rgba(143, 201, 245, 0.35); // Info outline for badges and callouts. Non-text role.
+$semantic-danger-foreground: #1b1a1e; // Text and icons on a danger fill. Inverts with the fill, like primary-foreground.
+$semantic-warning-on-dark: #e8c05a; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-danger-on-dark: #f4867f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-info-on-dark: #8fc9f5; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.
-$type-size-metadata: 11px; // Step -2. Captions, timestamps, footnotes, table metadata.
-$type-size-label: 13px; // Step -1. Labels, buttons, form captions, small UI text.
-$type-size-body: 16px; // Step 0. Body copy; base size for code and numeric text.
-$type-size-h3: 19px; // Step +1. Small headings, card titles.
-$type-size-h2: 23px; // Step +2. Section headings.
-$type-size-h1: 28px; // Step +3. Page headings.
-$type-size-display: 33px; // Step +4. Display headings - the calm ceiling; the 48px hero is marketing scale, not product scale.
+$type-size-metadata: 11px; // Captions, timestamps, footnotes, table metadata.
+$type-size-label: 12px; // Labels, buttons, form captions, small UI text.
+$type-size-body: 14px; // Body copy and control text; base size for code and numeric text. 14px, not 16px: a console is read at desk distance, in density.
+$type-size-h3: 16px; // Card and panel titles.
+$type-size-h2: 18px; // Section headings.
+$type-size-h1: 22px; // Page headings.
+$type-size-display: 30px; // Display headings and stat values — the calm ceiling.
 $type-weight-regular: 400; // Regular - body, metadata, code.
 $type-weight-medium: 500; // Medium - labels, display headings.
 $type-weight-semibold: 600; // Semibold - headings.
@@ -56,16 +100,20 @@ $type-weight-bold: 700; // Bold - emphasis within headings.
 $type-line-height-tight: 1.2; // Display and headings.
 $type-line-height-normal: 1.5; // Body, labels, code.
 $type-line-height-relaxed: 1.6; // Long-form reading, notes. 1.6 is rationalized - 1.75 is part of the ad-hoc set and is deliberately not reused.
+$type-line-height-snug: 1.35; // Section and card headings — between tight and normal.
 $type-letter-spacing-heading: -0.01rem; // Display and headings - a hair tighter than body.
 $type-letter-spacing-normal: 0rem; // Neutral tracking - the default for body, metadata and code roles.
 $type-letter-spacing-label: 0.02rem; // Labels and small UI text.
-$type-role-display: 500 33px/1.2 Inter, system-ui, sans-serif; // Display headings.
-$type-role-heading: 600 28px/1.2 Inter, system-ui, sans-serif; // Page headings (h1); h2 and h3 step down through type.size.
-$type-role-body: 400 16px/1.5 Inter, system-ui, sans-serif; // Body copy.
-$type-role-label: 500 13px/1.5 Inter, system-ui, sans-serif; // Labels, buttons, form captions.
+$type-letter-spacing-display: -0.02rem; // Display headings and stat values — tighter still than heading.
+$type-letter-spacing-caps: 0.06rem; // Uppercase eyebrow labels, which need tracking opened up to stay readable.
+$type-role-display: 500 30px/1.2 Inter, system-ui, sans-serif; // Display headings.
+$type-role-heading: 600 22px/1.2 Inter, system-ui, sans-serif; // Page headings (h1); h2 and h3 step down through type.size.
+$type-role-body: 400 14px/1.5 Inter, system-ui, sans-serif; // Body copy.
+$type-role-label: 500 12px/1.5 Inter, system-ui, sans-serif; // Labels, buttons, form captions.
 $type-role-metadata: 400 11px/1.5 Inter, system-ui, sans-serif; // Captions, timestamps, footnotes.
-$type-role-code: 400 13px/1.5 'JetBrains Mono', ui-monospace, monospace; // Code and data values (monospace).
-$type-role-numeric: 400 16px/1.5 Inter, system-ui, sans-serif; // Numeric and tabular data. Carries the namespaced com.momoi-labs.kiso.fontVariantNumeric extension (tabular-nums), emitted by the formatter as the global --font-variant-numeric feature token.
+$type-role-code: 400 12px/1.5 'JetBrains Mono', ui-monospace, monospace; // Code and data values (monospace).
+$type-role-numeric: 400 14px/1.5 Inter, system-ui, sans-serif; // Numeric and tabular data. Carries the namespaced com.momoi-labs.kiso.fontVariantNumeric extension (tabular-nums), emitted by the formatter as the global --font-variant-numeric feature token.
+$spacing-2xs: 2px; // Hairline gaps: segmented-control padding, stacked label/value pairs.
 $spacing-xs: 4px; // Tight internal padding, icon gaps.
 $spacing-sm: 8px; // Component padding, small gaps.
 $spacing-md: 12px; // Default padding, form gaps.
@@ -74,12 +122,16 @@ $spacing-xl: 24px; // Page margins, panel gaps.
 $spacing-2xl: 32px; // Wide page margins, dialog padding.
 $spacing-3xl: 48px; // Section spacing.
 $spacing-4xl: 64px; // Large section spacing, hero padding.
-$radius-sm: 4px; // Inputs, small controls.
-$radius-md: 8px; // Cards, buttons, panels.
-$radius-lg: 12px; // Dialogs, popovers, large surfaces.
-$radius-full: 9999px; // Pills, badges, avatars.
-$shadow-sm: 0px 1px 2px 0px rgb(0% 0% 0% / 0.24); // Cards on canvas - subtle separation.
-$shadow-md: 0px 2px 8px 0px rgb(0% 0% 0% / 0.32); // Menus, popovers, dialogs - floating layers.
+$radius-xs: 2px; // Checkboxes, chart bars, the smallest controls.
+$radius-sm: 3px; // Extra-small buttons, focus-ring rounding.
+$radius-md: 4px; // Buttons, inputs, menu items. The control default.
+$radius-lg: 5px; // Segmented-control tracks and other control groups.
+$radius-full: 9999px; // Pills, dots, switches, avatars.
+$radius-surface: 0px; // Panels, cards, tables, dialogs. Square, always — corner marks read as registration marks only against a square frame.
+$shadow-xs: 0px 1px 1px 0px rgba(0, 0, 0, 0.3); // Resting controls: buttons, inputs, selected segments. A contact line, not a shadow.
+$shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.4); // Cards and panels on the canvas — subtle separation.
+$shadow-md: 0px 2px 8px 0px rgba(0, 0, 0, 0.4); // Popovers and dropdowns.
+$shadow-lg: 0px 8px 24px 0px rgba(0, 0, 0, 0.4); // Dialogs, drawers and the command palette — the only layers that float free.
 $motion-duration-fast: 120ms; // Focus and hover feedback.
 $motion-duration-normal: 200ms; // Open/close and state changes.
 $motion-easing-standard: cubic-bezier(0.2, 0, 0, 1); // Ease-out - elements settle, no bounce, no delight for its own sake.
@@ -87,3 +139,19 @@ $breakpoint-sm: 640px; // Small tablets, portrait.
 $breakpoint-md: 768px; // Tablets, landscape phones.
 $breakpoint-lg: 1024px; // Desktop.
 $breakpoint-xl: 1280px; // Wide desktop.
+$size-control-xs: 24px; // Inline table-row actions, dense toolbars.
+$size-control-sm: 32px; // Toolbars, segmented controls, compact forms.
+$size-control-md: 36px; // The default. Buttons, inputs, selects.
+$size-control-lg: 40px; // Primary calls to action, table row height.
+$size-touch-min: 44px; // WCAG 2.2 target-size minimum. Apply only inside @media (pointer: coarse) — as a min-height on top of a control size, never as the control size itself.
+$size-icon-sm: 14px; // Icons inside labels, badges and xs controls.
+$size-icon-md: 16px; // The default. Icons in buttons, inputs, navigation.
+$size-icon-lg: 20px; // Empty-state and page-header icons.
+$size-sidebar: 248px; // Application shell navigation column width.
+$size-content-max: 1280px; // Maximum content measure. Beyond this a row is scanned, not read.
+$corner-mark: 1; // Marks on (1) or off (0). Opacity, so it is a single switch on the pseudo-element rather than a rule per component.
+$corner-mark-tick: 4px; // Length of one tick.
+$corner-mark-gap: 2px; // Distance from tick end to the frame it points at. The gap is the mark — close it and this is just a thicker border.
+$hatch-line: 5px; // Stripe width.
+$hatch-period: 10px; // Stripe-to-stripe distance. Half of it is stripe, half is gap.
+$hatch-angle: 45deg; // Stripe angle. DTCG has no angle type, so the CSS unit rides in the namespaced extension and the formatter emits "45deg".

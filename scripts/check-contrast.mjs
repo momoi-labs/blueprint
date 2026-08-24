@@ -16,6 +16,25 @@ const textRoles = new Map([
   ['subtle-foreground', 3],
 ]);
 
+// Roles that draw a line or a boundary rather than text: WCAG 1.4.11.
+const nonTextRoles = new Map([
+  ['border-strong', 3],
+  ['corner-mark', 3],
+]);
+
+// A foreground role painted on top of a filled role, not on a surface. This is
+// the pair that a system without a *-foreground slot gets wrong: the fill is
+// applied, the text keeps the page foreground, and the control turns into an
+// outline. Each pair is checked in both themes.
+const fillPairs = [
+  ['primary-foreground', 'primary', 4.5],
+  ['danger-foreground', 'danger', 4.5],
+  ['secondary-foreground', 'secondary', 4.5],
+  ['selected-foreground', 'selected', 4.5],
+  ['card-foreground', 'card', 4.5],
+  ['popover-foreground', 'popover', 4.5],
+];
+
 function tokenAt(tokens, path) {
   const token = path.split('.').reduce((node, segment) => node?.[segment], tokens);
   if (!token || typeof token !== 'object' || !('$value' in token)) {
@@ -88,6 +107,29 @@ async function main() {
       }
     }
 
+    for (const [role, minimum] of nonTextRoles) {
+      for (const background of backgrounds) {
+        const ratio = contrast(
+          roleColor(tokens, role, theme),
+          roleColor(tokens, background, theme),
+        );
+        if (ratio < minimum) {
+          failures.push(
+            `role=${role} theme=${theme} bg=${background} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
+          );
+        }
+      }
+    }
+
+    for (const [role, fill, minimum] of fillPairs) {
+      const ratio = contrast(roleColor(tokens, role, theme), roleColor(tokens, fill, theme));
+      if (ratio < minimum) {
+        failures.push(
+          `role=${role} theme=${theme} on=${fill} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
+        );
+      }
+    }
+
     const focusRatio = contrast(
       roleColor(tokens, 'focus', theme),
       roleColor(tokens, 'background', theme),
@@ -106,7 +148,11 @@ async function main() {
     return;
   }
 
-  console.log('AA contrast check passed: 54 text and 2 focus combinations across dark and light themes.');
+  console.log(
+    `AA contrast check passed: ${textRoles.size * backgrounds.length * 2} text, `
+    + `${nonTextRoles.size * backgrounds.length * 2} non-text, ${fillPairs.length * 2} on-fill `
+    + 'and 2 focus combinations across dark and light themes.',
+  );
 }
 
 main().catch((error) => {
