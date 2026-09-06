@@ -3,3 +3,11 @@
 # changeset-release/main: contributors have it covered by a personal
 # .git/info/exclude or global ignore, and a CI runner has neither.
 node_modules/
+
+# Built npm package artifacts.
+packages/kiso/kiso/
+packages/kiso/tokens/
+packages/kiso/LICENSE
+packages/kiso/README.md
+packages/kiso-react/dist/
+*.tgz

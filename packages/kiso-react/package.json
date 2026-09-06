@@ -1,0 +1,53 @@
+{
+  "name": "@momoi-labs/kiso-react",
+  "version": "0.0.0",
+  "description": "Kiso React components built with shadcn/ui and Radix",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momoi-labs/blueprint.git",
+    "directory": "packages/kiso-react"
+  },
+  "files": [
+    "dist/",
+    "SHADCN-LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": {
+      "types": "./dist/styles.d.ts",
+      "default": "./dist/styles.css"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"require('node:fs').copyFileSync('src/styles.css', 'dist/styles.css')\"",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@momoi-labs/kiso": "^0.4.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "radix-ui": "1.6.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "typescript": "7.0.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

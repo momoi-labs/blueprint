@@ -1,0 +1,30 @@
+name: React package checks
+
+on:
+  pull_request:
+    paths:
+      - 'package*.json'
+      - 'packages/**'
+      - 'kiso/**'
+      - 'tokens/**'
+      - 'scripts/**'
+      - '.changeset/**'
+      - '.github/workflows/react-checks.yml'
+      - '.github/workflows/release.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Build and install React package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run check:react
