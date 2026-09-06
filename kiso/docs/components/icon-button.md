@@ -145,7 +145,7 @@ No dedicated Radix or shadcn `IconButton` primitive. Implement as shadcn
 | IconButton `sm` | `size="icon-sm"` (or `icon-xs` only if it still uses `--spacing-xs` padding) |
 | IconButton `md` | `size="icon"` |
 | IconButton `lg` | `size="icon-lg"` |
-| variants | Same Button mapping as [Button](button.md) (Kiso `primary` and `default` both start from shadcn `outline`, restyled) |
+| variants | Same Button mapping as [Button](button.md) (Kiso `primary` is a fill, `default` starts from shadcn `outline`) |
 
 Always pass `aria-label`. Do not rely on the icon's title or a Tooltip
 alone.
