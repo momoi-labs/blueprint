@@ -22,11 +22,14 @@ the React workspace and never ship inside either npm package.
    ```sh
    git pull --ff-only
    npm ci
+   npm audit
    npm run check
    npm run check:react
    npm login
    npm publish --workspace=@momoi-labs/kiso-react --access public --provenance=false
    ```
+
+   Resolve any audit findings before publishing.
 
    Use an npm account with publishing rights in the `momoi-labs` organization.
    Complete the browser login and 2FA prompts. This first publish creates the
@@ -70,7 +73,9 @@ the React workspace and never ship inside either npm package.
    Versions are independent; a React-only change does not bump Kiso.
 3. Open GitHub **Actions > Release > Run workflow**, select `main`, and enter
    `publish-kiso`. Approve the `npm` environment if GitHub requests it.
-4. The workflow validates both packages and the demo, publishes versions that
+4. The workflow audits all dependencies, including development dependencies,
+   and blocks publication if any vulnerabilities are reported. It validates
+   both packages and the demo, publishes versions that
    are absent from npm, pushes their Git tags, and creates GitHub releases.
 
 Equivalent dispatch from the CLI:
