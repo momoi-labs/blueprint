@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -31,9 +33,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run check
+      - run: npm run check:react
       - uses: changesets/action@v1
         with:
-          version: npx changeset version
+          version: npm run version:packages
           title: "chore: release kiso"
           commit: "chore: release kiso"
         env:
@@ -41,11 +44,13 @@ jobs:
 
   publish:
     name: Publish Kiso
-    if: github.event_name == 'workflow_dispatch' && inputs.confirm_publish == 'publish-kiso'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_publish == 'publish-kiso'
     runs-on: ubuntu-latest
     environment: npm
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -53,4 +58,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run check
-      - run: npm run release
+      - run: npm run check:react
+      - name: Publish packages and push release tags
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

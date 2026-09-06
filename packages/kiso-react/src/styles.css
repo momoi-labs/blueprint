@@ -1,0 +1,111 @@
+@import "@momoi-labs/kiso/tokens.css";
+@import "@momoi-labs/kiso/ui.css";
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+}
+.theme-buttons {
+  display: flex;
+  padding: var(--spacing-2xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-muted);
+}
+.theme-buttons .btn[aria-pressed="true"] {
+  background: var(--color-card);
+  color: var(--color-foreground);
+  box-shadow: var(--shadow-xs);
+}
+
+.kiso-checkbox {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  padding: 0;
+  border: 1px solid var(--color-input);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  color: var(--color-primary-foreground);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+}
+.kiso-checkbox[data-state="checked"],
+.kiso-checkbox[data-state="indeterminate"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.checkbox-indicator,
+.checkbox-indicator svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.kiso-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kiso-react-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--color-overlay);
+}
+.kiso-react-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 51;
+  transform: translate(-50%, -50%);
+  width: min(32rem, calc(100vw - 2 * var(--spacing-lg)));
+  background: var(--color-elevated-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--shadow-md);
+}
+.dialog-scroll {
+  max-height: calc(100dvh - 2 * var(--spacing-xl));
+  overflow-y: auto;
+}
+.kiso-react-dialog .dialog-header {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+.kiso-react-dialog .dialog-body {
+  display: grid;
+  gap: var(--spacing-md);
+}
+.kiso-react-dialog .dialog-footer {
+  flex-wrap: wrap;
+}
+.kiso-react-dialog .alert:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.btn[aria-busy="true"] {
+  opacity: 1;
+}
+.btn[aria-busy="true"] .spinner {
+  border-color: currentColor;
+  border-right-color: transparent;
+}
+
+@media (pointer: coarse) {
+  .kiso-checkbox::before {
+    content: "";
+    position: absolute;
+    width: var(--size-touch-min);
+    height: var(--size-touch-min);
+  }
+}
+
+.kiso-checkbox .checkbox-mixed,
+.kiso-checkbox[data-state="indeterminate"] .checkbox-check { display: none; }
+.kiso-checkbox[data-state="indeterminate"] .checkbox-mixed { display: block; }
+.kiso-react-dialog { max-height: calc(100dvh - 2 * var(--spacing-lg)); overflow-y: auto; }

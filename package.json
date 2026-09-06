@@ -1,37 +1,24 @@
 {
-  "name": "@momoi-labs/kiso",
-  "version": "0.4.0",
-  "description": "Kiso design-system contracts and generated design tokens",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momoi-labs/blueprint.git"
-  },
+  "name": "blueprint",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "files": [
-    "kiso/",
-    "!kiso/blocks/",
-    "tokens/build/"
+  "workspaces": [
+    "packages/*",
+    "kiso/blocks/react-prototype"
   ],
-  "exports": {
-    "./tokens.css": "./tokens/build/tokens.css",
-    "./ui.css": "./kiso/ui.css",
-    "./tokens.json": "./tokens/build/tokens.json",
-    "./tokens.scss": "./tokens/build/tokens.scss",
-    "./tokens.d.ts": "./tokens/build/tokens.d.ts",
-    "./contracts/*": "./kiso/*"
-  },
   "scripts": {
+    "prototype": "npm run build:packages && npm run dev --workspace=kiso-react-prototype",
     "build": "style-dictionary build --config style-dictionary.config.mjs",
     "check": "npm run build && npm run check:generated && npm run check:tokens",
     "check:generated": "git diff --exit-code -- tokens/build/",
     "check:tokens": "node scripts/validate-dtcg.mjs && node scripts/check-contrast.mjs tokens/tokens.json && node scripts/check-component-token-refs.mjs",
     "changeset": "changeset",
-    "release": "changeset publish"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "release": "npm run build:packages && changeset publish",
+    "build:packages": "npm run build --workspace=@momoi-labs/kiso && npm run build --workspace=@momoi-labs/kiso-react",
+    "build:demo": "npm run build:packages && npm run build --workspace=kiso-react-prototype",
+    "check:react": "npm run build:demo && node scripts/check-react-package.mjs",
+    "version:packages": "changeset version && npm install --package-lock-only"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",

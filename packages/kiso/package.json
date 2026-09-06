@@ -1,0 +1,33 @@
+{
+  "name": "@momoi-labs/kiso",
+  "version": "0.4.0",
+  "description": "Kiso design-system contracts and generated design tokens",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momoi-labs/blueprint.git",
+    "directory": "packages/kiso"
+  },
+  "type": "module",
+  "files": [
+    "kiso/",
+    "!kiso/blocks/",
+    "tokens/build/"
+  ],
+  "exports": {
+    "./tokens.css": "./tokens/build/tokens.css",
+    "./ui.css": "./kiso/ui.css",
+    "./tokens.json": "./tokens/build/tokens.json",
+    "./tokens.scss": "./tokens/build/tokens.scss",
+    "./tokens.d.ts": "./tokens/build/tokens.d.ts",
+    "./contracts/*": "./kiso/*"
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-kiso-package.mjs",
+    "prepack": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
