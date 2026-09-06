@@ -9,8 +9,8 @@ The repository has two public npm workspaces:
 
 The root is private. Kiso's sources remain in `kiso/` and `tokens/`; its build
 copies publishable files into its workspace and excludes `kiso/blocks/`.
-Do not edit those generated copies. The private console and gallery consume
-the React workspace and never ship inside either npm package.
+Do not edit those generated copies. The private component gallery consumes
+the React workspace and never ships inside either npm package.
 
 ## First React release
 

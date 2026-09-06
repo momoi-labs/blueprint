@@ -109,3 +109,138 @@
 .kiso-checkbox[data-state="indeterminate"] .checkbox-check { display: none; }
 .kiso-checkbox[data-state="indeterminate"] .checkbox-mixed { display: block; }
 .kiso-react-dialog { max-height: calc(100dvh - 2 * var(--spacing-lg)); overflow-y: auto; }
+
+/* Shapes the CSS layer names in prose but not in a class. */
+.spinner-sm { width: var(--size-icon-sm); height: var(--size-icon-sm); }
+.skeleton-text { height: 1lh; border-radius: var(--radius-sm); }
+.skeleton-circle { aspect-ratio: 1; border-radius: var(--radius-full); }
+.empty-sm { padding: var(--spacing-lg) var(--spacing-md); }
+
+/* Lists carry the semantics; the CSS layer styles their containers. */
+[data-slot="navigation-list"],
+[data-slot="breadcrumb-list"],
+[data-slot="toast-viewport"] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-slot="navigation-list"] {
+  display: grid;
+  gap: var(--spacing-2xs);
+}
+
+/* Radix renders the Select trigger as a button, so the native select's
+   text alignment has to be restated. */
+[data-slot="select-trigger"] {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-align: start;
+  cursor: pointer;
+}
+[data-slot="select-trigger"][data-placeholder] {
+  color: var(--color-subtle-foreground);
+}
+[data-slot="select-trigger"]:disabled { cursor: not-allowed; }
+[data-slot="select-item"] { justify-content: space-between; }
+
+/* Portalled surfaces: above the page, never wider than it. */
+.kiso-react-floating {
+  z-index: 70;
+  max-width: calc(100vw - 2 * var(--spacing-lg));
+}
+.kiso-react-floating .menu-item[data-highlighted] {
+  background: var(--color-selected);
+  color: var(--color-selected-foreground);
+  outline: none;
+}
+.kiso-react-floating .menu-item.is-danger[data-highlighted] {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+.kiso-react-floating .menu-item[data-disabled] {
+  color: var(--color-disabled);
+  cursor: not-allowed;
+}
+.kiso-react-popover {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-popover);
+  color: var(--color-popover-foreground);
+  box-shadow: var(--shadow-md);
+  max-width: min(24rem, calc(100vw - 2 * var(--spacing-lg)));
+}
+[data-slot="tooltip-content"] { max-width: 28ch; }
+
+.kiso-react-switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard);
+}
+.kiso-react-switch[data-state="checked"] { background: var(--color-primary); }
+.kiso-react-switch:disabled { opacity: .5; cursor: not-allowed; }
+.kiso-react-switch-thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-inline-start: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+  transition: translate var(--motion-duration-fast) var(--motion-easing-standard);
+}
+.kiso-react-switch[data-state="checked"] .kiso-react-switch-thumb {
+  translate: 14px 0;
+  background: var(--color-primary-foreground);
+}
+
+[data-slot="tabs-content"] { padding-block-start: var(--spacing-lg); }
+
+[data-slot="toast-viewport"] { max-width: calc(100vw - 2 * var(--spacing-lg)); }
+[data-slot="toast"] { max-width: 100%; }
+[data-slot="toast"][data-variant="success"] { border-color: var(--color-success-border); }
+[data-slot="toast"][data-variant="warning"] { border-color: var(--color-warning-border); }
+[data-slot="toast"][data-variant="error"] { border-color: var(--color-danger-border); }
+
+/* A Drawer is the dialog surface moved to an edge. */
+.kiso-react-drawer {
+  position: fixed;
+  z-index: 51;
+  overflow-y: auto;
+  background: var(--color-elevated-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+.kiso-react-drawer[data-placement="side"] {
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(28rem, calc(100vw - var(--spacing-xl)));
+  border-start-start-radius: var(--radius-surface);
+  border-end-start-radius: var(--radius-surface);
+}
+.kiso-react-drawer[data-placement="bottom"] {
+  inset-inline: 0;
+  inset-block-end: 0;
+  max-height: 85dvh;
+  border-start-start-radius: var(--radius-surface);
+  border-start-end-radius: var(--radius-surface);
+}
+
+.kiso-react-palette {
+  position: fixed;
+  z-index: 51;
+  inset-block-start: 12vh;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  width: min(560px, calc(100vw - 2 * var(--spacing-lg)));
+}

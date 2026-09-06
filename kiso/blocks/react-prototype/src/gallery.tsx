@@ -1,42 +1,127 @@
-// Catalogue previews. Shared exports are distinguished from compositions below.
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+// Catalogue previews. Every entry renders the published component, so the
+// gallery cannot drift from what @momoi-labs/kiso-react ships.
+import { useEffect, useId, useRef, useState } from "react";
 import {
+  Alert,
+  AlertContent,
+  AlertDescription,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertTitle,
+  Badge,
+  BrandMark,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  Checkbox,
+  CommandPalette,
+  CommandPaletteEmpty,
+  CommandPaletteGroup,
+  CommandPaletteInput,
+  CommandPaletteItem,
+  CommandPaletteList,
   Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
   DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateDescription,
+  EmptyStateTitle,
+  FormField,
+  Header,
+  Input,
+  Label,
+  Link,
+  Navigation,
+  NavigationGroup,
+  NavigationItem,
+  NavigationLink,
+  NavigationList,
+  PageHeader,
+  PageHeaderDescription,
+  PageHeaderTitle,
+  Pagination,
+  PaginationNext,
+  PaginationPage,
+  PaginationPrevious,
   Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverTrigger,
+  Search,
   Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sidebar,
+  SidebarBody,
+  SidebarFooter,
+  SidebarHeader,
+  Skeleton,
+  Spinner,
   Switch,
-  Tabs,
-  Toast,
-  Tooltip,
-} from "radix-ui";
-import { Button } from "@momoi-labs/kiso-react";
-import { Input } from "@momoi-labs/kiso-react";
-import { Label } from "@momoi-labs/kiso-react";
-import { Checkbox } from "@momoi-labs/kiso-react";
-import { Badge } from "@momoi-labs/kiso-react";
-import { BrandMark, TerminalIcon } from "@momoi-labs/kiso-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@momoi-labs/kiso-react";
-import { FormField } from "@momoi-labs/kiso-react";
-import { ThemeSelector } from "@momoi-labs/kiso-react";
-import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@momoi-labs/kiso-react";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TerminalIcon,
+  Textarea,
+  ThemeSelector,
+  Toast,
+  ToastClose,
+  ToastContent,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  ValidationMessage,
 } from "@momoi-labs/kiso-react";
 
 const catalog = [
@@ -144,24 +229,10 @@ const catalog = [
     "command-palette",
     "CommandPalette",
     "Overlays",
-    "Searchable command layout preview.",
+    "Search commands and destinations from the keyboard.",
   ],
 ] as const;
 
-const shared = new Set([
-  "brand-mark",
-  "button",
-  "icon-button",
-  "input",
-  "checkbox",
-  "label",
-  "form-field",
-  "badge",
-  "table",
-  "card",
-  "theme-selector",
-  "modal-dialog",
-]);
 const snippets: Record<string, string> = {
   "brand-mark":
     '<div className="brand">\n  <BrandMark>S</BrandMark>\n  <span>self-host</span>\n</div>\n<div className="brand">\n  <BrandMark><TerminalIcon /></BrandMark>\n  <span>self-host</span>\n</div>',
@@ -170,27 +241,49 @@ const snippets: Record<string, string> = {
   "icon-button":
     '<Button variant="ghost" className="btn-icon" aria-label="Add application">\n  <PlusIcon aria-hidden="true" />\n</Button>',
   input: '<Input aria-label="Application name" placeholder="my-app" />',
+  textarea:
+    '<Label htmlFor="notes">Notes</Label>\n<Textarea id="notes" rows={4} />',
+  select:
+    '<Select defaultValue="home.lan" onValueChange={setSuffix}>\n  <SelectTrigger aria-label="DNS suffix"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="home.lan">home.lan</SelectItem>\n  </SelectContent>\n</Select>',
   checkbox:
     '<Checkbox id="platform" checked={checked} onCheckedChange={setChecked} />\n<Label htmlFor="platform">Show platform services</Label>',
+  switch:
+    '<Switch id="restart" checked={on} onCheckedChange={setOn} />\n<Label htmlFor="restart">Automatic restart</Label>',
   "form-field":
     '<FormField label="Name" hint="Lowercase letters and hyphens." required />',
   label: '<Label htmlFor="name">Application name</Label>\n<Input id="name" />',
-  badge: '<Badge variant="success">Running</Badge>',
-  card: "<Card>\n  <CardHeader><h2>Application</h2></CardHeader>\n  <CardContent>Configuration</CardContent>\n  <CardFooter><Button>Save</Button></CardFooter>\n</Card>",
-  "theme-selector": "<ThemeSelector theme={theme} onChange={setTheme} />",
-  textarea:
-    '<Label htmlFor="notes">Notes</Label>\n<textarea id="notes" className="textarea" />',
   "helper-text":
-    '<small id="name-help" className="field-hint">Use lowercase letters.</small>\n<Input aria-describedby="name-help" />',
+    '<FormField label="Name" hint="Use lowercase letters, numbers and hyphens." />',
   "validation-message":
-    '<Input aria-invalid="true" aria-describedby="name-error" />\n<p id="name-error" className="field-error">Use lowercase letters.</p>',
-  link: '<a href="#overview">Open console</a>',
-  spinner:
-    '<span className="spinner" aria-hidden="true" />\n<span role="status">Deploying application...</span>',
-  skeleton:
-    '<div aria-busy="true" aria-label="Loading application">\n  <div className="skeleton" aria-hidden="true" />\n</div>',
+    '<Input aria-invalid="true" aria-describedby="name-error" />\n<ValidationMessage id="name-error">\n  Use lowercase letters, numbers and hyphens.\n</ValidationMessage>',
+  search:
+    '<Search aria-label="Search applications" placeholder="Search by name..."\n  value={query} onChange={(e) => setQuery(e.target.value)} />',
+  badge: '<Badge variant="success">Running</Badge>',
+  "empty-state":
+    '<EmptyState variant="first-run">\n  <EmptyStateTitle>No applications yet</EmptyStateTitle>\n  <EmptyStateDescription>Deploy your first Application.</EmptyStateDescription>\n  <EmptyStateActions>\n    <Button variant="primary">Deploy application</Button>\n  </EmptyStateActions>\n</EmptyState>',
+  card: "<Card>\n  <CardHeader><h2>Application</h2></CardHeader>\n  <CardContent>Configuration</CardContent>\n  <CardFooter><Button>Save</Button></CardFooter>\n</Card>",
+  "page-header":
+    '<PageHeader actions={<Button variant="primary">Deploy</Button>}>\n  <PageHeaderTitle>Applications</PageHeaderTitle>\n  <PageHeaderDescription>2 applications on home.lan</PageHeaderDescription>\n</PageHeader>',
+  sidebar:
+    "<Sidebar>\n  <SidebarHeader>{brand}</SidebarHeader>\n  <SidebarBody>\n    <Navigation aria-label=\"Applications\">\n      <NavigationGroup label=\"Applications\">\n        <NavigationList>\n          <NavigationItem>\n            <NavigationLink href=\"#app/hermes\" active>hermes</NavigationLink>\n          </NavigationItem>\n        </NavigationList>\n      </NavigationGroup>\n    </Navigation>\n  </SidebarBody>\n</Sidebar>",
+  navigation:
+    '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#overview" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
+  breadcrumb:
+    '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Console</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>paperless</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
+  link: '<Link href="#overview">Open console</Link>\n<Link variant="standalone" href="#dns" active>DNS setup</Link>',
+  "theme-selector": "<ThemeSelector theme={theme} onChange={setTheme} />",
   alert:
-    '<div className="alert alert-danger" role="alert">\n  <p>The Host did not respond. Try again.</p>\n</div>',
+    '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not deploy</AlertTitle>\n    <AlertDescription>The Host did not respond. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
+  spinner:
+    '<Spinner size="sm" />\n<Spinner label="Deploying application" />',
+  skeleton:
+    '<div aria-busy="true" aria-label="Loading application">\n  <Skeleton variant="text" style={{ width: "45%" }} />\n  <Skeleton variant="block" style={{ height: "6rem" }} />\n</div>',
+  toast:
+    '<ToastProvider duration={5000}>\n  <Toast open={open} onOpenChange={setOpen} variant="success">\n    <ToastContent>\n      <ToastTitle>Changes saved</ToastTitle>\n    </ToastContent>\n    <ToastClose asChild><Button size="xs" variant="ghost">Dismiss</Button></ToastClose>\n  </Toast>\n  <ToastViewport />\n</ToastProvider>',
+  drawer:
+    '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit application</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
+  "command-palette":
+    '<CommandPalette open={open} onOpenChange={setOpen}>\n  <CommandPaletteInput value={query} onChange={(e) => setQuery(e.target.value)} />\n  <CommandPaletteList>\n    <CommandPaletteGroup heading="Navigation">\n      <CommandPaletteItem onSelect={openOverview}>Open overview</CommandPaletteItem>\n    </CommandPaletteGroup>\n  </CommandPaletteList>\n</CommandPalette>',
 };
 
 function Plus() {
@@ -207,51 +300,114 @@ function Plus() {
   );
 }
 
-function TaskDialog({ drawer = false }: { drawer?: boolean }) {
-  const [open, setOpen] = useState(false);
+function TaskDialog() {
   const [saved, setSaved] = useState(false);
+  const [open, setOpen] = useState(false);
   return (
     <div className="stack-sm">
-      <Dialog.Root open={open} onOpenChange={setOpen}>
-        <Dialog.Trigger asChild>
-          <Button>{drawer ? "Open drawer" : "Edit application"}</Button>
-        </Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Overlay className="kiso-react-overlay" />
-          <Dialog.Content
-            className={`kiso-react-dialog marked ${drawer ? "gallery-drawer" : ""}`}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button>Edit application</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <form
+            className="dialog-scroll"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setSaved(true);
+              setOpen(false);
+            }}
           >
-            <form
-              className="dialog-scroll"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSaved(true);
-                setOpen(false);
-              }}
-            >
-              <div className="dialog-header">
-                <Dialog.Title className="t-h3">Edit application</Dialog.Title>
-                <Dialog.Description className="muted">
-                  Update the example Application name.
-                </Dialog.Description>
-              </div>
-              <div className="dialog-body">
-                <FormField label="Name" defaultValue="paperless" required />
-              </div>
-              <div className="dialog-footer">
-                <Dialog.Close asChild>
-                  <Button>Cancel</Button>
-                </Dialog.Close>
-                <Button variant="primary" type="submit">
-                  Save changes
-                </Button>
-              </div>
-            </form>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+            <DialogHeader>
+              <DialogTitle>Edit application</DialogTitle>
+              <DialogDescription>
+                Update the example Application name.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogBody>
+              <FormField label="Name" defaultValue="paperless" required />
+            </DialogBody>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button>Cancel</Button>
+              </DialogClose>
+              <Button variant="primary" type="submit">
+                Save changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <p className="muted t-label" role="status">
         {saved ? "Example changes saved." : ""}
+      </p>
+    </div>
+  );
+}
+
+const commands = [
+  ["Open overview", "Navigation"],
+  ["Open DNS setup", "Navigation"],
+  ["Deploy application", "Actions"],
+  ["Manage API keys", "Actions"],
+] as const;
+
+function CommandPaletteDemo() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const matches = commands.filter(([label]) =>
+    label.toLowerCase().includes(query.trim().toLowerCase()),
+  );
+  return (
+    <div className="stack">
+      <div className="demo-row">
+        <Button
+          onClick={() => {
+            setQuery("");
+            setOpen(true);
+          }}
+        >
+          Open command palette
+        </Button>
+        <p className="muted t-label">
+          Arrow keys move the highlight, Enter runs, Escape closes.
+        </p>
+      </div>
+      <CommandPalette open={open} onOpenChange={setOpen}>
+        <CommandPaletteInput
+          placeholder="Type a command or destination..."
+          aria-label="Find a command"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <CommandPaletteList>
+          {["Navigation", "Actions"].map((group) =>
+            matches.some(([, name]) => name === group) ? (
+              <CommandPaletteGroup key={group} heading={group}>
+                {matches
+                  .filter(([, name]) => name === group)
+                  .map(([label]) => (
+                    <CommandPaletteItem
+                      key={label}
+                      onSelect={() => {
+                        setMessage(`${label} selected.`);
+                        setOpen(false);
+                      }}
+                    >
+                      {label}
+                    </CommandPaletteItem>
+                  ))}
+              </CommandPaletteGroup>
+            ) : null,
+          )}
+          {matches.length === 0 && (
+            <CommandPaletteEmpty>No matching commands.</CommandPaletteEmpty>
+          )}
+        </CommandPaletteList>
+      </CommandPalette>
+      <p className="muted t-label" role="status">
+        {message}
       </p>
     </div>
   );
@@ -323,7 +479,7 @@ function Demo({
               aria-busy={loading}
               onClick={() => setLoading(true)}
             >
-              {loading && <span className="spinner" aria-hidden="true" />}
+              {loading && <Spinner size="sm" />}
               {loading ? "Saving..." : "Test loading"}
             </Button>
           </div>
@@ -378,9 +534,9 @@ function Demo({
               aria-invalid="true"
               aria-describedby={`${uid}-error`}
             />
-            <p id={`${uid}-error`} className="field-error">
+            <ValidationMessage id={`${uid}-error`}>
               Use lowercase letters, numbers and hyphens.
-            </p>
+            </ValidationMessage>
           </div>
         </div>
       );
@@ -388,12 +544,11 @@ function Demo({
       return (
         <div className="field">
           <Label htmlFor={uid}>Operator notes</Label>
-          <textarea
+          <Textarea
             id={uid}
-            className="textarea"
             rows={4}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(event) => setValue(event.target.value)}
             placeholder="Optional context for this Application..."
           />
           <small className="field-hint">{value.length} characters</small>
@@ -404,35 +559,18 @@ function Demo({
         <div className="stack">
           <Label htmlFor={uid}>DNS suffix</Label>
           <div className="demo-row">
-            <Select.Root defaultValue="home.lan" onValueChange={setValue}>
-              <Select.Trigger asChild>
-                <Button id={uid}>
-                  <Select.Value /> <span aria-hidden="true">⌄</span>
-                </Button>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content
-                  position="popper"
-                  className="menu gallery-floating"
-                  sideOffset={4}
-                >
-                  <Select.Viewport>
-                    {["home.lan", "lab.lan", "office.lan"].map((option) => (
-                      <Select.Item
-                        key={option}
-                        value={option}
-                        className="menu-item"
-                      >
-                        <Select.ItemText>{option}</Select.ItemText>
-                        <Select.ItemIndicator aria-hidden="true">
-                          ✓
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
+            <Select defaultValue="home.lan" onValueChange={setValue}>
+              <SelectTrigger id={uid} className="gallery-select-trigger">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {["home.lan", "lab.lan", "office.lan"].map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button disabled>Inherited suffix</Button>
           </div>
           <p className="muted t-label" role="status">
@@ -456,7 +594,7 @@ function Demo({
             },
             { label: "Inherited setting", state: true, disabled: true },
           ].map((item, i) => (
-            <div className="check-label" key={item.label}>
+            <div className="row" key={item.label}>
               <Checkbox
                 id={`${uid}-${i}`}
                 checked={
@@ -479,28 +617,15 @@ function Demo({
     case "switch":
       return (
         <div className="stack">
-          <div className="check-label">
-            <Switch.Root
-              id={uid}
-              className="gallery-switch"
-              checked={checked}
-              onCheckedChange={setChecked}
-            >
-              <Switch.Thumb className="gallery-switch-thumb" />
-            </Switch.Root>
+          <div className="row">
+            <Switch id={uid} checked={checked} onCheckedChange={setChecked} />
             <Label htmlFor={uid}>Automatic restart</Label>
           </div>
           <p className="muted t-label" role="status">
             Automatic restart is {checked ? "on" : "off"}.
           </p>
-          <div className="check-label">
-            <Switch.Root
-              id={`${uid}-disabled`}
-              className="gallery-switch"
-              disabled
-            >
-              <Switch.Thumb className="gallery-switch-thumb" />
-            </Switch.Root>
+          <div className="row">
+            <Switch id={`${uid}-disabled`} disabled />
             <Label htmlFor={`${uid}-disabled`}>Managed by the Host</Label>
           </div>
         </div>
@@ -535,31 +660,29 @@ function Demo({
           <Input
             id={uid}
             value={value || "My App!"}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(event) => setValue(event.target.value)}
             aria-invalid={!/^[a-z0-9-]+$/.test(value)}
             aria-describedby={`${uid}-validation`}
           />
-          <p
-            id={`${uid}-validation`}
-            className={
-              /^[a-z0-9-]+$/.test(value) ? "field-hint" : "field-error"
-            }
-          >
-            {/^[a-z0-9-]+$/.test(value)
-              ? "This name is valid."
-              : "Use lowercase letters, numbers and hyphens."}
-          </p>
+          {/^[a-z0-9-]+$/.test(value) ? (
+            <small id={`${uid}-validation`} className="field-hint">
+              This name is valid.
+            </small>
+          ) : (
+            <ValidationMessage id={`${uid}-validation`}>
+              Use lowercase letters, numbers and hyphens.
+            </ValidationMessage>
+          )}
         </div>
       );
     case "search":
       return (
         <div className="stack">
-          <Input
-            type="search"
+          <Search
             aria-label="Search example applications"
             placeholder="Search by name..."
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(event) => setValue(event.target.value)}
           />
           <ul className="gallery-results">
             {["hermes", "teste", "paperless"]
@@ -602,7 +725,7 @@ function Demo({
               {["hermes", "teste"].map((name, i) => (
                 <TableRow key={name}>
                   <TableCell>
-                    <a href={`#app/${name}`}>{name}</a>
+                    <Link href={`#components/table`}>{name}</Link>
                   </TableCell>
                   <TableCell className="mono">{name}.home.lan</TableCell>
                   <TableCell>
@@ -621,15 +744,21 @@ function Demo({
     case "empty-state":
       return (
         <Card>
-          <div className="empty">
-            <h3 className="t-h3">No applications yet</h3>
-            <p>
+          <EmptyState variant="first-run">
+            <EmptyStateTitle>No applications yet</EmptyStateTitle>
+            <EmptyStateDescription>
               Deploy your first Application to make it available on your LAN.
-            </p>
-            <Button variant="primary" asChild>
-              <a href="#deploy">Deploy application</a>
-            </Button>
-          </div>
+            </EmptyStateDescription>
+            <EmptyStateActions>
+              <Button
+                variant="primary"
+                onClick={() => setMessage("Deploy application activated.")}
+              >
+                Deploy application
+              </Button>
+            </EmptyStateActions>
+          </EmptyState>
+          {feedback}
         </Card>
       );
     case "card":
@@ -662,26 +791,43 @@ function Demo({
       );
     case "page-header":
       return (
-        <div className="detail-heading">
-          <div className="page-header">
+        <PageHeader
+          actions={
+            <Button
+              variant="primary"
+              onClick={() => setMessage("Deploy application activated.")}
+            >
+              Deploy application
+            </Button>
+          }
+        >
+          <PageHeaderTitle asChild>
             <h3 className="t-h1">Applications</h3>
-            <p className="muted t-label">2 applications on home.lan</p>
-          </div>
-          <Button variant="primary" asChild>
-            <a href="#deploy">Deploy application</a>
-          </Button>
-        </div>
+          </PageHeaderTitle>
+          <PageHeaderDescription>
+            2 applications on home.lan
+          </PageHeaderDescription>
+        </PageHeader>
       );
     case "header":
       return (
-        <div className="gallery-header-preview">
-          <nav className="breadcrumb" aria-label="Example header breadcrumb">
-            <a href="#overview">Console</a>
-            <span aria-hidden="true">/</span>
-            <span>Overview</span>
-          </nav>
+        <Header className="gallery-header-preview">
+          <Breadcrumb aria-label="Example header breadcrumb">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#components/header">
+                  Console
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Overview</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <span className="grow" />
           <Badge variant="success">Healthy</Badge>
-        </div>
+        </Header>
       );
     case "brand-mark":
       return (
@@ -691,108 +837,155 @@ function Demo({
             <span className="t-label">self-host</span>
           </div>
           <div className="brand">
-            <BrandMark><TerminalIcon /></BrandMark>
+            <BrandMark>
+              <TerminalIcon />
+            </BrandMark>
             <span className="t-label">self-host</span>
           </div>
         </div>
       );
     case "sidebar":
       return (
-        <div className="gallery-sidebar-preview">
-          <div className="brand">
-            <BrandMark><TerminalIcon /></BrandMark>
-            <span className="t-label">self-host</span>
-          </div>
-          <nav aria-label="Example sidebar">
-            <a className="nav-item" href="#overview">
-              Overview
-            </a>
-            <p className="t-caps">Applications</p>
-            <a className="nav-item" href="#app/hermes">
-              hermes
-            </a>
-            <a className="nav-item" href="#app/teste">
-              teste
-            </a>
-          </nav>
-          <ThemeSelector theme={theme} onChange={onThemeChange} />
+        <div className="gallery-sidebar-frame">
+          <Sidebar>
+            <SidebarHeader>
+              <div className="brand">
+                <BrandMark>
+                  <TerminalIcon />
+                </BrandMark>
+                <span className="t-label">self-host</span>
+              </div>
+            </SidebarHeader>
+            <SidebarBody>
+              <Navigation aria-label="Example sidebar">
+                <NavigationGroup>
+                  <NavigationList>
+                    <NavigationItem>
+                      <NavigationLink href="#components/sidebar" active>
+                        Overview
+                      </NavigationLink>
+                    </NavigationItem>
+                  </NavigationList>
+                </NavigationGroup>
+                <NavigationGroup label="Applications">
+                  <NavigationList>
+                    {["hermes", "teste"].map((name) => (
+                      <NavigationItem key={name}>
+                        <NavigationLink href="#components/sidebar">
+                          {name}
+                        </NavigationLink>
+                      </NavigationItem>
+                    ))}
+                  </NavigationList>
+                </NavigationGroup>
+              </Navigation>
+            </SidebarBody>
+            <SidebarFooter>
+              <ThemeSelector theme={theme} onChange={onThemeChange} />
+            </SidebarFooter>
+          </Sidebar>
         </div>
       );
     case "navigation":
       return (
-        <nav className="demo-row" aria-label="Example navigation">
-          <a href="#overview">Overview</a>
-          <a href="#dns">DNS setup</a>
-          <a href="#keys">API keys</a>
-        </nav>
+        <Navigation aria-label="Example navigation">
+          <NavigationList className="demo-row">
+            {[
+              ["Overview", "#components/navigation"],
+              ["DNS setup", "#components/link"],
+              ["API keys", "#components/breadcrumb"],
+            ].map(([label, href], i) => (
+              <NavigationItem key={label}>
+                <NavigationLink href={href} active={i === 0}>
+                  {label}
+                </NavigationLink>
+              </NavigationItem>
+            ))}
+          </NavigationList>
+        </Navigation>
       );
     case "breadcrumb":
       return (
-        <nav className="breadcrumb" aria-label="Example breadcrumb">
-          <a href="#overview">Console</a>
-          <span aria-hidden="true">/</span>
-          <a href="#overview">Applications</a>
-          <span aria-hidden="true">/</span>
-          <span aria-current="page">paperless</span>
-        </nav>
+        <Breadcrumb aria-label="Example breadcrumb">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#components">Console</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#components/table">
+                Applications
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>paperless</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       );
     case "link":
       return (
-        <div className="demo-row">
-          <a href="#overview">Open console</a>
-          <a href="#app/teste">View teste</a>
-          <a href="#components">Component catalog</a>
+        <div className="stack">
+          <div className="demo-row">
+            <Link href="#components/link">Open console</Link>
+            <Link href="#components/table">View teste</Link>
+          </div>
+          <div className="demo-row">
+            <Link variant="standalone" href="#components/link" active>
+              Current destination
+            </Link>
+            <Link variant="standalone" href="#components/navigation">
+              Another destination
+            </Link>
+          </div>
+          <Button asChild variant="primary">
+            <a href="#components">A link with Button weight</a>
+          </Button>
         </div>
       );
     case "tabs":
       return (
-        <Tabs.Root defaultValue="configuration">
-          <Tabs.List className="tabs" aria-label="Application panels">
-            <Tabs.Trigger value="configuration">Configuration</Tabs.Trigger>
-            <Tabs.Trigger value="logs">Logs</Tabs.Trigger>
-            <Tabs.Trigger value="metrics" disabled>
+        <Tabs defaultValue="configuration">
+          <TabsList aria-label="Application panels">
+            <TabsTrigger value="configuration">Configuration</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="metrics" disabled>
               Metrics (unavailable)
-            </Tabs.Trigger>
-          </Tabs.List>
-          <Tabs.Content className="gallery-tab-panel" value="configuration">
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="configuration">
             <FormField label="Application name" defaultValue="paperless" />
-          </Tabs.Content>
-          <Tabs.Content className="gallery-tab-panel" value="logs">
+          </TabsContent>
+          <TabsContent value="logs">
             <pre>
               <code>14:14:47 [info] Application ready on port 80.</code>
             </pre>
-          </Tabs.Content>
-        </Tabs.Root>
+          </TabsContent>
+        </Tabs>
       );
     case "pagination":
       return (
         <div className="stack">
-          <nav className="pagination demo-row" aria-label="Example pagination">
-            <Button
-              size="sm"
+          <Pagination aria-label="Example pagination">
+            <PaginationPrevious
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
+            />
             {[1, 2, 3].map((n) => (
-              <Button
+              <PaginationPage
                 key={n}
-                size="sm"
-                aria-current={page === n ? "page" : undefined}
+                active={page === n}
                 onClick={() => setPage(n)}
               >
                 {n}
-              </Button>
+              </PaginationPage>
             ))}
-            <Button
-              size="sm"
+            <PaginationNext
               disabled={page === 3}
               onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </nav>
+            />
+          </Pagination>
           <p className="muted t-label" role="status">
             Page {page} of 3 / records {(page - 1) * 10 + 1} to {page * 10}
           </p>
@@ -810,42 +1003,51 @@ function Demo({
     case "alert":
       return (
         <div className="stack">
-          {[
+          {(
             [
-              "info",
-              "DNS setup required",
-              "Point your device at the Host's DNS server.",
-            ],
-            ["success", "Application deployed", "paperless.home.lan is ready."],
-            [
-              "warning",
-              "Application stopped",
-              "Start the Application to make it available again.",
-            ],
-            [
-              "danger",
-              "Could not deploy",
-              "The Host did not respond. Try again.",
-            ],
-          ].map(([kind, title, description]) => (
-            <div
-              key={kind}
-              className={`alert alert-${kind}`}
-              role={kind === "danger" ? "alert" : "status"}
-            >
-              <div>
-                <p className="alert-title">{title}</p>
-                <p className="alert-body">{description}</p>
-              </div>
-            </div>
+              [
+                "info",
+                "DNS setup required",
+                "Point your device at the Host's DNS server.",
+              ],
+              [
+                "success",
+                "Application deployed",
+                "paperless.home.lan is ready.",
+              ],
+              [
+                "warning",
+                "Application stopped",
+                "Start the Application to make it available again.",
+              ],
+              [
+                "error",
+                "Could not deploy",
+                "The Host did not respond. Try again.",
+              ],
+            ] as const
+          ).map(([variant, title, description]) => (
+            <Alert key={variant} variant={variant}>
+              <AlertContent>
+                <AlertTitle>{title}</AlertTitle>
+                <AlertDescription>{description}</AlertDescription>
+              </AlertContent>
+            </Alert>
           ))}
         </div>
       );
     case "spinner":
       return (
-        <div className="demo-row" role="status">
-          <span className="spinner" aria-hidden="true" />
-          <span>Deploying application...</span>
+        <div className="stack">
+          <div className="demo-row">
+            {(["sm", "md", "lg"] as const).map((size) => (
+              <Spinner key={size} size={size} />
+            ))}
+          </div>
+          <div className="demo-row">
+            <Spinner label="Deploying application" />
+            <span>Deploying application...</span>
+          </div>
         </div>
       );
     case "skeleton":
@@ -855,31 +1057,29 @@ function Demo({
           aria-busy="true"
           aria-label="Loading application"
         >
-          <div className="skeleton gallery-skeleton-title" aria-hidden="true" />
-          <div className="skeleton gallery-skeleton-line" aria-hidden="true" />
-          <div className="skeleton gallery-skeleton-line" aria-hidden="true" />
+          <Skeleton variant="text" className="gallery-skeleton-title" />
+          <Skeleton variant="text" />
+          <Skeleton variant="block" className="gallery-skeleton-block" />
           <span className="muted t-label">Loading application details...</span>
         </div>
       );
     case "toast":
       return (
-        <Toast.Provider duration={5000}>
+        <ToastProvider duration={5000}>
           <Button onClick={() => setOpen(true)}>Show notification</Button>
-          <Toast.Root open={open} onOpenChange={setOpen} className="toast">
-            <div className="grow">
-              <Toast.Title className="alert-title">Changes saved</Toast.Title>
-              <Toast.Description className="alert-body">
-                paperless is redeploying.
-              </Toast.Description>
-            </div>
-            <Toast.Close asChild>
+          <Toast open={open} onOpenChange={setOpen} variant="success">
+            <ToastContent>
+              <ToastTitle>Changes saved</ToastTitle>
+              <ToastDescription>paperless is redeploying.</ToastDescription>
+            </ToastContent>
+            <ToastClose asChild>
               <Button size="xs" variant="ghost">
                 Dismiss
               </Button>
-            </Toast.Close>
-          </Toast.Root>
-          <Toast.Viewport className="gallery-toast-viewport" />
-        </Toast.Provider>
+            </ToastClose>
+          </Toast>
+          <ToastViewport />
+        </ToastProvider>
       );
     case "modal-dialog":
       return (
@@ -916,128 +1116,102 @@ function Demo({
         </div>
       );
     case "drawer":
-      return <TaskDialog drawer />;
+      return (
+        <div className="demo-row">
+          {(["side", "bottom"] as const).map((placement) => (
+            <Drawer key={placement}>
+              <DrawerTrigger asChild>
+                <Button>Open {placement} drawer</Button>
+              </DrawerTrigger>
+              <DrawerContent placement={placement}>
+                <DrawerHeader>
+                  <DrawerTitle>Edit application</DrawerTitle>
+                  <DrawerDescription>
+                    Update the example Application name.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <DrawerBody>
+                  <FormField label="Name" defaultValue="paperless" />
+                </DrawerBody>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button>Close</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          ))}
+        </div>
+      );
     case "popover":
       return (
-        <Popover.Root>
-          <Popover.Trigger asChild>
+        <Popover>
+          <PopoverTrigger asChild>
             <Button>Connection details</Button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              className="gallery-popover gallery-floating"
-              sideOffset={4}
-            >
-              <h3 className="t-h3">Local network</h3>
-              <dl className="kv">
-                <dt>Hostname</dt>
-                <dd>paperless.home.lan</dd>
-                <dt>Port</dt>
-                <dd>80</dd>
-              </dl>
-              <Popover.Close asChild>
-                <Button size="sm">Close</Button>
-              </Popover.Close>
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
+          </PopoverTrigger>
+          <PopoverContent>
+            <h3 className="t-h3">Local network</h3>
+            <dl className="kv">
+              <dt>Hostname</dt>
+              <dd>paperless.home.lan</dd>
+              <dt>Port</dt>
+              <dd>80</dd>
+            </dl>
+            <PopoverClose asChild>
+              <Button size="sm">Close</Button>
+            </PopoverClose>
+          </PopoverContent>
+        </Popover>
       );
     case "dropdown-menu":
       return (
         <div className="stack">
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button>
                 Application actions <span aria-hidden="true">⌄</span>
               </Button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                className="menu gallery-floating"
-                sideOffset={4}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>paperless</DropdownMenuLabel>
+              {["View logs", "Restart", "Copy hostname"].map((action) => (
+                <DropdownMenuItem
+                  key={action}
+                  onSelect={() => setMessage(`${action} selected.`)}
+                >
+                  {action}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => setMessage("Remove application selected.")}
               >
-                <DropdownMenu.Label className="menu-label t-caps">
-                  paperless
-                </DropdownMenu.Label>
-                {["View logs", "Restart", "Copy hostname"].map((action) => (
-                  <DropdownMenu.Item
-                    key={action}
-                    className="menu-item"
-                    onSelect={() => setMessage(`${action} selected.`)}
-                  >
-                    {action}
-                  </DropdownMenu.Item>
-                ))}
-                <DropdownMenu.Separator className="menu-separator" />
-                <DropdownMenu.Item className="menu-item" disabled>
-                  Deploying (unavailable)
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+                Remove application
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                Deploying (unavailable)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {feedback}
         </div>
       );
     case "tooltip":
       return (
-        <Tooltip.Provider delayDuration={150}>
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button>Automatic restart</Button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                className="tooltip gallery-floating"
-                sideOffset={4}
-              >
-                Restart the container if its process exits.
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        </Tooltip.Provider>
+            </TooltipTrigger>
+            <TooltipContent>
+              Restart the container if its process exits.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     case "command-palette":
-      return (
-        <div className="stack">
-          <p className="muted t-label">
-            Layout preview. Full command-palette keyboard behavior is not
-            implemented yet.
-          </p>
-          <Card>
-            <CardContent>
-              <Input
-                type="search"
-                aria-label="Find a command"
-                placeholder="Find a command..."
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-              <nav className="nav-group" aria-label="Example commands">
-                {[
-                  ["Open overview", "overview"],
-                  ["Deploy application", "deploy"],
-                  ["Manage API keys", "keys"],
-                ]
-                  .filter(([label]) =>
-                    label.toLowerCase().includes(value.toLowerCase()),
-                  )
-                  .map(([label, route]) => (
-                    <a className="nav-item" href={`#${route}`} key={route}>
-                      {label}
-                    </a>
-                  ))}
-                {![
-                  "Open overview",
-                  "Deploy application",
-                  "Manage API keys",
-                ].some((label) =>
-                  label.toLowerCase().includes(value.toLowerCase()),
-                ) && <p className="muted t-label">No matching commands.</p>}
-              </nav>
-            </CardContent>
-          </Card>
-        </div>
-      );
+      return <CommandPaletteDemo />;
     default:
       return null;
   }
@@ -1087,47 +1261,44 @@ export function ComponentGallery({
             <p className="muted t-label">Component catalog</p>
           </div>
         </div>
-        <Input
-          type="search"
+        <Search
           aria-label="Find a component"
           placeholder="Find a component..."
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
+          onChange={(event) => {
+            setSearch(event.target.value);
             window.location.hash = "components";
           }}
         />
-        <nav aria-label="Component catalog">
-          <a
-            className="nav-item"
-            href="#components"
-            aria-current={selected === "all" ? "page" : undefined}
-          >
-            All components <span className="muted">{catalog.length}</span>
-          </a>
-          {Array.from(new Set(catalog.map((entry) => entry[2]))).map(
-            (group) => (
-              <div className="catalog-group" key={group}>
-                <p className="t-caps">{group}</p>
+        <Navigation aria-label="Component catalog">
+          <NavigationGroup>
+            <NavigationList>
+              <NavigationItem>
+                <NavigationLink href="#components" active={selected === "all"}>
+                  All components <span className="muted">{catalog.length}</span>
+                </NavigationLink>
+              </NavigationItem>
+            </NavigationList>
+          </NavigationGroup>
+          {Array.from(new Set(catalog.map((entry) => entry[2]))).map((group) => (
+            <NavigationGroup className="catalog-group" key={group} label={group}>
+              <NavigationList>
                 {entries
                   .filter((entry) => entry[2] === group)
                   .map(([id, name]) => (
-                    <a
-                      key={id}
-                      className="nav-item"
-                      href={`#components/${id}`}
-                      aria-current={selected === id ? "page" : undefined}
-                    >
-                      {name}
-                    </a>
+                    <NavigationItem key={id}>
+                      <NavigationLink
+                        href={`#components/${id}`}
+                        active={selected === id}
+                      >
+                        {name}
+                      </NavigationLink>
+                    </NavigationItem>
                   ))}
-              </div>
-            ),
-          )}
-        </nav>
-        <a className="nav-item" href="#overview">
-          ← Self Host console
-        </a>
+              </NavigationList>
+            </NavigationGroup>
+          ))}
+        </Navigation>
       </aside>
       <div className="catalog-content">
         <header className="catalog-topbar">
@@ -1140,32 +1311,23 @@ export function ComponentGallery({
           >
             Components
           </Button>
-          <nav className="demo-row" aria-label="Preview pages">
-            <a href="#components" aria-current="page">
-              Components
-            </a>
-            <a href="#overview">Self Host console</a>
-          </nav>
           <ThemeSelector theme={theme} onChange={onThemeChange} />
         </header>
         <main className="catalog-main">
-          <div className="page-header">
+          <PageHeader>
             <p className="t-caps">React + shadcn + Kiso</p>
-            <h1 className="t-h1" tabIndex={-1} ref={heading}>
+            <PageHeaderTitle tabIndex={-1} ref={heading}>
               {selected === "all"
                 ? "Component gallery"
                 : catalog.find((entry) => entry[0] === selected)?.[1] ||
                   "Component not found"}
-            </h1>
-            <p className="muted">
+            </PageHeaderTitle>
+            <PageHeaderDescription>
               {catalog.length} Kiso components, with previews, states and
-              compositions.
-            </p>
-            <p className="muted t-label">
-              Shared components are the same exports used in the console.
-              Composition previews explore the remaining contracts.
-            </p>
-          </div>
+              compositions. Every preview renders the published
+              <code> @momoi-labs/kiso-react </code> component.
+            </PageHeaderDescription>
+          </PageHeader>
           {visible.map(([id, name, group, description]) => (
             <section
               className="catalog-section"
@@ -1180,9 +1342,6 @@ export function ComponentGallery({
                   </h2>
                   <p className="muted t-label">{description}</p>
                 </div>
-                <Badge variant={shared.has(id) ? "success" : "neutral"}>
-                  {shared.has(id) ? "Shared React" : "Composition preview"}
-                </Badge>
               </div>
               <div className="catalog-preview">
                 <Demo id={id} theme={theme} onThemeChange={onThemeChange} />
@@ -1198,20 +1357,22 @@ export function ComponentGallery({
             </section>
           ))}
           {visible.length === 0 && (
-            <div className="empty">
-              <h2 className="t-h3">No matching components</h2>
-              <Button
-                onClick={() => {
-                  setSearch("");
-                  window.location.hash = "components";
-                }}
-              >
-                Show all components
-              </Button>
-            </div>
+            <EmptyState variant="no-results">
+              <EmptyStateTitle>No matching components</EmptyStateTitle>
+              <EmptyStateActions>
+                <Button
+                  onClick={() => {
+                    setSearch("");
+                    window.location.hash = "components";
+                  }}
+                >
+                  Show all components
+                </Button>
+              </EmptyStateActions>
+            </EmptyState>
           )}
           <p className="muted t-label">
-            Prototype only. All actions use sample data.
+            Preview only. All actions use sample data.
           </p>
         </main>
       </div>
