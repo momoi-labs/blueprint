@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4175 --strictPort",
     "deploy": "npx --yes wrangler@4.129.0 deploy",
-    "check:deploy": "npx --yes wrangler@4.129.0 deploy --dry-run"
+    "check:deploy": "npx --yes wrangler@4.129.0 deploy --dry-run",
+    "deploy:preview": "npx --yes wrangler@4.129.0 versions upload"
   },
   "dependencies": {
     "@momoi-labs/kiso-react": "*",

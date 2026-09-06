@@ -42,25 +42,5 @@ Only `/` needs to serve HTML; unknown asset paths return 404.
 
 ## Cloudflare publication
 
-The app uses Cloudflare Workers static assets, matching the hosting setup in
-`momoi-labs/web`. Connect a separate Worker named `kiso-gallery` to the
-`momoi-labs/blueprint` repository with these settings:
-
-| Setting | Value |
-| --- | --- |
-| Root directory | `/` |
-| Build command | `npm run build:gallery` |
-| Deploy command | `npm run deploy --workspace=kiso-gallery` |
-| Production branch | `main` |
-| `NODE_VERSION` | `24` |
-
-`wrangler.jsonc` declares the output directory and the custom domain
-`kiso.momoi-labs.dev`. Deployment needs a Cloudflare account with access to
-that zone. No backend or runtime secrets are required.
-
-The marketing site can link to the gallery without importing React or
-changing its Astro build. Its navigation is managed in `momoi-labs/web`.
-
-Cloudflare documents the
-[static asset configuration](https://developers.cloudflare.com/workers/static-assets/binding/)
-and [custom domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+See [DEPLOY.md](DEPLOY.md) for the Workers Builds settings, custom domain,
+production deployment and branch previews.

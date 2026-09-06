@@ -1,9 +1,12 @@
 {
+  // Static assets only, matching momoi-labs/web. No Worker script or SSR adapter.
+  // Deploy through the workspace script so Wrangler reads this configuration.
   "name": "kiso-gallery",
   "compatibility_date": "2026-09-06",
+  "preview_urls": true,
   "assets": {
-    "directory": "./dist",
-    "not_found_handling": "404-page"
+    // No custom 404.html: unmatched paths use Cloudflare's default 404 response.
+    "directory": "./dist"
   },
   "routes": [
     { "pattern": "kiso.momoi-labs.dev", "custom_domain": true }
