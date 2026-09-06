@@ -1,5 +1,13 @@
 # @momoi-labs/kiso
 
+## 0.5.0
+
+### Minor Changes
+
+- 8670908: Add BrandMark for decorative letters and SVG icons beside product names, with
+  the momoi-labs TerminalIcon glyph. Document the component contract and preserve
+  the existing CSS output.
+
 ## 0.4.1
 
 ### Patch Changes
