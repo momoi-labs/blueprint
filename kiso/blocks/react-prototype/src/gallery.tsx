@@ -1,6 +1,6 @@
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
   AlertContent,
@@ -267,58 +267,58 @@ const catalog = [
 
 const snippets: Record<string, string> = {
   "brand-mark":
-    '<div className="brand">\n  <BrandMark>S</BrandMark>\n  <span>self-host</span>\n</div>\n<div className="brand">\n  <BrandMark><TerminalIcon /></BrandMark>\n  <span>self-host</span>\n</div>',
+    '<div className="brand">\n  <BrandMark>N</BrandMark>\n  <span>Northstar</span>\n</div>\n<div className="brand">\n  <BrandMark><TerminalIcon /></BrandMark>\n  <span>Kiso 基礎</span>\n</div>',
   button:
-    '<Button variant="primary">Deploy</Button>\n<Button variant="destructive">Remove</Button>\n<Button size="sm" disabled>Unavailable</Button>',
+    '<Button variant="primary">Create project</Button>\n<Button variant="destructive">Remove</Button>\n<Button size="sm" disabled>Unavailable</Button>',
   "icon-button":
-    '<Button variant="ghost" className="btn-icon" aria-label="Add application">\n  <PlusIcon aria-hidden="true" />\n</Button>',
-  input: '<Input aria-label="Application name" placeholder="my-app" />',
+    '<Button variant="ghost" className="btn-icon" aria-label="Add project">\n  <PlusIcon aria-hidden="true" />\n</Button>',
+  input: '<Input aria-label="Project name" placeholder="my-project" />',
   textarea:
     '<Label htmlFor="notes">Notes</Label>\n<Textarea id="notes" rows={4} />',
   select:
-    '<Select defaultValue="home.lan" onValueChange={setSuffix}>\n  <SelectTrigger aria-label="DNS suffix"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="home.lan">home.lan</SelectItem>\n  </SelectContent>\n</Select>',
+    '<Select defaultValue="English" onValueChange={setLanguage}>\n  <SelectTrigger aria-label="Language"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="English">English</SelectItem>\n  </SelectContent>\n</Select>',
   checkbox:
     '<Checkbox id="platform" checked={checked} onCheckedChange={setChecked} />\n<Label htmlFor="platform">Show platform services</Label>',
   switch:
-    '<Switch id="restart" checked={on} onCheckedChange={setOn} />\n<Label htmlFor="restart">Automatic restart</Label>',
+    '<Switch id="notifications" checked={on} onCheckedChange={setOn} />\n<Label htmlFor="notifications">Email notifications</Label>',
   "form-field":
     '<FormField label="Name" hint="Lowercase letters and hyphens." required />',
-  label: '<Label htmlFor="name">Application name</Label>\n<Input id="name" />',
+  label: '<Label htmlFor="name">Project name</Label>\n<Input id="name" />',
   "helper-text":
     '<FormField label="Name" hint="Use lowercase letters, numbers and hyphens." />',
   "validation-message":
     '<Input aria-invalid="true" aria-describedby="name-error" />\n<ValidationMessage id="name-error">\n  Use lowercase letters, numbers and hyphens.\n</ValidationMessage>',
   search:
-    '<Search aria-label="Search applications" placeholder="Search by name..."\n  value={query} onChange={(e) => setQuery(e.target.value)} />',
+    '<Search aria-label="Search projects" placeholder="Search by name..."\n  value={query} onChange={(e) => setQuery(e.target.value)} />',
   badge: '<Badge variant="success">Running</Badge>',
   "empty-state":
-    '<EmptyState variant="first-run">\n  <EmptyStateTitle>No applications yet</EmptyStateTitle>\n  <EmptyStateDescription>Deploy your first Application.</EmptyStateDescription>\n  <EmptyStateActions>\n    <Button variant="primary">Deploy application</Button>\n  </EmptyStateActions>\n</EmptyState>',
-  card: "<Card>\n  <CardHeader><h2>Application</h2></CardHeader>\n  <CardContent>Configuration</CardContent>\n  <CardFooter><Button>Save</Button></CardFooter>\n</Card>",
+    '<EmptyState variant="first-run">\n  <EmptyStateTitle>No projects yet</EmptyStateTitle>\n  <EmptyStateDescription>Create your first project.</EmptyStateDescription>\n  <EmptyStateActions>\n    <Button variant="primary">Create project</Button>\n  </EmptyStateActions>\n</EmptyState>',
+  card: "<Card>\n  <CardHeader><h2>Project</h2></CardHeader>\n  <CardContent>Configuration</CardContent>\n  <CardFooter><Button>Save</Button></CardFooter>\n</Card>",
   "page-header":
-    '<PageHeader actions={<Button variant="primary">Deploy</Button>}>\n  <PageHeaderTitle>Applications</PageHeaderTitle>\n  <PageHeaderDescription>2 applications on home.lan</PageHeaderDescription>\n</PageHeader>',
+    '<PageHeader actions={<Button variant="primary">Create project</Button>}>\n  <PageHeaderTitle>Projects</PageHeaderTitle>\n  <PageHeaderDescription>2 projects in your workspace</PageHeaderDescription>\n</PageHeader>',
   sidebar:
-    "<Sidebar>\n  <SidebarHeader>{brand}</SidebarHeader>\n  <SidebarBody>\n    <Navigation aria-label=\"Applications\">\n      <NavigationGroup label=\"Applications\">\n        <NavigationList>\n          <NavigationItem>\n            <NavigationLink href=\"#app/hermes\" active>hermes</NavigationLink>\n          </NavigationItem>\n        </NavigationList>\n      </NavigationGroup>\n    </Navigation>\n  </SidebarBody>\n</Sidebar>",
+    "<Sidebar>\n  <SidebarHeader>{brand}</SidebarHeader>\n  <SidebarBody>\n    <Navigation aria-label=\"Projects\">\n      <NavigationGroup label=\"Projects\">\n        <NavigationList>\n          <NavigationItem>\n            <NavigationLink href=\"#components/sidebar\" active>Website</NavigationLink>\n          </NavigationItem>\n        </NavigationList>\n      </NavigationGroup>\n    </Navigation>\n  </SidebarBody>\n</Sidebar>",
   navigation:
-    '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#overview" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
+    '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#components/app-shell" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
   breadcrumb:
-    '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Console</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>paperless</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
-  link: '<Link href="#overview">Open console</Link>\n<Link variant="standalone" href="#dns" active>DNS setup</Link>',
+    '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Workspace</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>Website refresh</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
+  link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
   "theme-selector": "<ThemeSelector theme={theme} onChange={setTheme} />",
   alert:
-    '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not deploy</AlertTitle>\n    <AlertDescription>The Host did not respond. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
+    '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not save</AlertTitle>\n    <AlertDescription>The request failed. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
   spinner:
-    '<Spinner size="sm" />\n<Spinner label="Deploying application" />',
+    '<Spinner size="sm" />\n<Spinner label="Saving project" />',
   skeleton:
-    '<div aria-busy="true" aria-label="Loading application">\n  <Skeleton variant="text" style={{ width: "45%" }} />\n  <Skeleton variant="block" style={{ height: "6rem" }} />\n</div>',
+    '<div aria-busy="true" aria-label="Loading project">\n  <Skeleton variant="text" style={{ width: "45%" }} />\n  <Skeleton variant="block" style={{ height: "6rem" }} />\n</div>',
   toast:
     '<ToastProvider duration={5000}>\n  <Toast open={open} onOpenChange={setOpen} variant="success">\n    <ToastContent>\n      <ToastTitle>Changes saved</ToastTitle>\n    </ToastContent>\n    <ToastClose asChild><Button size="xs" variant="ghost">Dismiss</Button></ToastClose>\n  </Toast>\n  <ToastViewport />\n</ToastProvider>',
   drawer:
-    '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit application</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
+    '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit project</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
   "command-palette":
     '<CommandPalette open={open} onOpenChange={setOpen}>\n  <CommandPaletteInput value={query} onChange={(e) => setQuery(e.target.value)} />\n  <CommandPaletteList>\n    <CommandPaletteGroup heading="Navigation">\n      <CommandPaletteItem onSelect={openOverview}>Open overview</CommandPaletteItem>\n    </CommandPaletteGroup>\n  </CommandPaletteList>\n</CommandPalette>',
   dot: '<span className="row success t-label">\n  <Dot pulse />\n  <span className="fg">Platform healthy</span>\n</span>',
-  stat: "<Stat>\n  <StatHeader>\n    <StatLabel>Applications</StatLabel>\n    <StatDelta variant=\"success\">+2</StatDelta>\n  </StatHeader>\n  <StatValue>4</StatValue>\n  <StatFoot>3 running \u00b7 1 crashed</StatFoot>\n</Stat>",
-  kv: "<KV>\n  <KVKey>Image</KVKey>\n  <KVValue>paperlessngx:2.11</KVValue>\n</KV>",
+  stat: "<Stat>\n  <StatHeader>\n    <StatLabel>Projects</StatLabel>\n    <StatDelta variant=\"success\">+2</StatDelta>\n  </StatHeader>\n  <StatValue>4</StatValue>\n  <StatFoot>3 active \u00b7 1 archived</StatFoot>\n</Stat>",
+  kv: "<KV>\n  <KVKey>Owner</KVKey>\n  <KVValue>Alex Morgan</KVValue>\n</KV>",
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
@@ -346,7 +346,7 @@ function TaskDialog() {
     <div className="stack-sm">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button>Edit application</Button>
+          <Button>Edit project</Button>
         </DialogTrigger>
         <DialogContent>
           <form
@@ -358,13 +358,13 @@ function TaskDialog() {
             }}
           >
             <DialogHeader>
-              <DialogTitle>Edit application</DialogTitle>
+              <DialogTitle>Edit project</DialogTitle>
               <DialogDescription>
-                Update the example Application name.
+                Update the example project name.
               </DialogDescription>
             </DialogHeader>
             <DialogBody>
-              <FormField label="Name" defaultValue="paperless" required />
+              <FormField label="Name" defaultValue="Website refresh" required />
             </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
@@ -386,8 +386,8 @@ function TaskDialog() {
 
 const commands = [
   ["Open overview", "Navigation"],
-  ["Open DNS setup", "Navigation"],
-  ["Deploy application", "Actions"],
+  ["Open workspace setup", "Navigation"],
+  ["Create project", "Actions"],
   ["Manage API keys", "Actions"],
 ] as const;
 
@@ -460,13 +460,13 @@ type LogLine = {
 };
 
 const exampleLog: LogLine[] = [
-  { time: "09:41:02.114", level: "info", label: "INFO ", text: "paperless-ngx 2.11 starting" },
+  { time: "09:41:02.114", level: "info", label: "INFO ", text: "Sample service starting" },
   { time: "09:41:02.482", level: "info", label: "INFO ", text: "applying migrations" },
   { time: "09:41:03.901", level: "warn", label: "WARN ", text: "redis unavailable, falling back to the in-process queue" },
   { time: "09:41:04.120", level: "error", label: "ERROR", text: "could not open /usr/src/data: permission denied" },
   { time: "09:41:04.121", level: "error", label: "ERROR", text: "exiting with status 1" },
   { time: "09:46:04.310", level: "info", label: "INFO ", text: "restart 3/5" },
-  { time: "09:46:04.998", level: "info", label: "INFO ", text: "paperless-ngx 2.11 starting" },
+  { time: "09:46:04.998", level: "info", label: "INFO ", text: "Sample service starting" },
 ];
 
 function LogViewDemo() {
@@ -505,7 +505,7 @@ function LogViewDemo() {
         className="gallery-log-preview"
         follow={follow}
         onFollowChange={setFollow}
-        aria-label="Example application log"
+        aria-label="Example project log"
       >
         {lines.map((line, i) => (
           <LogViewLine key={`${line.time}-${i}`}>
@@ -603,15 +603,15 @@ function Demo({
             <Button
               className="btn-icon"
               variant="primary"
-              aria-label="Add application"
-              onClick={() => setMessage("Add application activated.")}
+              aria-label="Add project"
+              onClick={() => setMessage("Add project activated.")}
             >
               <Plus />
             </Button>
             <Button
               className="btn-icon"
               variant="ghost"
-              aria-label="Add another application"
+              aria-label="Add another project"
               onClick={() => setMessage("Ghost action activated.")}
             >
               <Plus />
@@ -619,7 +619,7 @@ function Demo({
             <Button
               className="btn-icon"
               disabled
-              aria-label="Add application unavailable"
+              aria-label="Add project unavailable"
             >
               <Plus />
             </Button>
@@ -630,10 +630,10 @@ function Demo({
     case "input":
       return (
         <div className="demo-grid">
-          <FormField label="Application name" placeholder="my-app" />
+          <FormField label="Project name" placeholder="my-project" />
           <FormField
             label="Disabled input"
-            defaultValue="Inherited from Host"
+            defaultValue="Inherited from workspace"
             disabled
           />
           <div className="field">
@@ -659,7 +659,7 @@ function Demo({
             rows={4}
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            placeholder="Optional context for this Application..."
+            placeholder="Optional context for this Project..."
           />
           <small className="field-hint">{value.length} characters</small>
         </div>
@@ -667,14 +667,14 @@ function Demo({
     case "select":
       return (
         <div className="stack">
-          <Label htmlFor={uid}>DNS suffix</Label>
+          <Label htmlFor={uid}>Language</Label>
           <div className="demo-row">
-            <Select defaultValue="home.lan" onValueChange={setValue}>
+            <Select defaultValue="English" onValueChange={setValue}>
               <SelectTrigger id={uid} className="gallery-select-trigger">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["home.lan", "lab.lan", "office.lan"].map((option) => (
+                {["English", "Português", "日本語"].map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
@@ -684,7 +684,7 @@ function Demo({
             <Button disabled>Inherited suffix</Button>
           </div>
           <p className="muted t-label" role="status">
-            Selected: {value || "home.lan"}
+            Selected: {value || "English"}
           </p>
         </div>
       );
@@ -729,10 +729,10 @@ function Demo({
         <div className="stack">
           <div className="row">
             <Switch id={uid} checked={checked} onCheckedChange={setChecked} />
-            <Label htmlFor={uid}>Automatic restart</Label>
+            <Label htmlFor={uid}>Email notifications</Label>
           </div>
           <p className="muted t-label" role="status">
-            Automatic restart is {checked ? "on" : "off"}.
+            Email notifications are {checked ? "on" : "off"}.
           </p>
           <div className="row">
             <Switch id={`${uid}-disabled`} disabled />
@@ -743,30 +743,30 @@ function Demo({
     case "label":
       return (
         <div className="field">
-          <Label htmlFor={uid}>Application name</Label>
+          <Label htmlFor={uid}>Project name</Label>
           <Input id={uid} placeholder="Click the label to focus this field" />
         </div>
       );
     case "form-field":
       return (
         <FormField
-          label="Hostname"
-          placeholder="paperless.home.lan"
-          hint="Leave empty to use the Application name and DNS suffix."
+          label="Project name"
+          placeholder="Website refresh"
+          hint="A short, recognizable name for your project."
         />
       );
     case "helper-text":
       return (
         <FormField
           label="Name"
-          placeholder="paperless"
+          placeholder="Website refresh"
           hint="Lowercase letters, numbers and hyphens; at most 63 characters."
         />
       );
     case "validation-message":
       return (
         <div className="field">
-          <Label htmlFor={uid}>Application name</Label>
+          <Label htmlFor={uid}>Project name</Label>
           <Input
             id={uid}
             value={value || "My App!"}
@@ -789,21 +789,21 @@ function Demo({
       return (
         <div className="stack">
           <Search
-            aria-label="Search example applications"
+            aria-label="Search example projects"
             placeholder="Search by name..."
             value={value}
             onChange={(event) => setValue(event.target.value)}
           />
           <ul className="gallery-results">
-            {["hermes", "teste", "paperless"]
+            {["Website", "Brand guide", "Website refresh"]
               .filter((name) => name.includes(value.toLowerCase()))
               .map((name) => (
                 <li key={name}>{name}</li>
               ))}
           </ul>
-          {!["hermes", "teste", "paperless"].some((name) =>
+          {!["Website", "Brand guide", "Website refresh"].some((name) =>
             name.includes(value.toLowerCase()),
-          ) && <p className="muted">No matching applications.</p>}
+          ) && <p className="muted">No matching projects.</p>}
         </div>
       );
     case "badge":
@@ -822,25 +822,25 @@ function Demo({
     case "table":
       return (
         <div className="table-wrap">
-          <Table aria-label="Example applications">
+          <Table aria-label="Example projects">
             <TableHeader>
               <TableRow>
-                <TableHead>Application</TableHead>
-                <TableHead>Hostname</TableHead>
+                <TableHead>Project</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="num">Restarts</TableHead>
+                <TableHead className="num">Tasks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {["hermes", "teste"].map((name, i) => (
+              {["Website", "Brand guide"].map((name, i) => (
                 <TableRow key={name}>
                   <TableCell>
                     <Link href={`#components/table`}>{name}</Link>
                   </TableCell>
-                  <TableCell className="mono">{name}.home.lan</TableCell>
+                  <TableCell>Alex Morgan</TableCell>
                   <TableCell>
                     <Badge variant={i ? "warning" : "success"}>
-                      {i ? "stopped" : "running"}
+                      {i ? "in review" : "active"}
                     </Badge>
                   </TableCell>
                   <TableCell className="num">{i}</TableCell>
@@ -848,23 +848,23 @@ function Demo({
               ))}
             </TableBody>
           </Table>
-          <p className="table-footer">2 applications</p>
+          <p className="table-footer">2 projects</p>
         </div>
       );
     case "empty-state":
       return (
         <Card>
           <EmptyState variant="first-run">
-            <EmptyStateTitle>No applications yet</EmptyStateTitle>
+            <EmptyStateTitle>No projects yet</EmptyStateTitle>
             <EmptyStateDescription>
-              Deploy your first Application to make it available on your LAN.
+              Create your first project to organize your work.
             </EmptyStateDescription>
             <EmptyStateActions>
               <Button
                 variant="primary"
-                onClick={() => setMessage("Deploy application activated.")}
+                onClick={() => setMessage("Create project activated.")}
               >
-                Deploy application
+                Create project
               </Button>
             </EmptyStateActions>
           </EmptyState>
@@ -876,11 +876,11 @@ function Demo({
         <div className="demo-grid">
           <Card>
             <CardHeader>
-              <h3 className="t-h3">Application</h3>
+              <h3 className="t-h3">Project</h3>
               <p className="muted t-label">A reusable panel composition.</p>
             </CardHeader>
             <CardContent>
-              <FormField label="Name" defaultValue="paperless" />
+              <FormField label="Name" defaultValue="Website refresh" />
             </CardContent>
             <CardFooter>
               <Button
@@ -893,9 +893,9 @@ function Demo({
           </Card>
           <Card>
             <Stat>
-              <StatLabel>Running applications</StatLabel>
+              <StatLabel>Active projects</StatLabel>
               <StatValue>2</StatValue>
-              <StatFoot>All applications healthy</StatFoot>
+              <StatFoot>All projects on track</StatFoot>
             </Stat>
           </Card>
           {feedback}
@@ -907,17 +907,17 @@ function Demo({
           actions={
             <Button
               variant="primary"
-              onClick={() => setMessage("Deploy application activated.")}
+              onClick={() => setMessage("Create project activated.")}
             >
-              Deploy application
+              Create project
             </Button>
           }
         >
           <PageHeaderTitle asChild>
-            <h3 className="t-h1">Applications</h3>
+            <h3 className="t-h1">Projects</h3>
           </PageHeaderTitle>
           <PageHeaderDescription>
-            2 applications on home.lan
+            2 projects in your workspace
           </PageHeaderDescription>
         </PageHeader>
       );
@@ -928,7 +928,7 @@ function Demo({
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink href="#components/header">
-                  Console
+                  Workspace
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -945,14 +945,14 @@ function Demo({
       return (
         <div className="demo-row">
           <div className="brand">
-            <BrandMark>S</BrandMark>
-            <span className="t-label">self-host</span>
+            <BrandMark>N</BrandMark>
+            <span className="t-label">Northstar</span>
           </div>
           <div className="brand">
             <BrandMark>
               <TerminalIcon />
             </BrandMark>
-            <span className="t-label">self-host</span>
+            <span className="t-label">Kiso 基礎</span>
           </div>
         </div>
       );
@@ -965,7 +965,7 @@ function Demo({
                 <BrandMark>
                   <TerminalIcon />
                 </BrandMark>
-                <span className="t-label">self-host</span>
+                <span className="t-label">Kiso 基礎</span>
               </div>
             </SidebarHeader>
             <SidebarBody>
@@ -979,9 +979,9 @@ function Demo({
                     </NavigationItem>
                   </NavigationList>
                 </NavigationGroup>
-                <NavigationGroup label="Applications">
+                <NavigationGroup label="Projects">
                   <NavigationList>
-                    {["hermes", "teste"].map((name) => (
+                    {["Website", "Brand guide"].map((name) => (
                       <NavigationItem key={name}>
                         <NavigationLink href="#components/sidebar">
                           {name}
@@ -1004,7 +1004,7 @@ function Demo({
           <NavigationList className="nav-row">
             {[
               ["Overview", "#components/navigation"],
-              ["DNS setup", "#components/link"],
+              ["Workspace setup", "#components/link"],
               ["API keys", "#components/breadcrumb"],
             ].map(([label, href], i) => (
               <NavigationItem key={label}>
@@ -1021,17 +1021,17 @@ function Demo({
         <Breadcrumb aria-label="Example breadcrumb">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#components">Console</BreadcrumbLink>
+              <BreadcrumbLink href="#components">Workspace</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink href="#components/table">
-                Applications
+                Projects
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>paperless</BreadcrumbPage>
+              <BreadcrumbPage>Website refresh</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -1040,8 +1040,8 @@ function Demo({
       return (
         <div className="stack">
           <div className="demo-row">
-            <Link href="#components/link">Open console</Link>
-            <Link href="#components/table">View teste</Link>
+            <Link href="#components/link">Open workspace</Link>
+            <Link href="#components/table">View Brand guide</Link>
           </div>
           <div className="demo-row">
             <Link variant="standalone" href="#components/link" active>
@@ -1059,7 +1059,7 @@ function Demo({
     case "tabs":
       return (
         <Tabs defaultValue="configuration">
-          <TabsList aria-label="Application panels">
+          <TabsList aria-label="Project panels">
             <TabsTrigger value="configuration">Configuration</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
             <TabsTrigger value="metrics" disabled>
@@ -1067,11 +1067,11 @@ function Demo({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="configuration">
-            <FormField label="Application name" defaultValue="paperless" />
+            <FormField label="Project name" defaultValue="Website refresh" />
           </TabsContent>
           <TabsContent value="logs">
             <pre>
-              <code>14:14:47 [info] Application ready on port 80.</code>
+              <code>14:14:47 [info] Project ready on port 80.</code>
             </pre>
           </TabsContent>
         </Tabs>
@@ -1119,23 +1119,23 @@ function Demo({
             [
               [
                 "info",
-                "DNS setup required",
-                "Point your device at the Host's DNS server.",
+                "Workspace setup required",
+                "Add a name and email to your profile.",
               ],
               [
                 "success",
-                "Application deployed",
-                "paperless.home.lan is ready.",
+                "Project saved",
+                "Website refresh is ready.",
               ],
               [
                 "warning",
-                "Application stopped",
-                "Start the Application to make it available again.",
+                "Project archived",
+                "Restore the project to continue working on it.",
               ],
               [
                 "error",
-                "Could not deploy",
-                "The Host did not respond. Try again.",
+                "Could not save",
+                "The request failed. Try again.",
               ],
             ] as const
           ).map(([variant, title, description]) => (
@@ -1157,8 +1157,8 @@ function Demo({
             ))}
           </div>
           <div className="demo-row">
-            <Spinner label="Deploying application" />
-            <span>Deploying application...</span>
+            <Spinner label="Saving project" />
+            <span>Saving project...</span>
           </div>
         </div>
       );
@@ -1167,12 +1167,12 @@ function Demo({
         <div
           className="stack-sm"
           aria-busy="true"
-          aria-label="Loading application"
+          aria-label="Loading project"
         >
           <Skeleton variant="text" className="gallery-skeleton-title" />
           <Skeleton variant="text" />
           <Skeleton variant="block" className="gallery-skeleton-block" />
-          <span className="muted t-label">Loading application details...</span>
+          <span className="muted t-label">Loading project details...</span>
         </div>
       );
     case "toast":
@@ -1182,7 +1182,7 @@ function Demo({
           <Toast open={open} onOpenChange={setOpen} variant="success">
             <ToastContent>
               <ToastTitle>Changes saved</ToastTitle>
-              <ToastDescription>paperless is redeploying.</ToastDescription>
+              <ToastDescription>Your project has been updated.</ToastDescription>
             </ToastContent>
             <ToastClose asChild>
               <Button size="xs" variant="ghost">
@@ -1200,24 +1200,23 @@ function Demo({
             <TaskDialog />
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">Remove application</Button>
+                <Button variant="destructive">Remove project</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <div className="dialog-scroll">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Remove "paperless"?</AlertDialogTitle>
+                    <AlertDialogTitle>Remove "Website refresh"?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Its containers will stop. Named volumes and the data
-                      directory are kept.
+                      This removes the sample project from your workspace.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
-                      onClick={() => setMessage("Example Application removed.")}
+                      onClick={() => setMessage("Example Project removed.")}
                     >
-                      Remove application
+                      Remove project
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </div>
@@ -1237,13 +1236,13 @@ function Demo({
               </DrawerTrigger>
               <DrawerContent placement={placement}>
                 <DrawerHeader>
-                  <DrawerTitle>Edit application</DrawerTitle>
+                  <DrawerTitle>Edit project</DrawerTitle>
                   <DrawerDescription>
-                    Update the example Application name.
+                    Update the example project name.
                   </DrawerDescription>
                 </DrawerHeader>
                 <DrawerBody>
-                  <FormField label="Name" defaultValue="paperless" />
+                  <FormField label="Name" defaultValue="Website refresh" />
                 </DrawerBody>
                 <DrawerFooter>
                   <DrawerClose asChild>
@@ -1259,15 +1258,15 @@ function Demo({
       return (
         <Popover>
           <PopoverTrigger asChild>
-            <Button>Connection details</Button>
+            <Button>Project details</Button>
           </PopoverTrigger>
           <PopoverContent>
-            <h3 className="t-h3">Local network</h3>
+            <h3 className="t-h3">Project information</h3>
             <KV>
-              <KVKey>Hostname</KVKey>
-              <KVValue>paperless.home.lan</KVValue>
-              <KVKey>Port</KVKey>
-              <KVValue>80</KVValue>
+              <KVKey>Name</KVKey>
+              <KVValue>Website refresh</KVValue>
+              <KVKey>Owner</KVKey>
+              <KVValue>Alex Morgan</KVValue>
             </KV>
             <PopoverClose asChild>
               <Button size="sm">Close</Button>
@@ -1281,12 +1280,12 @@ function Demo({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>
-                Application actions <span aria-hidden="true">⌄</span>
+                Project actions <span aria-hidden="true">⌄</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>paperless</DropdownMenuLabel>
-              {["View logs", "Restart", "Copy hostname"].map((action) => (
+              <DropdownMenuLabel>Website refresh</DropdownMenuLabel>
+              {["View activity", "Duplicate", "Copy link"].map((action) => (
                 <DropdownMenuItem
                   key={action}
                   onSelect={() => setMessage(`${action} selected.`)}
@@ -1297,12 +1296,12 @@ function Demo({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onSelect={() => setMessage("Remove application selected.")}
+                onSelect={() => setMessage("Remove project selected.")}
               >
-                Remove application
+                Remove project
               </DropdownMenuItem>
               <DropdownMenuItem disabled>
-                Deploying (unavailable)
+                Saving (unavailable)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1314,10 +1313,10 @@ function Demo({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button>Automatic restart</Button>
+              <Button>Email notifications</Button>
             </TooltipTrigger>
             <TooltipContent>
-              Restart the container if its process exits.
+              Receive an email when a project you follow changes.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -1332,21 +1331,21 @@ function Demo({
               <BrandMark>
                 <TerminalIcon />
               </BrandMark>
-              <span className="t-label">self-host</span>
+              <span className="t-label">Kiso 基礎</span>
             </div>
             <nav aria-label="Example shell navigation">
-              <a className="nav-item" href="#overview" aria-current="page">
+              <a className="nav-item" href="#components/app-shell" aria-current="page">
                 Overview
               </a>
-              <a className="nav-item" href="#app/hermes">
-                Applications
+              <a className="nav-item" href="#components/sidebar">
+                Projects
               </a>
             </nav>
           </aside>
           <AppShellMain>
             <div className="gallery-header-preview">
               <nav className="breadcrumb" aria-label="Example shell breadcrumb">
-                <a href="#overview">Console</a>
+                <a href="#components/app-shell">Workspace</a>
                 <span aria-hidden="true">/</span>
                 <span aria-current="page">Overview</span>
               </nav>
@@ -1367,15 +1366,15 @@ function Demo({
         <div className="stack-sm">
           <Split className="gallery-split-preview">
             <Pane className="gallery-split-pane">
-              <p className="t-caps">Applications</p>
+              <p className="t-caps">Projects</p>
               <nav aria-label="Example split list">
-                <a className="nav-item" href="#app/hermes" aria-current="page">
+                <a className="nav-item" href="#components/sidebar" aria-current="page">
                   <Dot variant="success" />
-                  hermes
+                  Website
                 </a>
-                <a className="nav-item" href="#app/teste">
+                <a className="nav-item" href="#components/split">
                   <Dot variant="warning" />
-                  teste
+                  Brand guide
                 </a>
               </nav>
             </Pane>
@@ -1386,10 +1385,10 @@ function Demo({
             <Pane className="gallery-split-pane grow">
               <p className="t-caps">Detail</p>
               <KV>
-                <KVKey>Image</KVKey>
-                <KVValue>paperlessngx:2.11</KVValue>
-                <KVKey>Ports</KVKey>
-                <KVValue>8000 &rarr; 80</KVValue>
+                <KVKey>Owner</KVKey>
+                <KVValue>Alex Morgan</KVValue>
+                <KVKey>Tasks</KVKey>
+                <KVValue>18 / 24</KVValue>
               </KV>
             </Pane>
           </Split>
@@ -1419,11 +1418,11 @@ function Demo({
           <Card>
             <Stat>
               <StatHeader>
-                <StatLabel>Applications</StatLabel>
+                <StatLabel>Projects</StatLabel>
                 <StatDelta variant="success">+2</StatDelta>
               </StatHeader>
               <StatValue>4</StatValue>
-              <StatFoot>3 running &middot; 1 crashed</StatFoot>
+              <StatFoot>3 active &middot; 1 archived</StatFoot>
             </Stat>
           </Card>
           <Card>
@@ -1443,12 +1442,12 @@ function Demo({
         <Card>
           <CardContent>
             <KV>
-              <KVKey>Image</KVKey>
-              <KVValue>paperlessngx:2.11</KVValue>
-              <KVKey>Container</KVKey>
+              <KVKey>Owner</KVKey>
+              <KVValue>Alex Morgan</KVValue>
+              <KVKey>Project ID</KVKey>
               <KVValue>a1f4c9e2b7d8</KVValue>
-              <KVKey>Ports</KVKey>
-              <KVValue>8000 &rarr; 80</KVValue>
+              <KVKey>Tasks</KVKey>
+              <KVValue>18 / 24</KVValue>
               <KVKey>Created</KVKey>
               <KVValue>2026-08-19T09:41:02Z</KVValue>
             </KV>
@@ -1483,114 +1482,156 @@ export function ComponentGallery({
   route,
   theme,
   onThemeChange,
+  example,
+  intro,
 }: {
   route: string;
   theme: string;
   onThemeChange: (theme: string) => void;
+  example?: ReactNode;
+  intro?: ReactNode;
 }) {
   const [search, setSearch] = useState("");
+  const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
-  const heading = useRef<HTMLHeadingElement>(null);
+  const content = useRef<HTMLElement>(null);
   const selected = route.split("/")[1] || "all";
+  const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
+  const showingIntro = route === "intro" && intro !== undefined;
+  const browsing = !showingExample && !showingIntro && selected === "all";
+  const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
   );
-  const visible =
-    selected === "all"
-      ? entries
-      : entries.filter((entry) => entry[0] === selected);
+  const visible = browsing
+    ? entries.filter((entry) => group === "all" || entry[2] === group)
+    : catalog.filter((entry) => entry[0] === selected);
+
+  function showAll() {
+    setSearch("");
+    setGroup("all");
+    content.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
+    window.location.hash = "components";
+  }
+
   useEffect(() => {
     if (
-      document.activeElement?.getAttribute("aria-label") === "Find a component"
+      document.activeElement?.getAttribute("aria-label") === "Find a component" ||
+      document.activeElement?.getAttribute("role") === "tab"
     )
       return;
     setMenuOpen(false);
-    heading.current?.focus();
+    content.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
   }, [route]);
+
   return (
-    <div className="component-gallery">
+    <div className={`component-gallery ${showingIntro ? "catalog-home" : ""}`}>
+      <header className="catalog-topbar">
+        <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
+          <BrandMark><TerminalIcon /></BrandMark>
+          <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
+        </a>
+        <nav className="demo-row" aria-label="Preview pages">
+          {intro !== undefined && <a href="#intro" aria-current={showingIntro ? "page" : undefined}>Intro</a>}
+          <a href="#components" aria-current={!showingExample && !showingIntro ? "page" : undefined} onClick={showAll}>
+            Components
+          </a>
+          {example !== undefined && (
+            <a href="#example" aria-current={showingExample ? "page" : undefined}>
+              Layouts
+            </a>
+          )}
+        </nav>
+        <div className="catalog-tools">
+          <Search
+            aria-label="Find a component"
+            placeholder="Find a component..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              window.location.hash = "components";
+            }}
+          />
+          <ThemeSelector theme={theme} onChange={onThemeChange} />
+        </div>
+        {!showingIntro && <Button
+          className="catalog-menu"
+          size="sm"
+          aria-controls="component-navigation"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? "Hide filters" : "Show filters"}
+        </Button>}
+      </header>
       <aside
         id="component-navigation"
+        hidden={showingIntro}
         className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
       >
-        <Button className="catalog-menu" onClick={() => setMenuOpen(false)}>
-          Close catalog
-        </Button>
-        <div className="brand">
-          <BrandMark>K</BrandMark>
-          <div>
-            <p className="t-label">Kiso</p>
-            <p className="muted t-label">Component catalog</p>
-          </div>
-        </div>
-        <Search
-          aria-label="Find a component"
-          placeholder="Find a component..."
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            window.location.hash = "components";
-          }}
-        />
-        <Navigation aria-label="Component catalog">
-          <NavigationGroup>
-            <NavigationList>
-              <NavigationItem>
-                <NavigationLink href="#components" active={selected === "all"}>
-                  All components <span className="muted">{catalog.length}</span>
-                </NavigationLink>
-              </NavigationItem>
-            </NavigationList>
-          </NavigationGroup>
-          {Array.from(new Set(catalog.map((entry) => entry[2]))).map((group) => (
-            <NavigationGroup className="catalog-group" key={group} label={group}>
-              <NavigationList>
-                {entries
-                  .filter((entry) => entry[2] === group)
-                  .map(([id, name]) => (
-                    <NavigationItem key={id}>
-                      <NavigationLink
-                        href={`#components/${id}`}
-                        active={selected === id}
-                      >
-                        {name}
-                      </NavigationLink>
-                    </NavigationItem>
-                  ))}
-              </NavigationList>
-            </NavigationGroup>
-          ))}
-        </Navigation>
-      </aside>
-      <div className="catalog-content">
-        <header className="catalog-topbar">
+        <div className="catalog-group" role="group" aria-label="Component categories">
+          <p className="t-caps">Explore components</p>
           <Button
-            className="catalog-menu"
-            size="sm"
-            aria-controls="component-navigation"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(!menuOpen)}
+            variant="ghost"
+            className="catalog-filter"
+            aria-pressed={browsing && group === "all"}
+            onClick={showAll}
           >
-            Components
+            All components <span>{catalog.length}</span>
           </Button>
-          <ThemeSelector theme={theme} onChange={onThemeChange} />
-        </header>
-        <main className="catalog-main">
+          {groups.map((category) => (
+            <Button
+              key={category}
+              variant="ghost"
+              className="catalog-filter"
+              aria-pressed={browsing && group === category}
+              onClick={() => {
+                setGroup(category);
+                window.location.hash = "components";
+              }}
+            >
+              {category}
+              <span>{catalog.filter((entry) => entry[2] === category).length}</span>
+            </Button>
+          ))}
+        </div>
+        <div className="catalog-sidebar-note">
+          <p className="t-label">Built with Kiso</p>
+          <p className="muted t-label">
+            Explore the previews. Select a component to see its states and usage.
+          </p>
+        </div>
+      </aside>
+      <main ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        {!showingIntro && <div className="catalog-heading">
           <PageHeader>
-            <p className="t-caps">React + shadcn + Kiso</p>
-            <PageHeaderTitle tabIndex={-1} ref={heading}>
-              {selected === "all"
-                ? "Component gallery"
+            {!browsing && (
+              <a className="gallery-entry-link" href="#components" onClick={showAll}>
+                ← All components
+              </a>
+            )}
+            <PageHeaderTitle tabIndex={-1}>
+              {showingExample
+                ? "Layout examples"
+                : browsing
+                ? group === "all" ? "Component gallery" : group
                 : catalog.find((entry) => entry[0] === selected)?.[1] ||
                   "Component not found"}
             </PageHeaderTitle>
-            <PageHeaderDescription>
-              {catalog.length} Kiso components, with previews, states and
-              compositions. Every preview renders the published
-              <code> @momoi-labs/kiso-react </code> component.
-            </PageHeaderDescription>
+            <p className="muted t-label">
+              {showingExample
+                ? "Complete interface examples, composed with Kiso components."
+                : browsing ? "Components in action. Built for your next interface." : "Preview, states and usage."}
+            </p>
           </PageHeader>
-          {visible.map(([id, name, group, description]) => (
+          <p className="muted t-label" role="status" hidden={showingExample || showingIntro}>
+            {visible.length} {visible.length === 1 ? "component" : "components"}
+          </p>
+        </div>}
+        {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
+        {example !== undefined && <div hidden={!showingExample}>{example}</div>}
+        <div className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
+          {visible.map(([id, name, category, description]) => (
             <section
               className="catalog-section"
               key={id}
@@ -1598,17 +1639,22 @@ export function ComponentGallery({
             >
               <div className="catalog-section-heading">
                 <div>
-                  <p className="t-caps">{group}</p>
-                  <h2 id={`catalog-${id}`} className="t-h2">
-                    {name}
+                  {!browsing && <p className="t-caps">{category}</p>}
+                  <h2 id={`catalog-${id}`} className={browsing ? "t-h3" : "t-h2"}>
+                    {browsing ? <a href={`#components/${id}`}>{name}<span aria-hidden="true"> ↗</span></a> : name}
                   </h2>
                   <p className="muted t-label">{description}</p>
                 </div>
+                {!browsing && (
+                  <Badge variant="success">
+                    Shared React
+                  </Badge>
+                )}
               </div>
               <div className="catalog-preview">
                 <Demo id={id} theme={theme} onThemeChange={onThemeChange} />
               </div>
-              {snippets[id] && (
+              {!browsing && snippets[id] && (
                 <details className="catalog-code">
                   <summary>Usage example</summary>
                   <pre>
@@ -1618,26 +1664,17 @@ export function ComponentGallery({
               )}
             </section>
           ))}
-          {visible.length === 0 && (
-            <EmptyState variant="no-results">
-              <EmptyStateTitle>No matching components</EmptyStateTitle>
-              <EmptyStateActions>
-                <Button
-                  onClick={() => {
-                    setSearch("");
-                    window.location.hash = "components";
-                  }}
-                >
-                  Show all components
-                </Button>
-              </EmptyStateActions>
-            </EmptyState>
-          )}
-          <p className="muted t-label">
-            Preview only. All actions use sample data.
-          </p>
-        </main>
-      </div>
+        </div>
+        {!showingExample && !showingIntro && visible.length === 0 && (
+          <EmptyState variant="no-results">
+            <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
+            <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
+          </EmptyState>
+        )}
+        <p className="muted t-label catalog-footnote" hidden={showingIntro}>
+          {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
+        </p>
+      </main>
     </div>
   );
 }

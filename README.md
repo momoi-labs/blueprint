@@ -68,5 +68,9 @@ Code, config, and templates: **MIT**. Brand assets (name, logo, type):
 using Kiso tokens and CSS. Run `npm ci` and `npm run prototype` to open the
 component gallery, where every entry renders the published component.
 
+The [standalone Kiso gallery](apps/kiso-gallery/README.md) has its own build
+and Cloudflare configuration for `kiso.momoi-labs.dev`. Run `npm run gallery`
+to open it locally, or `npm run build:gallery` to produce the static site.
+
 See [Publishing Kiso](docs/publishing.md) for the first npm publication, trusted
 publisher setup, release PRs, and version tags.
