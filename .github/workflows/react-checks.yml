@@ -5,6 +5,7 @@ on:
     paths:
       - 'package*.json'
       - 'packages/**'
+      - 'apps/kiso-gallery/**'
       - 'kiso/**'
       - 'tokens/**'
       - 'scripts/**'
@@ -29,3 +30,5 @@ jobs:
       - run: npm audit --audit-level=low
       - run: npm run check
       - run: npm run check:react
+      - run: npm run build:gallery
+      - run: npm run check:deploy --workspace=kiso-gallery

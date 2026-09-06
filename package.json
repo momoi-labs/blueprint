@@ -4,10 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
+    "apps/*",
     "packages/*",
     "kiso/blocks/react-prototype"
   ],
   "scripts": {
+    "gallery": "npm run build:packages && npm run dev --workspace=kiso-gallery",
+    "build:gallery": "npm run build:packages && npm run build --workspace=kiso-gallery",
+    "preview:gallery": "npm run preview --workspace=kiso-gallery",
     "prototype": "npm run build:packages && npm run dev --workspace=kiso-react-prototype",
     "build": "style-dictionary build --config style-dictionary.config.mjs",
     "check": "npm run build && npm run check:generated && npm run check:tokens",

@@ -1,0 +1,4 @@
+{
+  "extends": "../../kiso/blocks/react-prototype/tsconfig.json",
+  "include": ["src", "vite.config.ts"]
+}
