@@ -136,7 +136,9 @@
   margin: 0;
   padding: 0;
 }
-[data-slot="navigation-list"] {
+/* A column by default. `.nav-row` is the shared layer's row treatment, so
+   yield to it rather than override it from here. */
+[data-slot="navigation-list"]:not(.nav-row) {
   display: grid;
   gap: var(--spacing-2xs);
 }

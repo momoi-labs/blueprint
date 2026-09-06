@@ -745,6 +745,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 .nav-group { display: grid; gap: var(--spacing-2xs); }
 .nav-group > .t-caps { padding-inline: var(--spacing-sm); margin-block-end: var(--spacing-2xs); }
 .nav-item {
+  position: relative; /* the current marker is drawn beside the item */
   display: flex; align-items: center; gap: var(--spacing-sm);
   height: var(--size-control-sm);
   padding-inline: var(--spacing-sm);
@@ -758,14 +759,53 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 }
 .nav-item .icon { color: var(--color-subtle-foreground); }
 .nav-item:hover { background: var(--color-accent-surface-hover); color: var(--color-foreground); text-decoration: none; }
+
+/* The current destination is marked beside the item rather than on it.
+   A fill cannot carry "current" here: `--color-selected` and
+   `--color-accent-surface-hover` are one value, so a filled current item and a
+   hovered sibling paint the same surface. Leaving the fill to hover gives the
+   two states different signals, and it gives the marker the one thing a rail
+   needs and a floating pill cannot offer — an edge shared with every sibling,
+   which in a column is the gutter. */
 .nav-item[aria-current="page"], .nav-item.active {
-  background: var(--color-selected);
-  box-shadow: inset 2px 0 0 var(--color-primary);
   color: var(--color-selected-foreground);
   font-weight: var(--type-weight-medium);
 }
+.nav-item[aria-current="page"]::before, .nav-item.active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(-1 * var(--spacing-sm)); /* the sidebar's own padding */
+  inset-block: 2px;
+  width: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
 .nav-item[aria-current="page"] .icon, .nav-item.active .icon { color: currentColor; }
 .nav-item .badge { margin-inline-start: auto; }
+
+/* Navigation laid out in a row. The shared edge is now the bottom, so the same
+   marker moves there and the row grows a baseline for it to sit on — the
+   arrangement `.tabs` already uses. Without this the rail points at a gutter
+   that a horizontal row does not have. */
+.nav-row {
+  display: flex; gap: var(--spacing-lg);
+  margin: 0; padding: 0; list-style: none;
+  border-bottom: 1px solid var(--color-border);
+}
+.nav-row .nav-item {
+  width: auto;
+  height: var(--size-control-lg);
+  padding-inline: 0;
+  border-radius: 0;
+}
+.nav-row .nav-item:hover { background: none; color: var(--color-foreground); }
+.nav-row .nav-item[aria-current="page"]::before, .nav-row .nav-item.active::before {
+  inset-inline: 0;
+  inset-block: auto;
+  bottom: -1px;
+  width: auto;
+  height: 2px;
+}
 
 .brand { display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0; }
 .brand-mark {
