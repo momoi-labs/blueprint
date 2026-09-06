@@ -66,7 +66,7 @@ Code, config, and templates: **MIT**. Brand assets (name, logo, type):
 
 [`@momoi-labs/kiso-react`](packages/kiso-react/README.md) provides React components
 using Kiso tokens and CSS. Run `npm ci` and `npm run prototype` to open the
-Self Host simulation and the full component gallery.
+component gallery, where every entry renders the published component.
 
 See [Publishing Kiso](docs/publishing.md) for the first npm publication, trusted
 publisher setup, release PRs, and version tags.

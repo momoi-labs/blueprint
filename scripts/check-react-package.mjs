@@ -44,7 +44,12 @@ try {
     import assert from 'node:assert/strict';
     import { createElement as h } from 'react';
     import { renderToStaticMarkup as render } from 'react-dom/server';
-    import { Button, FormField, Checkbox, AlertDialog, Table, ThemeSelector, BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
+    import { Button, FormField, Checkbox, AlertDialog, Table, ThemeSelector, BrandMark, TerminalIcon,
+      Alert, AlertTitle, AlertDescription, Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage,
+      CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
+      NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
+      Search, Select, Sidebar, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, Tooltip,
+      ValidationMessage } from '@momoi-labs/kiso-react';
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);
@@ -74,6 +79,35 @@ try {
     assert.match(logo, /focusable="false"/);
     assert.match(logo, /d="M4 4.5L8 8l-4 3.5"/);
     assert.match(logo, /d="M9.5 11.5H13"/);
+    const alert = render(h(Alert, { variant: 'error' }, h(AlertTitle, null, 'Could not deploy')));
+    assert.match(alert, /class="alert alert-danger"/);
+    assert.match(alert, /role="alert"/);
+    assert.match(render(h(Alert, { variant: 'info' })), /role="status"/);
+    const crumbs = render(h(Breadcrumb, null, h(BreadcrumbList, null,
+      h(BreadcrumbItem, null, h(BreadcrumbPage, null, 'paperless')))));
+    assert.match(crumbs, /aria-label="Breadcrumb"/);
+    assert.match(crumbs, /<ol[^>]*class="breadcrumb"/);
+    assert.match(crumbs, /aria-current="page"/);
+    const nav = render(h(Navigation, { 'aria-label': 'Primary' }, h(NavigationList, null,
+      h(NavigationItem, null, h(NavigationLink, { href: '/overview', active: true }, 'Overview')))));
+    assert.match(nav, /<nav [^>]*aria-label="Primary"/);
+    assert.match(nav, /<a [^>]*aria-current="page" class="nav-item" href="\\/overview"/);
+    assert.match(render(h(Search, { 'aria-label': 'Find' })), /class="input-group"/);
+    assert.match(render(h(Spinner, { label: 'Deploying' })), /role="status"/);
+    assert.match(render(h(Spinner)), /aria-hidden="true"/);
+    assert.match(render(h(Skeleton, { variant: 'circle' })), /class="skeleton skeleton-circle"/);
+    assert.match(render(h(Textarea, { rows: 3 })), /class="textarea"/);
+    assert.match(render(h(ValidationMessage, { id: 'e' }, 'Use lowercase letters.')), /class="field-error"/);
+    assert.match(render(h(PageHeader, { actions: h(Button, null, 'Deploy') },
+      h(PageHeaderTitle, null, 'Applications'))), /class="between"/);
+    assert.match(render(h(Pagination, null, h(PaginationPage, { active: true }, '2'))), /aria-label="Pagination"/);
+    assert.match(render(h(Header, null, 'chrome')), /class="topbar"/);
+    assert.match(render(h(Sidebar, null, 'nav')), /class="sidebar"/);
+    assert.match(render(h(EmptyState, { size: 'sm' })), /class="empty empty-sm"/);
+    assert.match(render(h(Link, { href: '/x', variant: 'standalone', active: true }, 'x')), /class="nav-item"/);
+    for (const part of [CommandPalette, Drawer, DropdownMenu, Popover, Select, Switch, Tabs, Toast, Tooltip]) {
+      assert.equal(typeof part, 'function');
+    }
     const terminal = render(h(TerminalIcon, { className: 'custom', id: 'terminal' }));
     assert.match(terminal, /class="icon custom"/);
     assert.match(terminal, /id="terminal"/);
