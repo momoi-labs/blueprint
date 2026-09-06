@@ -1,11 +1,9 @@
 # Component gallery
 
-A local preview of `@momoi-labs/kiso-react`. It lists the 36 entries in
-[`kiso/docs/components/README.md`](../../docs/components/README.md) plus the
-seven console layout patterns that `kiso/ui.css` specifies without a doc page —
-AppShell, Split, LogView, Stat, KV, Dot and Separator — and renders each one
-from the workspace package, so an entry can only appear here if the package
-exports it.
+A local preview of `@momoi-labs/kiso-react`. It lists all 43 entries in
+[`kiso/docs/components/README.md`](../../docs/components/README.md) and renders
+each one from the workspace package, so an entry can only appear here if the
+package exports it.
 
 From the repository root:
 
@@ -52,16 +50,14 @@ adapted from the shadcn registry source:
 
 Retrieved on 2026-09-06. The upstream MIT notice is in `SHADCN-LICENSE`.
 
-The adapter replaces Tailwind classes with Kiso classes and maps variants onto
-the Kiso contracts. Radix owns focus containment, dismissal, focus restoration,
-and menu, tab, select, and toast semantics. CommandPalette is not a Radix
-primitive: it composes Radix Dialog with a listbox driven by
-`aria-activedescendant`, which keeps the palette out of a second dependency.
+The adapter uses Kiso classes and follows Kiso contracts for variants. Radix
+owns focus containment, dismissal, focus restoration, and menu, tab, select,
+and toast semantics. CommandPalette composes Radix Dialog with a listbox
+driven by `aria-activedescendant`. It requires no additional dependency.
 
-Presentation that the shared component layer does not name — Radix state
-selectors, the Drawer placements, the Switch track — lives in
-`packages/kiso-react/src/styles.css` rather than in `kiso/ui.css`, next to the
-components that need it.
+React-specific styles live in `packages/kiso-react/src/styles.css`, next to
+the components that need them. These include Radix state selectors, Drawer
+placements, and the Switch track.
 
 This folder stays under `kiso/blocks/`, which the published Kiso package
 excludes.
@@ -72,8 +68,9 @@ excludes.
 npm run check:react
 ```
 
-Type checking, the Vite production build, and an isolated consumer installing
-both packed tarballs. Browser checks covered every catalog route, theme
-switching, the overlays, the palette keyboard, Select, DropdownMenu, Switch,
-and Toast. Screen-reader testing and product integration remain outside this
-preview.
+The command runs type checking, builds the demo with Vite, and tests both
+packed packages in an isolated consumer.
+
+The preview was also checked in a browser across every catalog route, theme
+switching, overlays, palette keyboard controls, Select, DropdownMenu, Switch,
+and Toast. Screen-reader testing and product integration remain unverified.
