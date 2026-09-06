@@ -15,7 +15,7 @@ Open <http://127.0.0.1:5173>. All state is in memory. The example makes no
 Self Host API calls. The existing Kiso stylesheet loads Google Fonts.
 
 The component gallery is at <http://127.0.0.1:5173/#components>.
-It covers all 35 entries in `kiso/docs/components/README.md`, with search,
+It covers all 36 entries in `kiso/docs/components/README.md`, with search,
 individual component routes, theme controls, and examples of component states.
 The console remains at <http://127.0.0.1:5173/#overview>.
 

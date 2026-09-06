@@ -30,11 +30,21 @@ try {
   const manifest = JSON.parse(await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso-react/package.json')));
   assert.match(manifest.dependencies['@momoi-labs/kiso'], /^\^\d+\.\d+\.\d+$/);
   assert(!manifest.dependencies.react);
+  const css = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/kiso/ui.css'), 'utf8');
+  assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
+  const iconRule = css.match(/\.icon \{([^}]+)\}/)[1];
+  for (const declaration of ['stroke: currentColor', 'fill: none', 'stroke-width: 1.75',
+    'stroke-linecap: round', 'stroke-linejoin: round']) {
+    assert(iconRule.includes(declaration));
+  }
+  const brandRule = css.match(/\.brand-mark \{([^}]+)\}/)[1];
+  assert(brandRule.includes('font-weight: var(--type-weight-bold)'));
+  assert(brandRule.includes('font-size: var(--type-size-label)'));
   await writeFile(path.join(fixture, 'verify.mjs'), `
     import assert from 'node:assert/strict';
     import { createElement as h } from 'react';
     import { renderToStaticMarkup as render } from 'react-dom/server';
-    import { Button, FormField, Checkbox, AlertDialog, Table, ThemeSelector } from '@momoi-labs/kiso-react';
+    import { Button, FormField, Checkbox, AlertDialog, Table, ThemeSelector, BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);
@@ -45,14 +55,42 @@ try {
     assert.equal(typeof AlertDialog, 'function');
     assert.equal(typeof Table, 'function');
     assert.equal(typeof ThemeSelector, 'function');
+    const letter = render(h(BrandMark, { id: 'brand', className: 'custom', 'aria-hidden': false }, 'S'));
+    assert.match(letter, /^<span /);
+    assert.match(letter, /data-slot="brand-mark"/);
+    assert.match(letter, /class="brand-mark custom"/);
+    assert.match(letter, /id="brand"/);
+    assert.match(letter, /aria-hidden="true">S<[/]span>$/);
+    const customIcon = render(h(BrandMark, null,
+      h('svg', { className: 'custom-icon', viewBox: '0 0 16 16' }, h('path', { d: 'M1 1L2 2' }))));
+    assert.match(customIcon, /aria-hidden="true"><svg /);
+    assert.match(customIcon, /class="icon icon-sm custom-icon"/);
+    assert.match(customIcon, /viewBox="0 0 16 16"/);
+    assert.match(customIcon, /d="M1 1L2 2"/);
+    const logo = render(h(BrandMark, null, h(TerminalIcon)));
+    assert.match(logo, /aria-hidden="true"><svg /);
+    assert.match(logo, /class="[^"]*icon-sm[^"]*"/);
+    assert.match(logo, /viewBox="0 0 16 16"/);
+    assert.match(logo, /focusable="false"/);
+    assert.match(logo, /d="M4 4.5L8 8l-4 3.5"/);
+    assert.match(logo, /d="M9.5 11.5H13"/);
+    const terminal = render(h(TerminalIcon, { className: 'custom', id: 'terminal' }));
+    assert.match(terminal, /class="icon custom"/);
+    assert.match(terminal, /id="terminal"/);
+    assert.match(terminal, /aria-hidden="true"/);
   `);
   run(process.execPath, ['verify.mjs']);
   await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { Button, FormField } from '@momoi-labs/kiso-react';
+    import { Button, FormField, BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
-    createRoot(document.getElementById('root')!).render(<><Button variant="primary">Save</Button><FormField label="Name" hint="Required" /></>);
+    createRoot(document.getElementById('root')!).render(<>
+      <Button variant="primary">Save</Button><FormField label="Name" hint="Required" />
+      <BrandMark className="custom">S</BrandMark>
+      <BrandMark><TerminalIcon /></BrandMark>
+      <BrandMark><svg viewBox="0 0 16 16"><path d="M1 1L2 2" /></svg></BrandMark>
+    </>);
   `);
   await writeFile(path.join(fixture, 'tsconfig.json'), JSON.stringify({
     compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler',

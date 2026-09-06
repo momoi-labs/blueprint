@@ -9,6 +9,7 @@ import { ComponentGallery } from "./gallery";
 import { Label } from "@momoi-labs/kiso-react";
 import { Checkbox } from "@momoi-labs/kiso-react";
 import { Badge } from "@momoi-labs/kiso-react";
+import { BrandMark, TerminalIcon } from "@momoi-labs/kiso-react";
 import { Card, CardContent, CardHeader } from "@momoi-labs/kiso-react";
 import {
   Table,
@@ -548,9 +549,7 @@ function App() {
       >
         <div className="sidebar-header">
           <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              S
-            </span>
+            <BrandMark><TerminalIcon /></BrandMark>
             <div>
               <div className="t-label">self-host</div>
               <div className="muted mono t-label">home.lan</div>
