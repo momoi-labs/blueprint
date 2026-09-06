@@ -45,6 +45,12 @@ Data and structure
 - EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription, EmptyStateActions.
 - Header, PageHeader, PageHeaderTitle, PageHeaderDescription.
 - Sidebar, SidebarHeader, SidebarBody, SidebarFooter.
+- AppShell and AppShellMain, the sidebar and main columns of a console.
+- Split, Pane, and Splitter, a list-detail layout with a resizable divider.
+- LogView, LogViewLine, LogViewTime, and LogViewLevel.
+- Stat, StatHeader, StatLabel, StatValue, StatFoot, and StatDelta.
+- KV, KVKey, and KVValue, a description list of fixed facts.
+- Separator, horizontal or vertical, and Dot and `dotVariants`.
 - BrandMark and TerminalIcon, the momoi-labs terminal prompt glyph.
 
 Navigation
@@ -90,6 +96,33 @@ component. CommandPalette is controlled: it owns the overlay, focus, and its
 Arrow / Enter / Escape keys, while the product owns the shortcut that opens it
 and the filtering that decides which items to render.
 
+Dot variants match Badge's: `neutral`, `info`, `success`, `warning`, and
+`danger`, plus `size` and `pulse`. A `neutral` Dot inherits `currentColor`, so
+it takes the colour of the row it sits in. StatDelta takes the same variants.
+
+Splitter owns the pane size, so dropping one between two Panes is the whole
+setup. It writes a percentage to the pane before it, starts at `defaultSize`
+and stays between `min` and `max`, and reports changes through `onSizeChange`.
+It is a real `separator`: focus it and the arrow keys move it by `step`, Home
+and End take it to the bounds.
+
+LogView owns its scroller and follows the tail. New lines pin the view to the
+end until the reader scrolls away, and returning to the end resumes. Drive that
+from a control of your own with `follow` and `onFollowChange`, or scroll to the
+end imperatively through the ref:
+
+```tsx
+const log = useRef<LogViewHandle>(null);
+
+<LogView ref={log} follow={follow} onFollowChange={setFollow}>
+  <LogViewLine>
+    <LogViewTime>09:41:03.901</LogViewTime>
+    <LogViewLevel level="warn">WARN </LogViewLevel> redis unavailable
+  </LogViewLine>
+</LogView>
+<Button onClick={() => log.current?.scrollToBottom()}>Jump to end</Button>
+```
+
 Compose confirmations with AlertDialogTitle and AlertDialogDescription inside
 AlertDialogContent, plus AlertDialogCancel and AlertDialogAction. For asynchronous
 actions, control `open` and prevent the Action's default click behavior until the
@@ -115,7 +148,7 @@ import { BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
 ## Development
 
 From the repository root, run `npm ci`, then `npm run prototype`. The component
-gallery opens at <http://127.0.0.1:5173/#components> and covers all 36 Kiso
+gallery opens at <http://127.0.0.1:5173/#components> and covers all 43 Kiso
 catalog entries, each rendering the component this package exports. Its sample
 data is simulated in memory.
 

@@ -15,6 +15,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   AlertTitle,
+  AppShell,
+  AppShellMain,
   Badge,
   BrandMark,
   Breadcrumb,
@@ -44,6 +46,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Dot,
   Drawer,
   DrawerBody,
   DrawerClose,
@@ -66,8 +69,15 @@ import {
   FormField,
   Header,
   Input,
+  KV,
+  KVKey,
+  KVValue,
   Label,
   Link,
+  LogView,
+  LogViewLevel,
+  LogViewLine,
+  LogViewTime,
   Navigation,
   NavigationGroup,
   NavigationItem,
@@ -80,6 +90,7 @@ import {
   PaginationNext,
   PaginationPage,
   PaginationPrevious,
+  Pane,
   Popover,
   PopoverClose,
   PopoverContent,
@@ -90,12 +101,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Separator,
   Sidebar,
   SidebarBody,
   SidebarFooter,
   SidebarHeader,
   Skeleton,
   Spinner,
+  Split,
+  Splitter,
+  Stat,
+  StatDelta,
+  StatFoot,
+  StatHeader,
+  StatLabel,
+  StatValue,
   Switch,
   Table,
   TableBody,
@@ -170,6 +190,10 @@ const catalog = [
     "Records, native headers and row actions.",
   ],
   ["empty-state", "EmptyState", "Data", "No items and a useful next action."],
+  ["stat", "Stat", "Data", "One figure and how it is moving."],
+  ["kv", "KV", "Data", "Fixed facts as terms and values."],
+  ["dot", "Dot", "Data", "Status as a mark beside a name."],
+  ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
   ["card", "Card", "Structure", "Header, body and footer with corner marks."],
   [
     "page-header",
@@ -185,6 +209,14 @@ const catalog = [
     "Structure",
     "Grouped destinations and current location.",
   ],
+  ["app-shell", "AppShell", "Structure", "The sidebar and main column of a console."],
+  [
+    "split",
+    "Split / Pane / Splitter",
+    "Structure",
+    "List and detail either side of a resizable divider.",
+  ],
+  ["separator", "Separator", "Structure", "A rule between groups, either axis."],
   [
     "navigation",
     "Navigation",
@@ -284,6 +316,13 @@ const snippets: Record<string, string> = {
     '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit application</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
   "command-palette":
     '<CommandPalette open={open} onOpenChange={setOpen}>\n  <CommandPaletteInput value={query} onChange={(e) => setQuery(e.target.value)} />\n  <CommandPaletteList>\n    <CommandPaletteGroup heading="Navigation">\n      <CommandPaletteItem onSelect={openOverview}>Open overview</CommandPaletteItem>\n    </CommandPaletteGroup>\n  </CommandPaletteList>\n</CommandPalette>',
+  dot: '<span className="row success t-label">\n  <Dot pulse />\n  <span className="fg">Platform healthy</span>\n</span>',
+  stat: "<Stat>\n  <StatHeader>\n    <StatLabel>Applications</StatLabel>\n    <StatDelta variant=\"success\">+2</StatDelta>\n  </StatHeader>\n  <StatValue>4</StatValue>\n  <StatFoot>3 running \u00b7 1 crashed</StatFoot>\n</Stat>",
+  kv: "<KV>\n  <KVKey>Image</KVKey>\n  <KVValue>paperlessngx:2.11</KVValue>\n</KV>",
+  separator: '<Separator />\n<Separator orientation="vertical" />',
+  split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
+  "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
+  "app-shell": "<AppShell>\n  <Sidebar>\n    <SidebarBody>{navigation}</SidebarBody>\n  </Sidebar>\n  <AppShellMain>{page}</AppShellMain>\n</AppShell>",
 };
 
 function Plus() {
@@ -408,6 +447,77 @@ function CommandPaletteDemo() {
       </CommandPalette>
       <p className="muted t-label" role="status">
         {message}
+      </p>
+    </div>
+  );
+}
+
+type LogLine = {
+  time: string;
+  level: "info" | "warn" | "error";
+  label: string;
+  text: string;
+};
+
+const exampleLog: LogLine[] = [
+  { time: "09:41:02.114", level: "info", label: "INFO ", text: "paperless-ngx 2.11 starting" },
+  { time: "09:41:02.482", level: "info", label: "INFO ", text: "applying migrations" },
+  { time: "09:41:03.901", level: "warn", label: "WARN ", text: "redis unavailable, falling back to the in-process queue" },
+  { time: "09:41:04.120", level: "error", label: "ERROR", text: "could not open /usr/src/data: permission denied" },
+  { time: "09:41:04.121", level: "error", label: "ERROR", text: "exiting with status 1" },
+  { time: "09:46:04.310", level: "info", label: "INFO ", text: "restart 3/5" },
+  { time: "09:46:04.998", level: "info", label: "INFO ", text: "paperless-ngx 2.11 starting" },
+];
+
+function LogViewDemo() {
+  const followId = useId();
+  const [follow, setFollow] = useState(true);
+  const [lines, setLines] = useState(exampleLog);
+  return (
+    <div className="stack-sm">
+      <div className="between">
+        <div className="check-label">
+          <Checkbox
+            id={followId}
+            checked={follow}
+            onCheckedChange={(next) => setFollow(next === true)}
+          />
+          <Label htmlFor={followId}>Follow</Label>
+        </div>
+        <Button
+          size="sm"
+          onClick={() =>
+            setLines((current) => [
+              ...current,
+              {
+                time: new Date().toTimeString().slice(0, 8),
+                level: "info",
+                label: "INFO ",
+                text: `health check ${current.length - exampleLog.length + 1} passed`,
+              },
+            ])
+          }
+        >
+          Append line
+        </Button>
+      </div>
+      <LogView
+        className="gallery-log-preview"
+        follow={follow}
+        onFollowChange={setFollow}
+        aria-label="Example application log"
+      >
+        {lines.map((line, i) => (
+          <LogViewLine key={`${line.time}-${i}`}>
+            <LogViewTime>{line.time}</LogViewTime>
+            <LogViewLevel level={line.level}>{line.label}</LogViewLevel>{" "}
+            {line.text}
+          </LogViewLine>
+        ))}
+      </LogView>
+      <p className="muted t-label">
+        Appending pins the view to the end while Follow is on. Scrolling away
+        turns it off.
       </p>
     </div>
   );
@@ -702,7 +812,7 @@ function Demo({
           {(["neutral", "info", "success", "warning", "danger"] as const).map(
             (variant) => (
               <Badge key={variant} variant={variant}>
-                <span className="dot" aria-hidden="true" />
+                <Dot />
                 {variant}
               </Badge>
             ),
@@ -781,10 +891,12 @@ function Demo({
               </Button>
             </CardFooter>
           </Card>
-          <Card className="stat">
-            <p className="stat-label">Running applications</p>
-            <p className="stat-value">2</p>
-            <p className="stat-foot">All applications healthy</p>
+          <Card>
+            <Stat>
+              <StatLabel>Running applications</StatLabel>
+              <StatValue>2</StatValue>
+              <StatFoot>All applications healthy</StatFoot>
+            </Stat>
           </Card>
           {feedback}
         </div>
@@ -1151,12 +1263,12 @@ function Demo({
           </PopoverTrigger>
           <PopoverContent>
             <h3 className="t-h3">Local network</h3>
-            <dl className="kv">
-              <dt>Hostname</dt>
-              <dd>paperless.home.lan</dd>
-              <dt>Port</dt>
-              <dd>80</dd>
-            </dl>
+            <KV>
+              <KVKey>Hostname</KVKey>
+              <KVValue>paperless.home.lan</KVValue>
+              <KVKey>Port</KVKey>
+              <KVValue>80</KVValue>
+            </KV>
             <PopoverClose asChild>
               <Button size="sm">Close</Button>
             </PopoverClose>
@@ -1212,6 +1324,156 @@ function Demo({
       );
     case "command-palette":
       return <CommandPaletteDemo />;
+    case "app-shell":
+      return (
+        <AppShell className="gallery-shell-preview">
+          <aside className="gallery-shell-sidebar">
+            <div className="brand">
+              <BrandMark>
+                <TerminalIcon />
+              </BrandMark>
+              <span className="t-label">self-host</span>
+            </div>
+            <nav aria-label="Example shell navigation">
+              <a className="nav-item" href="#overview" aria-current="page">
+                Overview
+              </a>
+              <a className="nav-item" href="#app/hermes">
+                Applications
+              </a>
+            </nav>
+          </aside>
+          <AppShellMain>
+            <div className="gallery-header-preview">
+              <nav className="breadcrumb" aria-label="Example shell breadcrumb">
+                <a href="#overview">Console</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">Overview</span>
+              </nav>
+              <span className="row success t-label">
+                <Dot pulse />
+                <span className="fg">Healthy</span>
+              </span>
+            </div>
+            <div className="gallery-shell-page">
+              <h3 className="t-h3">Overview</h3>
+              <p className="muted t-label">The page renders in this column.</p>
+            </div>
+          </AppShellMain>
+        </AppShell>
+      );
+    case "split":
+      return (
+        <div className="stack-sm">
+          <Split className="gallery-split-preview">
+            <Pane className="gallery-split-pane">
+              <p className="t-caps">Applications</p>
+              <nav aria-label="Example split list">
+                <a className="nav-item" href="#app/hermes" aria-current="page">
+                  <Dot variant="success" />
+                  hermes
+                </a>
+                <a className="nav-item" href="#app/teste">
+                  <Dot variant="warning" />
+                  teste
+                </a>
+              </nav>
+            </Pane>
+            <Splitter
+              defaultSize={42}
+              aria-label="Resize the list and detail panes"
+            />
+            <Pane className="gallery-split-pane grow">
+              <p className="t-caps">Detail</p>
+              <KV>
+                <KVKey>Image</KVKey>
+                <KVValue>paperlessngx:2.11</KVValue>
+                <KVKey>Ports</KVKey>
+                <KVValue>8000 &rarr; 80</KVValue>
+              </KV>
+            </Pane>
+          </Split>
+          <p className="muted t-label">
+            Drag the divider, or focus it and use the arrow keys.
+          </p>
+        </div>
+      );
+    case "separator":
+      return (
+        <div className="stack-sm">
+          <p className="t-label">Configuration</p>
+          <Separator />
+          <p className="t-label">Danger zone</p>
+          <div className="row">
+            <span className="t-label">Running</span>
+            <Separator orientation="vertical" />
+            <span className="t-label">18 days</span>
+            <Separator orientation="vertical" />
+            <span className="t-label">2 restarts</span>
+          </div>
+        </div>
+      );
+    case "stat":
+      return (
+        <div className="demo-grid">
+          <Card>
+            <Stat>
+              <StatHeader>
+                <StatLabel>Applications</StatLabel>
+                <StatDelta variant="success">+2</StatDelta>
+              </StatHeader>
+              <StatValue>4</StatValue>
+              <StatFoot>3 running &middot; 1 crashed</StatFoot>
+            </Stat>
+          </Card>
+          <Card>
+            <Stat>
+              <StatHeader>
+                <StatLabel>Requests / min</StatLabel>
+                <StatDelta variant="danger">-18%</StatDelta>
+              </StatHeader>
+              <StatValue>1,284</StatValue>
+              <StatFoot>Down from 1,566 yesterday</StatFoot>
+            </Stat>
+          </Card>
+        </div>
+      );
+    case "kv":
+      return (
+        <Card>
+          <CardContent>
+            <KV>
+              <KVKey>Image</KVKey>
+              <KVValue>paperlessngx:2.11</KVValue>
+              <KVKey>Container</KVKey>
+              <KVValue>a1f4c9e2b7d8</KVValue>
+              <KVKey>Ports</KVKey>
+              <KVValue>8000 &rarr; 80</KVValue>
+              <KVKey>Created</KVKey>
+              <KVValue>2026-08-19T09:41:02Z</KVValue>
+            </KV>
+          </CardContent>
+        </Card>
+      );
+    case "dot":
+      return (
+        <div className="demo-row">
+          {(["success", "warning", "danger", "info"] as const).map(
+            (variant) => (
+              <span className="row t-label" key={variant}>
+                <Dot variant={variant} />
+                {variant}
+              </span>
+            ),
+          )}
+          <span className="row success t-label">
+            <Dot size="lg" pulse />
+            <span className="fg">Platform healthy</span>
+          </span>
+        </div>
+      );
+    case "log-view":
+      return <LogViewDemo />;
     default:
       return null;
   }
