@@ -1001,7 +1001,7 @@ function Demo({
     case "navigation":
       return (
         <Navigation aria-label="Example navigation">
-          <NavigationList className="demo-row">
+          <NavigationList className="nav-row">
             {[
               ["Overview", "#components/navigation"],
               ["DNS setup", "#components/link"],
