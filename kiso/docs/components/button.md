@@ -160,9 +160,9 @@ Map Kiso variants onto shadcn *by intent*, not by name:
 
 | Kiso variant | shadcn `variant` |
 | --- | --- |
-| `primary` | `outline`, restyled: `--color-primary` text and border, `--type-weight-semibold`. Do not use shadcn's filled `default` — that needs an on-primary text role Kiso does not have. |
+| `primary` | `default`, restyled: `--color-primary` fill, `--color-primary-foreground` label. Do not restyle shadcn's `outline` into an accent-text primary — that treatment reads as a secondary control. |
 | `default` | `outline` with `--color-foreground` / `--color-border` |
-| `destructive` | `outline` restyled with `--color-danger` text and border, not filled `destructive` |
+| `destructive` | `destructive`, restyled: `--color-danger` fill, `--color-danger-foreground` label |
 | `ghost` | `ghost` |
 
 Do **not** use shadcn `variant="link"`. That style is [Link](link.md).
