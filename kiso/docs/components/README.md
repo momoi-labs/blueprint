@@ -36,6 +36,7 @@ token consumption, and a Radix/shadcn behavioral reference where one exists.
 
 ## Navigation and structure
 
+- [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [Breadcrumb](breadcrumb.md) — Shows the current location within a hierarchy.
 - [Header](header.md) — Composes persistent application navigation and global actions.
 - [Navigation](navigation.md) — Provides a generic semantic container for destination links.

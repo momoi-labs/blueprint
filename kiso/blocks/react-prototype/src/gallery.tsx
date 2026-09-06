@@ -15,6 +15,7 @@ import { Input } from "@momoi-labs/kiso-react";
 import { Label } from "@momoi-labs/kiso-react";
 import { Checkbox } from "@momoi-labs/kiso-react";
 import { Badge } from "@momoi-labs/kiso-react";
+import { BrandMark, TerminalIcon } from "@momoi-labs/kiso-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@momoi-labs/kiso-react";
 import { FormField } from "@momoi-labs/kiso-react";
 import { ThemeSelector } from "@momoi-labs/kiso-react";
@@ -92,6 +93,7 @@ const catalog = [
     "A title, context and page actions.",
   ],
   ["header", "Header", "Structure", "Shared navigation and global status."],
+  ["brand-mark", "BrandMark", "Structure", "A decorative letter or product icon."],
   [
     "sidebar",
     "Sidebar",
@@ -147,6 +149,7 @@ const catalog = [
 ] as const;
 
 const shared = new Set([
+  "brand-mark",
   "button",
   "icon-button",
   "input",
@@ -160,6 +163,8 @@ const shared = new Set([
   "modal-dialog",
 ]);
 const snippets: Record<string, string> = {
+  "brand-mark":
+    '<div className="brand">\n  <BrandMark>S</BrandMark>\n  <span>self-host</span>\n</div>\n<div className="brand">\n  <BrandMark><TerminalIcon /></BrandMark>\n  <span>self-host</span>\n</div>',
   button:
     '<Button variant="primary">Deploy</Button>\n<Button variant="destructive">Remove</Button>\n<Button size="sm" disabled>Unavailable</Button>',
   "icon-button":
@@ -678,11 +683,24 @@ function Demo({
           <Badge variant="success">Healthy</Badge>
         </div>
       );
+    case "brand-mark":
+      return (
+        <div className="demo-row">
+          <div className="brand">
+            <BrandMark>S</BrandMark>
+            <span className="t-label">self-host</span>
+          </div>
+          <div className="brand">
+            <BrandMark><TerminalIcon /></BrandMark>
+            <span className="t-label">self-host</span>
+          </div>
+        </div>
+      );
     case "sidebar":
       return (
         <div className="gallery-sidebar-preview">
           <div className="brand">
-            <span className="brand-mark">S</span>
+            <BrandMark><TerminalIcon /></BrandMark>
             <span className="t-label">self-host</span>
           </div>
           <nav aria-label="Example sidebar">
@@ -1063,9 +1081,7 @@ export function ComponentGallery({
           Close catalog
         </Button>
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            K
-          </span>
+          <BrandMark>K</BrandMark>
           <div>
             <p className="t-label">Kiso</p>
             <p className="muted t-label">Component catalog</p>
