@@ -52,7 +52,7 @@ function CommandPalette({
         <DialogPrimitive.Content
           aria-modal="true"
           data-slot="command-palette-content"
-          className={cn("palette kiso-react-palette marked", className)}
+          className={cn("palette kiso-react-palette", className)}
         >
           <VisuallyHidden.Root asChild>
             <DialogPrimitive.Title>{label}</DialogPrimitive.Title>

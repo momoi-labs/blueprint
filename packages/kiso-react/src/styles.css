@@ -108,7 +108,19 @@
 .kiso-checkbox .checkbox-mixed,
 .kiso-checkbox[data-state="indeterminate"] .checkbox-check { display: none; }
 .kiso-checkbox[data-state="indeterminate"] .checkbox-mixed { display: block; }
-.kiso-react-dialog { max-height: calc(100dvh - 2 * var(--spacing-lg)); overflow-y: auto; }
+/* Corner marks are drawn outside the surface, so the surface itself must not
+   scroll: it would scroll to reveal them and show two scrollbars on a dialog
+   that fits. The content region scrolls instead. */
+.kiso-react-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2 * var(--spacing-lg));
+}
+.kiso-react-dialog > *,
+.kiso-react-drawer > * {
+  min-width: 0;
+  min-height: 0;
+}
 
 /* Shapes the CSS layer names in prose but not in a class. */
 .spinner-sm { width: var(--size-icon-sm); height: var(--size-icon-sm); }
@@ -216,7 +228,8 @@
 .kiso-react-drawer {
   position: fixed;
   z-index: 51;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--color-elevated-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
@@ -234,6 +247,11 @@
   max-height: 85dvh;
   border-start-start-radius: var(--radius-surface);
   border-start-end-radius: var(--radius-surface);
+}
+/* Header and footer stay put; the body takes the leftover height. */
+.kiso-react-drawer [data-slot="dialog-body"] {
+  flex: 1 1 auto;
+  overflow-y: auto;
 }
 
 .kiso-react-palette {
