@@ -49,7 +49,9 @@ try {
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
       Search, Select, Sidebar, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, Tooltip,
-      ValidationMessage } from '@momoi-labs/kiso-react';
+      ValidationMessage,
+      AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
+      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);
@@ -112,6 +114,38 @@ try {
     assert.match(terminal, /class="icon custom"/);
     assert.match(terminal, /id="terminal"/);
     assert.match(terminal, /aria-hidden="true"/);
+    assert.match(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
+      /class="app-shell"><main [^>]*class="grow">Overview/);
+    assert.match(render(h(Dot, { variant: 'success', size: 'lg', pulse: true })),
+      /class="dot success dot-lg dot-pulse"/);
+    assert.match(render(h(Separator, null)), /class="separator"/);
+    assert.match(render(h(Separator, { orientation: 'vertical' })),
+      /data-orientation="vertical"/);
+    assert.match(render(h(Separator, { orientation: 'vertical' })), /class="separator-v"/);
+    assert.match(render(h(KV, null, h(KVKey, null, 'Image'), h(KVValue, null, 'kiso:1'))),
+      /<dl [^>]*class="kv"><dt [^>]*>Image<[/]dt><dd [^>]*>kiso:1<[/]dd><[/]dl>/);
+    const stat = render(h(Stat, null, h(StatLabel, null, 'Applications'), h(StatValue, null, '4')));
+    assert.match(stat, /class="stat">/);
+    assert.match(stat, /class="stat-label">Applications<[/]span>/);
+    assert.match(stat, /class="stat-value">4<[/]span>/);
+    // The divider is a real separator, so it is reachable and resizable without a pointer.
+    const splitter = render(h(Split, null, h(Pane, null, 'list'), h(Splitter, { defaultSize: 42 })));
+    assert.match(splitter, /class="split"><div [^>]*class="pane">list/);
+    assert.match(splitter, /role="separator"/);
+    assert.match(splitter, /tabindex="0"/);
+    assert.match(splitter, /aria-orientation="vertical"/);
+    assert.match(splitter, /aria-valuenow="42"/);
+    assert.match(splitter, /aria-valuemin="25"/);
+    assert.match(splitter, /aria-valuemax="75"/);
+    assert.match(splitter, /aria-label="Resize panes"/);
+    assert.match(splitter, /class="splitter"/);
+    // The scroller is inside the frame, which is what lets LogView follow the tail.
+    const log = render(h(LogView, null, h(LogViewLine, null,
+      h(LogViewTime, null, '09:41:02.114'), h(LogViewLevel, { level: 'error' }, 'ERROR'), ' denied')));
+    assert.match(log, /class="logview"><div [^>]*class="log-scroll">/);
+    assert.match(log, /data-follow="true"/);
+    assert.match(log, /class="log-time">09:41:02.114<[/]span>/);
+    assert.match(log, /class="log-error"[^>]*>ERROR<[/]span>/);
   `);
   run(process.execPath, ['verify.mjs']);
   await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/main.tsx"></script>');

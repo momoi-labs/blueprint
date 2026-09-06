@@ -1,9 +1,11 @@
 # Component gallery
 
 A local preview of `@momoi-labs/kiso-react`. It lists the 36 entries in
-[`kiso/docs/components/README.md`](../../docs/components/README.md) and renders
-each one from the workspace package, so an entry can only appear here if the
-package exports it.
+[`kiso/docs/components/README.md`](../../docs/components/README.md) plus the
+seven console layout patterns that `kiso/ui.css` specifies without a doc page —
+AppShell, Split, LogView, Stat, KV, Dot and Separator — and renders each one
+from the workspace package, so an entry can only appear here if the package
+exports it.
 
 From the repository root:
 
@@ -28,7 +30,11 @@ page. The Kiso stylesheet loads Google Fonts.
    and re-anchors it, Enter runs the highlighted command, Escape closes.
 5. Controls: Select, Switch, Checkbox with a mixed state, and the validation
    message that updates as the Application name changes.
-6. Narrow the viewport to 390px. The catalog collapses behind Components.
+6. Splitter: drag the divider, then focus it and use the arrow keys, Home and
+   End. It reports its position through `aria-valuenow`.
+7. LogView: append a line with Follow on and the view stays at the end. Scroll
+   up and Follow turns itself off; scroll back to the end and it resumes.
+8. Narrow the viewport to 390px. The catalog collapses behind Components.
 
 ## Implementation
 

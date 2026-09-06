@@ -153,3 +153,39 @@
     padding: var(--spacing-md);
   }
 }
+/* The shell is a full screen in production; the preview only needs to show
+   the two columns and where each one starts. */
+.gallery-shell-preview {
+  min-height: 0;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+  overflow: hidden;
+}
+.gallery-shell-sidebar {
+  display: grid;
+  gap: var(--spacing-md);
+  align-content: start;
+  padding: var(--spacing-md);
+  background: var(--color-sidebar);
+  border-inline-end: 1px solid var(--color-sidebar-border);
+}
+.gallery-shell-page {
+  display: grid;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-lg);
+}
+.gallery-split-preview {
+  height: 240px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+}
+.gallery-split-pane {
+  display: grid;
+  gap: var(--spacing-sm);
+  align-content: start;
+  padding: var(--spacing-md);
+}
+.gallery-log-preview {
+  height: 200px;
+}
