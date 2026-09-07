@@ -15,8 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   AlertTitle,
-  AppShell,
-  AppShellMain,
+  ApplicationShell,
   Badge,
   BrandMark,
   Breadcrumb,
@@ -130,18 +129,13 @@ import {
   TerminalIcon,
   Textarea,
   ThemeSelector,
-  Toast,
-  ToastClose,
-  ToastContent,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
+  Toasts,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
   ValidationMessage,
+  useToast,
 } from "@momoi-labs/kiso-react";
 
 const catalog = [
@@ -172,7 +166,7 @@ const catalog = [
     "form-field",
     "FormField",
     "Forms",
-    "Label, input and helper text together.",
+    "Label, control, helper text and validation together.",
   ],
   ["helper-text", "HelperText", "Forms", "Instructions that remain visible."],
   [
@@ -209,7 +203,12 @@ const catalog = [
     "Structure",
     "Grouped destinations and current location.",
   ],
-  ["app-shell", "AppShell", "Structure", "The sidebar and main column of a console."],
+  [
+    "app-shell",
+    "ApplicationShell",
+    "Structure",
+    "The shared frame, navigation and main column of a console.",
+  ],
   [
     "split",
     "Split / Pane / Splitter",
@@ -282,7 +281,7 @@ const snippets: Record<string, string> = {
   switch:
     '<Switch id="notifications" checked={on} onCheckedChange={setOn} />\n<Label htmlFor="notifications">Email notifications</Label>',
   "form-field":
-    '<FormField label="Name" hint="Lowercase letters and hyphens." required />',
+    '<FormField label="Compose file" hint="Docker Compose YAML." error={error}>\n  <Textarea rows={8} />\n</FormField>',
   label: '<Label htmlFor="name">Project name</Label>\n<Input id="name" />',
   "helper-text":
     '<FormField label="Name" hint="Use lowercase letters, numbers and hyphens." />',
@@ -311,7 +310,7 @@ const snippets: Record<string, string> = {
   skeleton:
     '<div aria-busy="true" aria-label="Loading project">\n  <Skeleton variant="text" style={{ width: "45%" }} />\n  <Skeleton variant="block" style={{ height: "6rem" }} />\n</div>',
   toast:
-    '<ToastProvider duration={5000}>\n  <Toast open={open} onOpenChange={setOpen} variant="success">\n    <ToastContent>\n      <ToastTitle>Changes saved</ToastTitle>\n    </ToastContent>\n    <ToastClose asChild><Button size="xs" variant="ghost">Dismiss</Button></ToastClose>\n  </Toast>\n  <ToastViewport />\n</ToastProvider>',
+    '<Toasts>\n  <Application />\n</Toasts>\n\nconst notify = useToast();\nnotify("success", "Changes saved", "Your project has been updated.");',
   drawer:
     '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit project</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
   "command-palette":
@@ -322,8 +321,22 @@ const snippets: Record<string, string> = {
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
-  "app-shell": "<AppShell>\n  <Sidebar>\n    <SidebarBody>{navigation}</SidebarBody>\n  </Sidebar>\n  <AppShellMain>{page}</AppShellMain>\n</AppShell>",
+  "app-shell":
+    '<ApplicationShell brand={brand} navigation={groups} header={header}>\n  {page}\n</ApplicationShell>',
 };
+
+function ToastDemoButton() {
+  const notify = useToast();
+  return (
+    <Button
+      onClick={() =>
+        notify("success", "Changes saved", "Your project has been updated.")
+      }
+    >
+      Show notification
+    </Button>
+  );
+}
 
 function Plus() {
   return (
@@ -749,11 +762,9 @@ function Demo({
       );
     case "form-field":
       return (
-        <FormField
-          label="Project name"
-          placeholder="Website refresh"
-          hint="A short, recognizable name for your project."
-        />
+        <FormField label="Compose file" hint="Docker Compose YAML." error="Image is required.">
+          <Textarea rows={5} defaultValue={"services:\n  web:\n    image: ''"} />
+        </FormField>
       );
     case "helper-text":
       return (
@@ -1177,21 +1188,9 @@ function Demo({
       );
     case "toast":
       return (
-        <ToastProvider duration={5000}>
-          <Button onClick={() => setOpen(true)}>Show notification</Button>
-          <Toast open={open} onOpenChange={setOpen} variant="success">
-            <ToastContent>
-              <ToastTitle>Changes saved</ToastTitle>
-              <ToastDescription>Your project has been updated.</ToastDescription>
-            </ToastContent>
-            <ToastClose asChild>
-              <Button size="xs" variant="ghost">
-                Dismiss
-              </Button>
-            </ToastClose>
-          </Toast>
-          <ToastViewport />
-        </ToastProvider>
+        <Toasts duration={5000}>
+          <ToastDemoButton />
+        </Toasts>
       );
     case "modal-dialog":
       return (
@@ -1325,25 +1324,25 @@ function Demo({
       return <CommandPaletteDemo />;
     case "app-shell":
       return (
-        <AppShell className="gallery-shell-preview">
-          <aside className="gallery-shell-sidebar">
+        <ApplicationShell
+          className="gallery-shell-preview"
+          brand={
             <div className="brand">
               <BrandMark>
                 <TerminalIcon />
               </BrandMark>
               <span className="t-label">Kiso 基礎</span>
             </div>
-            <nav aria-label="Example shell navigation">
-              <a className="nav-item" href="#components/app-shell" aria-current="page">
-                Overview
-              </a>
-              <a className="nav-item" href="#components/sidebar">
-                Projects
-              </a>
-            </nav>
-          </aside>
-          <AppShellMain>
-            <div className="gallery-header-preview">
+          }
+          navigation={[{
+            destinations: [
+              { href: "#components/app-shell", active: true, label: "Overview" },
+              { href: "#components/sidebar", label: "Projects" },
+            ],
+          }]}
+          navigationLabel="Example shell navigation"
+          header={
+            <>
               <nav className="breadcrumb" aria-label="Example shell breadcrumb">
                 <a href="#components/app-shell">Workspace</a>
                 <span aria-hidden="true">/</span>
@@ -1353,13 +1352,14 @@ function Demo({
                 <Dot pulse />
                 <span className="fg">Healthy</span>
               </span>
-            </div>
-            <div className="gallery-shell-page">
-              <h3 className="t-h3">Overview</h3>
-              <p className="muted t-label">The page renders in this column.</p>
-            </div>
-          </AppShellMain>
-        </AppShell>
+            </>
+          }
+        >
+          <div className="gallery-shell-page">
+            <h3 className="t-h3">Overview</h3>
+            <p className="muted t-label">The page renders in this column.</p>
+          </div>
+        </ApplicationShell>
       );
     case "split":
       return (

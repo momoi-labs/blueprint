@@ -301,14 +301,6 @@
   border-radius: var(--radius-surface);
   overflow: hidden;
 }
-.gallery-shell-sidebar {
-  display: grid;
-  gap: var(--spacing-md);
-  align-content: start;
-  padding: var(--spacing-md);
-  background: var(--color-sidebar);
-  border-inline-end: 1px solid var(--color-sidebar-border);
-}
 .gallery-shell-page {
   display: grid;
   gap: var(--spacing-2xs);

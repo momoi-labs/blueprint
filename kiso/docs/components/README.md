@@ -40,7 +40,7 @@ behavioral reference where one exists.
 
 ## Navigation and structure
 
-- [AppShell](app-shell.md): Places Sidebar navigation beside the main application content.
+- [AppShell / ApplicationShell](app-shell.md): Provides low-level columns or the complete shared application frame.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
 - [Header](header.md): Composes persistent application navigation and global actions.
@@ -62,6 +62,7 @@ behavioral reference where one exists.
 ## Required compositions
 
 - [FormField](form-field.md) composes [Label](label.md) + [Input](input.md) (or another form control) + [HelperText](helper-text.md) + [ValidationMessage](validation-message.md).
+- [ApplicationShell](app-shell.md) composes [Sidebar](sidebar.md) + [Navigation](navigation.md) + [Header](header.md) + page content.
 - [Header](header.md) composes [Link](link.md) + [IconButton](icon-button.md) + optional [DropdownMenu](dropdown-menu.md).
 - [Table / DataTable](table.md) composes [EmptyState](empty-state.md), [Skeleton](skeleton.md), and [Pagination](pagination.md) for empty, loading, and paged states.
 - [PageHeader](page-header.md) composes a title + optional subtitle + [Buttons](button.md).

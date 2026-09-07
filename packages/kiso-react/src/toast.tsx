@@ -5,6 +5,22 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { clsx as cn } from "clsx";
 import { Toast as ToastPrimitive } from "radix-ui";
+import { Button } from "./button.js";
+
+type ToastVariant = "neutral" | "success" | "warning" | "error";
+type ToastNotice = {
+  id: number;
+  variant: ToastVariant;
+  title: React.ReactNode;
+  body?: React.ReactNode;
+};
+type ToastNotify = (
+  variant: ToastVariant,
+  title: React.ReactNode,
+  body?: React.ReactNode,
+) => void;
+
+const ToastContext = React.createContext<ToastNotify | null>(null);
 
 const toastVariants = cva("toast", {
   variants: {
@@ -104,6 +120,60 @@ function ToastClose({
   return <ToastPrimitive.Close data-slot="toast-close" {...props} />;
 }
 
+function useToast(): ToastNotify {
+  const notify = React.useContext(ToastContext);
+  if (!notify) throw new Error("useToast must be used within Toasts");
+  return notify;
+}
+
+function Toasts({
+  children,
+  duration = 6000,
+}: {
+  children: React.ReactNode;
+  duration?: number;
+}) {
+  const [notices, setNotices] = React.useState<ToastNotice[]>([]);
+  const nextId = React.useRef(0);
+
+  const notify = React.useCallback<ToastNotify>((variant, title, body) => {
+    const id = nextId.current++;
+    setNotices((current) => [...current, { id, variant, title, body }]);
+  }, []);
+
+  const dismiss = React.useCallback((id: number) => {
+    setNotices((current) => current.filter((notice) => notice.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={notify}>
+      <ToastProvider duration={duration}>
+        {children}
+        {notices.map((notice) => (
+          <Toast
+            key={notice.id}
+            variant={notice.variant}
+            onOpenChange={(open) => {
+              if (!open) dismiss(notice.id);
+            }}
+          >
+            <ToastContent>
+              <ToastTitle>{notice.title}</ToastTitle>
+              {typeof notice.body === "string" || typeof notice.body === "number"
+                ? <ToastDescription>{notice.body}</ToastDescription>
+                : notice.body}
+            </ToastContent>
+            <ToastClose asChild>
+              <Button size="xs" variant="ghost">Dismiss</Button>
+            </ToastClose>
+          </Toast>
+        ))}
+        <ToastViewport />
+      </ToastProvider>
+    </ToastContext.Provider>
+  );
+}
+
 export {
   ToastProvider,
   ToastViewport,
@@ -113,5 +183,8 @@ export {
   ToastContent,
   ToastAction,
   ToastClose,
+  Toasts,
+  useToast,
   toastVariants,
 };
+export type { ToastNotify, ToastVariant };

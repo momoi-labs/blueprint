@@ -22,6 +22,28 @@ For the issue's foundational chain, read this literally as **Label + Input +
 HelperText + ValidationMessage**. FormField owns layout and ID wiring; each
 child retains its own behavior.
 
+In React, omit `children` to render the default Input. Pass one control as
+`children` to use a Textarea, Select trigger, or product-specific control.
+FormField gives that control its `id`, `aria-describedby`, and
+`aria-invalid` props. The control must forward them to its interactive DOM
+element.
+
+```tsx
+<FormField
+  id="compose"
+  label="Compose file"
+  hint="Docker Compose YAML."
+  error={errors.compose}
+>
+  <Textarea rows={12} />
+</FormField>
+```
+
+`hint` and `error` accept React content. FormField renders the error as a
+ValidationMessage and points the control at every supplied description. Use
+`fieldClassName` when the field wrapper needs a layout class; `className`
+continues to style the default Input.
+
 ```text
 Label
 Input

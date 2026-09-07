@@ -59,6 +59,31 @@ appearing Toast. `F8` may move focus to the Toast viewport (Radix convention);
 the timer on hover, focus, and page blur. Never make Toast the only copy of an
 essential error, completed record, or required recovery step.
 
+## React interface
+
+Wrap the application in `Toasts`, then call `useToast` from any descendant.
+The manager owns the list, IDs, six-second default duration, announcement
+urgency, dismissal, and viewport.
+
+```tsx
+function SaveButton() {
+  const notify = useToast();
+  return (
+    <Button onClick={() => notify("success", "Changes saved")}>Save</Button>
+  );
+}
+
+<Toasts>
+  <Application />
+</Toasts>
+```
+
+`notify` accepts a variant, title, and optional body. A string body renders as
+ToastDescription. A React node renders as supplied so a product can compose
+details it owns. Variants are `neutral`, `success`, `warning`, and `error`.
+The lower-level ToastProvider, ToastViewport, Toast, and Toast parts remain
+available for a controlled toast.
+
 ## When to use
 
 - Brief confirmation of a completed, non-blocking action.

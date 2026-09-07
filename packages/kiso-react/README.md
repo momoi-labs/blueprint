@@ -11,7 +11,7 @@ Import the stylesheet once, before application overrides:
 
 ```tsx
 import '@momoi-labs/kiso-react/styles.css';
-import { Button, FormField } from '@momoi-labs/kiso-react';
+import { Button, FormField, Textarea } from '@momoi-labs/kiso-react';
 
 export function ApplicationForm() {
   return (
@@ -21,6 +21,15 @@ export function ApplicationForm() {
     </form>
   );
 }
+```
+
+FormField renders an Input by default. Pass one control as its child when the
+field uses another input, and add `error` for wired validation feedback:
+
+```tsx
+<FormField label="Compose file" hint="Docker Compose YAML." error={error}>
+  <Textarea rows={12} />
+</FormField>
 ```
 
 `@momoi-labs/kiso` is a regular dependency. The stylesheet imports its tokens
@@ -45,7 +54,9 @@ Data and structure
 - EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription, EmptyStateActions.
 - Header, PageHeader, PageHeaderTitle, PageHeaderDescription.
 - Sidebar, SidebarHeader, SidebarBody, SidebarFooter.
-- AppShell and AppShellMain, the sidebar and main columns of a console.
+- AppShell and AppShellMain, the low-level columns of a console.
+- ApplicationShell, the standard brand, navigation, header, footer, and page
+  arrangement.
 - Split, Pane, and Splitter, a list-detail layout with a resizable divider.
 - LogView, LogViewLine, LogViewTime, and LogViewLevel.
 - Stat, StatHeader, StatLabel, StatValue, StatFoot, and StatDelta.
@@ -69,8 +80,10 @@ Feedback
 
 - Alert, AlertContent, AlertTitle, AlertDescription, and `alertVariants`.
 - Spinner, Skeleton, and their variants.
+- Toasts and `useToast`, for notifications raised from descendant event
+  handlers.
 - ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription,
-  ToastContent, ToastAction, ToastClose.
+  ToastContent, ToastAction, ToastClose, for controlled composition.
 
 Overlays
 
@@ -88,7 +101,21 @@ Button variants are `default`, `primary`, `destructive`, and `ghost`; sizes are
 `warning`, and `danger`. Alert and Toast variants follow their contracts:
 `info` / `success` / `warning` / `error`, and `neutral` / `success` / `warning`
 / `error`. Native props and refs pass through to the underlying control.
-FormField adds `label` and optional `hint` to Input's props.
+FormField adds `label`, optional `hint`, and optional `error` to Input's props.
+With one child, it wires those parts to that control instead of rendering an
+Input. Use `fieldClassName` to style the wrapper.
+
+Wrap an application in Toasts and call `useToast()` below it. The returned
+function takes a variant, title, and optional body:
+
+```tsx
+const notify = useToast();
+notify('error', `Could not stop ${app.name}`, details);
+```
+
+ApplicationShell takes navigation groups as data. Destinations keep routing in
+the product through `{ href, active, onClick? }`; the package owns the repeated
+Sidebar, Navigation, Header, and main arrangement.
 
 Navigation, Sidebar, and Link know nothing about routing. Mark the current
 destination with `active`, and pass `asChild` to render a router's own link
