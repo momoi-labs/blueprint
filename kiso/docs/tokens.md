@@ -76,7 +76,7 @@ outline — which is how a violet design system ends up rendering grey.
 | `secondary` | Neutral button fill, range track, count badge; never text. | `neutral.700` | `neutral.300` |
 | `secondary-foreground` | Text on a `secondary` fill. | `foreground` | `foreground` |
 | `secondary-hover` | `secondary` fill on hover; never text. | `neutral.600` | `neutral.400` |
-| `selected` | Selected row, active nav item, highlighted result; never text. | `accent.900` | `accent.200` |
+| `selected` | Selected row, active nav item, highlighted result; never text. One step past `accent-surface-hover`, so selection and hover stay apart. | `accent.800` | `accent.300` |
 | `selected-foreground` | Text on a `selected` fill. | `foreground` | `foreground` |
 
 `primary-foreground` and `danger-foreground` invert with their fill: near-black

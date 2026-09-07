@@ -760,13 +760,12 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 .nav-item .icon { color: var(--color-subtle-foreground); }
 .nav-item:hover { background: var(--color-accent-surface-hover); color: var(--color-foreground); text-decoration: none; }
 
-/* The current destination is marked beside the item rather than on it.
-   A fill cannot carry "current" here: `--color-selected` and
-   `--color-accent-surface-hover` are one value, so a filled current item and a
-   hovered sibling paint the same surface. Leaving the fill to hover gives the
-   two states different signals, and it gives the marker the one thing a rail
-   needs and a floating pill cannot offer — an edge shared with every sibling,
-   which in a column is the gutter. */
+/* The current destination is marked beside the item rather than on it. A fill
+   would put "current" and "hovered" in the same language, one tint apart, in a
+   column where the pointer is usually resting on some other item. Leaving the
+   fill to hover keeps the two signals different in kind, and it gives the
+   marker the one thing a rail needs and a floating pill cannot offer — an edge
+   shared with every sibling, which in a column is the gutter. */
 .nav-item[aria-current="page"], .nav-item.active {
   color: var(--color-selected-foreground);
   font-weight: var(--type-weight-medium);
