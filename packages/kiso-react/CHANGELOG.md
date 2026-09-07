@@ -1,5 +1,19 @@
 # @momoi-labs/kiso-react
 
+## 0.4.0
+
+### Minor Changes
+
+- fc586b2: Add the React compositions that the self-host console had to own locally.
+  FormField now accepts any control and wires its help and validation. Toasts and
+  useToast manage notifications raised below the provider. ApplicationShell
+  builds the shared frame from product-owned destinations and slots.
+
+### Patch Changes
+
+- Updated dependencies [fc586b2]
+  - @momoi-labs/kiso@0.7.0
+
 ## 0.3.0
 
 ### Minor Changes
