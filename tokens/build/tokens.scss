@@ -58,7 +58,7 @@ $semantic-primary-hover: #ded5fb; // Primary fill on hover — one ramp step awa
 $semantic-link: #cbbdf7; // Inline and standalone links.
 $semantic-accent-surface: #211741; // Faintest accent tint: row hover, ghost-button hover. Non-text role.
 $semantic-accent-surface-hover: #2e2170; // Accent tint one step stronger. Non-text role.
-$semantic-selected: #2e2170; // Selected row, active navigation item, highlighted palette result. Non-text role.
+$semantic-selected: #46309e; // Selected row, active navigation item, highlighted palette result. One ramp step past accent-surface-hover, so a selected item and a hovered sibling never paint the same surface. Non-text role.
 $semantic-selected-foreground: #faf9f7; // Text on a selected row.
 $semantic-secondary: #312f37; // Neutral button fill, range track, count badge. Non-text role.
 $semantic-secondary-foreground: #faf9f7; // Text on a secondary fill.

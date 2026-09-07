@@ -100,7 +100,7 @@ export const semanticLink: string;
 export const semanticAccentSurface: string;
 /** Accent tint one step stronger. Non-text role. */
 export const semanticAccentSurfaceHover: string;
-/** Selected row, active navigation item, highlighted palette result. Non-text role. */
+/** Selected row, active navigation item, highlighted palette result. One ramp step past accent-surface-hover, so a selected item and a hovered sibling never paint the same surface. Non-text role. */
 export const semanticSelected: string;
 /** Text on a selected row. */
 export const semanticSelectedForeground: string;

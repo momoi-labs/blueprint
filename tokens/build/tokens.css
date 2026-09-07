@@ -59,7 +59,7 @@
   --color-link: var(--color-primary);
   --color-accent-surface: light-dark(var(--color-accent-50), var(--color-accent-950));
   --color-accent-surface-hover: light-dark(var(--color-accent-200), var(--color-accent-900));
-  --color-selected: light-dark(var(--color-accent-200), var(--color-accent-900));
+  --color-selected: light-dark(var(--color-accent-300), var(--color-accent-800));
   --color-selected-foreground: var(--color-foreground);
   --color-secondary: light-dark(var(--color-neutral-300), var(--color-neutral-700));
   --color-secondary-foreground: var(--color-foreground);
