@@ -49,13 +49,22 @@ try {
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
       Search, Select, Sidebar, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, Tooltip,
-      ValidationMessage,
+      ValidationMessage, ApplicationShell,
       AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
+      Toasts, useToast,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);
     assert.match(field, /id="name-help"/);
+    const composedField = render(h(FormField, {
+      id: 'compose', label: 'Compose file', hint: 'YAML', error: 'Image is required.',
+    }, h(Textarea, { rows: 4, 'aria-describedby': 'format' })));
+    assert.match(composedField, /for="compose"/);
+    assert.match(composedField, /<textarea [^>]*id="compose"/);
+    assert.match(composedField, /aria-describedby="format compose-help compose-error"/);
+    assert.match(composedField, /aria-invalid="true"/);
+    assert.match(composedField, /id="compose-error"/);
     assert.match(render(h(Button, null, 'Save')), /type="button"/);
     assert(!render(h(Button, {asChild: true}, h('a', {href: '/next'}, 'Next'))).includes('type="button"'));
     assert.match(render(h(Checkbox, {defaultChecked: 'indeterminate', 'aria-label': 'All'})), /data-state="indeterminate"/);
@@ -116,6 +125,22 @@ try {
     assert.match(terminal, /aria-hidden="true"/);
     assert.match(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
       /class="app-shell"><main [^>]*class="grow">Overview/);
+    const applicationShell = render(h(ApplicationShell, {
+      brand: h('span', null, 'self-host'),
+      navigation: [{ label: 'Applications', destinations: [
+        { href: '#app-1', active: true, label: 'paperless' },
+      ] }],
+      footer: h('a', { href: '/settings' }, 'Settings'),
+      header: h('span', null, 'Healthy'),
+    }, h('section', null, 'Overview')));
+    assert.match(applicationShell, /class="app-shell"/);
+    assert.match(applicationShell, /<aside [^>]*class="sidebar"/);
+    assert.match(applicationShell, /aria-label="Primary"/);
+    assert.match(applicationShell, /aria-current="page"[^>]*href="#app-1"/);
+    assert.match(applicationShell, /<header [^>]*class="topbar"><span>Healthy/);
+    assert.match(applicationShell, /<main [^>]*class="grow"/);
+    assert.equal(typeof Toasts, 'function');
+    assert.equal(typeof useToast, 'function');
     assert.match(render(h(Dot, { variant: 'success', size: 'lg', pulse: true })),
       /class="dot success dot-lg dot-pulse"/);
     assert.match(render(h(Separator, null)), /class="separator"/);
@@ -151,10 +176,18 @@ try {
   await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { Button, FormField, BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
+    import { ApplicationShell, Button, FormField, BrandMark, TerminalIcon, Textarea,
+      Toasts, useToast } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
+    function NoticeButton() {
+      const notify = useToast();
+      return <Button onClick={() => notify('success', 'Saved')}>Save</Button>;
+    }
     createRoot(document.getElementById('root')!).render(<>
       <Button variant="primary">Save</Button><FormField label="Name" hint="Required" />
+      <FormField label="Compose" error="Required"><Textarea /></FormField>
+      <Toasts><NoticeButton /></Toasts>
+      <ApplicationShell brand="Kiso" navigation={[]}><div>Page</div></ApplicationShell>
       <BrandMark className="custom">S</BrandMark>
       <BrandMark><TerminalIcon /></BrandMark>
       <BrandMark><svg viewBox="0 0 16 16"><path d="M1 1L2 2" /></svg></BrandMark>

@@ -4,6 +4,8 @@
 
 AppShell places persistent [Sidebar](sidebar.md) navigation beside the main
 application content. It owns the page columns, not navigation state.
+ApplicationShell composes the standard Sidebar, Navigation, Header, and main
+column when a product wants the complete frame.
 
 ## Anatomy
 
@@ -18,6 +20,36 @@ AppShell
 The two slots are direct children. AppShell is a `div`; AppShellMain is a
 `main` with `min-width: 0`, so wide tables and log lines cannot push the
 Sidebar off screen. Sidebar owns its header, body, and footer.
+
+ApplicationShell takes `brand`, optional `primaryAction`, navigation groups,
+optional `footer`, optional `header`, and page content. A destination contains
+`href`, `label`, optional `active`, optional `onClick`, and optional leading or
+trailing content. The caller still decides the current destination and whether
+a destination follows its link or changes a view in place.
+
+```tsx
+<ApplicationShell
+  brand={<ProductBrand />}
+  navigation={[{
+    label: "Applications",
+    destinations: apps.map((app) => ({
+      href: `#app-${app.id}`,
+      label: app.name,
+      active: app.id === currentId,
+      onClick: () => open(app.id),
+    })),
+  }]}
+  header={<CurrentLocation />}
+  footer={<ProductSettings />}
+>
+  {page}
+</ApplicationShell>
+```
+
+When `onClick` is present, ApplicationShell prevents link navigation and calls
+it. Without `onClick`, the destination remains a normal link. Use
+`navigationLabel` to distinguish this navigation landmark when the default
+`Primary` label is not specific enough.
 
 ## Variants
 
@@ -55,6 +87,8 @@ retain their own keyboard behavior.
 
 - An application with persistent navigation beside a changing page.
 - A console containing tables, detail panes, and logs in its main column.
+- Use ApplicationShell when the product follows the standard complete frame.
+- Use AppShell directly when its Sidebar or Header composition differs.
 
 ## When NOT to use
 
