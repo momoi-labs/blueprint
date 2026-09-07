@@ -2,9 +2,10 @@
    Kiso v2 — component layer (prototype)
    Every value here resolves to a token in tokens.css. No raw hex, no raw px
    for anything a token covers.
+   Fonts are not loaded here: a nested @import after tokens.css is illegal once
+   bundlers flatten the sheet. Load Inter and JetBrains Mono from the app, or
+   via @momoi-labs/kiso-react/styles.css which places the @import first.
    =========================================================================== */
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 *, *::before, *::after { box-sizing: border-box; }
 
