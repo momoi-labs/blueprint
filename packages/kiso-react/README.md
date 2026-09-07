@@ -32,10 +32,11 @@ field uses another input, and add `error` for wired validation feedback:
 </FormField>
 ```
 
-`@momoi-labs/kiso` is a regular dependency. The stylesheet imports its tokens
-and component layer; consumers do not need to import those again. React and
-React DOM are peer dependencies supplied by the application. No Tailwind setup
-is required. The Kiso base stylesheet includes global styles and Google Fonts.
+`@momoi-labs/kiso` is a regular dependency. The stylesheet imports Google Fonts
+first, then Kiso tokens and the component layer; consumers do not need to import
+those again. React and React DOM are peer dependencies supplied by the
+application. No Tailwind setup is required. The stylesheet includes global
+styles and Google Fonts.
 
 ## Available components
 

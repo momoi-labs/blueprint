@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +32,12 @@ try {
   assert(!manifest.dependencies.react);
   const css = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/kiso/ui.css'), 'utf8');
   assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
+  assert(!/fonts\.googleapis\.com/.test(css),
+    'ui.css must not @import Google Fonts; nested @import breaks after tokens when flattened');
+  const reactStyles = await readFile(
+    path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist/styles.css'), 'utf8');
+  assert.match(reactStyles,
+    /^@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700&family=JetBrains\+Mono:wght@400;500&display=swap"\);/);
   const iconRule = css.match(/\.icon \{([^}]+)\}/)[1];
   for (const declaration of ['stroke: currentColor', 'fill: none', 'stroke-width: 1.75',
     'stroke-linecap: round', 'stroke-linejoin: round']) {
@@ -200,6 +206,15 @@ try {
   run(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.json']);
   await writeFile(path.join(fixture, 'vite.config.mjs'), 'export default {}');
   run(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), 'build']);
+  const assetDir = path.join(fixture, 'dist/assets');
+  const cssAsset = (await readdir(assetDir)).find((name) => name.endsWith('.css'));
+  assert(cssAsset, 'vite build must emit a CSS asset');
+  const bundled = await readFile(path.join(assetDir, cssAsset), 'utf8');
+  const fontImport = bundled.match(/@import[^;]*fonts\.googleapis\.com[^;]*;/);
+  if (fontImport) {
+    assert(!bundled.slice(0, bundled.indexOf(fontImport[0])).includes('{'),
+      'font @import must precede all rules in the bundled stylesheet');
+  }
   console.log('Packed packages passed isolated installation, rendering, TypeScript, and CSS bundling checks.');
 } finally {
   await rm(fixture, { recursive: true, force: true });

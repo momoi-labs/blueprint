@@ -28,7 +28,7 @@ Neither `tokens.css` nor `ui.css` lives here, on purpose. Both pages link
 `../../tokens/build/tokens.css` and `../ui.css` directly, so a block can never
 drift from what the system actually ships — if a token or the component layer
 changes, these screens change with it or they visibly break, which is the
-point.
+point. Fonts are loaded with a `<link>` in each page: `ui.css` is rules-only.
 
 ## Running it
 

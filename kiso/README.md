@@ -73,6 +73,10 @@ npm install @momoi-labs/kiso
 ```
 
 `ui.css` reads tokens as custom properties, so import it after `tokens.css`.
+It does not load fonts: a nested Google Fonts `@import` becomes illegal once a
+bundler flattens `tokens.css` ahead of it. Load Inter and JetBrains Mono from
+the app (`next/font`, a `<link>`, or similar), or import
+`@momoi-labs/kiso-react/styles.css`, which places that `@import` first.
 
 ## Proposing a change
 
