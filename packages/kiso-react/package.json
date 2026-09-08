@@ -1,6 +1,6 @@
 {
   "name": "@momoi-labs/kiso-react",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Kiso React components built with shadcn/ui and Radix",
   "type": "module",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@momoi-labs/kiso": "^0.7.0",
+    "@momoi-labs/kiso": "^0.7.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "radix-ui": "1.6.7"
