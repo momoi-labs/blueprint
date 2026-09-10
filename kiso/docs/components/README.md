@@ -11,6 +11,7 @@ behavioral reference where one exists.
 - [Button](button.md): Triggers a visible, text-labeled action without changing the URL.
 - [Card](card.md): Groups related content and actions with visual separation.
 - [Checkbox](checkbox.md): Toggles an option in a list or selects multiple values.
+- [ChipInput](chip-input.md): Collects several structured values in one field, each with its own options.
 - [FormField](form-field.md): Composes Label, a form control, HelperText, and ValidationMessage with consistent ID and ARIA wiring.
 - [HelperText](helper-text.md): Provides persistent, non-error context for a form control.
 - [IconButton](icon-button.md): Triggers a compact icon-only action with a required accessible name.

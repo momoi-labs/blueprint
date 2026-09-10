@@ -19,6 +19,14 @@ the system needs them. This is the honest roadmap for those choices.
 | **Additional components** | The roughly 28-component cut from [epic #3](https://github.com/momoi-labs/blueprint/issues/3) covers the intended v1 product surface. Adding primitives in anticipation would enlarge the interface before their contracts are understood. | When a need recurs across products. Propose a component and its contract; do not invent one locally or copy one in unchanged. |
 | **Heavy governance** | A two-person lab does not need a contribution bureaucracy or design-review board. For v1, the propose-don't-copy rule in [`kiso/AGENTS.md`](../AGENTS.md) is the governance mechanism, as scoped by [epic #5](https://github.com/momoi-labs/blueprint/issues/5). | When more contributors, products, or incompatible proposals make ownership and decision-making unclear. Add only the process needed to resolve an observed coordination problem. |
 
+## Accepted additions
+
+The growth model below is not theory. What it has produced so far:
+
+| What | Evidence | Where |
+| --- | --- | --- |
+| **[ChipInput](components/chip-input.md)** | A self-hosted console had to collect a development image's dependencies: a list a person types, where every entry carries a backend, a version, and installer options. One form section per entry grew without limit and buried the list. | Added as a component contract with the segmented chip, the in-place value, and one segment per option. |
+
 ## Growth model: grow with real products
 
 Kiso is not an abstract design-system project. It evolves through product work:

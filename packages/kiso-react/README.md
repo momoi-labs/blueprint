@@ -46,6 +46,11 @@ Controls and forms
 - Input, Textarea, Search, Label, Checkbox, Switch, and FormField.
 - Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup,
   SelectLabel, and SelectSeparator.
+- ChipInput, ChipInputBox, ChipInputField, ChipInputList, ChipInputOption,
+  ChipInputEmpty, and the chip parts Chip, ChipScope, ChipName, ChipValue,
+  ChipOption, ChipOptionAdd, ChipRemove, for several structured values in one
+  field. Each chip reads as a call: scope, name, value, then one segment per
+  option as name=value or name=[a, b].
 - ValidationMessage, for a field error referenced by `aria-describedby`.
 
 Data and structure
@@ -176,7 +181,7 @@ import { BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
 ## Development
 
 From the repository root, run `npm ci`, then `npm run prototype`. The component
-gallery opens at <http://127.0.0.1:5173/#components> and covers all 43 Kiso
+gallery opens at <http://127.0.0.1:5173/#components> and covers all 44 Kiso
 catalog entries, each rendering the component this package exports. Its sample
 data is simulated in memory.
 

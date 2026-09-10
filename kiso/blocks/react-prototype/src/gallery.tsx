@@ -30,6 +30,19 @@ import {
   CardFooter,
   CardHeader,
   Checkbox,
+  Chip,
+  ChipInput,
+  ChipInputBox,
+  ChipInputEmpty,
+  ChipInputField,
+  ChipInputList,
+  ChipInputOption,
+  ChipName,
+  ChipOption,
+  ChipOptionAdd,
+  ChipRemove,
+  ChipScope,
+  ChipValue,
   CommandPalette,
   CommandPaletteEmpty,
   CommandPaletteGroup,
@@ -161,6 +174,12 @@ const catalog = [
     "Checked, unchecked, mixed and disabled.",
   ],
   ["switch", "Switch", "Controls", "An immediately applied boolean setting."],
+  [
+    "chip-input",
+    "ChipInput",
+    "Controls",
+    "Several structured values in one field.",
+  ],
   ["label", "Label", "Forms", "A visible, associated field name."],
   [
     "form-field",
@@ -265,6 +284,8 @@ const catalog = [
 ] as const;
 
 const snippets: Record<string, string> = {
+  "chip-input":
+    '<ChipInput>\n  <ChipInputBox>\n    <Chip>\n      <ChipName>npm:t3</ChipName>\n      <ChipValue value="latest" onCommit={setVersion} />\n      <ChipOptions label="npm:t3 options" count={1}>\n        <FormField label="allow_builds" value={allowBuilds} onChange={...} />\n      </ChipOptions>\n      <ChipRemove aria-label="Remove npm:t3" onClick={remove} />\n    </Chip>\n    <ChipInputField value={query} onChange={...} onRemoveLast={removeLast} />\n  </ChipInputBox>\n  <ChipInputList aria-label="Dependency suggestions">\n    <ChipInputOption onSelect={add}>node</ChipInputOption>\n  </ChipInputList>\n</ChipInput>',
   "brand-mark":
     '<div className="brand">\n  <BrandMark>N</BrandMark>\n  <span>Northstar</span>\n</div>\n<div className="brand">\n  <BrandMark><TerminalIcon /></BrandMark>\n  <span>Kiso 基礎</span>\n</div>',
   button:
@@ -536,6 +557,308 @@ function LogViewDemo() {
   );
 }
 
+// mise knowledge belongs to the product, not to Kiso. ChipInput ships the
+// field; this demo ships the package manager it happens to configure.
+type Dependency = {
+  id: string;
+  backend: string;
+  name: string;
+  version: string;
+  options: Record<string, string>;
+};
+
+const miseBackends: [string, string][] = [
+  ["npm", "npm package"],
+  ["cargo", "Rust crate"],
+  ["pipx", "Python application"],
+  ["go", "Go module"],
+  ["gem", "Ruby gem"],
+  ["aqua", "aqua registry"],
+  ["github", "GitHub release"],
+  ["apt", "Debian package on the host"],
+  ["brew", "Homebrew formula on the host"],
+];
+
+const miseRegistry: [string, string][] = [
+  ["node", "Node.js"],
+  ["python", "CPython"],
+  ["rust", "Rust toolchain"],
+  ["deno", "Deno"],
+  ["bun", "Bun"],
+  ["claude-code", "Claude Code"],
+  ["ripgrep", "ripgrep"],
+  ["jq", "jq"],
+];
+
+// apt and brew install with the host package manager, so they land in
+// [bootstrap.packages] and take no build options.
+const hostManagers = new Set(["apt", "brew", "dnf", "pacman", "apk"]);
+
+const backendOptions: Record<string, string[]> = {
+  npm: ["allow_builds", "allow_low_downloads"],
+  cargo: ["features", "locked"],
+  pipx: ["uvx"],
+  github: ["version_order"],
+};
+
+const optionHints: Record<string, string> = {
+  allow_builds: "node-pty, esbuild",
+  allow_low_downloads: "true",
+  features: "postgres, rustls",
+  locked: "false",
+  uvx: "true",
+  version_order: "semver",
+  os: "linux, macos",
+  depends: "node",
+  postinstall: "corepack enable",
+};
+
+function optionNames(backend: string) {
+  if (hostManagers.has(backend)) return ["os"];
+  return [...(backendOptions[backend] ?? []), "os", "depends", "postinstall"];
+}
+
+// mise takes these as arrays even with a single entry.
+const listOptions = new Set(["allow_builds", "features", "os", "depends"]);
+
+// The chip writes options the way mise.toml writes them, one segment each, so
+// a chip can be read and typed as a single line of configuration.
+function parseOption(text: string) {
+  const at = text.indexOf("=");
+  if (at < 1) return null;
+  const name = text.slice(0, at).trim();
+  const value = text
+    .slice(at + 1)
+    .trim()
+    .replace(/^\[|\]$/g, "")
+    .trim();
+  return name ? { name, value } : null;
+}
+
+function tomlValue(name: string, raw: string) {
+  if (raw === "true" || raw === "false") return raw;
+  if (listOptions.has(name)) {
+    const parts = raw.split(",").map((part) => `"${part.trim()}"`);
+    return `[${parts.join(", ")}]`;
+  }
+  return `"${raw}"`;
+}
+
+function tomlLine(dep: Dependency) {
+  const key = dep.backend ? `"${dep.id}"` : dep.id;
+  const set = Object.entries(dep.options).filter(([, value]) => value.trim());
+  if (!set.length) return `${key} = "${dep.version}"`;
+  const options = set
+    .map(([name, value]) => `${name} = ${tomlValue(name, value.trim())}`)
+    .join(", ");
+  return `${key} = { version = "${dep.version}", ${options} }`;
+}
+
+function miseToml(deps: Dependency[]) {
+  const tools = deps.filter((dep) => !hostManagers.has(dep.backend));
+  const host = deps.filter((dep) => hostManagers.has(dep.backend));
+  const sections = [];
+  if (tools.length) {
+    sections.push(["[tools]", ...tools.map(tomlLine)].join("\n"));
+  }
+  if (host.length) {
+    sections.push(["[bootstrap.packages]", ...host.map(tomlLine)].join("\n"));
+  }
+  return sections.join("\n\n") || "# No dependencies yet.";
+}
+
+function ChipInputDemo() {
+  const fieldId = useId();
+  const [deps, setDeps] = useState<Dependency[]>([
+    { id: "node", backend: "", name: "node", version: "latest", options: {} },
+    {
+      id: "npm:t3",
+      backend: "npm",
+      name: "t3",
+      version: "latest",
+      options: { allow_builds: "node-pty" },
+    },
+    {
+      id: "claude-code",
+      backend: "",
+      name: "claude-code",
+      version: "latest",
+      options: {},
+    },
+    {
+      id: "apt:libssl-dev",
+      backend: "apt",
+      name: "libssl-dev",
+      version: "latest",
+      options: {},
+    },
+  ]);
+  const [query, setQuery] = useState("");
+  const trimmed = query.trim();
+
+  function add(backend: string, name: string) {
+    if (!name) return;
+    const id = backend ? `${backend}:${name}` : name;
+    setQuery("");
+    setDeps((current) =>
+      current.some((dep) => dep.id === id)
+        ? current
+        : [...current, { id, backend, name, version: "latest", options: {} }],
+    );
+  }
+
+  function update(id: string, change: Partial<Dependency>) {
+    setDeps((current) =>
+      current.map((dep) => (dep.id === id ? { ...dep, ...change } : dep)),
+    );
+  }
+
+  const known = new Set(deps.map((dep) => dep.id));
+  const separator = trimmed.indexOf(":");
+  let suggestions: { key: string; label: string; hint: string; select: () => void }[] = [];
+  if (separator > 0) {
+    const backend = trimmed.slice(0, separator);
+    const name = trimmed.slice(separator + 1).trim();
+    const entry = miseBackends.find(([id]) => id === backend);
+    if (entry && name && !known.has(`${backend}:${name}`)) {
+      suggestions = [
+        {
+          key: trimmed,
+          label: `${backend}:${name}`,
+          hint: entry[1],
+          select: () => add(backend, name),
+        },
+      ];
+    }
+  } else if (trimmed) {
+    const needle = trimmed.toLowerCase();
+    suggestions = [
+      ...miseRegistry
+        .filter(([name]) => name.includes(needle) && !known.has(name))
+        .map(([name, hint]) => ({
+          key: name,
+          label: name,
+          hint,
+          select: () => add("", name),
+        })),
+      ...miseBackends
+        .filter(([id]) => id.startsWith(needle))
+        .map(([id, hint]) => ({
+          key: `${id}:`,
+          label: `${id}:`,
+          hint: `${hint}, keep typing the name`,
+          select: () => setQuery(`${id}:`),
+        })),
+    ];
+  }
+
+  return (
+    <div className="stack">
+      <div className="field">
+        <Label htmlFor={fieldId}>Dependencies</Label>
+        <ChipInput>
+          <ChipInputBox>
+            {deps.map((dep) => (
+                <Chip key={dep.id}>
+                  {dep.backend ? <ChipScope>{dep.backend}</ChipScope> : null}
+                  <ChipName>{dep.name}</ChipName>
+                  <ChipValue
+                    value={dep.version}
+                    editLabel={`Edit ${dep.id} version, currently ${dep.version}`}
+                    confirmLabel={`Confirm ${dep.id} version`}
+                    onCommit={(version) => update(dep.id, { version })}
+                  />
+                  {Object.entries(dep.options).map(([name, value]) => (
+                    <ChipOption
+                      key={name}
+                      name={name}
+                      value={
+                        listOptions.has(name)
+                          ? value.split(",").map((part) => part.trim())
+                          : value
+                      }
+                      label={dep.id}
+                      onCommit={(text) => {
+                        const next = { ...dep.options };
+                        delete next[name];
+                        const parsed = parseOption(text);
+                        if (parsed?.value) next[parsed.name] = parsed.value;
+                        update(dep.id, { options: next });
+                      }}
+                    />
+                  ))}
+                  <ChipOptionAdd
+                    label={dep.id}
+                    onCommit={(text) => {
+                      const parsed = parseOption(text);
+                      if (!parsed?.value) return;
+                      update(dep.id, {
+                        options: { ...dep.options, [parsed.name]: parsed.value },
+                      });
+                    }}
+                  />
+                  <ChipRemove
+                    aria-label={`Remove ${dep.id}`}
+                    onClick={() =>
+                      setDeps((current) =>
+                        current.filter((item) => item.id !== dep.id),
+                      )
+                    }
+                  />
+                </Chip>
+            ))}
+            <ChipInputField
+              id={fieldId}
+              value={query}
+              placeholder="node, npm:t3, apt:libssl-dev..."
+              onChange={(event) => setQuery(event.target.value)}
+              onRemoveLast={() => setDeps((current) => current.slice(0, -1))}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" || event.defaultPrevented) return;
+                event.preventDefault();
+                const at = trimmed.indexOf(":");
+                if (at > 0) add(trimmed.slice(0, at), trimmed.slice(at + 1).trim());
+                else add("", trimmed);
+              }}
+            />
+          </ChipInputBox>
+          {trimmed && (
+            <ChipInputList aria-label="Dependency suggestions">
+              {suggestions.length ? (
+                suggestions.map((suggestion) => (
+                  <ChipInputOption
+                    key={suggestion.key}
+                    onSelect={suggestion.select}
+                  >
+                    <span className="mono">{suggestion.label}</span>
+                    <span className="muted t-metadata">{suggestion.hint}</span>
+                  </ChipInputOption>
+                ))
+              ) : (
+                <ChipInputEmpty>
+                  No match. Enter adds {trimmed} as typed.
+                </ChipInputEmpty>
+              )}
+            </ChipInputList>
+          )}
+        </ChipInput>
+        <small className="field-hint">
+          Type a tool, or a backend such as npm:, cargo: or apt:. Enter adds it.
+          Each option is its own segment, typed as name=value: allow_builds,
+          features, os, depends, postinstall. A list takes its items comma
+          separated. Backspace on an empty field removes the last chip.
+        </small>
+      </div>
+      <p className="muted t-label" role="status">
+        {deps.length} dependencies.
+      </p>
+      <pre>
+        <code>{miseToml(deps)}</code>
+      </pre>
+    </div>
+  );
+}
+
 function Demo({
   id,
   theme,
@@ -677,6 +1000,8 @@ function Demo({
           <small className="field-hint">{value.length} characters</small>
         </div>
       );
+    case "chip-input":
+      return <ChipInputDemo />;
     case "select":
       return (
         <div className="stack">
