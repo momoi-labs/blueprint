@@ -9,6 +9,7 @@ export * from "./breadcrumb.js";
 export * from "./button.js";
 export * from "./card.js";
 export * from "./checkbox.js";
+export * from "./chip-input.js";
 export * from "./command-palette.js";
 export * from "./dialog.js";
 export * from "./dot.js";

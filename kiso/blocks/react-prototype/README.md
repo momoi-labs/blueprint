@@ -1,6 +1,6 @@
 # Component gallery
 
-A local preview of `@momoi-labs/kiso-react`. It lists all 43 entries in
+A local preview of `@momoi-labs/kiso-react`. It lists all 44 entries in
 [`kiso/docs/components/README.md`](../../docs/components/README.md) and renders
 each one from the workspace package, so an entry can only appear here if the
 package exports it.

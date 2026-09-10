@@ -19,6 +19,7 @@ immediate vs deferred persistence, and unambiguous save feedback.
 | Section nav | [Tabs](../components/tabs.md) or Sidebar sub-nav [Link](../components/link.md)s | Split General / Notifications / API, etc. |
 | Groups | [Card](../components/card.md) | One settings group per Card |
 | Text / choice fields | [FormField](../components/form-field.md) | [Label](../components/label.md) + [Input](../components/input.md) / [Select](../components/select.md) / [Textarea](../components/textarea.md) + [HelperText](../components/helper-text.md) + [ValidationMessage](../components/validation-message.md) |
+| Repeated values with their own options | [ChipInput](../components/chip-input.md) | One field for a list a person types, such as dependencies or scopes, instead of a form section per entry |
 | Booleans | [Switch](../components/switch.md) (immediate) or [Checkbox](../components/checkbox.md) inside FormField (part of a saved form) | Switch for single immediate preferences; Checkbox when the value submits with Save |
 | Actions | [Button](../components/button.md) | Save (primary), Reset/Cancel (secondary) for explicit-save sections |
 | Feedback | [Toast](../components/toast.md), [Alert](../components/alert.md), [ValidationMessage](../components/validation-message.md) | Saved confirmation; section errors; field errors |
