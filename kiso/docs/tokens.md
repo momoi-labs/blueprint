@@ -44,23 +44,32 @@ Import `tokens.css`; application CSS should need no raw color values.
 
 ## Semantic colors
 
+The dark theme draws its surfaces from a dedicated warm dark ramp
+(`color.dark.*`), not from the tail of the light ramp: one hue family for both
+themes, with layer spacing that lets the sidebar sink below the canvas and the
+card lift above it. The accent is split into two roles. The **ink**
+(`accent.base`, flowing into `link` and `focus`) is the text-eligible lilac for
+links, focus rings, and active indicators. The **fill** (`primary` and its
+hover and surface tints) is the deep violet behind `primary-foreground`,
+never text on dark.
+
 | Role | Meaning and use | Dark primitive | Light primitive |
 | --- | --- | --- | --- |
-| `background` | Application canvas; never text. | `neutral.900` | `neutral.200` |
-| `surface` | Cards, panels, and table rows. | `neutral.800` | `neutral.100` |
-| `elevated-surface` | Menus, popovers, and dialogs. | `neutral.700` | `white` |
-| `foreground` | Primary text and content that must carry the strongest hierarchy. | `neutral.100` | `neutral.900` |
-| `muted-foreground` | Secondary text and labels. It remains normal-text eligible. | `neutral.400` | `neutral.600` |
-| `subtle-foreground` | Placeholders, timestamps, and non-essential hints; large text only, never body copy. | `neutral.500` | `neutral.500` |
-| `border` | Dividers and control outlines; never text. | `neutral.600` | `neutral.300` |
-| `primary` | The main interactive action: links, active states, and primary controls. | `accent.base` | `accent.base` |
+| `background` | Application canvas; never text. | `dark.900` | `neutral.200` |
+| `surface` | Cards, panels, and table rows. | `dark.800` | `neutral.100` |
+| `elevated-surface` | Menus, popovers, and dialogs. | `dark.700` | `white` |
+| `foreground` | Primary text and content that must carry the strongest hierarchy. | `dark.100` | `neutral.900` |
+| `muted-foreground` | Secondary text and labels. It remains normal-text eligible. | `dark.400` | `neutral.600` |
+| `subtle-foreground` | Placeholders, timestamps, and non-essential hints; large text only, never body copy. | `dark.450` | `neutral.500` |
+| `border` | Dividers and control outlines; never text. | `dark.600` | `neutral.300` |
+| `primary` | The primary fill: primary buttons, solid badges, checked controls, the brand mark. Not text-eligible on dark. | `#684bb5` | `#5b3fc4` |
 | `accent` | Secondary emphasis and highlights, not the page's main action. | `accent.300` | `accent.800` |
 | `success` | Positive or completed state. | `status.success` | `status.success` |
 | `warning` | Caution or a condition needing attention. | `status.warning` | `status.warning` |
 | `danger` | Error or destructive action. | `status.danger` | `status.danger` |
 | `info` | Neutral informational state. | `status.info` | `status.info` |
-| `focus` | Keyboard focus ring; never text. | `accent.300` | `accent.base` |
-| `disabled` | Disabled text and controls only. | `neutral.600` | `neutral.400` |
+| `focus` | Keyboard focus ring; never text. The light ink. | `accent.base` | `accent.base` |
+| `disabled` | Disabled text and controls only. | `dark.600` | `neutral.400` |
 
 ### Fills and their foregrounds
 
@@ -70,46 +79,48 @@ outline — which is how a violet design system ends up rendering grey.
 
 | Role | Meaning and use | Dark primitive | Light primitive |
 | --- | --- | --- | --- |
-| `primary-foreground` | Text and icons on a `primary` fill. | `neutral.900` | `white` |
-| `primary-hover` | `primary` fill on hover. | `accent.300` | `accent.800` |
-| `danger-foreground` | Text and icons on a `danger` fill. | `neutral.900` | `white` |
-| `secondary` | Neutral button fill, range track, count badge; never text. | `neutral.700` | `neutral.300` |
+| `primary-foreground` | Text and icons on a `primary` fill. | near-white `#f7f5fe` | `white` |
+| `primary-hover` | `primary` fill on hover. | `#795dc9` | `accent.800` |
+| `danger-foreground` | Text and icons on a `danger` fill. | `dark.950` | `white` |
+| `secondary` | Neutral button fill, range track, count badge; never text. | `dark.700` | `neutral.300` |
 | `secondary-foreground` | Text on a `secondary` fill. | `foreground` | `foreground` |
-| `secondary-hover` | `secondary` fill on hover; never text. | `neutral.600` | `neutral.400` |
-| `selected` | Selected row, active nav item, highlighted result; never text. One step past `accent-surface-hover`, so selection and hover stay apart. | `accent.800` | `accent.300` |
+| `secondary-hover` | `secondary` fill on hover; never text. | `dark.600` | `neutral.400` |
+| `selected` | Selected row, active nav item, highlighted result; never text. One step past `accent-surface-hover`, so selection and hover stay apart. | `#49406d` | `accent.300` |
 | `selected-foreground` | Text on a `selected` fill. | `foreground` | `foreground` |
 
-`primary-foreground` and `danger-foreground` invert with their fill: near-black
-on the light lilac of dark theme, white on the deep violet of light theme. Both
-are gated at 4.5:1 **against their own fill**, not against a surface.
+`primary-foreground` is near-white (`#f7f5fe`) on the deep violet fill in both
+themes; the fill no longer flips to a light lilac on dark, so the foreground
+no longer inverts. `danger-foreground` still inverts with its fill: white on
+the light-theme red, near-black on the dark-theme salmon. Both are gated at
+4.5:1 **against their own fill**, not against a surface.
 
 ### Component surfaces
 
 | Role | Meaning and use | Dark primitive | Light primitive |
 | --- | --- | --- | --- |
-| `card` | Panel and card fill. Alias of `surface`. | `neutral.800` | `neutral.100` |
+| `card` | Panel and card fill. Alias of `surface`. | `dark.800` | `neutral.100` |
 | `card-foreground` | Text on `card`. Alias of `foreground`. | `foreground` | `foreground` |
-| `popover` | Menus, dialogs, palette. Alias of `elevated-surface`. | `neutral.700` | `white` |
+| `popover` | Menus, dialogs, palette. Alias of `elevated-surface`. | `dark.700` | `white` |
 | `popover-foreground` | Text on `popover`. Alias of `foreground`. | `foreground` | `foreground` |
-| `muted` | Recessed fill one step off `card`: table headers, card footers, segmented tracks. | `neutral.700` | `neutral.200` |
-| `sidebar` | Application shell navigation column. | `neutral.950` | `neutral.100` |
+| `muted` | Recessed fill one step off `card`: table headers, card footers, segmented tracks. | `dark.700` | `neutral.200` |
+| `sidebar` | Application shell navigation column. | `dark.950` | `neutral.100` |
 | `sidebar-border` | Divider between sidebar and content. Alias of `border`. | `border` | `border` |
-| `disabled-surface` | Fill of a disabled control. | `neutral.800` | `neutral.200` |
-| `skeleton` | Loading placeholder fill. | `neutral.700` | `neutral.300` |
+| `disabled-surface` | Fill of a disabled control. | `dark.800` | `neutral.200` |
+| `skeleton` | Loading placeholder fill. | `dark.700` | `neutral.300` |
 | `overlay` | Scrim behind a modal layer. | `black` at 60% | `black` at 40% |
 
 ### Lines, tints, and state
 
 | Role | Meaning and use | Dark primitive | Light primitive |
 | --- | --- | --- | --- |
-| `border-strong` | Hover outlines, switch tracks, gridlines, corner marks; never text. | `neutral.500` | `neutral.500` |
+| `border-strong` | Hover outlines, switch tracks, gridlines, corner marks; never text. | `dark.450` | `neutral.500` |
 | `input` | Form control outline at rest. Alias of `border`. | `border` | `border` |
 | `corner-mark` | Corner registration marks. Alias of `border-strong`. | `border-strong` | `border-strong` |
-| `hatch` | Hatch stripe over a region that is not data. | `neutral.700` | `neutral.300` |
-| `accent-surface` | Faintest accent tint: row hover, ghost hover; never text. | `accent.950` | `accent.50` |
-| `accent-surface-hover` | Accent tint one step stronger; never text. | `accent.900` | `accent.200` |
+| `hatch` | Hatch stripe over a region that is not data. | `dark.700` | `neutral.300` |
+| `accent-surface` | Faintest accent tint: row hover, ghost hover; never text. | `#2d2843` | `accent.50` |
+| `accent-surface-hover` | Accent tint one step stronger; never text. | `#3a3356` | `accent.200` |
 | `ring` | Focus ring, active drag handle. Alias of `focus`. | `focus` | `focus` |
-| `link` | Inline and standalone links. Alias of `primary`. | `primary` | `primary` |
+| `link` | Inline and standalone links. The light ink: alias of `accent.base`, text-eligible where the `primary` fill is not. | `accent.base` | `accent.base` |
 | `shadow-hairline` | Shadow colour for a resting control's contact line. | `black` at 30% | `black` at 5% |
 | `shadow-contact` | Shadow colour for separated and floating layers. | `black` at 40% | `black` at 8% |
 
@@ -132,23 +143,30 @@ terminals — which cannot follow `color-scheme`, so their text cannot either.
 
 Use `foreground` for default reading, `muted-foreground` when content is
 secondary but still needs normal-text contrast, and `subtle-foreground` only
-for large or non-essential supporting copy. Use `primary` for the action that
-drives the current task; use `accent` to draw secondary attention without
-creating another primary action.
+for large or non-essential supporting copy. Use `primary` for the fill of the
+action that drives the current task; use `link` for anything that reads as a
+link or an active indicator, because the fill is not text-eligible on dark.
+Use `accent` to draw secondary attention without creating another primary
+action.
 
 The semantic aliases deliberately point at different primitives by theme.
 Status primitives and `accent.base` are themselves mode-aware, so the same
 semantic role preserves its meaning and contrast rather than preserving a
-literal color.
+literal color. `border-strong` and `subtle-foreground` sit on `dark.450` on
+dark because `dark.500` misses the 3:1 non-text and large-text gates on
+`dark.800` and `dark.700`; they share a step on dark exactly as they share
+`neutral.500` on light.
 
 ## AA gate
 
 `scripts/check-contrast.mjs` is the build-time AA gate. In both dark and light
 themes it resolves the semantic aliases and checks:
 
-- `foreground`, `muted-foreground`, `primary`, `accent`, `success`, `warning`,
+- `foreground`, `muted-foreground`, `link`, `accent`, `success`, `warning`,
   `danger`, and `info` at **4.5:1** or better against `background`, `surface`,
-  and `elevated-surface`;
+  and `elevated-surface`. `link` is gated, not `primary`: since the ink/fill
+  split, `primary` is the deep fill and is not text-eligible on dark, while
+  the ink that links and indicators actually draw with is `link`;
 - `subtle-foreground` at **3:1** or better against those surfaces, restricting
   it to large text and non-essential metadata;
 - `border-strong` and `corner-mark` at **3:1** or better against those

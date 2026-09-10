@@ -7,7 +7,9 @@ const backgrounds = ['background', 'surface', 'elevated-surface'];
 const textRoles = new Map([
   ['foreground', 4.5],
   ['muted-foreground', 4.5],
-  ['primary', 4.5],
+  // link, not primary: since the ink/fill split, primary is the deep fill and
+  // is not text-eligible on dark; the text-eligible ink is link (accent.base).
+  ['link', 4.5],
   ['accent', 4.5],
   ['success', 4.5],
   ['warning', 4.5],

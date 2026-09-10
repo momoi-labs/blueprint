@@ -17,7 +17,7 @@ export const colorNeutral600: string;
 export const colorNeutral700: string;
 export const colorNeutral800: string;
 export const colorNeutral900: string;
-/** Darkest neutral. Sidebar and log surfaces that must sit below the app canvas. */
+/** Darkest neutral. Retained for compatibility; the dark theme's sidebar is dark.950. */
 export const colorNeutral950: string;
 /** Lightest lilac. Light-theme tinted surface (row hover, ghost hover). */
 export const colorAccent50: string;
@@ -30,18 +30,40 @@ export const colorAccent600: string;
 export const colorAccent700: string;
 export const colorAccent800: string;
 export const colorAccent900: string;
-/** Darkest lilac. Dark-theme tinted surface, the counterpart to accent.50. */
+/** Darkest lilac. Retained ramp step; the dark accent tints are dedicated literals on the semantic layer. */
 export const colorAccent950: string;
-/** Base accent primitive. Airy lilac on dark (10.03:1) and deeper violet on light (6.36:1) — calibrated up from the marketing site accent, which fails AA in both themes. */
+/** Base accent primitive and the theme ink: deeper violet on light (6.36:1 on background), light lilac on dark (6.36:1 on background, 5.5:1 on surface). Flows into link and focus; the deep fill role lives on semantic.primary. */
 export const colorAccentBase: string;
 /** Success status primitive. */
 export const colorStatusSuccess: string;
 /** Warning status primitive. */
 export const colorStatusWarning: string;
-/** Danger status primitive. */
+/** Danger status primitive. The dark step sits at 4.6:1 on elevated-surface; a darker red missed AA there. */
 export const colorStatusDanger: string;
 /** Info status primitive. */
 export const colorStatusInfo: string;
+/** Lightest dark-ramp step. */
+export const colorDark50: string;
+/** Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface. */
+export const colorDark100: string;
+export const colorDark200: string;
+export const colorDark300: string;
+/** Muted foreground on dark. */
+export const colorDark400: string;
+/** Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700. */
+export const colorDark450: string;
+/** Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate. */
+export const colorDark500: string;
+/** Borders and inputs on dark. */
+export const colorDark600: string;
+/** Elevated surfaces, muted and secondary fills on dark. */
+export const colorDark700: string;
+/** Surface and card on dark. */
+export const colorDark800: string;
+/** Background on dark. */
+export const colorDark900: string;
+/** Darkest step. Sidebar on dark, and danger-foreground on a danger fill. */
+export const colorDark950: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -52,11 +74,11 @@ export const semanticElevatedSurface: string;
 export const semanticForeground: string;
 /** Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes. */
 export const semanticMutedForeground: string;
-/** Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy. */
+/** Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces. */
 export const semanticSubtleForeground: string;
 /** Dividers and input outlines. Non-text role. */
 export const semanticBorder: string;
-/** Primary interactive colour: links, active state, primary button fill. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes. */
+/** Primary fill: primary buttons, solid badges, checked controls, the brand mark. Deep violet in both themes; on dark it is a dedicated fill and is not text-eligible, so ink roles (link, focus) take accent.base instead. */
 export const semanticPrimary: string;
 /** Emphasis and highlight. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes. */
 export const semanticAccent: string;
@@ -68,7 +90,7 @@ export const semanticWarning: string;
 export const semanticDanger: string;
 /** Neutral informational state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes. */
 export const semanticInfo: string;
-/** Focus ring. Non-text role. >=3:1 against background. */
+/** Focus ring. Non-text role. >=3:1 against background. The light ink: alias of accent.base in both themes. */
 export const semanticFocus: string;
 /** Disabled text and controls. Exempt from contrast minimums per WCAG 1.4.3. */
 export const semanticDisabled: string;
@@ -86,15 +108,15 @@ export const semanticMuted: string;
 export const semanticSidebar: string;
 /** Divider between sidebar and content. */
 export const semanticSidebarBorder: string;
-/** Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes. */
+/** Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes. On dark this is dark.450, sharing the subtle-text step as neutral.500 does on light. */
 export const semanticBorderStrong: string;
 /** Form control outline at rest. */
 export const semanticInput: string;
-/** Text and icons on a primary fill. Inverts with the fill: white on the light-theme violet, near-black on the dark-theme lilac. Passes AA on primary in both themes. */
+/** Text and icons on a primary fill. Near-white on the deep violet fill in both themes. Passes AA on primary in both themes. */
 export const semanticPrimaryForeground: string;
-/** Primary fill on hover — one ramp step away from primary, in the direction that keeps primary-foreground legible. */
+/** Primary fill on hover - one step brighter than primary, keeping primary-foreground legible. */
 export const semanticPrimaryHover: string;
-/** Inline and standalone links. */
+/** Inline and standalone links. The light ink: alias of accent.base in both themes, so links stay text-eligible where the primary fill is not. */
 export const semanticLink: string;
 /** Faintest accent tint: row hover, ghost-button hover. Non-text role. */
 export const semanticAccentSurface: string;
@@ -142,7 +164,7 @@ export const semanticDangerBorder: string;
 export const semanticInfoSurface: string;
 /** Info outline for badges and callouts. Non-text role. */
 export const semanticInfoBorder: string;
-/** Text and icons on a danger fill. Inverts with the fill, like primary-foreground. */
+/** Text and icons on a danger fill. Inverts with the fill, like primary-foreground: white on the light-theme red, near-black on the dark-theme salmon. */
 export const semanticDangerForeground: string;
 /** Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticWarningOnDark: string;
