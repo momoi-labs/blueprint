@@ -13,7 +13,7 @@ $color-neutral-600: #5f5b57;
 $color-neutral-700: #312f37;
 $color-neutral-800: #26252b;
 $color-neutral-900: #1b1a1e;
-$color-neutral-950: #131217; // Darkest neutral. Sidebar and log surfaces that must sit below the app canvas.
+$color-neutral-950: #131217; // Darkest neutral. Retained for compatibility; the dark theme's sidebar is dark.950.
 $color-accent-50: #f7f4ff; // Lightest lilac. Light-theme tinted surface (row hover, ghost hover).
 $color-accent-200: #ede8fd;
 $color-accent-300: #ded5fb;
@@ -23,66 +23,78 @@ $color-accent-600: #7d68d1;
 $color-accent-700: #6552b8;
 $color-accent-800: #46309e;
 $color-accent-900: #2e2170;
-$color-accent-950: #211741; // Darkest lilac. Dark-theme tinted surface, the counterpart to accent.50.
-$color-accent-base: #cbbdf7; // Base accent primitive. Airy lilac on dark (10.03:1) and deeper violet on light (6.36:1) — calibrated up from the marketing site accent, which fails AA in both themes.
-$color-status-success: #4ed69a; // Success status primitive.
-$color-status-warning: #e8c05a; // Warning status primitive.
-$color-status-danger: #f4867f; // Danger status primitive.
-$color-status-info: #8fc9f5; // Info status primitive.
-$semantic-background: #1b1a1e; // App canvas. Surface role, never text.
-$semantic-surface: #26252b; // Cards, panels, table rows. Surface role.
-$semantic-elevated-surface: #312f37; // Menus, popovers, dialogs. Surface role.
-$semantic-foreground: #faf9f7; // Primary text. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-muted-foreground: #b6b2ae; // Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-subtle-foreground: #8a857f; // Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy.
-$semantic-border: #5f5b57; // Dividers and input outlines. Non-text role.
-$semantic-primary: #cbbdf7; // Primary interactive colour: links, active state, primary button fill. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$color-accent-950: #211741; // Darkest lilac. Retained ramp step; the dark accent tints are dedicated literals on the semantic layer.
+$color-accent-base: #5b3fc4; // Base accent primitive and the theme ink: deeper violet on light (6.36:1 on background), light lilac on dark (6.36:1 on background, 5.5:1 on surface). Flows into link and focus; the deep fill role lives on semantic.primary.
+$color-status-success: #5bd295; // Success status primitive.
+$color-status-warning: #efc05b; // Warning status primitive.
+$color-status-danger: #f5807f; // Danger status primitive. The dark step sits at 4.6:1 on elevated-surface; a darker red missed AA there.
+$color-status-info: #75c4fa; // Info status primitive.
+$color-dark-50: #f8f6f3; // Lightest dark-ramp step.
+$color-dark-100: #eeece9; // Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface.
+$color-dark-200: #d9d7d3;
+$color-dark-300: #c6c4c0;
+$color-dark-400: #aba9a5; // Muted foreground on dark.
+$color-dark-450: #94928e; // Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700.
+$color-dark-500: #6b6965; // Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate.
+$color-dark-600: #494744; // Borders and inputs on dark.
+$color-dark-700: #3a3834; // Elevated surfaces, muted and secondary fills on dark.
+$color-dark-800: #2d2b28; // Surface and card on dark.
+$color-dark-900: #211f1c; // Background on dark.
+$color-dark-950: #151411; // Darkest step. Sidebar on dark, and danger-foreground on a danger fill.
+$semantic-background: #211f1c; // App canvas. Surface role, never text.
+$semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
+$semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
+$semantic-foreground: #eeece9; // Primary text. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-muted-foreground: #aba9a5; // Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-subtle-foreground: #94928e; // Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces.
+$semantic-border: #494744; // Dividers and input outlines. Non-text role.
+$semantic-primary: #684bb5; // Primary fill: primary buttons, solid badges, checked controls, the brand mark. Deep violet in both themes; on dark it is a dedicated fill and is not text-eligible, so ink roles (link, focus) take accent.base instead.
 $semantic-accent: #ded5fb; // Emphasis and highlight. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-success: #4ed69a; // Positive state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-warning: #e8c05a; // Caution state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-danger: #f4867f; // Destructive or error state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-info: #8fc9f5; // Neutral informational state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-focus: #ded5fb; // Focus ring. Non-text role. >=3:1 against background.
-$semantic-disabled: #5f5b57; // Disabled text and controls. Exempt from contrast minimums per WCAG 1.4.3.
-$semantic-card: #26252b; // Panel and card fill. Alias of surface, named for the component that owns it.
-$semantic-card-foreground: #faf9f7; // Text on card.
-$semantic-popover: #312f37; // Menus, dialogs, command palette. Alias of elevated-surface.
-$semantic-popover-foreground: #faf9f7; // Text on popover.
-$semantic-muted: #312f37; // Recessed fill one step off card: table headers, card footers, segmented tracks. Surface role.
-$semantic-sidebar: #131217; // Application shell navigation column. Sits below the canvas on dark, above it on light.
-$semantic-sidebar-border: #5f5b57; // Divider between sidebar and content.
-$semantic-border-strong: #8a857f; // Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes.
-$semantic-input: #5f5b57; // Form control outline at rest.
-$semantic-primary-foreground: #1b1a1e; // Text and icons on a primary fill. Inverts with the fill: white on the light-theme violet, near-black on the dark-theme lilac. Passes AA on primary in both themes.
-$semantic-primary-hover: #ded5fb; // Primary fill on hover — one ramp step away from primary, in the direction that keeps primary-foreground legible.
-$semantic-link: #cbbdf7; // Inline and standalone links.
-$semantic-accent-surface: #211741; // Faintest accent tint: row hover, ghost-button hover. Non-text role.
-$semantic-accent-surface-hover: #2e2170; // Accent tint one step stronger. Non-text role.
-$semantic-selected: #46309e; // Selected row, active navigation item, highlighted palette result. One ramp step past accent-surface-hover, so a selected item and a hovered sibling never paint the same surface. Non-text role.
-$semantic-selected-foreground: #faf9f7; // Text on a selected row.
-$semantic-secondary: #312f37; // Neutral button fill, range track, count badge. Non-text role.
-$semantic-secondary-foreground: #faf9f7; // Text on a secondary fill.
-$semantic-secondary-hover: #5f5b57; // Secondary fill on hover. Non-text role.
-$semantic-ring: #ded5fb; // Focus ring, drag handle active state. Alias of focus, named for the property it sets.
-$semantic-disabled-surface: #26252b; // Fill of a disabled control. Exempt from contrast minimums per WCAG 1.4.3.
-$semantic-skeleton: #312f37; // Loading placeholder fill. Non-text role.
+$semantic-success: #5bd295; // Positive state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-warning: #efc05b; // Caution state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-danger: #f5807f; // Destructive or error state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-info: #75c4fa; // Neutral informational state. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
+$semantic-focus: #5b3fc4; // Focus ring. Non-text role. >=3:1 against background. The light ink: alias of accent.base in both themes.
+$semantic-disabled: #494744; // Disabled text and controls. Exempt from contrast minimums per WCAG 1.4.3.
+$semantic-card: #2d2b28; // Panel and card fill. Alias of surface, named for the component that owns it.
+$semantic-card-foreground: #eeece9; // Text on card.
+$semantic-popover: #3a3834; // Menus, dialogs, command palette. Alias of elevated-surface.
+$semantic-popover-foreground: #eeece9; // Text on popover.
+$semantic-muted: #3a3834; // Recessed fill one step off card: table headers, card footers, segmented tracks. Surface role.
+$semantic-sidebar: #151411; // Application shell navigation column. Sits below the canvas on dark, above it on light.
+$semantic-sidebar-border: #494744; // Divider between sidebar and content.
+$semantic-border-strong: #94928e; // Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes. On dark this is dark.450, sharing the subtle-text step as neutral.500 does on light.
+$semantic-input: #494744; // Form control outline at rest.
+$semantic-primary-foreground: #f7f5fe; // Text and icons on a primary fill. Near-white on the deep violet fill in both themes. Passes AA on primary in both themes.
+$semantic-primary-hover: #795dc9; // Primary fill on hover - one step brighter than primary, keeping primary-foreground legible.
+$semantic-link: #5b3fc4; // Inline and standalone links. The light ink: alias of accent.base in both themes, so links stay text-eligible where the primary fill is not.
+$semantic-accent-surface: #2d2843; // Faintest accent tint: row hover, ghost-button hover. Non-text role.
+$semantic-accent-surface-hover: #3a3356; // Accent tint one step stronger. Non-text role.
+$semantic-selected: #49406d; // Selected row, active navigation item, highlighted palette result. One ramp step past accent-surface-hover, so a selected item and a hovered sibling never paint the same surface. Non-text role.
+$semantic-selected-foreground: #eeece9; // Text on a selected row.
+$semantic-secondary: #3a3834; // Neutral button fill, range track, count badge. Non-text role.
+$semantic-secondary-foreground: #eeece9; // Text on a secondary fill.
+$semantic-secondary-hover: #494744; // Secondary fill on hover. Non-text role.
+$semantic-ring: #5b3fc4; // Focus ring, drag handle active state. Alias of focus, named for the property it sets.
+$semantic-disabled-surface: #2d2b28; // Fill of a disabled control. Exempt from contrast minimums per WCAG 1.4.3.
+$semantic-skeleton: #3a3834; // Loading placeholder fill. Non-text role.
 $semantic-overlay: rgba(0, 0, 0, 0.6); // Scrim behind a modal layer. Non-text role.
-$semantic-hatch: #312f37; // Hatch stripe marking a region that is not data. One step off the surface it sits on — never raise it further, it is a texture, not a message.
-$semantic-corner-mark: #8a857f; // Corner registration marks. Non-text role.
+$semantic-hatch: #3a3834; // Hatch stripe marking a region that is not data. One step off the surface it sits on — never raise it further, it is a texture, not a message.
+$semantic-corner-mark: #94928e; // Corner registration marks. Non-text role.
 $semantic-shadow-hairline: rgba(0, 0, 0, 0.3); // Shadow colour for the 1px contact shadow under a resting control.
 $semantic-shadow-contact: rgba(0, 0, 0, 0.4); // Shadow colour for separated and floating layers. Darker on dark, where a shadow has to work harder.
-$semantic-success-surface: rgba(78, 214, 154, 0.12); // Success tinted fill for badges and callouts — the success hue at low alpha. Non-text role.
-$semantic-success-border: rgba(78, 214, 154, 0.35); // Success outline for badges and callouts. Non-text role.
-$semantic-warning-surface: rgba(232, 192, 90, 0.12); // Warning tinted fill for badges and callouts — the warning hue at low alpha. Non-text role.
-$semantic-warning-border: rgba(232, 192, 90, 0.35); // Warning outline for badges and callouts. Non-text role.
-$semantic-danger-surface: rgba(244, 134, 127, 0.12); // Danger tinted fill for badges and callouts — the danger hue at low alpha. Non-text role.
-$semantic-danger-border: rgba(244, 134, 127, 0.35); // Danger outline for badges and callouts. Non-text role.
-$semantic-info-surface: rgba(143, 201, 245, 0.12); // Info tinted fill for badges and callouts — the info hue at low alpha. Non-text role.
-$semantic-info-border: rgba(143, 201, 245, 0.35); // Info outline for badges and callouts. Non-text role.
-$semantic-danger-foreground: #1b1a1e; // Text and icons on a danger fill. Inverts with the fill, like primary-foreground.
-$semantic-warning-on-dark: #e8c05a; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
-$semantic-danger-on-dark: #f4867f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
-$semantic-info-on-dark: #8fc9f5; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-success-surface: rgba(91, 210, 149, 0.12); // Success tinted fill for badges and callouts — the success hue at low alpha. Non-text role.
+$semantic-success-border: rgba(91, 210, 149, 0.35); // Success outline for badges and callouts. Non-text role.
+$semantic-warning-surface: rgba(239, 192, 91, 0.12); // Warning tinted fill for badges and callouts — the warning hue at low alpha. Non-text role.
+$semantic-warning-border: rgba(239, 192, 91, 0.35); // Warning outline for badges and callouts. Non-text role.
+$semantic-danger-surface: rgba(245, 128, 127, 0.12); // Danger tinted fill for badges and callouts — the danger hue at low alpha. Non-text role.
+$semantic-danger-border: rgba(245, 128, 127, 0.35); // Danger outline for badges and callouts. Non-text role.
+$semantic-info-surface: rgba(117, 196, 250, 0.12); // Info tinted fill for badges and callouts — the info hue at low alpha. Non-text role.
+$semantic-info-border: rgba(117, 196, 250, 0.35); // Info outline for badges and callouts. Non-text role.
+$semantic-danger-foreground: #151411; // Text and icons on a danger fill. Inverts with the fill, like primary-foreground: white on the light-theme red, near-black on the dark-theme salmon.
+$semantic-warning-on-dark: #efc05b; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-danger-on-dark: #f5807f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-info-on-dark: #75c4fa; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

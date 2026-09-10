@@ -101,8 +101,8 @@ StyleDictionary.registerFormat({
 
     // token.original holds the pre-resolution values, so alias references
     // survive Style Dictionary's parse-time resolution and are emitted as
-    // var() indirections — required for mode-aware primitives (e.g. light
-    // accent.base flowing into --color-primary via var(--color-accent-base)).
+    // var() indirections, required for mode-aware primitives (e.g. the ink
+    // roles --color-link and --color-focus flowing from --color-accent-base).
     // Typography composites (type.role.*) expand to one custom property per
     // DTCG sub-property.
     const expanded = [];

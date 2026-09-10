@@ -889,7 +889,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
   inset-block: 2px;
   width: 2px;
   border-radius: var(--radius-full);
-  background: var(--color-primary);
+  background: var(--color-link); /* the ink, not the primary fill: on dark the fill misses 3:1 against the sidebar */
 }
 .nav-item[aria-current="page"] .icon, .nav-item.active .icon { color: currentColor; }
 .nav-item .badge { margin-inline-start: auto; }
