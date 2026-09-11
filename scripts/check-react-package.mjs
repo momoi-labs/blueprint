@@ -34,6 +34,7 @@ try {
   assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
   assert(!/fonts\.googleapis\.com/.test(css),
     'ui.css must not @import Google Fonts; nested @import breaks after tokens when flattened');
+  assert.match(css, /\.app-shell\[data-layout=["']topbar["']\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   const reactStyles = await readFile(
     path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist/styles.css'), 'utf8');
   assert.match(reactStyles,
@@ -140,11 +141,27 @@ try {
       header: h('span', null, 'Healthy'),
     }, h('section', null, 'Overview')));
     assert.match(applicationShell, /class="app-shell"/);
+    assert.doesNotMatch(applicationShell, /data-layout="topbar"/);
     assert.match(applicationShell, /<aside [^>]*class="sidebar"/);
     assert.match(applicationShell, /aria-label="Primary"/);
     assert.match(applicationShell, /aria-current="page"[^>]*href="#app-1"/);
     assert.match(applicationShell, /<header [^>]*class="topbar"><span>Healthy/);
     assert.match(applicationShell, /<main [^>]*class="grow"/);
+    const topbarShell = render(h(ApplicationShell, {
+      layout: 'topbar',
+      brand: h('span', null, 'Organizeitor'),
+      primaryAction: h('button', { type: 'button' }, 'Criar projeto'),
+      header: h('span', null, 'Meus cards'),
+    }, h('section', null, 'Board')));
+    assert.match(topbarShell, /data-layout="topbar"/);
+    assert.doesNotMatch(topbarShell, /class="sidebar"/);
+    assert.doesNotMatch(topbarShell, /aria-label="Primary"/);
+    assert.match(topbarShell, /<header [^>]*class="topbar"/);
+    assert.match(topbarShell, /<span>Organizeitor<[/]span>/);
+    assert.match(topbarShell, /<button type="button">Criar projeto<[/]button>/);
+    assert.match(topbarShell, /<span>Meus cards<[/]span>/);
+    assert.match(topbarShell, /<main [^>]*class="grow"/);
+    assert.match(topbarShell, /<section>Board<[/]section>/);
     assert.equal(typeof Toasts, 'function');
     assert.equal(typeof useToast, 'function');
     assert.match(render(h(Dot, { variant: 'success', size: 'lg', pulse: true })),
