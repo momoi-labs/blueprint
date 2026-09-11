@@ -35,8 +35,9 @@ Tokens: page canvas `--color-background`, widgets `--color-surface` with
 semantic colors, focus `--color-focus`. Prefer quiet surfaces and strong
 hierarchy ([principles](../principles.md)).
 
-Charts are out of scope for this epic; when charts exist later, they sit inside
-Card like any other widget payload.
+[Sparkline](../components/sparkline.md) carries metric shape inside Cards and
+table cells; it composes like any other widget payload. An interactive framed
+chart remains deferred.
 
 ## Flow
 

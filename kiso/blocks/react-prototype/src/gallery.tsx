@@ -119,6 +119,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   Skeleton,
+  Sparkline,
   Spinner,
   Split,
   Splitter,
@@ -204,6 +205,7 @@ const catalog = [
   ],
   ["empty-state", "EmptyState", "Data", "No items and a useful next action."],
   ["stat", "Stat", "Data", "One figure and how it is moving."],
+  ["sparkline", "Sparkline", "Data", "One metric's shape at cell size."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
@@ -338,6 +340,8 @@ const snippets: Record<string, string> = {
     '<CommandPalette open={open} onOpenChange={setOpen}>\n  <CommandPaletteInput value={query} onChange={(e) => setQuery(e.target.value)} />\n  <CommandPaletteList>\n    <CommandPaletteGroup heading="Navigation">\n      <CommandPaletteItem onSelect={openOverview}>Open overview</CommandPaletteItem>\n    </CommandPaletteGroup>\n  </CommandPaletteList>\n</CommandPalette>',
   dot: '<span className="row success t-label">\n  <Dot pulse />\n  <span className="fg">Platform healthy</span>\n</span>',
   stat: "<Stat>\n  <StatHeader>\n    <StatLabel>Projects</StatLabel>\n    <StatDelta variant=\"success\">+2</StatDelta>\n  </StatHeader>\n  <StatValue>4</StatValue>\n  <StatFoot>3 active \u00b7 1 archived</StatFoot>\n</Stat>",
+  sparkline:
+    '<Sparkline values={cpu} height={28} tone="primary" fill\n  label="CPU, last 5 minutes, 10-second ticks" />\n<Sparkline values={memory} height={18} />',
   kv: "<KV>\n  <KVKey>Owner</KVKey>\n  <KVValue>Alex Morgan</KVValue>\n</KV>",
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
@@ -1762,6 +1766,53 @@ function Demo({
           </Card>
         </div>
       );
+    case "sparkline": {
+      const cpu = [40, 44, 42, 48, 46, 52, 50, 55, 53, 58, 56, 60, 58, 62];
+      const rows = [
+        { name: "web", values: [12, 14, 13, 16, 18, 17, 21, 24, 23, 27] },
+        { name: "db", values: [30, 28, 29, 24, 22, 23, 18, 16, 14, 12] },
+        { name: "cache", values: [8, 9, 8, 10, 9, 11, 10, 9, 10, 9] },
+      ];
+      return (
+        <div className="stack-sm">
+          <Card>
+            <Stat>
+              <StatHeader>
+                <StatLabel>CPU</StatLabel>
+                <StatDelta variant="warning">62%</StatDelta>
+              </StatHeader>
+              <StatValue>62%</StatValue>
+              <Sparkline
+                values={cpu}
+                height={28}
+                tone="primary"
+                fill
+                label="CPU, last 5 minutes, 10-second ticks"
+              />
+            </Stat>
+          </Card>
+          <div className="demo-row">
+            {rows.map((row) => (
+              <div className="row t-label" key={row.name}>
+                <span style={{ width: 72, flex: "none" }}>
+                  <Sparkline values={row.values} height={18} min={0} max={100} />
+                </span>
+                {row.name}
+              </div>
+            ))}
+          </div>
+          <p className="muted t-label">
+            The rows share one scale, so the shapes compare honestly.
+          </p>
+          <div className="row t-label">
+            <span style={{ width: 72, flex: "none" }}>
+              <Sparkline values={[42]} height={18} min={0} max={100} />
+            </span>
+            one sample draws nothing
+          </div>
+        </div>
+      );
+    }
     case "kv":
       return (
         <Card>

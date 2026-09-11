@@ -54,7 +54,7 @@ try {
       Alert, AlertTitle, AlertDescription, Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage,
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
-      Search, Select, Sidebar, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, Tooltip,
+      Search, Select, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
       ValidationMessage, ApplicationShell,
       AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast,
@@ -159,6 +159,16 @@ try {
     assert.match(stat, /class="stat">/);
     assert.match(stat, /class="stat-label">Applications<[/]span>/);
     assert.match(stat, /class="stat-value">4<[/]span>/);
+    // A named Sparkline is role="img"; an unnamed one is decoration. Below two
+    // samples it draws nothing at all.
+    const spark = render(h(Sparkline, { values: [1, 2] }));
+    assert.match(spark, /class="sparkline"/);
+    assert.match(spark, /aria-hidden="true"/);
+    assert.match(render(h(Sparkline, { values: [1, 2], label: 'CPU, last 5 minutes' })),
+      /role="img"/);
+    assert.match(render(h(Sparkline, { values: [1, 2], tone: 'primary', height: 18 })),
+      /data-tone="primary"/);
+    assert.equal(render(h(Sparkline, { values: [4] })), '');
     // The divider is a real separator, so it is reachable and resizable without a pointer.
     const splitter = render(h(Split, null, h(Pane, null, 'list'), h(Splitter, { defaultSize: 42 })));
     assert.match(splitter, /class="split"><div [^>]*class="pane">list/);

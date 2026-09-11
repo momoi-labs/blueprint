@@ -36,6 +36,7 @@ behavioral reference where one exists.
 - [KV](kv.md): Describes one object through named facts.
 - [LogView](log-view.md): Displays scrollable log output with follow-tail behavior.
 - [Search](search.md): Filters visible content such as a list or table.
+- [Sparkline](sparkline.md): Draws the shape of one metric series at cell size.
 - [Stat](stat.md): Presents a named metric with optional change and context.
 - [Table / DataTable](table.md): Presents structured records with optional sorting, selection, filtering, and pagination.
 

@@ -218,7 +218,9 @@ Alert.
   or PageHeader — not a one-row table.
 - **Hierarchical location.** Breadcrumb (navigation slice).
 - **Free-form layout.** Cards or a custom panel; tables imply comparison.
-- **Charts.** Deferred to v2; do not stretch Table into a graph.
+- **Charts.** Do not stretch Table into a graph. A per-row
+  [Sparkline](sparkline.md) trend inside one cell is fine; the table itself
+  stays a table.
 - **Global actions / jump-to.** [CommandPalette](command-palette.md), not a
   table of commands.
 - **Filtering UI embedded as magic columns.** Use Search + filters in the
