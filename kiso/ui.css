@@ -1130,9 +1130,24 @@ pre::after {
 .splitter::after { content: ""; position: absolute; inset-block: 0; inset-inline: -3px; }
 .splitter:hover, .splitter.dragging { background: var(--color-ring); }
 
-/* Chart frame: neutral only, gridlines at border strength. */
+/* Chart frame: deliberate presentation, one featured series in primary,
+   gridlines at border strength. The area is the line color at low opacity, a
+   flat token fill: no document-level gradient id for a component to forget
+   to define. Supporting, incidental series belong in `.sparkline` instead. */
 .chart { width: 100%; height: 200px; display: block; overflow: visible; color: var(--color-primary); }
 .chart .grid { stroke: var(--color-border); stroke-width: 1; }
-.chart .line { fill: none; stroke: var(--color-primary); stroke-width: 1.5; }
-.chart .area { fill: url(#chart-fill); }
+.chart .line { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.chart .area { fill: currentColor; fill-opacity: 0.12; }
 .chart-axis { display: flex; justify-content: space-between; font-size: var(--type-size-metadata); color: var(--color-subtle-foreground); margin-block-start: var(--spacing-sm); }
+
+/* Sparkline — one metric series at cell size (issue #84). No axis, no grid,
+   no legend, no tooltip: the number beside the line carries the precision,
+   the line carries the shape. Recharts draws the path; the frame owns only
+   display, width, and the color tokens. Neutral is the voice of an
+   incidental series in a table cell, `--color-border-strong` like `.bars`;
+   `.primary` marks the series a tile is about, so at most one sibling
+   raises its voice. Fewer than two samples draws nothing — a flat rule
+   across a cell reads as a border, not as a measurement. */
+.sparkline { display: block; width: 100%; color: var(--color-border-strong); }
+.sparkline.primary { color: var(--color-primary); }
+.sparkline svg { display: block; overflow: visible; }

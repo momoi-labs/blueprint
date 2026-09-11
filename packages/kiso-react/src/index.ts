@@ -32,6 +32,7 @@ export * from "./select.js";
 export * from "./separator.js";
 export * from "./sidebar.js";
 export * from "./skeleton.js";
+export * from "./sparkline.js";
 export * from "./spinner.js";
 export * from "./split.js";
 export * from "./stat.js";
