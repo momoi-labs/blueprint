@@ -1,5 +1,42 @@
 # @momoi-labs/kiso
 
+## 0.8.0
+
+### Minor Changes
+
+- 7421123: add ChipInput for multi-value fields with per-value options
+
+  A field that collects several structured values, each rendered as a chip that
+  reads like a call: scope, name, value, then one segment per option as
+  `name=value` or `name=[a, b]`. The value and the options edit in place.
+
+- b0e9f03: add Sparkline for single-series metric trends
+
+  The self-host console needed the shape of one metric at cell size three
+  times over, which is the evidence the v1 chart deferral asked for. The
+  component draws one series with Recharts using tokens only: neutral by
+  default, tone="primary" for the series a tile is about, nothing drawn below
+  two samples. The ui.css chart area becomes a flat token fill, removing the
+  document-level gradient id no component defined.
+
+- 87775cb: dedicated warm dark ramp ("Sumi") and accent ink/fill split
+
+  The dark theme no longer borrows the cold, purple-leaning tail of the light
+  neutral ramp. It draws surfaces from a dedicated `color.dark.50-950` ramp in
+  the light ramp's warm hue, with enough layer spacing for the sidebar to sink
+  below the canvas and cards to lift above it.
+
+  The accent splits into two roles: a text-eligible light ink
+  (`--color-accent-base`, consumed by `--color-link` and `--color-focus`) and a
+  deep violet fill (`--color-primary` and its hover and surface tints) that
+  keeps near-white text. Status dark steps and their tint/border alphas are
+  recalibrated, and `--color-primary` is no longer text-eligible on dark, so
+  ink-level affordances (links, focus rings, the nav rail) draw with the ink
+  instead.
+
+  No custom property is removed or renamed, so existing consumers keep working;
+  the new `--color-dark-*` steps are additive.
+
 ## 0.7.1
 
 ### Patch Changes
