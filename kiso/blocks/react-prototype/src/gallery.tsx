@@ -228,7 +228,7 @@ const catalog = [
     "app-shell",
     "ApplicationShell",
     "Structure",
-    "The shared frame, navigation and main column of a console.",
+    "Console with a sidebar rail, or a single-surface top bar.",
   ],
   [
     "split",
@@ -347,7 +347,7 @@ const snippets: Record<string, string> = {
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
   "app-shell":
-    '<ApplicationShell brand={brand} navigation={groups} header={header}>\n  {page}\n</ApplicationShell>',
+    '<ApplicationShell brand={brand} navigation={groups} header={header}>\n  {page}\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
 };
 
 function ToastDemoButton() {
@@ -1653,42 +1653,69 @@ function Demo({
       return <CommandPaletteDemo />;
     case "app-shell":
       return (
-        <ApplicationShell
-          className="gallery-shell-preview"
-          brand={
-            <div className="brand">
-              <BrandMark>
-                <TerminalIcon />
-              </BrandMark>
-              <span className="t-label">Kiso 基礎</span>
+        <div className="stack-sm">
+          <ApplicationShell
+            className="gallery-shell-preview"
+            brand={
+              <div className="brand">
+                <BrandMark>
+                  <TerminalIcon />
+                </BrandMark>
+                <span className="t-label">Kiso 基礎</span>
+              </div>
+            }
+            navigation={[{
+              destinations: [
+                { href: "#components/app-shell", active: true, label: "Overview" },
+                { href: "#components/sidebar", label: "Projects" },
+              ],
+            }]}
+            navigationLabel="Example shell navigation"
+            header={
+              <>
+                <nav className="breadcrumb" aria-label="Example shell breadcrumb">
+                  <a href="#components/app-shell">Workspace</a>
+                  <span aria-hidden="true">/</span>
+                  <span aria-current="page">Overview</span>
+                </nav>
+                <span className="row success t-label">
+                  <Dot pulse />
+                  <span className="fg">Healthy</span>
+                </span>
+              </>
+            }
+          >
+            <div className="gallery-shell-page">
+              <h3 className="t-h3">Overview</h3>
+              <p className="muted t-label">Console layout with a sidebar rail.</p>
             </div>
-          }
-          navigation={[{
-            destinations: [
-              { href: "#components/app-shell", active: true, label: "Overview" },
-              { href: "#components/sidebar", label: "Projects" },
-            ],
-          }]}
-          navigationLabel="Example shell navigation"
-          header={
-            <>
-              <nav className="breadcrumb" aria-label="Example shell breadcrumb">
-                <a href="#components/app-shell">Workspace</a>
-                <span aria-hidden="true">/</span>
-                <span aria-current="page">Overview</span>
-              </nav>
-              <span className="row success t-label">
-                <Dot pulse />
-                <span className="fg">Healthy</span>
-              </span>
-            </>
-          }
-        >
-          <div className="gallery-shell-page">
-            <h3 className="t-h3">Overview</h3>
-            <p className="muted t-label">The page renders in this column.</p>
-          </div>
-        </ApplicationShell>
+          </ApplicationShell>
+          <ApplicationShell
+            layout="topbar"
+            className="gallery-shell-preview"
+            brand={
+              <div className="brand">
+                <BrandMark>
+                  <TerminalIcon />
+                </BrandMark>
+                <span className="t-label">Organizeitor</span>
+              </div>
+            }
+            primaryAction={
+              <Button variant="primary" size="sm">
+                Create project
+              </Button>
+            }
+            header={
+              <span className="muted t-label grow">Board chrome in the top bar</span>
+            }
+          >
+            <div className="gallery-shell-page">
+              <h3 className="t-h3">Board</h3>
+              <p className="muted t-label">Single-surface layout without a rail.</p>
+            </div>
+          </ApplicationShell>
+        </div>
       );
     case "split":
       return (

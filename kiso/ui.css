@@ -842,6 +842,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 .pagination .btn[aria-current="page"] { background: var(--color-secondary); }
 
 .app-shell { display: grid; grid-template-columns: var(--size-sidebar) minmax(0, 1fr); min-height: 100vh; }
+.app-shell[data-layout="topbar"] { grid-template-columns: minmax(0, 1fr); }
 .sidebar {
   display: flex; flex-direction: column;
   min-width: 0;

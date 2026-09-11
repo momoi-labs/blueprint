@@ -48,61 +48,116 @@ type ApplicationShellGroup = {
   empty?: React.ReactNode
 }
 
-type ApplicationShellProps = Omit<React.ComponentProps<typeof AppShell>, "children"> & {
+type ApplicationShellSharedProps = Omit<
+  React.ComponentProps<typeof AppShell>,
+  "children"
+> & {
   brand: React.ReactNode
   primaryAction?: React.ReactNode
-  navigation: readonly ApplicationShellGroup[]
-  navigationLabel?: string
-  footer?: React.ReactNode
   header?: React.ReactNode
   children: React.ReactNode
 }
 
-function ApplicationShell({
-  brand,
-  primaryAction,
+type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
+  layout?: "sidebar"
+  navigation: readonly ApplicationShellGroup[]
+  navigationLabel?: string
+  footer?: React.ReactNode
+}
+
+type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
+  layout: "topbar"
+  navigation?: never
+  navigationLabel?: never
+  footer?: never
+}
+
+type ApplicationShellProps =
+  | ApplicationShellSidebarProps
+  | ApplicationShellTopbarProps
+
+function ApplicationShellNavigation({
   navigation,
-  navigationLabel = "Primary",
-  footer,
-  header,
-  children,
-  ...props
-}: ApplicationShellProps) {
+  navigationLabel,
+}: {
+  navigation: readonly ApplicationShellGroup[]
+  navigationLabel: string
+}) {
   return (
-    <AppShell {...props}>
+    <Navigation aria-label={navigationLabel}>
+      {navigation.map((group, groupIndex) => (
+        <NavigationGroup key={group.label ?? groupIndex} label={group.label}>
+          {group.destinations.length > 0 ? (
+            <NavigationList>
+              {group.destinations.map((destination, destinationIndex) => (
+                <NavigationItem key={`${destination.href}-${destinationIndex}`}>
+                  <NavigationLink
+                    href={destination.href}
+                    active={destination.active}
+                    onClick={(event) => {
+                      if (!destination.onClick) return
+                      event.preventDefault()
+                      destination.onClick()
+                    }}
+                  >
+                    {destination.leading}
+                    <span className="grow truncate">{destination.label}</span>
+                    {destination.trailing}
+                  </NavigationLink>
+                </NavigationItem>
+              ))}
+            </NavigationList>
+          ) : (
+            group.empty
+          )}
+        </NavigationGroup>
+      ))}
+    </Navigation>
+  )
+}
+
+function ApplicationShell(props: ApplicationShellProps) {
+  if (props.layout === "topbar") {
+    const { brand, primaryAction, header, children, layout: _layout, ...shellProps } =
+      props
+    return (
+      <AppShell {...shellProps} data-layout="topbar">
+        <AppShellMain>
+          <Header>
+            {brand}
+            {primaryAction}
+            {header}
+          </Header>
+          {children}
+        </AppShellMain>
+      </AppShell>
+    )
+  }
+
+  const {
+    brand,
+    primaryAction,
+    navigation,
+    navigationLabel = "Primary",
+    footer,
+    header,
+    children,
+    layout: _layout,
+    ...shellProps
+  } = props
+
+  return (
+    <AppShell {...shellProps}>
       <Sidebar>
         <SidebarHeader>
           {brand}
           {primaryAction}
         </SidebarHeader>
         <SidebarBody>
-          <Navigation aria-label={navigationLabel}>
-            {navigation.map((group, groupIndex) => (
-              <NavigationGroup key={group.label ?? groupIndex} label={group.label}>
-                {group.destinations.length > 0 ? (
-                  <NavigationList>
-                    {group.destinations.map((destination, destinationIndex) => (
-                      <NavigationItem key={`${destination.href}-${destinationIndex}`}>
-                        <NavigationLink
-                          href={destination.href}
-                          active={destination.active}
-                          onClick={(event) => {
-                            if (!destination.onClick) return
-                            event.preventDefault()
-                            destination.onClick()
-                          }}
-                        >
-                          {destination.leading}
-                          <span className="grow truncate">{destination.label}</span>
-                          {destination.trailing}
-                        </NavigationLink>
-                      </NavigationItem>
-                    ))}
-                  </NavigationList>
-                ) : group.empty}
-              </NavigationGroup>
-            ))}
-          </Navigation>
+          <ApplicationShellNavigation
+            navigation={navigation}
+            navigationLabel={navigationLabel}
+          />
         </SidebarBody>
         {footer && <SidebarFooter>{footer}</SidebarFooter>}
       </Sidebar>

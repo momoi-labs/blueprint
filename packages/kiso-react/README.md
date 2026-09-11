@@ -62,7 +62,8 @@ Data and structure
 - Sidebar, SidebarHeader, SidebarBody, SidebarFooter.
 - AppShell and AppShellMain, the low-level columns of a console.
 - ApplicationShell, the standard brand, navigation, header, footer, and page
-  arrangement.
+  arrangement. Pass `layout="topbar"` for a single-surface frame with brand and
+  primary action in the top bar and no sidebar rail.
 - Split, Pane, and Splitter, a list-detail layout with a resizable divider.
 - LogView, LogViewLine, LogViewTime, and LogViewLevel.
 - Stat, StatHeader, StatLabel, StatValue, StatFoot, and StatDelta.
@@ -119,9 +120,11 @@ const notify = useToast();
 notify('error', `Could not stop ${app.name}`, details);
 ```
 
-ApplicationShell takes navigation groups as data. Destinations keep routing in
-the product through `{ href, active, onClick? }`; the package owns the repeated
-Sidebar, Navigation, Header, and main arrangement.
+ApplicationShell takes navigation groups as data in the default sidebar layout.
+Destinations keep routing in the product through `{ href, active, onClick? }`;
+the package owns the repeated Sidebar, Navigation, Header, and main
+arrangement. With `layout="topbar"`, omit navigation and footer: brand and
+primary action move into Header beside the existing header slot.
 
 Navigation, Sidebar, and Link know nothing about routing. Mark the current
 destination with `active`, and pass `asChild` to render a router's own link
