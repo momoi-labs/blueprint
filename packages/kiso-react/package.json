@@ -1,6 +1,6 @@
 {
   "name": "@momoi-labs/kiso-react",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Kiso React components built with shadcn/ui and Radix",
   "type": "module",
   "license": "MIT",
