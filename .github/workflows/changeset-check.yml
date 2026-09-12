@@ -1,0 +1,29 @@
+name: Changeset check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'packages/**'
+      - 'kiso/**'
+      - 'tokens/**'
+      - '.changeset/**'
+      - 'scripts/check-changeset.mjs'
+      - '.github/workflows/changeset-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Require a changeset for package changes
+    if: github.head_ref != 'changeset-release/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/check-changeset.mjs origin/${{ github.base_ref }}
