@@ -22,6 +22,7 @@
     "build:packages": "npm run build --workspace=@momoi-labs/kiso && npm run build --workspace=@momoi-labs/kiso-react",
     "build:demo": "npm run build:packages && npm run build --workspace=kiso-react-prototype",
     "check:react": "npm run build:demo && node scripts/check-react-package.mjs",
+    "check:changeset": "node scripts/check-changeset.mjs",
     "version:packages": "changeset version && npm install --package-lock-only"
   },
   "devDependencies": {
