@@ -3,12 +3,6 @@ name: Release
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      confirm_publish:
-        description: "Type publish-kiso to publish the prepared version"
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -18,34 +12,8 @@ permissions:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  version:
-    name: Prepare Kiso release
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-          registry-url: https://registry.npmjs.org
-      - run: npm ci
-      - run: npm audit --audit-level=low
-      - run: npm run check
-      - run: npm run check:react
-      - uses: changesets/action@v1
-        with:
-          version: npm run version:packages
-          title: "chore: release kiso"
-          commit: "chore: release kiso"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    name: Publish Kiso
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_publish == 'publish-kiso'
+  release:
+    name: Version or publish Kiso
     runs-on: ubuntu-latest
     environment: npm
     steps:
@@ -61,9 +29,12 @@ jobs:
       - run: npm audit --audit-level=low
       - run: npm run check
       - run: npm run check:react
-      - name: Publish packages and push release tags
+      - name: Open the version PR or publish merged versions
         uses: changesets/action@v1
         with:
+          version: npm run version:packages
           publish: npm run release
+          title: "chore: release kiso"
+          commit: "chore: release kiso"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
