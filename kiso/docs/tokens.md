@@ -311,3 +311,29 @@ Published releases expose the artifacts as `@momoi-labs/kiso/tokens.css`,
 `@momoi-labs/kiso/tokens.d.ts`. Kiso's Markdown contracts are available below
 `@momoi-labs/kiso/contracts/` so consumers can pin the contracts and generated
 tokens to the same version.
+
+## Categorical chart colors
+
+Issue #93 adds `--color-chart-1` through `--color-chart-5` for series identity.
+The roles derive from accent.base, status.success, status.warning, status.info,
+and status.danger, in that order. Their meaning inside a chart is categorical,
+never health or severity. Existing status roles keep their meaning elsewhere.
+
+Each slot meets 3:1 on background, surface, and elevated-surface in both
+themes, enforced by the contrast gate. Lines use full-opacity strokes; area
+fills are secondary at 0.2 opacity. Every series also has a numbered label,
+an interactive highlight, a legend value, and exact sample values. Do not
+use filled bands or hue alone to identify data. Five slots cover pg-probe;
+the epic's proposed eight-slot headroom is deferred until needed.
+
+The palette gate also checks Oklab lightness bands (0.40 to 0.65 in light mode,
+0.70 to 0.90 in dark mode), chroma of at least 0.08, all-pair normal-vision
+distance of at least 0.10, and adjacent-pair distance of at least 0.05 under
+full protanopia and deuteranopia simulation. These are product regression
+floors, not accessibility standards or a guarantee of hue discrimination.
+Keep the canonical slot order in stacks; changing adjacency needs review.
+
+The calculation uses [Oklab](https://bottosson.github.io/posts/oklab/) and
+[Machado's simulation model](https://pubmed.ncbi.nlm.nih.gov/19834201/).
+Run `node scripts/check-chart-palette.mjs` for both themes. Numbered labels,
+highlighting, and tables remain required even when these checks pass.

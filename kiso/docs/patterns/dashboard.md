@@ -16,7 +16,7 @@ tables, or dedicated tool routes.
 
 | Region | Compose with | Role |
 | --- | --- | --- |
-| Page framing | [PageHeader](../components/page-header.md) | Dashboard title; optional time-range or environment [Select](../components/select.md); optional refresh [IconButton](../components/icon-button.md) / [Button](../components/button.md) |
+| Page framing | [PageHeader](../components/page-header.md) | Dashboard title; optional [TimeRangeControl](../components/time-range-control.md) or environment [Select](../components/select.md); optional refresh [IconButton](../components/icon-button.md) / [Button](../components/button.md) |
 | Widget unit | [Card](../components/card.md) | One concern per Card (metric cluster, short table, status list) |
 | Status | [Badge](../components/badge.md) | Compact health/severity labels inside Cards |
 | Dense lists | [Table / DataTable](../components/table.md) | Short "needs attention" tables — still compose Search/EmptyState/Pagination only when those behaviors are truly present |
@@ -36,8 +36,11 @@ semantic colors, focus `--color-focus`. Prefer quiet surfaces and strong
 hierarchy ([principles](../principles.md)).
 
 [Sparkline](../components/sparkline.md) carries metric shape inside Cards and
-table cells; it composes like any other widget payload. An interactive framed
-chart remains deferred.
+table cells; it composes like any other widget payload. Use
+[Chart](../components/chart.md) with its legend and exact-values table for
+exploratory metrics. Share a timestamp grid, time range, and syncId across
+related panels. Compose [DashboardGrid](../components/dashboard-grid.md) and
+[Disclosure](../components/disclosure.md) for responsive panel groups.
 
 ## Flow
 

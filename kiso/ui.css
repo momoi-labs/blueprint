@@ -1010,7 +1010,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .logview .log-error{ color: var(--color-danger-on-dark); }
 .logview .log-info { color: var(--color-info-on-dark); }
 
-/* Sparkline / bar chart placeholders, neutral-only per the brand rules. */
+/* Legacy compact bars remain neutral. Framed charts use categorical roles. */
 .bars { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
 .bars i { flex: 1; background: var(--color-border-strong); border-radius: var(--radius-xs); }
 .bars i.on { background: var(--color-primary); }
@@ -1131,10 +1131,8 @@ pre::after {
 .splitter::after { content: ""; position: absolute; inset-block: 0; inset-inline: -3px; }
 .splitter:hover, .splitter.dragging { background: var(--color-ring); }
 
-/* Chart frame: deliberate presentation, one featured series in primary,
-   gridlines at border strength. The area is the line color at low opacity, a
-   flat token fill: no document-level gradient id for a component to forget
-   to define. Supporting, incidental series belong in `.sparkline` instead. */
+/* Legacy single-series SVG helpers. Interactive metrics use .framed-chart
+   below; these selectors remain compatible with existing consumers. */
 .chart { width: 100%; height: 200px; display: block; overflow: visible; color: var(--color-primary); }
 .chart .grid { stroke: var(--color-border); stroke-width: 1; }
 .chart .line { fill: none; stroke: currentColor; stroke-width: 1.5; }
@@ -1152,3 +1150,76 @@ pre::after {
 .sparkline { display: block; width: 100%; color: var(--color-border-strong); }
 .sparkline.primary { color: var(--color-primary); }
 .sparkline svg { display: block; overflow: visible; }
+
+/* Metrics dashboard, issue #93. Series colors encode identity, not status. */
+.framed-chart { margin: 0; display: grid; gap: var(--spacing-sm); min-width: 0; }
+.chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.chart-plot { width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
+.chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.chart-empty { display: grid; place-items: center; padding: var(--spacing-md); color: var(--color-muted-foreground); }
+.chart-table-scroll { max-width: 100%; overflow-x: auto; }
+.chart-table { width: 100%; border-collapse: collapse; font-size: var(--type-size-label); font-variant-numeric: tabular-nums; }
+.chart-table caption { text-align: start; color: var(--color-muted-foreground); padding-block: var(--spacing-xs); }
+.chart-table th, .chart-table td { padding: var(--spacing-xs) var(--spacing-sm); border-bottom: 1px solid var(--color-border); white-space: nowrap; text-align: end; }
+.chart-table th:first-child { text-align: start; }
+.chart-table th { font-weight: var(--type-weight-medium); }
+.chart-series-label { display: inline-flex; align-items: center; gap: var(--spacing-xs); }
+.chart-series-label svg { flex: none; }
+.chart-inspection { padding: var(--spacing-sm); border: 1px solid var(--color-border); background: var(--color-elevated-surface); color: var(--color-foreground); box-shadow: var(--shadow-md); font-size: var(--type-size-label); }
+.chart-inspection dl { display: grid; grid-template-columns: auto auto; gap: var(--spacing-xs) var(--spacing-md); margin-block: var(--spacing-xs) 0; }
+.chart-inspection dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }
+.meter, .bar-gauge { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.bar-gauge { gap: var(--spacing-md); }
+.meter-label { display: flex; justify-content: space-between; gap: var(--spacing-md); font-size: var(--type-size-label); }
+.meter-label > :last-child { text-align: end; font-variant-numeric: tabular-nums; }
+.meter-track { height: calc(var(--spacing-xs) + var(--spacing-2xs)); border-radius: var(--radius-xs); background-color: var(--color-secondary); overflow: hidden; }
+.meter-track > span { display: block; height: 100%; background: var(--color-secondary-foreground); }
+.disclosure { min-width: 0; }
+.disclosure > summary { padding: var(--spacing-sm) 0; cursor: pointer; font-weight: var(--type-weight-medium); }
+.disclosure > summary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.disclosure-content { padding: var(--spacing-sm) 0; }
+.time-range-trigger { justify-self: start; width: fit-content; max-width: 100%; white-space: normal; height: auto; min-height: var(--size-control-md); text-align: start; }
+.time-range-content { width: min(26rem, calc(100vw - 2 * var(--spacing-md))); }
+.time-range-presets { display: grid; gap: var(--spacing-xs); }
+.time-range-presets > button { height: auto; min-height: var(--size-touch-min); display: flex; align-items: flex-start; flex-direction: column; text-align: start; }
+.time-range-presets small { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
+.meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--spacing-lg); }
+.dashboard-panel { grid-column: span var(--dashboard-span, 6); min-width: 0; }
+@media (max-width: 1024px) {
+  .dashboard-panel { grid-column: span 6; }
+  .dashboard-panel[data-span="12"] { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-panel, .dashboard-panel[data-span="12"] { grid-column: 1; }
+}
+@media (pointer: coarse) {
+  .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
+}
+
+/* Chart presentation options. Exact values remain available in every layout. */
+.chart-body, .chart-plots { min-width: 0; }
+.framed-chart[data-legend="sidebar"] .chart-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 180px); gap: var(--spacing-lg); }
+.framed-chart[data-layout="compact"] { gap: var(--spacing-xs); }
+.chart-lane + .chart-lane { margin-top: var(--spacing-sm); }
+.chart-lane-heading { display: flex; justify-content: space-between; gap: var(--spacing-sm); font-size: var(--type-size-label); font-variant-numeric: tabular-nums; }
+.chart-legend { font-size: var(--type-size-label); }
+.chart-legend-caption { color: var(--color-muted-foreground); overflow-wrap: anywhere; }
+.chart-legend dl { margin: 0; }
+.chart-legend dl > div { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.chart-legend dd { margin: 0; font-variant-numeric: tabular-nums; }
+.chart-legend-inline { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm) var(--spacing-md); }
+.chart-legend-inline dl { display: flex; flex-wrap: wrap; gap: var(--spacing-sm) var(--spacing-lg); }
+.chart-legend-sidebar { border-left: 1px solid var(--color-border); padding-left: var(--spacing-md); }
+.chart-legend-sidebar dl { display: grid; gap: var(--spacing-sm); margin-top: var(--spacing-sm); }
+.chart-series-button { display: inline-flex; align-items: center; padding: var(--spacing-2xs) 0; border: 0; background: transparent; color: var(--color-foreground); font: inherit; text-align: start; cursor: pointer; }
+.chart-series-button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: var(--spacing-2xs); }
+.chart-series-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .framed-chart[data-legend="sidebar"] .chart-body { grid-template-columns: minmax(0, 1fr); }
+  .chart-legend-sidebar { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-border); padding-top: var(--spacing-sm); }
+}
+@media (pointer: coarse) {
+  .chart-series-button { min-height: var(--size-touch-min); min-width: var(--size-touch-min); }
+}

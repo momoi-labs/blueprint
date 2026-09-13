@@ -95,6 +95,11 @@ $semantic-danger-foreground: #151411; // Text and icons on a danger fill. Invert
 $semantic-warning-on-dark: #efc05b; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-danger-on-dark: #f5807f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-info-on-dark: #75c4fa; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-chart-1: #5b3fc4; // Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$semantic-chart-2: #5bd295; // Categorical chart series 2. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$semantic-chart-3: #efc05b; // Categorical chart series 3. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$semantic-chart-4: #75c4fa; // Categorical chart series 4. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$semantic-chart-5: #f5807f; // Categorical chart series 5. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

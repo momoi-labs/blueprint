@@ -8,7 +8,7 @@ import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts"
 import { clsx as cn } from "clsx"
 
 export type SparklineProps = Omit<React.ComponentProps<"div">, "ref"> & {
-  values: number[]
+  values: readonly (number | null)[]
   height?: number
   tone?: "neutral" | "primary"
   fill?: boolean
@@ -33,12 +33,13 @@ function Sparkline({
 }: SparklineProps) {
   // Below two samples there is no shape to show, and a flat rule across a
   // cell reads as a border rather than as a measurement.
-  if (values.length < 2) return null
+  const known = values.filter((value): value is number => value !== null && Number.isFinite(value))
+  if (known.length < 2) return null
 
   // Default domain is the data's own extent; pass min and max to make
   // sibling sparklines share one scale, so rows compare honestly.
-  let lo = min ?? Math.min(...values)
-  let hi = max ?? Math.max(...values)
+  let lo = min ?? Math.min(...known)
+  let hi = max ?? Math.max(...known)
   const pad = lo === hi ? Math.max(1, Math.abs(lo) * 0.1) : 0
   lo -= pad
   hi += pad
@@ -57,12 +58,13 @@ function Sparkline({
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          data={values.map((value) => ({ value }))}
+          data={values.map((value) => ({ value: value !== null && Number.isFinite(value) ? value : null }))}
           margin={{ top: 2, right: 0, bottom: 2, left: 0 }}
         >
           <YAxis hide domain={[lo, hi]} />
           <Area
             type="monotone"
+            connectNulls={false}
             dataKey="value"
             stroke="currentColor"
             strokeWidth={1.5}

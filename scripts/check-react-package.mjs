@@ -18,7 +18,7 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md']
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
       : ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
@@ -56,10 +56,19 @@ try {
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
       Search, Select, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
-      ValidationMessage, ApplicationShell,
+      ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
+      Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
+    for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
+      TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
+    const metrics = render(h(Chart, { label: 'CPU (%)',
+      series: [{ key: 'cpu', label: 'CPU' }],
+      data: [{ timestamp: 1000, values: { cpu: 0 } }, { timestamp: 2000, values: { cpu: null } }],
+    }));
+    assert.match(metrics, /Not collected/);
+    assert.match(metrics, /View exact values/);
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);
