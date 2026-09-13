@@ -22,6 +22,7 @@ const textRoles = new Map([
 const nonTextRoles = new Map([
   ['border-strong', 3],
   ['corner-mark', 3],
+  ...Array.from({ length: 5 }, (_, index) => [`chart-${index + 1}`, 3]),
 ]);
 
 // A foreground role painted on top of a filled role, not on a surface. This is

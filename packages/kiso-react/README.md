@@ -193,3 +193,49 @@ isolated consumer, including TypeScript, CSS bundling, and rendered semantics.
 
 See [Publishing Kiso](../../docs/publishing.md) for releases. Adapted shadcn/ui
 code retains its upstream MIT notice in `SHADCN-LICENSE`.
+
+## Metrics dashboards
+
+Chart supports `line` and `stacked-area`, one to five named series, null gaps,
+UTC timestamps, synchronized inspection through `syncId`, a summary legend,
+and a disclosure containing every exact sample. Pass the same timestamp grid
+to synchronized panels. Put the common unit in `label`.
+
+```tsx
+<Chart
+  label="CPU (%)"
+  series={[{ key: "user", label: "User", slot: 1 }]}
+  data={[
+    { timestamp: 1789203600000, values: { user: 24 } },
+    { timestamp: 1789203610000, values: { user: null } },
+    { timestamp: 1789203620000, values: { user: 31 } },
+  ]}
+/>
+```
+
+ChartLegend is also exported for standalone summaries. Meter, Progress,
+BarGauge, Disclosure, TimeRangeControl, DashboardGrid, and DashboardPanel
+compose the surrounding dashboard. See their contracts in `@momoi-labs/kiso`
+and the gallery previews for complete examples. Sparkline now accepts null
+gaps without shifting later sample positions.
+
+Chart presentation options compose independently:
+
+```tsx
+<Chart
+  label="CPU (%)"
+  data={samples}
+  series={series}
+  variant="stacked-area"
+  layout="compact"
+  legend="inline"
+  highlightSeries={highlight}
+  onHighlightSeriesChange={setHighlight}
+/>
+```
+
+`layout` accepts `standard`, `compact`, or `split`; `legend` accepts `table`,
+`inline`, or `sidebar`. Split requires `variant="line"` and keeps a shared
+scale across lanes. The sidebar follows the inspected timestamp. Omit
+`highlightSeries` for local legend selection, or pass a key/null with the
+callback for controlled selection. All combinations retain exact values.

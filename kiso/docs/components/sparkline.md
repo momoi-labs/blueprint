@@ -44,12 +44,14 @@ line.
 
 | State | Behavior |
 | --- | --- |
-| fewer than two samples | Renders nothing. A flat rule across a cell reads as a border, not as a measurement. Keep the cell's number; reserve height with the surrounding layout. |
+| fewer than two finite measurements | Renders nothing. A flat rule across a cell reads as a border, not as a measurement. Keep the cell's number; reserve height with the surrounding layout. |
 | loading | [Skeleton](skeleton.md) at the same height the Sparkline will occupy. |
 | error | Show the last known number as text; the shape is optional, the value is not. |
 
-The component takes plain values and does not model gaps. A series with holes
-is the caller's data problem; interpolate or truncate before passing it in.
+The component accepts numbers and null gaps on an evenly spaced window.
+Null and nonfinite values break the line and fill; they never become zero.
+Keep every expected sample position. Domains use finite measurements only.
+Do not interpolate or remove missing positions before passing them in.
 
 ## Accessibility
 
@@ -78,7 +80,7 @@ No keymap and no tab stop. A Sparkline is never an action.
 ## When NOT to use
 
 - Analysis that needs an axis, a legend, or crosshair reading. A framed,
-  interactive chart is a separate, still-deferred contract.
+  interactive [Chart](chart.md) has its own contract.
 - Multi-series overlays. Stack several Sparklines only as separate rows with
   their own labels, never as one drawing with a homemade legend.
 - A single value with no history. Use [Stat](stat.md) alone.
@@ -89,5 +91,4 @@ No Radix primitive exists for this. The component composes Recharts
 `ResponsiveContainer`, `AreaChart`, and `Area` with animation, dots, and
 axes off. Color reaches the path through `currentColor` from the
 `.sparkline` rules in `ui.css`; never pass a hex value or invent a
-categorical palette. The framed `.chart` rules in `ui.css` stay reserved for
-the later interactive chart contract.
+categorical palette. Use [Chart](chart.md) for categorical multi-series data.
