@@ -29,6 +29,11 @@ behavioral reference where one exists.
 
 ## Data
 
+- [Chart](chart.md): Framed lines and stacked areas with synchronized inspection and exact values.
+- [ChartLegend](chart-legend.md): Tabular series summaries.
+- [Meter / Progress](meter.md): Measurements against limits and task completion.
+- [BarGauge](bar-gauge.md): Labelled bars on a shared scale.
+
 - [CommandPalette](command-palette.md): Searches and runs global actions or navigation from a keyboard-first overlay.
 - [Dot](dot.md): Adds a decorative status mark beside readable text.
 - [DropdownMenu](dropdown-menu.md): Presents contextual actions anchored to a specific object or trigger.
@@ -41,6 +46,10 @@ behavioral reference where one exists.
 - [Table / DataTable](table.md): Presents structured records with optional sorting, selection, filtering, and pagination.
 
 ## Navigation and structure
+
+- [Disclosure](disclosure.md): Native collapsible sections.
+- [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.
+- [DashboardGrid](dashboard-grid.md): Responsive twelve-column panel layout.
 
 - [AppShell / ApplicationShell](app-shell.md): Provides low-level columns or the complete shared application frame (sidebar console or top-bar surface).
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.

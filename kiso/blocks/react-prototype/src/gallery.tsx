@@ -1,5 +1,6 @@
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
+import { MetricsDemo } from "./metrics-demo";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -206,6 +207,13 @@ const catalog = [
   ["empty-state", "EmptyState", "Data", "No items and a useful next action."],
   ["stat", "Stat", "Data", "One figure and how it is moving."],
   ["sparkline", "Sparkline", "Data", "One metric's shape at cell size."],
+  ["chart", "Chart", "Data", "Lines, stacked areas, gaps, and synchronized inspection."],
+  ["chart-legend", "ChartLegend", "Data", "Per-series minimum, maximum, average, and current."],
+  ["meter", "Meter / Progress", "Feedback", "Measured ratios and task completion."],
+  ["bar-gauge", "BarGauge", "Data", "Labelled bars on a shared scale."],
+  ["disclosure", "Disclosure", "Structure", "Native collapsible sections."],
+  ["time-range-control", "TimeRangeControl", "Controls", "Presets and exact collection windows."],
+  ["dashboard-grid", "DashboardGrid", "Structure", "Responsive panels on twelve columns."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
@@ -341,7 +349,7 @@ const snippets: Record<string, string> = {
   dot: '<span className="row success t-label">\n  <Dot pulse />\n  <span className="fg">Platform healthy</span>\n</span>',
   stat: "<Stat>\n  <StatHeader>\n    <StatLabel>Projects</StatLabel>\n    <StatDelta variant=\"success\">+2</StatDelta>\n  </StatHeader>\n  <StatValue>4</StatValue>\n  <StatFoot>3 active \u00b7 1 archived</StatFoot>\n</Stat>",
   sparkline:
-    '<Sparkline values={cpu} height={28} tone="primary" fill\n  label="CPU, last 5 minutes, 10-second ticks" />\n<Sparkline values={memory} height={18} />',
+    '<Sparkline values={cpu} height={28} tone="primary" fill\n  label="CPU trend with a collection gap and a measured zero" />\n<Sparkline values={memory} height={18} />',
   kv: "<KV>\n  <KVKey>Owner</KVKey>\n  <KVValue>Alex Morgan</KVValue>\n</KV>",
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
@@ -1794,7 +1802,7 @@ function Demo({
         </div>
       );
     case "sparkline": {
-      const cpu = [40, 44, 42, 48, 46, 52, 50, 55, 53, 58, 56, 60, 58, 62];
+      const cpu = [40, 44, 42, 48, null, null, 50, 55, 0, 58, 56, 60, 58, 62];
       const rows = [
         { name: "web", values: [12, 14, 13, 16, 18, 17, 21, 24, 23, 27] },
         { name: "db", values: [30, 28, 29, 24, 22, 23, 18, 16, 14, 12] },
@@ -1811,10 +1819,11 @@ function Demo({
               <StatValue>62%</StatValue>
               <Sparkline
                 values={cpu}
-                height={28}
+                height={48}
+                min={0}
+                max={100}
                 tone="primary"
-                fill
-                label="CPU, last 5 minutes, 10-second ticks"
+                label="CPU trend with a collection gap and a measured zero"
               />
             </Stat>
           </Card>
@@ -1874,6 +1883,14 @@ function Demo({
           </span>
         </div>
       );
+    case "chart":
+    case "chart-legend":
+    case "meter":
+    case "bar-gauge":
+    case "disclosure":
+    case "time-range-control":
+    case "dashboard-grid":
+      return <MetricsDemo component={id} />;
     case "log-view":
       return <LogViewDemo />;
     default:

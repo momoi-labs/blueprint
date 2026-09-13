@@ -11,3 +11,6 @@ packages/kiso/LICENSE
 packages/kiso/README.md
 packages/kiso-react/dist/
 *.tgz
+
+# Local review screenshots and temporary prototypes.
+/artifacts/

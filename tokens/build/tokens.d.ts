@@ -172,6 +172,16 @@ export const semanticWarningOnDark: string;
 export const semanticDangerOnDark: string;
 /** Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticInfoOnDark: string;
+/** Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+export const semanticChart1: string;
+/** Categorical chart series 2. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+export const semanticChart2: string;
+/** Categorical chart series 3. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+export const semanticChart3: string;
+/** Categorical chart series 4. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+export const semanticChart4: string;
+/** Categorical chart series 5. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+export const semanticChart5: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */

@@ -96,6 +96,11 @@
   --color-warning-on-dark: #efc05b;
   --color-danger-on-dark: #f5807f;
   --color-info-on-dark: #75c4fa;
+  --color-chart-1: var(--color-accent-base);
+  --color-chart-2: var(--color-status-success);
+  --color-chart-3: var(--color-status-warning);
+  --color-chart-4: var(--color-status-info);
+  --color-chart-5: var(--color-status-danger);
   --font-heading: Inter, system-ui, sans-serif;
   --font-body: Inter, system-ui, sans-serif;
   --font-mono: JetBrains Mono, ui-monospace, monospace;

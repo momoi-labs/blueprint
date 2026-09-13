@@ -29,7 +29,8 @@ the bump for each affected package, and commit the file in `.changeset/`. See
 When a PR adds or changes a component, attach screenshots of the result to the
 PR description. Show every new variant or state; for a changed component, add a
 before/after pair. Reviewers use them to see what changed without running the
-gallery.
+gallery. Upload images as GitHub attachments and embed their URLs in the
+description. Keep review screenshots and temporary prototypes out of commits.
 
 ### Commit convention
 
