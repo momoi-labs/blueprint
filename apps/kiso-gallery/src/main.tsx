@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
-import { LayoutExamples } from "./layout-examples";
+import { LayoutExamples, layouts } from "./layout-examples";
 import { Intro } from "./intro";
 import "@momoi-labs/kiso-react/styles.css";
 import "../../../kiso/blocks/react-prototype/src/gallery.css";
@@ -30,6 +30,7 @@ function App() {
       theme={theme}
       onThemeChange={setTheme}
       example={<LayoutExamples route={route} />}
+      examples={layouts}
       intro={<Intro />}
     />
   );
