@@ -44,6 +44,8 @@ behavioral reference where one exists.
 - [Search](search.md): Filters visible content such as a list or table.
 - [Sparkline](sparkline.md): Draws the shape of one metric series at cell size.
 - [Stat](stat.md): Presents a named metric with optional change and context.
+- [StepBar](step-bar.md): Summarises a run as one segment per step, coloured by state.
+- [StepList](step-list.md): Lists a run's steps with a state, a label, a timing, and an output.
 - [Table / DataTable](table.md): Presents structured records with optional sorting, selection, filtering, and pagination.
 
 ## Navigation and structure

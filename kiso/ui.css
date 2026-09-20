@@ -1204,6 +1204,52 @@ pre::after {
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
 }
 
+/* StepList and StepBar, issue #98. A run's steps, walked by a machine and
+   read by a person. The rail is the progress: each connector takes the state
+   of the step below it, so the line fills as the run advances. Running is the
+   success colour because it is alive; neutral is what is not happening. */
+.step-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.step { display: grid; grid-template-columns: var(--spacing-xl) minmax(0, 1fr); column-gap: var(--spacing-sm); }
+.step-rail { position: relative; display: grid; justify-items: center; }
+.step-rail::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; translate: -50% 0; background: var(--color-secondary); }
+.step:first-child .step-rail::before { top: 12px; }
+.step:last-child .step-rail::before { bottom: auto; height: 12px; }
+.step[data-state="done"] .step-rail::before, .step[data-state="skipped"] .step-rail::before { background: var(--color-success); }
+.step[data-state="running"] .step-rail::before { background: linear-gradient(var(--color-success) 0 12px, var(--color-secondary) 12px 100%); }
+.step[data-state="failed"] .step-rail::before { background: linear-gradient(var(--color-success) 0 12px, var(--color-danger) 12px 100%); }
+.step-mark { position: relative; z-index: 1; width: 12px; height: 12px; margin-top: 6px; border-radius: var(--radius-full); background: var(--color-card); border: 3px solid var(--color-border-strong); }
+.step[data-state="done"] .step-mark { background: var(--color-success); border-color: var(--color-success); }
+.step[data-state="skipped"] .step-mark { border-color: var(--color-success); }
+.step[data-state="running"] .step-mark { border-color: var(--color-success); box-shadow: 0 0 0 4px var(--color-success-surface); animation: step-pulse 1.4s var(--motion-easing-standard) infinite; }
+.step[data-state="failed"] .step-mark { background: var(--color-danger); border-color: var(--color-danger); }
+/* 12px dot plus 6px of glow fits the 24px rail column, which a Pane clips at its edge. */
+@keyframes step-pulse { 50% { box-shadow: 0 0 0 6px transparent; } }
+.step-body { min-width: 0; padding-bottom: var(--spacing-sm); }
+.step-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-md); width: 100%; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: start; }
+button.step-row { cursor: pointer; }
+button.step-row:hover .step-label { text-decoration: underline; text-underline-offset: var(--spacing-2xs); }
+button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.step-label { font-size: var(--type-size-label); font-weight: var(--type-weight-medium); }
+.step[data-state="pending"] .step-label, .step[data-state="skipped"] .step-label { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
+.step[data-state="running"] .step-label, .step[data-state="failed"] .step-label { font-weight: var(--type-weight-semibold); }
+.step[data-state="failed"] .step-label { color: var(--color-danger); }
+.step-row[aria-pressed="true"] .step-label { text-decoration: underline; text-underline-offset: var(--spacing-2xs); }
+.step-meta { font-family: var(--font-mono); font-size: var(--type-size-label); color: var(--color-muted-foreground); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.step-detail { margin-top: var(--spacing-sm); }
+@media (pointer: coarse) {
+  button.step-row { min-height: var(--size-touch-min); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step[data-state="running"] .step-mark { animation: none; }
+}
+
+.step-bar { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--spacing-2xs); height: var(--spacing-xs); min-width: 0; }
+.step-bar > span { border-radius: var(--radius-xs); background: var(--color-secondary); }
+.step-bar > span[data-state="done"] { background: var(--color-success); }
+.step-bar > span[data-state="running"] { background: linear-gradient(90deg, var(--color-success) 0 var(--step-progress, 100%), var(--color-success-surface) var(--step-progress, 100%) 100%); }
+.step-bar > span[data-state="skipped"] { background: repeating-linear-gradient(45deg, var(--color-success) 0 2px, transparent 2px 5px); }
+.step-bar > span[data-state="failed"] { background: var(--color-danger); }
+
 /* Chart presentation options. Exact values remain available in every layout. */
 .chart-body, .chart-plots { min-width: 0; }
 .framed-chart[data-legend="sidebar"] .chart-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 180px); gap: var(--spacing-lg); }
