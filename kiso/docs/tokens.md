@@ -157,10 +157,68 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 `dark.800` and `dark.700`; they share a step on dark exactly as they share
 `neutral.500` on light.
 
+## Accents
+
+The accent is a second axis over the same custom properties, orthogonal to the
+theme. Five accents ship: `violet` (the default), `terracotta`, `teal`,
+`cobalt`, and `nocturne`. The first four are hue turns: each is a primitive
+ramp (`color.violet.*`, `color.terracotta.*`, and so on) with the same
+lightness per step, so every role keeps the contrast it was gated at.
+`color.accent.*` is the *active* ramp: an alias layer that points at violet by
+default.
+
+`nocturne` is different in kind. It is the marketing site's palette: the
+violet ramp and ink over cool slate neutrals (hue 278) instead of the warm
+ones. It is the one accent that restates the neutral roles, surfaces, text,
+borders, and neutral fills alike, because the slate is the palette, not a
+tint on it. A hue accent nested inside a nocturne container keeps the slate
+and changes only the accent. Its surface, text, and accent values are the
+site's own, gated like every other accent; the roles the site never named are
+Kiso's lightness in the slate hue.
+
+An accent is chosen with `data-accent` on `<html>`, or on any container:
+
+```html
+<html data-accent="teal">
+```
+
+No attribute means violet. The build emits one `[data-accent="<name>"]` block
+per accent from the `accent.<name>` group in `tokens/tokens.json`. That block
+restates only the roles that follow the hue:
+
+- the active ramp, `--color-accent-50` to `--color-accent-950` and
+  `--color-accent-base`, remapped to the named ramp. `link`, `focus`, `ring`,
+  `accent`, and the light-theme tints alias the ramp, so they follow without
+  being restated;
+- the raw-hex dark fills: `primary`, `primary-hover`, `primary-foreground`,
+  `accent-surface`, `accent-surface-hover`, and `selected`.
+
+The neutral roles are not restated. The warm grey carries the interface under
+every hue accent, and only the accent changes: a teal product and a violet
+product share the same canvas, text, and borders. Tinting the neutrals toward
+the hue was tried and rejected; at any visible strength it reads as a filter
+over the screen rather than as a colour choice.
+
+Values inside the block still use `light-dark()`, so accent and theme compose
+without a cross product: five accents and two themes are five blocks, not
+ten. Nesting resets cleanly: a `data-accent="violet"` container inside a
+teal page is violet again.
+
+Chart series do not follow the accent. `chart-1` is pinned to the violet ink
+because a terracotta, teal, or cobalt series collapses into the warning, success,
+or info series; see [Categorical chart colors](#categorical-chart-colors).
+Status roles do not follow it either. Red, amber, and green were rejected as
+accents for the same reason: a primary button in the danger hue reads as
+destructive.
+
+Applications own the choice and its persistence, exactly as with the theme.
+Use [AccentSelector](components/accent-selector.md) for the control.
+
 ## AA gate
 
 `scripts/check-contrast.mjs` is the build-time AA gate. In both dark and light
-themes it resolves the semantic aliases and checks:
+themes, for the default and for every accent, it resolves the semantic aliases
+and checks:
 
 - `foreground`, `muted-foreground`, `link`, `accent`, `success`, `warning`,
   `danger`, and `info` at **4.5:1** or better against `background`, `surface`,
@@ -315,8 +373,10 @@ tokens to the same version.
 ## Categorical chart colors
 
 Issue #93 adds `--color-chart-1` through `--color-chart-5` for series identity.
-The roles derive from accent.base, status.success, status.warning, status.info,
-and status.danger, in that order. Their meaning inside a chart is categorical,
+The roles derive from violet.base, status.success, status.warning, status.info,
+and status.danger, in that order. `chart-1` is the violet ink under every
+accent, not the active accent: a series must stay distinguishable from the
+status series whatever the product's accent is. Their meaning inside a chart is categorical,
 never health or severity. Existing status roles keep their meaning elsewhere.
 
 Each slot meets 3:1 on background, surface, and elevated-surface in both
@@ -335,5 +395,5 @@ Keep the canonical slot order in stacks; changing adjacency needs review.
 
 The calculation uses [Oklab](https://bottosson.github.io/posts/oklab/) and
 [Machado's simulation model](https://pubmed.ncbi.nlm.nih.gov/19834201/).
-Run `node scripts/check-chart-palette.mjs` for both themes. Numbered labels,
+Run `node scripts/check-chart-palette.mjs` for both themes and every accent. Numbered labels,
 highlighting, and tables remain required even when these checks pass.

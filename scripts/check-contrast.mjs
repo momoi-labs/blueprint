@@ -46,16 +46,30 @@ function tokenAt(tokens, path) {
   return token;
 }
 
-function resolveToken(tokens, path, theme, chain = []) {
+// An accent theme is a layer over the default: accent.<name>.<role> replaces
+// semantic.<role>, and accent.<name>.accent.<step> replaces color.accent.<step>,
+// exactly as the emitted [data-accent] block overrides those custom properties.
+function overridePath(tokens, path, accent) {
+  if (!accent) return path;
+  const [group, ...rest] = path.split('.');
+  const candidate = group === 'semantic' ? `accent.${accent}.${rest.join('.')}`
+    : group === 'color' && rest[0] === 'accent' ? `accent.${accent}.accent.${rest.slice(1).join('.')}`
+    : null;
+  const override = candidate && candidate.split('.').reduce((node, segment) => node?.[segment], tokens);
+  return override && '$value' in override ? candidate : path;
+}
+
+function resolveToken(tokens, path, theme, accent, chain = []) {
   if (chain.includes(path)) {
     throw new Error(`circular token reference: ${[...chain, path].join(' -> ')}`);
   }
 
+  path = overridePath(tokens, path, accent);
   const token = tokenAt(tokens, path);
   const value = token.$extensions?.mode?.[theme] ?? token.$value;
   if (typeof value === 'string') {
     const reference = value.match(/^\{([^{}]+)\}$/);
-    if (reference) return resolveToken(tokens, reference[1], theme, [...chain, path]);
+    if (reference) return resolveToken(tokens, reference[1], theme, accent, [...chain, path]);
     if (/^#[\da-f]{3}([\da-f]{3})?$/i.test(value)) return value;
   }
   if (value && typeof value === 'object' && /^#[\da-f]{3}([\da-f]{3})?$/i.test(value.hex)) {
@@ -87,24 +101,26 @@ function contrast(first, second) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-function roleColor(tokens, role, theme) {
-  return resolveToken(tokens, `semantic.${role}`, theme);
+function roleColor(tokens, role, theme, accent) {
+  return resolveToken(tokens, `semantic.${role}`, theme, accent);
 }
 
 async function main() {
   const tokens = JSON.parse(await readFile(tokensPath, 'utf8'));
   const failures = [];
+  const accents = [undefined, ...Object.keys(tokens.accent ?? {}).filter((key) => !key.startsWith('$'))];
 
-  for (const theme of ['dark', 'light']) {
+  for (const accent of accents) for (const theme of ['dark', 'light']) {
+    const where = `theme=${theme}${accent ? ` accent=${accent}` : ''}`;
     for (const [role, minimum] of textRoles) {
       for (const background of backgrounds) {
         const ratio = contrast(
-          roleColor(tokens, role, theme),
-          roleColor(tokens, background, theme),
+          roleColor(tokens, role, theme, accent),
+          roleColor(tokens, background, theme, accent),
         );
         if (ratio < minimum) {
           failures.push(
-            `role=${role} theme=${theme} bg=${background} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
+            `role=${role} ${where} bg=${background} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
           );
         }
       }
@@ -113,33 +129,33 @@ async function main() {
     for (const [role, minimum] of nonTextRoles) {
       for (const background of backgrounds) {
         const ratio = contrast(
-          roleColor(tokens, role, theme),
-          roleColor(tokens, background, theme),
+          roleColor(tokens, role, theme, accent),
+          roleColor(tokens, background, theme, accent),
         );
         if (ratio < minimum) {
           failures.push(
-            `role=${role} theme=${theme} bg=${background} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
+            `role=${role} ${where} bg=${background} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
           );
         }
       }
     }
 
     for (const [role, fill, minimum] of fillPairs) {
-      const ratio = contrast(roleColor(tokens, role, theme), roleColor(tokens, fill, theme));
+      const ratio = contrast(roleColor(tokens, role, theme, accent), roleColor(tokens, fill, theme, accent));
       if (ratio < minimum) {
         failures.push(
-          `role=${role} theme=${theme} on=${fill} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
+          `role=${role} ${where} on=${fill} ratio=${ratio.toFixed(2)}:1 (need ${minimum}:1)`,
         );
       }
     }
 
     const focusRatio = contrast(
-      roleColor(tokens, 'focus', theme),
-      roleColor(tokens, 'background', theme),
+      roleColor(tokens, 'focus', theme, accent),
+      roleColor(tokens, 'background', theme, accent),
     );
     if (focusRatio < 3) {
       failures.push(
-        `role=focus theme=${theme} bg=background ratio=${focusRatio.toFixed(2)}:1 (need 3:1)`,
+        `role=focus ${where} bg=background ratio=${focusRatio.toFixed(2)}:1 (need 3:1)`,
       );
     }
   }
@@ -154,7 +170,7 @@ async function main() {
   console.log(
     `AA contrast check passed: ${textRoles.size * backgrounds.length * 2} text, `
     + `${nonTextRoles.size * backgrounds.length * 2} non-text, ${fillPairs.length * 2} on-fill `
-    + 'and 2 focus combinations across dark and light themes.',
+    + `and 2 focus combinations across dark and light themes, for the default and ${accents.length - 1} accents.`,
   );
 }
 
