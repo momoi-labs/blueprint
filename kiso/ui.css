@@ -593,6 +593,12 @@ a:hover, .link:hover { text-decoration: underline; }
 }
 .stat-foot { font-size: var(--type-size-label); color: var(--color-muted-foreground); margin-block-start: var(--spacing-sm); }
 .stat-delta { display: inline-flex; align-items: center; gap: var(--spacing-xs); font-size: var(--type-size-metadata); font-weight: var(--type-weight-medium); }
+/* The delta keeps the outline treatment: only text and frame take the status
+   colour. Declared after .badge-outline so the variant wins the cascade. */
+.stat-delta.info    { color: var(--color-info);    border-color: var(--color-info-border); }
+.stat-delta.success { color: var(--color-success); border-color: var(--color-success-border); }
+.stat-delta.warning { color: var(--color-warning); border-color: var(--color-warning-border); }
+.stat-delta.danger  { color: var(--color-danger);  border-color: var(--color-danger-border); }
 
 /* ===========================================================================
    Table
