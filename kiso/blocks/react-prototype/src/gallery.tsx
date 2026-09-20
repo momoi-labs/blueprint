@@ -3,6 +3,8 @@
 import { MetricsDemo } from "./metrics-demo";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
+  AccentSelector,
+  type Accent,
   Alert,
   AlertContent,
   AlertDescription,
@@ -263,6 +265,12 @@ const catalog = [
     "Navigation",
     "Follow system, light and dark.",
   ],
+  [
+    "accent-selector",
+    "AccentSelector",
+    "Navigation",
+    "Violet, terracotta, teal, cobalt and nocturne.",
+  ],
   ["alert", "Alert", "Feedback", "Persistent information, success and errors."],
   ["spinner", "Spinner", "Feedback", "An operation in progress."],
   ["skeleton", "Skeleton", "Feedback", "The shape of content while loading."],
@@ -336,6 +344,7 @@ const snippets: Record<string, string> = {
     '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Workspace</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>Website refresh</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
   link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
   "theme-selector": "<ThemeSelector theme={theme} onChange={setTheme} />",
+  "accent-selector": "<AccentSelector accent={accent} onChange={setAccent} />",
   alert:
     '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not save</AlertTitle>\n    <AlertDescription>The request failed. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
   spinner:
@@ -877,10 +886,14 @@ function Demo({
   id,
   theme,
   onThemeChange,
+  accent,
+  onAccentChange,
 }: {
   id: string;
   theme: string;
   onThemeChange: (theme: string) => void;
+  accent: string;
+  onAccentChange: (accent: Accent) => void;
 }) {
   const uid = useId();
   const [value, setValue] = useState("");
@@ -1462,6 +1475,15 @@ function Demo({
           </p>
         </div>
       );
+    case "accent-selector":
+      return (
+        <div className="gallery-theme-preview">
+          <AccentSelector accent={accent} onChange={onAccentChange} />
+          <p className="muted t-label">
+            This control updates the whole gallery, layouts included.
+          </p>
+        </div>
+      );
     case "alert":
       return (
         <div className="stack">
@@ -1904,6 +1926,8 @@ export function ComponentGallery({
   route,
   theme,
   onThemeChange,
+  accent,
+  onAccentChange,
   example,
   examples = [],
   intro,
@@ -1911,6 +1935,8 @@ export function ComponentGallery({
   route: string;
   theme: string;
   onThemeChange: (theme: string) => void;
+  accent: string;
+  onAccentChange: (accent: Accent) => void;
   example?: ReactNode;
   examples?: readonly { id: string; label: string }[];
   intro?: ReactNode;
@@ -2068,6 +2094,7 @@ export function ComponentGallery({
                 window.location.hash = "components";
               }}
             />
+            <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />
             {showingIntro ? (
               <ThemeSelector theme={theme} onChange={onThemeChange} />
             ) : (
@@ -2162,7 +2189,13 @@ export function ComponentGallery({
                 </div>
               )}
               <div className="catalog-preview">
-                <Demo id={id} theme={theme} onThemeChange={onThemeChange} />
+                <Demo
+                  id={id}
+                  theme={theme}
+                  onThemeChange={onThemeChange}
+                  accent={accent}
+                  onAccentChange={onAccentChange}
+                />
               </div>
               {!browsing && snippets[id] && (
                 <details className="catalog-code">

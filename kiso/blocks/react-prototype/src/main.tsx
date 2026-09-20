@@ -2,6 +2,7 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "./gallery";
+import { type Accent } from "@momoi-labs/kiso-react";
 import "@momoi-labs/kiso-react/styles.css";
 import "./gallery.css";
 
@@ -10,6 +11,7 @@ function App() {
     () => window.location.hash.slice(1) || "components",
   );
   const [theme, setTheme] = useState("system");
+  const [accent, setAccent] = useState<Accent>("violet");
 
   useEffect(() => {
     const navigate = () =>
@@ -23,8 +25,18 @@ function App() {
     else document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => {
+    document.documentElement.dataset.accent = accent;
+  }, [accent]);
+
   return (
-    <ComponentGallery route={route} theme={theme} onThemeChange={setTheme} />
+    <ComponentGallery
+      route={route}
+      theme={theme}
+      onThemeChange={setTheme}
+      accent={accent}
+      onAccentChange={setAccent}
+    />
   );
 }
 
