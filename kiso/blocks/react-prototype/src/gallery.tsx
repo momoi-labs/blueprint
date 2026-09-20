@@ -16,6 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   AlertTitle,
+  AppShell,
+  AppShellMain,
   ApplicationShell,
   Badge,
   BrandMark,
@@ -1903,18 +1905,20 @@ export function ComponentGallery({
   theme,
   onThemeChange,
   example,
+  examples = [],
   intro,
 }: {
   route: string;
   theme: string;
   onThemeChange: (theme: string) => void;
   example?: ReactNode;
+  examples?: readonly { id: string; label: string }[];
   intro?: ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
-  const content = useRef<HTMLElement>(null);
+  const content = useRef<HTMLDivElement>(null);
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
@@ -1934,7 +1938,12 @@ export function ComponentGallery({
     window.location.hash = "components";
   }
 
+  // Moving focus to the new page's heading is for in-app navigation only; on
+  // first load the document starts unfocused like any other page.
+  const previousRoute = useRef(route);
   useEffect(() => {
+    if (previousRoute.current === route) return;
+    previousRoute.current = route;
     if (
       document.activeElement?.getAttribute("aria-label") === "Find a component" ||
       document.activeElement?.getAttribute("role") === "tab"
@@ -1944,109 +1953,193 @@ export function ComponentGallery({
     content.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
   }, [route]);
 
+  const current = catalog.find((entry) => entry[0] === selected);
+  const categories: [string, string, number][] = [
+    ["all", "All components", catalog.length],
+    ...groups.map((category): [string, string, number] => [
+      category,
+      category,
+      catalog.filter((entry) => entry[2] === category).length,
+    ]),
+  ];
+
+  function showGroup(category: string) {
+    setSearch("");
+    setGroup(category);
+    window.location.hash = "components";
+  }
+
   return (
-    <div className={`component-gallery ${showingIntro ? "catalog-home" : ""}`}>
-      <header className="catalog-topbar">
-        <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-          <BrandMark><TerminalIcon /></BrandMark>
-          <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
-        </a>
-        <nav className="demo-row" aria-label="Preview pages">
-          {intro !== undefined && <a href="#intro" aria-current={showingIntro ? "page" : undefined}>Intro</a>}
-          <a href="#components" aria-current={!showingExample && !showingIntro ? "page" : undefined} onClick={showAll}>
-            Components
-          </a>
-          {example !== undefined && (
-            <a href="#example" aria-current={showingExample ? "page" : undefined}>
-              Layouts
-            </a>
-          )}
-        </nav>
-        <div className="catalog-tools">
-          <Search
-            aria-label="Find a component"
-            placeholder="Find a component..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              window.location.hash = "components";
-            }}
-          />
-          <ThemeSelector theme={theme} onChange={onThemeChange} />
-        </div>
-        {!showingIntro && <Button
-          className="catalog-menu"
-          size="sm"
-          aria-controls="component-navigation"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? "Hide filters" : "Show filters"}
-        </Button>}
-      </header>
-      <aside
+    <AppShell
+      className="component-gallery"
+      data-layout={showingIntro ? "topbar" : undefined}
+    >
+      {!showingIntro && <Sidebar
         id="component-navigation"
-        hidden={showingIntro}
         className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
       >
-        <div className="catalog-group" role="group" aria-label="Component categories">
-          <p className="t-caps">Explore components</p>
-          <Button
-            variant="ghost"
-            className="catalog-filter"
-            aria-pressed={browsing && group === "all"}
-            onClick={showAll}
-          >
-            All components <span>{catalog.length}</span>
-          </Button>
-          {groups.map((category) => (
-            <Button
-              key={category}
-              variant="ghost"
-              className="catalog-filter"
-              aria-pressed={browsing && group === category}
-              onClick={() => {
-                setGroup(category);
+        <SidebarHeader>
+          <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
+            <BrandMark><TerminalIcon /></BrandMark>
+            <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
+          </a>
+        </SidebarHeader>
+        <SidebarBody>
+          {showingExample && examples.length > 0 ? (
+            <Navigation aria-label="Example layouts">
+              <NavigationGroup label="Layouts">
+                <NavigationList>
+                  {examples.map((layout, index) => (
+                    <NavigationItem key={layout.id}>
+                      <NavigationLink
+                        href={`#example/${layout.id}`}
+                        active={selected === layout.id || (selected === "all" && index === 0)}
+                      >
+                        {layout.label}
+                      </NavigationLink>
+                    </NavigationItem>
+                  ))}
+                </NavigationList>
+              </NavigationGroup>
+            </Navigation>
+          ) : (
+          <Navigation aria-label="Component categories">
+            <NavigationGroup label="Explore components">
+              <NavigationList>
+                {categories.map(([category, label, count]) => (
+                  <NavigationItem key={category}>
+                    <NavigationLink
+                      href="#components"
+                      active={browsing && group === category}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (category === "all") showAll();
+                        else showGroup(category);
+                      }}
+                    >
+                      <span className="grow">{label}</span>
+                      <Badge variant="neutral">{count}</Badge>
+                    </NavigationLink>
+                  </NavigationItem>
+                ))}
+              </NavigationList>
+            </NavigationGroup>
+          </Navigation>
+          )}
+        </SidebarBody>
+        <SidebarFooter>
+          <ThemeSelector theme={theme} onChange={onThemeChange} />
+        </SidebarFooter>
+      </Sidebar>}
+      <AppShellMain>
+        <Header className="catalog-header">
+          {!showingIntro && (
+            <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
+              <BrandMark><TerminalIcon /></BrandMark>
+              <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
+            </a>
+          )}
+          <Navigation aria-label="Preview pages">
+            <NavigationList className="nav-row">
+              {intro !== undefined && (
+                <NavigationItem>
+                  <NavigationLink href="#intro" active={showingIntro}>Intro</NavigationLink>
+                </NavigationItem>
+              )}
+              <NavigationItem>
+                <NavigationLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
+                  Components
+                </NavigationLink>
+              </NavigationItem>
+              {example !== undefined && (
+                <NavigationItem>
+                  <NavigationLink href="#example" active={showingExample}>Layouts</NavigationLink>
+                </NavigationItem>
+              )}
+            </NavigationList>
+          </Navigation>
+          <div className="catalog-tools">
+            <Search
+              aria-label="Find a component"
+              placeholder="Find a component..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
                 window.location.hash = "components";
               }}
-            >
-              {category}
-              <span>{catalog.filter((entry) => entry[2] === category).length}</span>
-            </Button>
-          ))}
-        </div>
-        <div className="catalog-sidebar-note">
-          <p className="t-label">Built with Kiso</p>
-          <p className="muted t-label">
-            Explore the previews. Select a component to see its states and usage.
-          </p>
-        </div>
-      </aside>
-      <main ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
-        {!showingIntro && <div className="catalog-heading">
-          <PageHeader>
-            {!browsing && (
-              <a className="gallery-entry-link" href="#components" onClick={showAll}>
-                ← All components
-              </a>
+            />
+            {showingIntro ? (
+              <ThemeSelector theme={theme} onChange={onThemeChange} />
+            ) : (
+              <Button
+                className="catalog-menu"
+                size="sm"
+                aria-controls="component-navigation"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                {menuOpen ? "Hide navigation" : "Show navigation"}
+              </Button>
             )}
+          </div>
+        </Header>
+        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        {!showingIntro && <div className="catalog-heading">
+          {!browsing && !showingExample && (
+            <Breadcrumb aria-label="Component location">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#components" onClick={showAll}>Components</BreadcrumbLink>
+                </BreadcrumbItem>
+                {current && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink
+                        href="#components"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          showGroup(current[2]);
+                        }}
+                      >
+                        {current[2]}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                  </>
+                )}
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{current?.[1] ?? "Not found"}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
+          <PageHeader
+            actions={
+              showingExample ? undefined : browsing ? (
+                <p className="muted t-label" role="status">
+                  {visible.length} {visible.length === 1 ? "component" : "components"}
+                </p>
+              ) : current ? (
+                <Badge variant="success">Shared React</Badge>
+              ) : undefined
+            }
+          >
             <PageHeaderTitle tabIndex={-1}>
               {showingExample
                 ? "Layout examples"
                 : browsing
                 ? group === "all" ? "Component gallery" : group
-                : catalog.find((entry) => entry[0] === selected)?.[1] ||
-                  "Component not found"}
+                : current?.[1] || "Component not found"}
             </PageHeaderTitle>
-            <p className="muted t-label">
+            <PageHeaderDescription>
               {showingExample
                 ? "Complete interface examples, composed with Kiso components."
-                : browsing ? "Components in action. Built for your next interface." : "Preview, states and usage."}
-            </p>
+                : browsing
+                ? "Components in action. Built for your next interface."
+                : current?.[3] ?? "Preview, states and usage."}
+            </PageHeaderDescription>
           </PageHeader>
-          <p className="muted t-label" role="status" hidden={showingExample || showingIntro}>
-            {visible.length} {visible.length === 1 ? "component" : "components"}
-          </p>
         </div>}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
@@ -2055,22 +2148,19 @@ export function ComponentGallery({
             <section
               className="catalog-section"
               key={id}
-              aria-labelledby={`catalog-${id}`}
+              aria-labelledby={browsing ? `catalog-${id}` : undefined}
+              aria-label={browsing ? undefined : name}
             >
-              <div className="catalog-section-heading">
-                <div>
-                  {!browsing && <p className="t-caps">{category}</p>}
-                  <h2 id={`catalog-${id}`} className={browsing ? "t-h3" : "t-h2"}>
-                    {browsing ? <a href={`#components/${id}`}>{name}<span aria-hidden="true"> ↗</span></a> : name}
-                  </h2>
-                  <p className="muted t-label">{description}</p>
+              {browsing && (
+                <div className="catalog-section-heading">
+                  <div>
+                    <h2 id={`catalog-${id}`} className="t-h3">
+                      <a href={`#components/${id}`}>{name}<span aria-hidden="true"> ↗</span></a>
+                    </h2>
+                    <p className="muted t-label">{description}</p>
+                  </div>
                 </div>
-                {!browsing && (
-                  <Badge variant="success">
-                    Shared React
-                  </Badge>
-                )}
-              </div>
+              )}
               <div className="catalog-preview">
                 <Demo id={id} theme={theme} onThemeChange={onThemeChange} />
               </div>
@@ -2094,7 +2184,8 @@ export function ComponentGallery({
         <p className="muted t-label catalog-footnote" hidden={showingIntro}>
           {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
         </p>
-      </main>
-    </div>
+        </div>
+      </AppShellMain>
+    </AppShell>
   );
 }

@@ -1,18 +1,8 @@
+/* The gallery is an AppShell: Sidebar owns brand, categories and theme; the
+   Header owns the page row and search. Only the gallery's own arrangement is
+   declared here; surfaces, rails and the current marker come from ui.css. */
 .component-gallery {
-  display: grid;
-  grid-template-columns: 208px minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
   min-height: 100dvh;
-}
-.catalog-topbar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xl);
-  flex-wrap: wrap;
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-background);
 }
 .catalog-brand {
   color: var(--color-foreground);
@@ -23,75 +13,51 @@
   color: var(--color-muted-foreground);
   font-weight: var(--type-weight-regular);
 }
-.catalog-topbar nav {
-  font-size: var(--type-size-label);
+.catalog-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  gap: var(--spacing-xl);
+  padding-inline: var(--spacing-xl);
 }
-.catalog-topbar nav a {
-  color: var(--color-muted-foreground);
+/* The page row shares the Header's bottom edge, so the marker lands on it. */
+.catalog-header > nav {
+  align-self: stretch;
 }
-.catalog-topbar nav a[aria-current="page"] {
-  color: var(--color-foreground);
+.catalog-header .nav-row {
+  height: 100%;
+  border-bottom: 0;
+}
+.catalog-header .nav-row .nav-item {
+  height: 100%;
+}
+/* The intro hero carries the brand itself, so the Header only shows it on
+   narrow widths where the Sidebar is folded away. */
+.catalog-header-brand {
+  display: none;
+}
+.catalog-tools .theme-row {
+  gap: var(--spacing-md);
 }
 .catalog-tools {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-md);
   margin-inline-start: auto;
 }
 .catalog-tools > [data-slot="search"] {
   width: 240px;
 }
-.catalog-tools .theme-row {
-  gap: var(--spacing-md);
-}
-.catalog-sidebar {
-  position: sticky;
-  top: 0;
-  align-self: start;
-  max-height: 100dvh;
-  overflow-y: auto;
-  display: grid;
-  gap: var(--spacing-xl);
-  margin: var(--spacing-xl) 0 var(--spacing-xl) var(--spacing-md);
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-sidebar);
-}
-.catalog-group {
-  display: grid;
-  gap: var(--spacing-xs);
-}
-.catalog-group > p {
-  padding: var(--spacing-sm);
-}
-.catalog-filter {
-  width: 100%;
+.catalog-sidebar .theme-row {
   justify-content: space-between;
-}
-.catalog-filter span {
-  color: var(--color-muted-foreground);
-  font-variant-numeric: tabular-nums;
-}
-.catalog-filter[aria-pressed="true"] {
-  background: var(--color-selected);
-  color: var(--color-selected-foreground);
-}
-.catalog-sidebar-note {
-  display: grid;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  border-top: 1px solid var(--color-border);
+  padding-inline: var(--spacing-sm);
 }
 .catalog-main {
   min-width: 0;
   padding: var(--spacing-xl);
 }
 .catalog-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-xl);
 }
@@ -241,49 +207,52 @@
   .catalog-preview .check-label {
     min-height: var(--size-touch-min);
   }
-  .catalog-section-heading h2 a,
-  .catalog-topbar nav a,
-  .gallery-entry-link {
+  .catalog-section-heading h2 a {
     display: flex;
     align-items: center;
     min-height: var(--size-touch-min);
   }
 }
-@media (max-width: 800px) {
-  .component-gallery {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr;
-  }
-  .catalog-sidebar {
-    display: none;
-  }
+/* Below the shell's own breakpoint the Sidebar is gone, so the brand moves to
+   the Header and "Show filters" folds the Sidebar in above the content. */
+@media (max-width: 1023px) {
   .catalog-sidebar.catalog-open {
-    display: grid;
+    display: flex;
     position: static;
-    margin: var(--spacing-md);
-    max-height: none;
+    height: auto;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--color-sidebar-border);
   }
   .catalog-menu {
     display: inline-flex;
   }
-  .catalog-topbar {
+  .catalog-header {
+    position: static;
+    height: auto;
+    flex-wrap: wrap;
     padding: var(--spacing-md);
     gap: var(--spacing-md);
   }
-  .catalog-tools {
+  .catalog-header-brand {
+    display: flex;
+  }
+  /* The wrapped page row pulls itself down onto the Header's bottom border so
+     the current marker still sits on a real edge. */
+  .catalog-header > nav {
     order: 1;
     width: 100%;
-    gap: var(--spacing-md);
+    margin-bottom: calc(-1 * var(--spacing-md));
+  }
+  .catalog-header .nav-row .nav-item {
+    height: var(--size-control-lg);
+  }
+  .catalog-tools {
+    flex: 1;
   }
   .catalog-tools > [data-slot="search"] {
-    width: 100%;
+    flex: 1;
+    width: auto;
     min-width: 0;
-  }
-  .catalog-tools .theme-row {
-    flex-shrink: 0;
-  }
-  .catalog-tools .theme-row > span {
-    display: none;
   }
   .catalog-main {
     padding: var(--spacing-lg);

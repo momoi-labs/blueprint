@@ -32,10 +32,6 @@ import {
   StatFoot,
   StatDelta,
   Switch,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
   Textarea,
   Badge,
   BrandMark,
@@ -56,7 +52,7 @@ import {
   TableRow,
 } from "@momoi-labs/kiso-react";
 
-const layouts = [
+export const layouts = [
   {
     id: "dashboard",
     label: "Dashboard",
@@ -196,9 +192,6 @@ function WorkspacePreview({
             <p className="muted t-label">Team workspace</p>
           </div>
         </div>
-        <Button variant="primary" size="sm">
-          <span aria-hidden="true">＋</span> Create new
-        </Button>
         <Navigation className="layout-nav" aria-label="Example workspace">
           <p className="t-caps">Workspace</p>
           {[
@@ -347,62 +340,60 @@ function ActivityChart() {
   const line =
     "M0 158 L24 143 L48 160 L72 108 L96 130 L120 84 L144 116 L168 99 L192 150 L216 114 L240 126 L264 69 L288 93 L312 61 L336 86 L360 116 L384 71 L408 99 L432 45 L456 62 L480 82 L504 48 L528 79 L552 30 L576 64 L600 50 L624 83 L648 46 L672 25 L696 54 L720 18";
   return (
-    <Card>
-      <CardHeader>
-        <div className="layout-between">
-          <div>
-            <h3 className="t-h3">Workspace activity</h3>
-            <p className="muted t-label">
-              Tasks completed over the last 30 days
-            </p>
+    <section className="layout-section" aria-label="Workspace activity">
+      <div className="layout-between">
+        <div>
+          <h3 className="t-h3">Workspace activity</h3>
+          <p className="muted t-label">Tasks completed over the last 30 days</p>
+        </div>
+        <StatDelta variant="success">↑ 18.6%</StatDelta>
+      </div>
+      <Card>
+        <CardContent>
+          <div className="layout-chart-legend">
+            <span>
+              <Dot />
+              This month
+            </span>
+            <span>
+              <Dot />
+              Last month
+            </span>
           </div>
-          <Badge variant="success">↑ 18.6%</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="layout-chart-legend">
-          <span>
-            <Dot />
-            This month
-          </span>
-          <span>
-            <Dot />
-            Last month
-          </span>
-        </div>
-        <svg
-          className="chart layout-chart"
-          viewBox="0 0 720 200"
-          preserveAspectRatio="none"
-          role="img"
-          aria-label="Illustrative activity chart. Completed tasks increase over the month and finish above the previous month."
-        >
-          <defs>
-            <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[40, 90, 140, 199].map((y) => (
-            <line className="grid" key={y} x1="0" y1={y} x2="720" y2={y} />
-          ))}
-          <path d={`${line} L720 200 L0 200 Z`} fill={`url(#${gradient})`} />
-          <path
-            d="M0 178 L24 165 L48 173 L72 145 L96 162 L120 128 L144 143 L168 137 L192 169 L216 143 L240 154 L264 109 L288 125 L312 111 L336 129 L360 155 L384 120 L408 135 L432 90 L456 111 L480 129 L504 101 L528 124 L552 79 L576 108 L600 98 L624 124 L648 100 L672 80 L696 105 L720 69"
-            className="layout-chart-comparison"
-          />
-          <path d={line} className="line" />
-        </svg>
-        <div className="layout-chart-axis">
-          <span>Sep 1</span>
-          <span>Sep 5</span>
-          <span>Sep 10</span>
-          <span>Sep 15</span>
-          <span>Sep 20</span>
-          <span>Sep 30</span>
-        </div>
-      </CardContent>
-    </Card>
+          <svg
+            className="chart layout-chart"
+            viewBox="0 0 720 200"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Illustrative activity chart. Completed tasks increase over the month and finish above the previous month."
+          >
+            <defs>
+              <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[40, 90, 140, 199].map((y) => (
+              <line className="grid" key={y} x1="0" y1={y} x2="720" y2={y} />
+            ))}
+            <path d={`${line} L720 200 L0 200 Z`} fill={`url(#${gradient})`} />
+            <path
+              d="M0 178 L24 165 L48 173 L72 145 L96 162 L120 128 L144 143 L168 137 L192 169 L216 143 L240 154 L264 109 L288 125 L312 111 L336 129 L360 155 L384 120 L408 135 L432 90 L456 111 L480 129 L504 101 L528 124 L552 79 L576 108 L600 98 L624 124 L648 100 L672 80 L696 105 L720 69"
+              className="layout-chart-comparison"
+            />
+            <path d={line} className="line" />
+          </svg>
+          <div className="layout-chart-axis">
+            <span>Sep 1</span>
+            <span>Sep 5</span>
+            <span>Sep 10</span>
+            <span>Sep 15</span>
+            <span>Sep 20</span>
+            <span>Sep 30</span>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
   );
 }
 
@@ -411,35 +402,29 @@ function DashboardLayout() {
     <WorkspacePreview page="Overview">
       <div className="layout-between">
         <PageHeader>
-          <p className="t-caps">Your workspace at a glance</p>
           <h2 className="t-h1">Overview</h2>
-          <p className="muted t-label">
-            Welcome back, Alex. Here is what your team is working on.
-          </p>
         </PageHeader>
         <Button size="sm">
           September 2026 <span aria-hidden="true">⌄</span>
         </Button>
       </div>
-      <div className="layout-stats">
+      <Card className="layout-stats">
         {[
           ["Active projects", "24", "+4", "4 projects started this month"],
           ["Tasks completed", "186", "+18.6%", "32 more than last month"],
           ["Team members", "12", "+2", "Across 3 working groups"],
           ["On-time delivery", "94.2%", "+2.1%", "Above the 90% target"],
         ].map(([label, value, delta, detail]) => (
-          <Card key={label}>
-            <Stat>
-              <StatHeader>
-                <StatLabel>{label}</StatLabel>
-                <StatDelta variant="success">{delta}</StatDelta>
-              </StatHeader>
-              <StatValue>{value}</StatValue>
-              <StatFoot>{detail}</StatFoot>
-            </Stat>
-          </Card>
+          <Stat key={label}>
+            <StatHeader>
+              <StatLabel>{label}</StatLabel>
+              <StatDelta variant="success">{delta}</StatDelta>
+            </StatHeader>
+            <StatValue>{value}</StatValue>
+            <StatFoot>{detail}</StatFoot>
+          </Stat>
         ))}
-      </div>
+      </Card>
       <ActivityChart />
       <section className="layout-section" aria-label="Recent projects">
         <div className="layout-between">
@@ -801,42 +786,22 @@ export function LayoutExamples({ route }: { route: string }) {
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
   return (
-    <Tabs
-      value={selected.id}
-      onValueChange={(value) => {
-        window.location.hash = `example/${value}`;
-      }}
-    >
-      <TabsList className="tabs layout-tabs" aria-label="Example layouts">
-        {layouts.map((layout) => (
-          <TabsTrigger key={layout.id} value={layout.id}>
-            {layout.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <section aria-label={selected.label}>
       <div className="layout-preview-caption">
         <p className="muted t-label">{selected.description}</p>
         <Badge variant="neutral">Static preview</Badge>
       </div>
-      {layouts.map((layout) => (
-        <TabsContent
-          key={layout.id}
-          value={layout.id}
-          className="layout-tab-panel"
-        >
-          <Card className="layout-preview">
-            {layout.id === "dashboard" ? (
-              <DashboardLayout />
-            ) : layout.id === "list-detail" ? (
-              <ListDetailLayout />
-            ) : layout.id === "settings" ? (
-              <SettingsLayout />
-            ) : (
-              <LoginLayout />
-            )}
-          </Card>
-        </TabsContent>
-      ))}
-    </Tabs>
+      <Card className="layout-preview">
+        {selected.id === "dashboard" ? (
+          <DashboardLayout />
+        ) : selected.id === "list-detail" ? (
+          <ListDetailLayout />
+        ) : selected.id === "settings" ? (
+          <SettingsLayout />
+        ) : (
+          <LoginLayout />
+        )}
+      </Card>
+    </section>
   );
 }
