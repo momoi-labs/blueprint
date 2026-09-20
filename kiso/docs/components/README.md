@@ -24,6 +24,7 @@ behavioral reference where one exists.
 - [Switch](switch.md): Changes one immediately applied boolean setting.
 - [Textarea](textarea.md): Collects multi-line free-form text.
 - [ThemeSelector](theme-selector.md): Chooses between following the system colour scheme, forcing light, or forcing dark.
+- [AccentSelector](accent-selector.md): Chooses which accent the interface uses: violet, terracotta, teal, cobalt, or nocturne.
 - [Tooltip](tooltip.md): Adds nonessential pointer or keyboard context as progressive enhancement.
 - [ValidationMessage](validation-message.md): Explains a field-level validation error and how to fix it.
 

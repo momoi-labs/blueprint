@@ -50,7 +50,13 @@ Three points bind here rather than there:
 ```text
 Card: Appearance
   Theme                                   [ ▣ ][ ☀ ][ ☾ ]
+  Accent                                  [ ● ][ ● ][ ● ][ ● ]
 ```
+
+The accent is the second row of the same card, with
+[AccentSelector](../components/accent-selector.md). It follows the same three
+points: `violet` is the default, the choice is local and instant, and it
+persists under `kiso-accent` outside the section's Save button.
 
 ## Flow
 
