@@ -2,10 +2,20 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const tokens = JSON.parse(await readFile('tokens/tokens.json', 'utf8'));
-function color(path, theme) {
+// chart-1 is the accent ink, so the palette is checked once per accent: the
+// accent layer replaces semantic.<role> and color.accent.<step> the way the
+// emitted [data-accent] block overrides those custom properties.
+function color(path, theme, accent) {
+  if (accent) {
+    const [group, ...rest] = path.split('.');
+    const candidate = group === 'semantic' ? ['accent', accent, ...rest]
+      : group === 'color' && rest[0] === 'accent' ? ['accent', accent, 'accent', ...rest.slice(1)] : null;
+    const override = candidate?.reduce((node, key) => node?.[key], tokens);
+    if (override && '$value' in override) path = candidate.join('.');
+  }
   const token = path.split('.').reduce((node, key) => node[key], tokens);
   const value = token.$extensions?.mode?.[theme] ?? token.$value;
-  if (typeof value === 'string') return color(value.slice(1, -1), theme);
+  if (typeof value === 'string') return color(value.slice(1, -1), theme, accent);
   return [1, 3, 5].map(offset => parseInt(value.hex.slice(offset, offset + 2), 16) / 255)
     .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
 }
@@ -30,13 +40,15 @@ function lab(rgb) {
     [0.0259040371, 0.7827717662, -0.808675766],
   ], lms);
 }
-for (const theme of ['light', 'dark']) {
-  const colors = Array.from({ length: 5 }, (_, index) => color(`semantic.chart-${index + 1}`, theme));
+const accents = [undefined, ...Object.keys(tokens.accent ?? {}).filter(key => !key.startsWith('$'))];
+for (const accent of accents) for (const theme of ['light', 'dark']) {
+  const label = accent ? `${theme} accent=${accent}` : theme;
+  const colors = Array.from({ length: 5 }, (_, index) => color(`semantic.chart-${index + 1}`, theme, accent));
   const band = theme === 'light' ? [0.4, 0.65] : [0.7, 0.9];
   for (const rgb of colors) {
     const [lightness, a, b] = lab(rgb);
-    assert(lightness >= band[0] && lightness <= band[1], `${theme}: lightness outside chart band`);
-    assert(Math.hypot(a, b) >= 0.08, `${theme}: chroma below 0.08`);
+    assert(lightness >= band[0] && lightness <= band[1], `${label}: lightness outside chart band`);
+    assert(Math.hypot(a, b) >= 0.08, `${label}: chroma below 0.08`);
   }
   for (const [name, matrix] of Object.entries(simulations)) {
     const simulated = colors.map(rgb => lab(multiply(matrix, rgb).map(value => Math.max(0, Math.min(1, value)))));
@@ -49,7 +61,7 @@ for (const theme of ['light', 'dark']) {
     }
     const minimum = Math.min(...distances);
     // Product regression floors, not a claim that color alone is accessible.
-    assert(minimum >= (name === 'normal' ? 0.1 : 0.05), `${theme} ${name}: series separation ${minimum.toFixed(3)} is too low`);
-    console.log(`${theme} ${name}: minimum Oklab distance ${minimum.toFixed(3)}`);
+    assert(minimum >= (name === 'normal' ? 0.1 : 0.05), `${label} ${name}: series separation ${minimum.toFixed(3)} is too low`);
+    console.log(`${label} ${name}: minimum Oklab distance ${minimum.toFixed(3)}`);
   }
 }

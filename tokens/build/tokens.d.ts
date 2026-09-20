@@ -19,6 +19,79 @@ export const colorNeutral800: string;
 export const colorNeutral900: string;
 /** Darkest neutral. Retained for compatibility; the dark theme's sidebar is dark.950. */
 export const colorNeutral950: string;
+/** Lightest dark-ramp step. */
+export const colorDark50: string;
+/** Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface. */
+export const colorDark100: string;
+export const colorDark200: string;
+export const colorDark300: string;
+/** Muted foreground on dark. */
+export const colorDark400: string;
+/** Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700. */
+export const colorDark450: string;
+/** Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate. */
+export const colorDark500: string;
+/** Borders and inputs on dark. */
+export const colorDark600: string;
+/** Elevated surfaces, muted and secondary fills on dark. */
+export const colorDark700: string;
+/** Surface and card on dark. */
+export const colorDark800: string;
+/** Background on dark. */
+export const colorDark900: string;
+/** Darkest step. Sidebar on dark, and danger-foreground on a danger fill. */
+export const colorDark950: string;
+/** Lightest lilac. Light-theme tinted surface (row hover, ghost hover). */
+export const colorViolet50: string;
+export const colorViolet200: string;
+export const colorViolet300: string;
+export const colorViolet400: string;
+/** Mid lilac. Closes the ramp between 400 and 600; accent.base stays the mode-aware base. */
+export const colorViolet500: string;
+export const colorViolet600: string;
+export const colorViolet700: string;
+export const colorViolet800: string;
+export const colorViolet900: string;
+/** Darkest lilac. Retained ramp step; the dark accent tints are dedicated literals on the semantic layer. */
+export const colorViolet950: string;
+/** Base accent primitive and the theme ink: deeper violet on light (6.36:1 on background), light lilac on dark (6.36:1 on background, 5.5:1 on surface). Flows into link and focus; the deep fill role lives on semantic.primary. */
+export const colorVioletBase: string;
+export const colorTerracotta50: string;
+export const colorTerracotta200: string;
+export const colorTerracotta300: string;
+export const colorTerracotta400: string;
+export const colorTerracotta500: string;
+export const colorTerracotta600: string;
+export const colorTerracotta700: string;
+export const colorTerracotta800: string;
+export const colorTerracotta900: string;
+export const colorTerracotta950: string;
+/** The terracotta ink: text-eligible in both themes. */
+export const colorTerracottaBase: string;
+export const colorTeal50: string;
+export const colorTeal200: string;
+export const colorTeal300: string;
+export const colorTeal400: string;
+export const colorTeal500: string;
+export const colorTeal600: string;
+export const colorTeal700: string;
+export const colorTeal800: string;
+export const colorTeal900: string;
+export const colorTeal950: string;
+/** The teal ink: text-eligible in both themes. */
+export const colorTealBase: string;
+export const colorCobalt50: string;
+export const colorCobalt200: string;
+export const colorCobalt300: string;
+export const colorCobalt400: string;
+export const colorCobalt500: string;
+export const colorCobalt600: string;
+export const colorCobalt700: string;
+export const colorCobalt800: string;
+export const colorCobalt900: string;
+export const colorCobalt950: string;
+/** The cobalt ink: text-eligible in both themes. */
+export const colorCobaltBase: string;
 /** Lightest lilac. Light-theme tinted surface (row hover, ghost hover). */
 export const colorAccent50: string;
 export const colorAccent200: string;
@@ -42,28 +115,6 @@ export const colorStatusWarning: string;
 export const colorStatusDanger: string;
 /** Info status primitive. */
 export const colorStatusInfo: string;
-/** Lightest dark-ramp step. */
-export const colorDark50: string;
-/** Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface. */
-export const colorDark100: string;
-export const colorDark200: string;
-export const colorDark300: string;
-/** Muted foreground on dark. */
-export const colorDark400: string;
-/** Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700. */
-export const colorDark450: string;
-/** Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate. */
-export const colorDark500: string;
-/** Borders and inputs on dark. */
-export const colorDark600: string;
-/** Elevated surfaces, muted and secondary fills on dark. */
-export const colorDark700: string;
-/** Surface and card on dark. */
-export const colorDark800: string;
-/** Background on dark. */
-export const colorDark900: string;
-/** Darkest step. Sidebar on dark, and danger-foreground on a danger fill. */
-export const colorDark950: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -172,7 +223,7 @@ export const semanticWarningOnDark: string;
 export const semanticDangerOnDark: string;
 /** Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticInfoOnDark: string;
-/** Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
+/** Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. Pinned to the violet ink: chart series do not follow the accent, so the palette stays distinguishable from the status series under every accent. */
 export const semanticChart1: string;
 /** Categorical chart series 2. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
 export const semanticChart2: string;
@@ -182,6 +233,116 @@ export const semanticChart3: string;
 export const semanticChart4: string;
 /** Categorical chart series 5. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */
 export const semanticChart5: string;
+export const accentVioletAccent50: string;
+export const accentVioletAccent200: string;
+export const accentVioletAccent300: string;
+export const accentVioletAccent400: string;
+export const accentVioletAccent500: string;
+export const accentVioletAccent600: string;
+export const accentVioletAccent700: string;
+export const accentVioletAccent800: string;
+export const accentVioletAccent900: string;
+export const accentVioletAccent950: string;
+export const accentVioletAccentBase: string;
+/** The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible. */
+export const accentVioletPrimary: string;
+export const accentVioletPrimaryHover: string;
+export const accentVioletPrimaryForeground: string;
+export const accentVioletAccentSurface: string;
+export const accentVioletAccentSurfaceHover: string;
+export const accentVioletSelected: string;
+export const accentTerracottaAccent50: string;
+export const accentTerracottaAccent200: string;
+export const accentTerracottaAccent300: string;
+export const accentTerracottaAccent400: string;
+export const accentTerracottaAccent500: string;
+export const accentTerracottaAccent600: string;
+export const accentTerracottaAccent700: string;
+export const accentTerracottaAccent800: string;
+export const accentTerracottaAccent900: string;
+export const accentTerracottaAccent950: string;
+export const accentTerracottaAccentBase: string;
+/** The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible. */
+export const accentTerracottaPrimary: string;
+export const accentTerracottaPrimaryHover: string;
+export const accentTerracottaPrimaryForeground: string;
+export const accentTerracottaAccentSurface: string;
+export const accentTerracottaAccentSurfaceHover: string;
+export const accentTerracottaSelected: string;
+export const accentTealAccent50: string;
+export const accentTealAccent200: string;
+export const accentTealAccent300: string;
+export const accentTealAccent400: string;
+export const accentTealAccent500: string;
+export const accentTealAccent600: string;
+export const accentTealAccent700: string;
+export const accentTealAccent800: string;
+export const accentTealAccent900: string;
+export const accentTealAccent950: string;
+export const accentTealAccentBase: string;
+/** The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible. */
+export const accentTealPrimary: string;
+export const accentTealPrimaryHover: string;
+export const accentTealPrimaryForeground: string;
+export const accentTealAccentSurface: string;
+export const accentTealAccentSurfaceHover: string;
+export const accentTealSelected: string;
+export const accentCobaltAccent50: string;
+export const accentCobaltAccent200: string;
+export const accentCobaltAccent300: string;
+export const accentCobaltAccent400: string;
+export const accentCobaltAccent500: string;
+export const accentCobaltAccent600: string;
+export const accentCobaltAccent700: string;
+export const accentCobaltAccent800: string;
+export const accentCobaltAccent900: string;
+export const accentCobaltAccent950: string;
+export const accentCobaltAccentBase: string;
+/** The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible. */
+export const accentCobaltPrimary: string;
+export const accentCobaltPrimaryHover: string;
+export const accentCobaltPrimaryForeground: string;
+export const accentCobaltAccentSurface: string;
+export const accentCobaltAccentSurfaceHover: string;
+export const accentCobaltSelected: string;
+export const accentNocturneAccent50: string;
+export const accentNocturneAccent200: string;
+export const accentNocturneAccent300: string;
+export const accentNocturneAccent400: string;
+export const accentNocturneAccent500: string;
+export const accentNocturneAccent600: string;
+export const accentNocturneAccent700: string;
+export const accentNocturneAccent800: string;
+export const accentNocturneAccent900: string;
+export const accentNocturneAccent950: string;
+/** The nocturne ink: the site's link colour, text-eligible in both themes. */
+export const accentNocturneAccentBase: string;
+/** The site's primary fill. */
+export const accentNocturnePrimary: string;
+export const accentNocturnePrimaryHover: string;
+export const accentNocturnePrimaryForeground: string;
+export const accentNocturneAccentSurface: string;
+export const accentNocturneAccentSurfaceHover: string;
+export const accentNocturneSelected: string;
+export const accentNocturneFocus: string;
+export const accentNocturneBackground: string;
+export const accentNocturneSurface: string;
+export const accentNocturneElevatedSurface: string;
+export const accentNocturneMuted: string;
+export const accentNocturneSidebar: string;
+export const accentNocturneCard: string;
+export const accentNocturnePopover: string;
+export const accentNocturneForeground: string;
+export const accentNocturneMutedForeground: string;
+export const accentNocturneSubtleForeground: string;
+export const accentNocturneBorder: string;
+export const accentNocturneBorderStrong: string;
+export const accentNocturneSecondary: string;
+export const accentNocturneSecondaryHover: string;
+export const accentNocturneDisabled: string;
+export const accentNocturneDisabledSurface: string;
+export const accentNocturneSkeleton: string;
+export const accentNocturneHatch: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */

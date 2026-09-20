@@ -14,6 +14,62 @@ $color-neutral-700: #312f37;
 $color-neutral-800: #26252b;
 $color-neutral-900: #1b1a1e;
 $color-neutral-950: #131217; // Darkest neutral. Retained for compatibility; the dark theme's sidebar is dark.950.
+$color-dark-50: #f8f6f3; // Lightest dark-ramp step.
+$color-dark-100: #eeece9; // Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface.
+$color-dark-200: #d9d7d3;
+$color-dark-300: #c6c4c0;
+$color-dark-400: #aba9a5; // Muted foreground on dark.
+$color-dark-450: #94928e; // Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700.
+$color-dark-500: #6b6965; // Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate.
+$color-dark-600: #494744; // Borders and inputs on dark.
+$color-dark-700: #3a3834; // Elevated surfaces, muted and secondary fills on dark.
+$color-dark-800: #2d2b28; // Surface and card on dark.
+$color-dark-900: #211f1c; // Background on dark.
+$color-dark-950: #151411; // Darkest step. Sidebar on dark, and danger-foreground on a danger fill.
+$color-violet-50: #f7f4ff; // Lightest lilac. Light-theme tinted surface (row hover, ghost hover).
+$color-violet-200: #ede8fd;
+$color-violet-300: #ded5fb;
+$color-violet-400: #c4b4f5;
+$color-violet-500: #a690ea; // Mid lilac. Closes the ramp between 400 and 600; accent.base stays the mode-aware base.
+$color-violet-600: #7d68d1;
+$color-violet-700: #6552b8;
+$color-violet-800: #46309e;
+$color-violet-900: #2e2170;
+$color-violet-950: #211741; // Darkest lilac. Retained ramp step; the dark accent tints are dedicated literals on the semantic layer.
+$color-violet-base: #5b3fc4; // Base accent primitive and the theme ink: deeper violet on light (6.36:1 on background), light lilac on dark (6.36:1 on background, 5.5:1 on surface). Flows into link and focus; the deep fill role lives on semantic.primary.
+$color-terracotta-50: #fef4ef;
+$color-terracotta-200: #fde6db;
+$color-terracotta-300: #f9d2be;
+$color-terracotta-400: #f1ae8c;
+$color-terracotta-500: #e28655;
+$color-terracotta-600: #c3590b;
+$color-terracotta-700: #a44700;
+$color-terracotta-800: #783100;
+$color-terracotta-900: #561f00;
+$color-terracotta-950: #3b1100;
+$color-terracotta-base: #ef8c56; // The terracotta ink: text-eligible in both themes.
+$color-teal-50: #ecfaf7;
+$color-teal-200: #d7f2ee;
+$color-teal-300: #b6e7e0;
+$color-teal-400: #75d3c7;
+$color-teal-500: #08baab;
+$color-teal-600: #009084;
+$color-teal-700: #00776d;
+$color-teal-800: #00564e;
+$color-teal-900: #003c36;
+$color-teal-950: #002723;
+$color-teal-base: #05c3b4; // The teal ink: text-eligible in both themes.
+$color-cobalt-50: #f1f7ff;
+$color-cobalt-200: #e1edfe;
+$color-cobalt-300: #c7ddfe;
+$color-cobalt-400: #9bc2fb;
+$color-cobalt-500: #6ca2f1;
+$color-cobalt-600: #3b7bd7;
+$color-cobalt-700: #2463bd;
+$color-cobalt-800: #00449b;
+$color-cobalt-900: #002d72;
+$color-cobalt-950: #051f43;
+$color-cobalt-base: #71aafe; // The cobalt ink: text-eligible in both themes.
 $color-accent-50: #f7f4ff; // Lightest lilac. Light-theme tinted surface (row hover, ghost hover).
 $color-accent-200: #ede8fd;
 $color-accent-300: #ded5fb;
@@ -29,18 +85,6 @@ $color-status-success: #5bd295; // Success status primitive.
 $color-status-warning: #efc05b; // Warning status primitive.
 $color-status-danger: #f5807f; // Danger status primitive. The dark step sits at 4.6:1 on elevated-surface; a darker red missed AA there.
 $color-status-info: #75c4fa; // Info status primitive.
-$color-dark-50: #f8f6f3; // Lightest dark-ramp step.
-$color-dark-100: #eeece9; // Foreground on dark. Text-eligible: passes WCAG AA 4.5:1 on every dark surface.
-$color-dark-200: #d9d7d3;
-$color-dark-300: #c6c4c0;
-$color-dark-400: #aba9a5; // Muted foreground on dark.
-$color-dark-450: #94928e; // Half step. Strong lines and subtle text share it on dark (border-strong, subtle-foreground), as neutral.500 does for both roles on light: dark.500 misses the 3:1 non-text gate on dark.800 and dark.700.
-$color-dark-500: #6b6965; // Free step between the 450 split and the border pair. Not referenced by the semantic layer: 2.6:1 on dark.800 fails the 3:1 non-text gate.
-$color-dark-600: #494744; // Borders and inputs on dark.
-$color-dark-700: #3a3834; // Elevated surfaces, muted and secondary fills on dark.
-$color-dark-800: #2d2b28; // Surface and card on dark.
-$color-dark-900: #211f1c; // Background on dark.
-$color-dark-950: #151411; // Darkest step. Sidebar on dark, and danger-foreground on a danger fill.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -95,11 +139,115 @@ $semantic-danger-foreground: #151411; // Text and icons on a danger fill. Invert
 $semantic-warning-on-dark: #efc05b; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-danger-on-dark: #f5807f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-info-on-dark: #75c4fa; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
-$semantic-chart-1: #5b3fc4; // Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$semantic-chart-1: #5b3fc4; // Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. Pinned to the violet ink: chart series do not follow the accent, so the palette stays distinguishable from the status series under every accent.
 $semantic-chart-2: #5bd295; // Categorical chart series 2. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
 $semantic-chart-3: #efc05b; // Categorical chart series 3. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
 $semantic-chart-4: #75c4fa; // Categorical chart series 4. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
 $semantic-chart-5: #f5807f; // Categorical chart series 5. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values.
+$accent-violet-accent-50: #f7f4ff;
+$accent-violet-accent-200: #ede8fd;
+$accent-violet-accent-300: #ded5fb;
+$accent-violet-accent-400: #c4b4f5;
+$accent-violet-accent-500: #a690ea;
+$accent-violet-accent-600: #7d68d1;
+$accent-violet-accent-700: #6552b8;
+$accent-violet-accent-800: #46309e;
+$accent-violet-accent-900: #2e2170;
+$accent-violet-accent-950: #211741;
+$accent-violet-accent-base: #5b3fc4;
+$accent-violet-primary: #684bb5; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
+$accent-violet-primary-hover: #795dc9;
+$accent-violet-primary-foreground: #f7f5fe;
+$accent-violet-accent-surface: #2d2843;
+$accent-violet-accent-surface-hover: #3a3356;
+$accent-violet-selected: #49406d;
+$accent-terracotta-accent-50: #fef4ef;
+$accent-terracotta-accent-200: #fde6db;
+$accent-terracotta-accent-300: #f9d2be;
+$accent-terracotta-accent-400: #f1ae8c;
+$accent-terracotta-accent-500: #e28655;
+$accent-terracotta-accent-600: #c3590b;
+$accent-terracotta-accent-700: #a44700;
+$accent-terracotta-accent-800: #783100;
+$accent-terracotta-accent-900: #561f00;
+$accent-terracotta-accent-950: #3b1100;
+$accent-terracotta-accent-base: #ef8c56;
+$accent-terracotta-primary: #9f4400; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
+$accent-terracotta-primary-hover: #b95100;
+$accent-terracotta-primary-foreground: #fef4f0;
+$accent-terracotta-accent-surface: #402516;
+$accent-terracotta-accent-surface-hover: #532f1c;
+$accent-terracotta-selected: #683a22;
+$accent-teal-accent-50: #ecfaf7;
+$accent-teal-accent-200: #d7f2ee;
+$accent-teal-accent-300: #b6e7e0;
+$accent-teal-accent-400: #75d3c7;
+$accent-teal-accent-500: #08baab;
+$accent-teal-accent-600: #009084;
+$accent-teal-accent-700: #00776d;
+$accent-teal-accent-800: #00564e;
+$accent-teal-accent-900: #003c36;
+$accent-teal-accent-950: #002723;
+$accent-teal-accent-base: #05c3b4;
+$accent-teal-primary: #00736a; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
+$accent-teal-primary-hover: #00877c;
+$accent-teal-primary-foreground: #eef9f7;
+$accent-teal-accent-surface: #053430;
+$accent-teal-accent-surface-hover: #00433d;
+$accent-teal-selected: #00544d;
+$accent-cobalt-accent-50: #f1f7ff;
+$accent-cobalt-accent-200: #e1edfe;
+$accent-cobalt-accent-300: #c7ddfe;
+$accent-cobalt-accent-400: #9bc2fb;
+$accent-cobalt-accent-500: #6ca2f1;
+$accent-cobalt-accent-600: #3b7bd7;
+$accent-cobalt-accent-700: #2463bd;
+$accent-cobalt-accent-800: #00449b;
+$accent-cobalt-accent-900: #002d72;
+$accent-cobalt-accent-950: #051f43;
+$accent-cobalt-accent-base: #71aafe;
+$accent-cobalt-primary: #1c5fbc; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
+$accent-cobalt-primary-hover: #2f72d0;
+$accent-cobalt-primary-foreground: #f2f7ff;
+$accent-cobalt-accent-surface: #1d2d45;
+$accent-cobalt-accent-surface-hover: #253a59;
+$accent-cobalt-selected: #2d4870;
+$accent-nocturne-accent-50: #f7f4ff;
+$accent-nocturne-accent-200: #ede8fd;
+$accent-nocturne-accent-300: #ded5fb;
+$accent-nocturne-accent-400: #c4b4f5;
+$accent-nocturne-accent-500: #a690ea;
+$accent-nocturne-accent-600: #7d68d1;
+$accent-nocturne-accent-700: #6552b8;
+$accent-nocturne-accent-800: #46309e;
+$accent-nocturne-accent-900: #2e2170;
+$accent-nocturne-accent-950: #211741;
+$accent-nocturne-accent-base: #b4a9e6; // The nocturne ink: the site's link colour, text-eligible in both themes.
+$accent-nocturne-primary: #6d5fc2; // The site's primary fill.
+$accent-nocturne-primary-hover: #7e71d6;
+$accent-nocturne-primary-foreground: #f7f5fe;
+$accent-nocturne-accent-surface: #2a2944;
+$accent-nocturne-accent-surface-hover: #373457;
+$accent-nocturne-selected: #372f6b;
+$accent-nocturne-focus: #9184d9;
+$accent-nocturne-background: #161826;
+$accent-nocturne-surface: #232532;
+$accent-nocturne-elevated-surface: #292b31;
+$accent-nocturne-muted: #292b31;
+$accent-nocturne-sidebar: #0d0e1b;
+$accent-nocturne-card: #232532;
+$accent-nocturne-popover: #292b31;
+$accent-nocturne-foreground: #e9e9ed;
+$accent-nocturne-muted-foreground: #9a9aa6;
+$accent-nocturne-subtle-foreground: #74747f;
+$accent-nocturne-border: #3f424d;
+$accent-nocturne-border-strong: #8f919f;
+$accent-nocturne-secondary: #363743;
+$accent-nocturne-secondary-hover: #454752;
+$accent-nocturne-disabled: #454752;
+$accent-nocturne-disabled-surface: #292b35;
+$accent-nocturne-skeleton: #363743;
+$accent-nocturne-hatch: #363743;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

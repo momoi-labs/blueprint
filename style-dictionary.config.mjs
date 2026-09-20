@@ -5,7 +5,14 @@ const MODES = ['light', 'dark'];
 // Must match the $extensions key in tokens/tokens.json: { "$extensions": { "com.momoi-labs.kiso": { "fontVariantNumeric": ... } } }.
 const NAMESPACE = 'com.momoi-labs.kiso';
 
-const varName = (path) => path[0] === 'semantic' ? '--color-' + path.slice(1).join('-') : '--' + path.join('-');
+// accent.<name>.<role> overrides the same custom property that semantic.<role>
+// declares, and accent.<name>.accent.<step> the one color.accent.<step> declares,
+// so a [data-accent] block only has to remap names that already exist.
+const varName = (path) => {
+  if (path[0] === 'semantic') return '--color-' + path.slice(1).join('-');
+  if (path[0] === 'accent') return '--color-' + path.slice(2).join('-');
+  return '--' + path.join('-');
+};
 const isRef = (v) => typeof v === 'string' && v.trim().startsWith('{');
 const refVar = (ref) => 'var(' + varName(ref.replace(/[{}]/g, '').trim().split('.')) + ')';
 const fail = (msg) => { throw new Error(msg); };
@@ -134,10 +141,22 @@ StyleDictionary.registerFormat({
     // differ is emitted as CSS light-dark(), which resolves against the
     // inherited color-scheme — so "follow the OS" needs no media query and no
     // JS, and an explicit choice only has to flip color-scheme.
-    const rendered = expanded.map(({ path, value }) => {
+    const declare = ({ path, value }) => {
       const [light, dark] = MODES.map((mode) => value(mode));
       return [varName(path), light === dark ? dark : 'light-dark(' + light + ', ' + dark + ')'];
-    });
+    };
+    const rendered = expanded.filter(({ path }) => path[0] !== 'accent').map(declare);
+
+    // An accent theme is a second axis over the same properties: each
+    // accent.<name> group becomes one [data-accent="<name>"] block that
+    // restates only the roles that follow the hue. Values still use
+    // light-dark(), so an accent and a theme compose without a cross product.
+    const accents = new Map();
+    for (const entry of expanded.filter(({ path }) => path[0] === 'accent')) {
+      const name = entry.path[1];
+      if (!accents.has(name)) accents.set(name, []);
+      accents.get(name).push(declare(entry));
+    }
 
     const reducedMotion = tokens
       .filter(({ path }) => path[0] === 'motion' && path[1] === 'duration')
@@ -147,7 +166,8 @@ StyleDictionary.registerFormat({
       '/* Kiso design tokens — generated from tokens/tokens.json. Do not edit. */',
       block(':root', [['color-scheme', 'light dark'], ...rendered]),
       block('[data-theme="light"]', [['color-scheme', 'light']]),
-      block('[data-theme="dark"]', [['color-scheme', 'dark']])
+      block('[data-theme="dark"]', [['color-scheme', 'dark']]),
+      ...[...accents].map(([name, entries]) => block('[data-accent="' + name + '"]', entries))
     ];
     if (reducedMotion.length) {
       const mediaBody = block(':root', reducedMotion).split('\n').map((l) => '  ' + l).join('\n');
