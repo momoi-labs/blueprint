@@ -1,6 +1,7 @@
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { MetricsDemo } from "./metrics-demo";
+import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AccentSelector,
@@ -221,6 +222,8 @@ const catalog = [
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
+  ["step-list", "StepList", "Data", "A run's steps with a state, a timing and an output."],
+  ["step-bar", "StepBar", "Data", "The same run as one segment per step."],
   ["card", "Card", "Structure", "Header, body and footer with corner marks."],
   [
     "page-header",
@@ -364,6 +367,8 @@ const snippets: Record<string, string> = {
   kv: "<KV>\n  <KVKey>Owner</KVKey>\n  <KVValue>Alex Morgan</KVValue>\n</KV>",
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
+  "step-list": '<Split>\n  <Pane>\n    <StepList label="Create run steps" steps={steps} selected={picked} onSelect={setPicked} />\n  </Pane>\n  <Splitter defaultSize={36} aria-label="Resize the steps and output panes" />\n  <Pane className="grow"><LogView follow>{lines}</LogView></Pane>\n</Split>',
+  "step-bar": '<StepBar label="Create" steps={steps} />\n<span className="mono muted">4 of 11</span>',
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
   "app-shell":
     '<ApplicationShell brand={brand} navigation={groups} header={header}>\n  {page}\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
@@ -1917,6 +1922,10 @@ function Demo({
       return <MetricsDemo component={id} />;
     case "log-view":
       return <LogViewDemo />;
+    case "step-list":
+      return <StepListDemo />;
+    case "step-bar":
+      return <StepBarDemo />;
     default:
       return null;
   }
