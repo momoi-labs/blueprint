@@ -42,6 +42,7 @@ export * from "./tabs.js";
 export * from "./terminal-icon.js";
 export * from "./textarea.js";
 export * from "./theme-selector.js";
+export * from "./accent-selector.js";
 export * from "./toast.js";
 export * from "./tooltip.js";
 export * from "./validation-message.js";

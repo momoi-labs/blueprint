@@ -82,6 +82,10 @@ Navigation
 - ThemeSelector, a controlled selector. The application owns theme persistence
   and applies `data-theme="light"` or `data-theme="dark"` to the document root.
   Remove the attribute for system mode.
+- AccentSelector, a controlled selector, plus the `accents` list and `Accent`
+  type. The application owns accent persistence and applies
+  `data-accent="<name>"` to the document root, or to any container that should
+  carry its own accent. No attribute means violet.
 
 Feedback
 

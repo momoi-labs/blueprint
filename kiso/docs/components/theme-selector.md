@@ -104,11 +104,13 @@ server round-trip to repaint, and do not show a Toast for it.
   which is the default and the most common choice.
 - A theme entry buried inside a DropdownMenu as the only access point. A menu
   may mirror the control, but the setting lives in a settings row.
-- Any control that offers colour options beyond these three. Kiso has two
-  themes.
+- Any control that offers colour scheme options beyond these three. Kiso has
+  two themes. The accent is a separate axis with its own control,
+  [AccentSelector](accent-selector.md).
 
 ## Related
 
 - [tokens](../tokens.md) — how `light-dark()` and `color-scheme` resolve.
 - [Settings](../patterns/settings.md#theme) — where the row lives.
+- [AccentSelector](accent-selector.md) — the other appearance row.
 - [Switch](switch.md) — for actual booleans.
