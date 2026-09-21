@@ -1,5 +1,30 @@
 # @momoi-labs/kiso-react
 
+## 0.8.0
+
+### Minor Changes
+
+- 8409c6e: Add `AccentSelector`, a controlled selector for the accent, plus the `accents`
+  list and `Accent` type. Named pills choose; a live preview below them shows the
+  selected accent applied. The application applies `data-accent` to the document
+  root the way it applies `data-theme`.
+- adee404: Add StepList and StepBar for a run a machine walks and a person reads. StepList
+  is one row per step with a state, a label, and a timing on a rail that fills as
+  the run advances; put it in a Split with the selected step's LogView beside
+  it. StepBar is the same run as one segment per step, for a summary tab, a
+  table cell, or a toast. Evidence and decisions are in issue #98.
+- 0f3f06c: Add Form and FormActions with optional status messages and sticky actions
+  for page and panel scrolling.
+
+### Patch Changes
+
+- Updated dependencies [8709e57]
+- Updated dependencies [34005f7]
+- Updated dependencies [65bb111]
+- Updated dependencies [adee404]
+- Updated dependencies [0f3f06c]
+  - @momoi-labs/kiso@0.11.0
+
 ## 0.7.0
 
 ### Minor Changes
