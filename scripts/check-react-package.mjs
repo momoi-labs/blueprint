@@ -18,7 +18,7 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
       : ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
@@ -51,7 +51,7 @@ try {
     import assert from 'node:assert/strict';
     import { createElement as h } from 'react';
     import { renderToStaticMarkup as render } from 'react-dom/server';
-    import { Button, FormField, Checkbox, AlertDialog, Table, ThemeSelector, BrandMark, TerminalIcon,
+    import { Button, Form, FormActions, FormField, Checkbox, AlertDialog, Table, ThemeSelector, BrandMark, TerminalIcon,
       Alert, AlertTitle, AlertDescription, Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage,
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
@@ -69,6 +69,20 @@ try {
     }));
     assert.match(metrics, /Not collected/);
     assert.match(metrics, /View exact values/);
+    const form = render(h(Form, { id: 'project', action: '/projects', method: 'post', className: 'custom' },
+      h(FormField, { label: 'Name', name: 'name', required: true }),
+      h(FormActions, { sticky: true, tone: 'warning', message: 'Unsaved changes.' },
+        h(Button, { type: 'submit' }, 'Save'))));
+    assert(form.includes('<form'));
+    for (const attribute of ['class="form custom"', 'id="project"', 'action="/projects"', 'method="post"',
+      'data-sticky="true"', 'data-tone="warning"']) assert(form.includes(attribute));
+    assert(form.includes('role="status" aria-atomic="true">Unsaved changes.</div>'));
+    assert.match(form, /class="form-actions-buttons"><button[^>]*type="submit"/);
+    assert.equal((form.match(/role="status"/g) || []).length, 1);
+    const emptyActions = render(h(FormActions, null, h(Button, null, 'Cancel')));
+    assert(emptyActions.includes('role="status" aria-atomic="true"></div>'));
+    assert(!emptyActions.includes('data-sticky'));
+    assert.match(emptyActions, /data-tone="neutral"/);
     const field = render(h(FormField, { id: 'name', label: 'Name', hint: 'Required', 'aria-describedby': 'extra' }));
     assert.match(field, /for="name"/);
     assert.match(field, /aria-describedby="extra name-help"/);

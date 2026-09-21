@@ -21,7 +21,7 @@ specified separately and must still run before destruction.
 | Page framing | [PageHeader](../components/page-header.md) | Title ("New connection", "Edit connection"); optional cancel secondary action |
 | Fields | [FormField](../components/form-field.md) | Each field = [Label](../components/label.md) + control ([Input](../components/input.md), [Textarea](../components/textarea.md), [Select](../components/select.md), [Checkbox](../components/checkbox.md), …) + optional [HelperText](../components/helper-text.md) + [ValidationMessage](../components/validation-message.md) |
 | Grouping | [Card](../components/card.md) or section headings | Related field groups (connection, credentials, advanced) |
-| Primary actions | [Button](../components/button.md) | Save / Create (primary); Cancel (secondary/ghost) |
+| Primary actions | [FormActions](../components/form-actions.md) + [Button](../components/button.md) | Save / Create (primary); Cancel (secondary/ghost) |
 | Overlays | [Modal / Dialog](../components/modal-dialog.md) or [Drawer](../components/drawer.md) | Compact create/edit; Drawer preferred on small viewports for the same task |
 | Inline errors | [ValidationMessage](../components/validation-message.md) on FormField | Field-level recovery; page [Alert](../components/alert.md) is for non-field failures |
 | Form / load errors | [Alert](../components/alert.md) | Submit or load failures that are not field-local (what / why / now) |
@@ -35,6 +35,19 @@ Tokens: form surfaces `--color-surface`, canvas `--color-background`, borders
 invalid fields and ValidationMessage use `--color-danger`, focus
 `--color-focus`, destructive Buttons use `--color-danger` per the Button
 contract.
+
+## Form actions
+
+Every explicit-submit form composes [Form](../components/form.md) and
+[FormActions](../components/form-actions.md). Place one primary submit action
+and any secondary actions after the fields. Use sticky actions when the form
+extends beyond the page or panel viewport. Follow the FormActions contract for
+scroll ownership, optional messages, and responsive layout.
+
+The product owns dirty tracking, validation, submission, and navigation.
+Discard restores the last saved values; Cancel leaves the task. Keep entries
+on failure. Announce feedback in the message region, not around the buttons.
+Immediate preferences and automatic filters do not require FormActions.
 
 ## Flow
 
@@ -87,7 +100,7 @@ Full-page create/edit:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ PageHeader: Edit connection                         [Cancel] [Save]  │
+│ PageHeader: Edit connection                                          │
 ├──────────────────────────────────────────────────────────────────────┤
 │ Alert (only if submit/load error — what / why / now)                 │
 │                                                                      │

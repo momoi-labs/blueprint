@@ -298,6 +298,36 @@ a:hover, .link:hover { text-decoration: underline; }
 /* ===========================================================================
    Form controls
    =========================================================================== */
+/* Forms own composition; consumers own values, validation and submission. */
+.form { display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 100%; }
+.form-body { display: grid; gap: var(--spacing-xl); padding: var(--spacing-lg); min-inline-size: 0; }
+fieldset.form-body { border: 0; margin: 0; }
+.form-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-md) var(--spacing-lg);
+  margin-block-start: auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-card-foreground);
+  border-end-start-radius: inherit; border-end-end-radius: inherit;
+}
+.form-actions[data-sticky="true"] { position: sticky; inset-block-end: 0; z-index: 1; }
+.form-actions[data-tone="warning"] {
+  background: linear-gradient(var(--color-warning-surface), var(--color-warning-surface)), var(--color-card);
+  border-block-start-color: var(--color-warning-border);
+}
+.form-actions[data-tone="danger"] {
+  background: linear-gradient(var(--color-danger-surface), var(--color-danger-surface)), var(--color-card);
+  border-block-start-color: var(--color-danger-border);
+}
+.form-actions-message { flex: 1 1 12rem; min-inline-size: 0; overflow-wrap: anywhere; font-size: var(--type-size-label); }
+/* Keep the live region mounted and available to assistive technology. */
+.form-actions-message:empty { flex: 0 0 0; }
+.form-actions-message strong { font-weight: var(--type-weight-semibold); }
+.form-actions-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--spacing-sm); margin-inline-start: auto; }
+.form-scroll { min-block-size: 0; overflow: auto; scroll-padding-block-end: calc(var(--spacing-4xl) * 2); }
+.form :is(input, textarea, select, button, [tabindex]) { scroll-margin-block: var(--spacing-lg) calc(var(--spacing-4xl) * 2); }
+
 .field { display: grid; gap: var(--spacing-xs); }
 .field > label, .label {
   font-size: var(--type-size-label);

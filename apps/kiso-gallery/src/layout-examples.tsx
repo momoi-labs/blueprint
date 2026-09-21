@@ -1,3 +1,4 @@
+import { FormsExamples } from "../../../kiso/blocks/react-prototype/src/forms-demo";
 import { useId, type ReactNode } from "react";
 import {
   Alert,
@@ -59,6 +60,7 @@ export const layouts = [
     description:
       "A workspace overview with sidebar, metrics, chart and data table.",
   },
+  { id: "forms", label: "Forms", description: "Interactive forms with inline and sticky actions, submission and recovery." },
   {
     id: "list-detail",
     label: "List & detail",
@@ -785,6 +787,7 @@ export function LayoutExamples({ route }: { route: string }) {
   const requested = route.split("/")[1];
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
+  if (selected.id === "forms") return <section aria-label="Forms"><FormsExamples /></section>;
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">

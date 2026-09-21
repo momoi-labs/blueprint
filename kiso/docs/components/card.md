@@ -188,3 +188,9 @@ No Radix Card primitive. Structure follows shadcn
 
 Ignore shadcn's invitation to hard-code spacing utilities. Card spacing
 consumes `--spacing-md`, `--spacing-lg`, or `--spacing-xl` only.
+
+## Form submission
+
+Use [FormActions](form-actions.md) for form submission controls and feedback.
+It can replace CardFooter at the bottom of a form inside a Card. Do not nest
+the two footers. CardFooter remains a general content-and-actions container.
