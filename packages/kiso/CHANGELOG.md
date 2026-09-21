@@ -1,5 +1,39 @@
 # @momoi-labs/kiso
 
+## 0.11.0
+
+### Minor Changes
+
+- 8709e57: Add accent themes. `tokens/tokens.json` gains the `terracotta`, `teal`, and
+  `cobalt` primitive ramps beside the renamed `violet` ramp, and an `accent.*`
+  group that the build emits as one `[data-accent="<name>"]` block each. A block
+  remaps the active `--color-accent-*` ramp and restates the dark fills; the
+  neutrals stay the same under every hue accent. `nocturne` is the marketing
+  site's cool slate palette under the violet ink and is the one accent that
+  restates the neutral roles; theme and accent compose
+  through `light-dark()`. `chart-1` is pinned to the violet ink so chart series
+  stay apart from the status series under every accent. The contrast and chart
+  palette gates now run once per accent. New contract:
+  `docs/components/accent-selector.md`.
+- adee404: Add StepList and StepBar for a run a machine walks and a person reads. StepList
+  is one row per step with a state, a label, and a timing on a rail that fills as
+  the run advances; put it in a Split with the selected step's LogView beside
+  it. StepBar is the same run as one segment per step, for a summary tab, a
+  table cell, or a toast. Evidence and decisions are in issue #98.
+- 0f3f06c: Add Form and FormActions with optional status messages and sticky actions
+  for page and panel scrolling.
+
+### Patch Changes
+
+- 34005f7: Make DashboardPanel content fill the row. Panels in one grid row already
+  shared a height, but the Card inside kept its content height, so a short
+  Stat or Meter ended above its neighbour with bare background below. The panel
+  is now a grid, so its child stretches to the row.
+- 65bb111: Fix StatDelta variants rendering as neutral. `.badge-outline` came later in
+  the cascade than the bare `.success`/`.warning`/`.danger`/`.info` colour
+  classes, so every delta showed muted text. The variant now colours the text and
+  frame while keeping the outline treatment the spec describes.
+
 ## 0.10.0
 
 ### Minor Changes
