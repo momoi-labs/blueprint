@@ -1073,9 +1073,17 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   .chip-action { min-width: var(--size-touch-min); height: var(--size-touch-min); }
 }
 
+/* Narrow viewports: the sidebar stacks above main as compact navigation
+   instead of disappearing, since it may be the only way to reach a
+   destination. It keeps its own scroller so a long list does not push the
+   page down. */
 @media (max-width: 1023px) {
   .app-shell { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  .sidebar {
+    position: static; height: auto; max-height: 40vh;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--color-sidebar-border);
+  }
 }
 
 
