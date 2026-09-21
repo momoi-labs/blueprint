@@ -286,7 +286,7 @@ points at the corner without touching it.
 
 | Token | Value | Meaning |
 | --- | --- | --- |
-| `--corner-mark` | `1` | Opacity: marks on (`1`) or off (`0`). |
+| `--corner-mark` | `1` | Marks on (`1`) or off (`0`). Off marks also drop their inset, so they add no overflow to a scroll container around the panel. |
 | `--corner-mark-tick` | 4px | Length of one tick. |
 | `--corner-mark-gap` | 2px | Distance from tick end to the frame. |
 
