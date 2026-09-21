@@ -1,5 +1,16 @@
 # @momoi-labs/kiso-react
 
+## 0.8.1
+
+### Patch Changes
+
+- 010f82c: Include the gallery's border, corner, and mark settings in the package stylesheet
+  so copied appearance attributes work without gallery files. Keep default styles,
+  create decorative overlays only when needed, and apply reduced motion settings
+  outside the gallery.
+- Updated dependencies [010f82c]
+  - @momoi-labs/kiso@0.12.0
+
 ## 0.8.0
 
 ### Minor Changes
