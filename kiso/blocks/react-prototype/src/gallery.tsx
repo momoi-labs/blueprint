@@ -2009,6 +2009,7 @@ export function ComponentGallery({
   example,
   examples = [],
   intro,
+  appearance,
 }: {
   route: string;
   theme: string;
@@ -2018,6 +2019,7 @@ export function ComponentGallery({
   example?: ReactNode;
   examples?: readonly { id: string; label: string }[];
   intro?: ReactNode;
+  appearance?: ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("all");
@@ -2027,7 +2029,8 @@ export function ComponentGallery({
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
-  const browsing = !showingExample && !showingIntro && selected === "all";
+  const showingAppearance = route === "appearance" && appearance !== undefined;
+  const browsing = !showingAppearance && !showingExample && !showingIntro && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
@@ -2093,6 +2096,13 @@ export function ComponentGallery({
           </a>
         </SidebarHeader>
         <SidebarBody>
+          {appearance !== undefined && (
+            <Navigation aria-label="Gallery settings">
+              <NavigationList><NavigationItem>
+                <NavigationLink href="#appearance" active={showingAppearance}>Appearance</NavigationLink>
+              </NavigationItem></NavigationList>
+            </Navigation>
+          )}
           {showingExample && examples.length > 0 ? (
             <Navigation aria-label="Example layouts">
               <NavigationGroup label="Layouts">
@@ -2135,9 +2145,9 @@ export function ComponentGallery({
           </Navigation>
           )}
         </SidebarBody>
-        <SidebarFooter>
+        {appearance === undefined && <SidebarFooter>
           <ThemeSelector theme={theme} onChange={onThemeChange} />
-        </SidebarFooter>
+        </SidebarFooter>}
       </Sidebar>}
       <AppShellMain>
         <Header className="catalog-header">
@@ -2155,7 +2165,7 @@ export function ComponentGallery({
                 </NavigationItem>
               )}
               <NavigationItem>
-                <NavigationLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
+                <NavigationLink href="#components" active={!showingAppearance && !showingExample && !showingIntro} onClick={showAll}>
                   Components
                 </NavigationLink>
               </NavigationItem>
@@ -2163,6 +2173,9 @@ export function ComponentGallery({
                 <NavigationItem>
                   <NavigationLink href="#example" active={showingExample}>Layouts</NavigationLink>
                 </NavigationItem>
+              )}
+              {appearance !== undefined && (
+                <NavigationItem><NavigationLink href="#appearance" active={showingAppearance}>Appearance</NavigationLink></NavigationItem>
               )}
             </NavigationList>
           </Navigation>
@@ -2176,10 +2189,9 @@ export function ComponentGallery({
                 window.location.hash = "components";
               }}
             />
-            <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />
-            {showingIntro ? (
-              <ThemeSelector theme={theme} onChange={onThemeChange} />
-            ) : (
+            {appearance === undefined && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
+            {showingIntro && appearance === undefined && <ThemeSelector theme={theme} onChange={onThemeChange} />}
+            {!showingIntro && (
               <Button
                 className="catalog-menu"
                 size="sm"
@@ -2192,8 +2204,8 @@ export function ComponentGallery({
             )}
           </div>
         </Header>
-        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
-        {!showingIntro && <div className="catalog-heading">
+        <div ref={content} className={`catalog-main ${showingAppearance ? "catalog-appearance" : showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        {!showingIntro && !showingAppearance && <div className="catalog-heading">
           {!browsing && !showingExample && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
@@ -2250,9 +2262,10 @@ export function ComponentGallery({
             </PageHeaderDescription>
           </PageHeader>
         </div>}
+        {showingAppearance && appearance}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
-        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
+        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingAppearance || showingExample || showingIntro}>
           {visible.map(([id, name, category, description]) => (
             <section
               className="catalog-section"
@@ -2291,13 +2304,13 @@ export function ComponentGallery({
             </section>
           ))}
         </div>
-        {!showingExample && !showingIntro && visible.length === 0 && (
+        {!showingAppearance && !showingExample && !showingIntro && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro || (showingExample && selected === "forms")}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingAppearance || (showingExample && selected === "forms")}>
           {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
         </p>
         </div>

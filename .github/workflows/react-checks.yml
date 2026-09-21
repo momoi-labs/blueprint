@@ -31,4 +31,5 @@ jobs:
       - run: npm run check
       - run: npm run check:react
       - run: npm run build:gallery
+      - run: node --test apps/kiso-gallery/tests/*.test.mjs
       - run: npm run check:deploy --workspace=kiso-gallery
