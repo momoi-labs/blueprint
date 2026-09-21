@@ -686,8 +686,11 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 }
 .tabs button:hover { color: var(--color-foreground); }
 .tabs button[aria-selected="true"] { color: var(--color-foreground); }
+/* The underline stays inside the button, just above the strip's border, so a
+   strip that scrolls sideways has no extra pixel of block overflow to draw a
+   scrollbar for. */
 .tabs button[aria-selected="true"]::after {
-  content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 2px;
+  content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 2px;
   background: var(--color-primary);
   border-radius: var(--radius-full);
 }
@@ -1190,7 +1193,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     left calc(var(--corner-mark-tick) + var(--corner-mark-gap)) bottom 0,
     right 0 bottom calc(var(--corner-mark-tick) + var(--corner-mark-gap)),
     right calc(var(--corner-mark-tick) + var(--corner-mark-gap)) bottom 0;
-  inset: var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))));
+  /* Marks that are off (`--corner-mark: 0`) also collapse the inset to 0, so
+     the pseudo-element stops reaching outside the frame and a scroll container
+     around the panel does not scroll for marks nobody sees. */
+  inset: calc(var(--corner-mark, 1) * var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)))));
   background-image: var(--appearance-mark-images,
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
