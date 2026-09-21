@@ -1191,7 +1191,7 @@ pre::after {
 .time-range-presets small { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
 .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--spacing-lg); }
-.dashboard-panel { grid-column: span var(--dashboard-span, 6); min-width: 0; }
+.dashboard-panel { grid-column: span var(--dashboard-span, 6); min-width: 0; display: grid; } /* the panel is a grid so its single child stretches to the row */
 @media (max-width: 1024px) {
   .dashboard-panel { grid-column: span 6; }
   .dashboard-panel[data-span="12"] { grid-column: span 12; }
