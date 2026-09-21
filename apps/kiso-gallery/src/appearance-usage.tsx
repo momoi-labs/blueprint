@@ -18,8 +18,8 @@ export function AppearanceUsage({ settings }: { settings: AppearanceSettings }) 
     <p className="muted">These examples follow your current selection. Attributes on <code>&lt;html&gt;</code> apply to the whole application, including dialogs.</p>
     <section aria-labelledby="appearance-styles-title">
       <h3 id="appearance-styles-title" className="t-label">Load the styles</h3>
-      <p className="muted t-label">Theme and accent are available in the published Kiso package. The border and mark options are still a gallery experiment. To try them in another app, copy <code>apps/kiso-gallery/src/appearance.css</code> into that app and load it after Kiso.</p>
-      <pre><code>{'import "@momoi-labs/kiso-react/styles.css";\nimport "./appearance.css";'}</code></pre>
+      <p className="muted t-label">Theme, accent, borders, and corner marks are included in the Kiso stylesheet. No gallery files are needed.</p>
+      <pre><code>{'import "@momoi-labs/kiso-react/styles.css";'}</code></pre>
     </section>
     <section aria-labelledby="appearance-html-title">
       <div className="appearance-code-heading">

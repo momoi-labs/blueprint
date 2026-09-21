@@ -27,7 +27,7 @@ Drawer Root
 
 Content uses `--color-elevated-surface`, `--color-foreground`,
 `--color-border`, `--spacing-lg` padding, `--radius-surface`, and
-`--shadow-lg`. The scrim uses `--color-overlay`. Panels are square (`--radius-surface`) and carry corner marks. See
+`--shadow-lg`. The scrim uses `--color-overlay`. Panels are square (`--radius-surface`) and carry corner marks by default. See
 [Card](card.md#corner-marks) for the shared panel contract.
 Entry/exit uses `--motion-duration-normal` and `--motion-easing-standard`, with
 no travel under reduced motion.

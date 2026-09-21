@@ -38,6 +38,22 @@ those again. React and React DOM are peer dependencies supplied by the
 application. No Tailwind setup is required. The stylesheet includes global
 styles and Google Fonts.
 
+## Appearance
+
+The stylesheet includes the gallery's theme, accent, border, and corner-mark
+options. Copy the Appearance page's HTML attributes onto your `<html>` element;
+you do not need any gallery files or a second stylesheet.
+
+```html
+<html lang="en" data-accent="terracotta" data-border-style="soft"
+  data-corner-size="small" data-corner-marks="arcs" data-mark-size="medium">
+```
+
+See the [appearance attributes](../../kiso/docs/tokens.md#appearance-attributes)
+for supported values. Omit `data-theme` to follow the operating system.
+Your application owns saving and restoring preferences before first paint.
+Remove any previously copied gallery appearance overrides after upgrading.
+
 ## Available components
 
 Controls and forms

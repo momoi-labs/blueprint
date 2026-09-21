@@ -4,6 +4,7 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { appearanceCode } from '../apps/kiso-gallery/src/appearance-settings.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const fixture = await mkdtemp(path.join(tmpdir(), 'kiso-consumer-'));
@@ -30,8 +31,27 @@ try {
   const manifest = JSON.parse(await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso-react/package.json')));
   assert.match(manifest.dependencies['@momoi-labs/kiso'], /^\^\d+\.\d+\.\d+$/);
   assert(!manifest.dependencies.react);
+  // Hoisted workspace dependencies can hide missing package declarations.
+  const declared = new Set([...Object.keys(manifest.dependencies), ...Object.keys(manifest.peerDependencies)]);
+  const dist = path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist');
+  for (const file of (await readdir(dist)).filter(file => /\.(js|ts)$/.test(file))) {
+    const source = await readFile(path.join(dist, file), 'utf8');
+    for (const [, specifier] of source.matchAll(/(?:from\s*|import\s*(?:\(\s*)?)["']([^"']+)["']/g)) {
+      if (specifier.startsWith('.')) continue;
+      const dependency = specifier.split('/').slice(0, specifier.startsWith('@') ? 2 : 1).join('/');
+      assert(declared.has(dependency), `${file} imports undeclared dependency ${dependency}`);
+    }
+  }
   const css = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/kiso/ui.css'), 'utf8');
   assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
+  const tokens = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/tokens/build/tokens.css'), 'utf8');
+  const { html: appearanceHTML } = appearanceCode({ theme: 'dark', accent: 'terracotta',
+    borderStyle: 'soft', cornerMarks: 'arcs', cornerSize: 'small', markSize: 'medium' });
+  for (const [, attribute] of appearanceHTML.matchAll(/(data-[\w-]+)="[^"]+"/g)) {
+    assert((tokens + css).includes(`[${attribute}`), `Package CSS ignores ${attribute}`);
+  }
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{\s*\*,/,
+    'Reduced motion must work without gallery CSS');
   assert(!/fonts\.googleapis\.com/.test(css),
     'ui.css must not @import Google Fonts; nested @import breaks after tokens when flattened');
   assert.match(css, /\.app-shell\[data-layout=["']topbar["']\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
@@ -229,7 +249,8 @@ try {
     assert.match(log, /class="log-error"[^>]*>ERROR<[/]span>/);
   `);
   run(process.execPath, ['verify.mjs']);
-  await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
+  await writeFile(path.join(fixture, 'index.html'), appearanceHTML.replace('<!-- Your application -->',
+    '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
     import { ApplicationShell, Button, FormField, BrandMark, TerminalIcon, Textarea,
@@ -260,6 +281,9 @@ try {
   const cssAsset = (await readdir(assetDir)).find((name) => name.endsWith('.css'));
   assert(cssAsset, 'vite build must emit a CSS asset');
   const bundled = await readFile(path.join(assetDir, cssAsset), 'utf8');
+  for (const attribute of ['border-style', 'corner-marks', 'corner-size', 'mark-size']) {
+    assert(bundled.includes(`[data-${attribute}`), `Bundled CSS ignores data-${attribute}`);
+  }
   const fontImport = bundled.match(/@import[^;]*fonts\.googleapis\.com[^;]*;/);
   if (fontImport) {
     assert(!bundled.slice(0, bundled.indexOf(fontImport[0])).includes('{'),

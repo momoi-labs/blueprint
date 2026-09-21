@@ -277,9 +277,9 @@ Layout sizes: `--size-sidebar` (248px) is the shell navigation column;
 `--size-icon-sm` (14px), `--size-icon-md` (16px, the default), and
 `--size-icon-lg` (20px).
 
-## Corners: marks, not radius
+## Corners and appearance
 
-Panels are square. `--radius-surface` is `0px`, and a panel's corner treatment
+Panels are square by default. `--radius-surface` is `0px`, and a panel's corner treatment
 is a **corner mark** instead: two 1px ticks per corner, each lying along the
 frame line it extends and stopping `--corner-mark-gap` short of it, so the mark
 points at the corner without touching it.
@@ -296,8 +296,8 @@ the paint and makes the hollow centre explicit rather than accidental.
 
 The gap **is** the mark. Close it and this is just a thicker border.
 
-Marks appear on every panel, without exception. There is no rounded mode and no
-`data-corners` attribute — the choice was made once, here.
+Marks appear on panels by default. Applications can select another treatment
+with the appearance attributes below.
 
 The remaining radii only take the bite off controls:
 
@@ -308,7 +308,38 @@ The remaining radii only take the bite off controls:
 | `--radius-md` | 4px | **Buttons, inputs, menu items** — the control default. |
 | `--radius-lg` | 5px | Segmented tracks and other control groups. |
 | `--radius-full` | 9999px | Pills, dots, switches, avatars. |
-| `--radius-surface` | 0px | **Panels, cards, tables, dialogs** — always. |
+| `--radius-surface` | 0px | **Panels, cards, tables, dialogs** by default. |
+
+### Appearance attributes
+
+Set these attributes on `<html>` so they also reach portalled dialogs and menus.
+They ship in `@momoi-labs/kiso/ui.css`, which React's stylesheet imports.
+No gallery CSS or JavaScript is required.
+
+| Attribute | Values | Default when omitted |
+| --- | --- | --- |
+| `data-border-style` | `square`, `soft`, `round`, `asym`, `rail`, `dash`, `bevel`, `double`, `base`, `offset` | Square panels and existing control radii |
+| `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
+| `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `dots` | `ticks` |
+| `data-mark-size` | `small`, `medium`, `large` | `medium` |
+
+`data-corner-size` scales the radii selected by `data-border-style`: `off`
+sets them to zero; `small`, `medium`, and `large` use 0.5, 1, and 1.5 times
+that style's radii. Square panels stay square and their control radii stay
+unchanged unless the size is `off`. Size does not hide marks; use
+`data-corner-marks="none"` for that.
+
+Mark sizes set `--corner-mark-tick` and `--corner-mark-gap` to 2px/1px,
+4px/2px, or 8px/4px. Border styles override the existing radius tokens.
+The generated token defaults remain unchanged.
+
+```html
+<html lang="en" data-accent="terracotta" data-border-style="soft"
+  data-corner-size="small" data-corner-marks="arcs" data-mark-size="medium">
+```
+
+Keep scrolling on `.log-scroll`, `.table-scroll`, dialog bodies, and
+`pre > code`. The outer frame owns the marks, which extend outside it.
 
 ## Hatch
 
