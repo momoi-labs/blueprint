@@ -40,3 +40,9 @@ both full timestamps; visible dates appear when the interval crosses a day. Touc
 Use existing Button, Input, and Popover tokens. Use `--spacing-xs` between
 presets and `--spacing-md` between regions. The trigger wraps long ranges;
 the popover fits the viewport. No new calendar, timezone, or date dependency.
+
+## Custom range form
+
+The custom range editor composes [Form](form.md) with
+[FormActions](form-actions.md). Apply range is the explicit submit action;
+validation stays next to the range fields. Presets still apply immediately.

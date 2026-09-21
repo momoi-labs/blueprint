@@ -258,6 +258,8 @@
   }
   .catalog-tools {
     flex: 1;
+    flex-wrap: wrap;
+    min-width: 0;
   }
   .catalog-tools > [data-slot="search"] {
     flex: 1;
@@ -345,4 +347,61 @@
 }
 .gallery-step-cell .step-bar {
   width: 88px;
+}
+
+/* Form examples use the shared form layout; these rules size the fixtures. */
+.forms-demo-choices, .forms-demo-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); }
+.forms-demo-toolbar .select { width: auto; }
+.forms-demo-section { display: grid; gap: var(--spacing-lg); padding-block-start: var(--spacing-xl); border-block-start: 1px solid var(--color-border); }
+.forms-demo-tabs { padding-inline: var(--spacing-lg); }
+.forms-demo-scroll { block-size: 460px; max-block-size: 65dvh; }
+.forms-demo-scroll[data-state="inactive"] { display: none; }
+.forms-demo-login { max-inline-size: 440px; margin-inline: auto; }
+.forms-demo-launch { display: grid; justify-items: center; gap: var(--spacing-xl); padding: var(--spacing-3xl) var(--spacing-lg); }
+
+/* The card owns the top corners; the sticky action edge owns the bottom ones. */
+.forms-demo-page::after {
+  background-size:
+    var(--corner-mark-tick) 1px, 1px var(--corner-mark-tick),
+    var(--corner-mark-tick) 1px, 1px var(--corner-mark-tick),
+    0 0, 0 0, 0 0, 0 0;
+}
+.forms-demo-page .form-actions[data-sticky="true"] { inset-block-end: var(--spacing-xl); }
+.forms-demo-page .form-actions[data-sticky="true"]::before {
+  content: "";
+  position: absolute;
+  inset-inline: calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)) - 1px);
+  inset-block-end: calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)));
+  block-size: calc(var(--corner-mark-tick) + var(--corner-mark-gap) + 1px);
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--corner-mark);
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
+    linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
+    linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
+    linear-gradient(var(--color-corner-mark), var(--color-corner-mark));
+  background-size:
+    var(--corner-mark-tick) 1px, 1px var(--corner-mark-tick),
+    var(--corner-mark-tick) 1px, 1px var(--corner-mark-tick);
+  background-position:
+    left 0 top 0,
+    left calc(var(--corner-mark-tick) + var(--corner-mark-gap)) bottom 0,
+    right 0 top 0,
+    right calc(var(--corner-mark-tick) + var(--corner-mark-gap)) bottom 0;
+}
+/* The viewport inset must show the page, not fields scrolling behind it. */
+.forms-demo-page .form-actions[data-sticky="true"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: -1px;
+  block-size: var(--spacing-xl);
+  background: var(--color-background);
+  pointer-events: none;
+}
+@media (max-width: 1023px) {
+  .forms-demo-page .form-actions[data-sticky="true"] { inset-block-end: var(--spacing-lg); }
+  .forms-demo-page .form-actions[data-sticky="true"]::after { block-size: var(--spacing-lg); }
 }

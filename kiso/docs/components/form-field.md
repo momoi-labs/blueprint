@@ -7,6 +7,9 @@ identification, entry, guidance, and field-level feedback so their visual and
 accessible relationships remain intact. FormField is not a primitive and does
 not replace the semantics of its children.
 
+Use [Form](form.md) and [FormActions](form-actions.md) for the whole form and
+its submission actions. FormField remains responsible for one control.
+
 ## Anatomy
 
 The canonical composition is:

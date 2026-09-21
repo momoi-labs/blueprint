@@ -12,6 +12,8 @@ behavioral reference where one exists.
 - [Card](card.md): Groups related content and actions with visual separation.
 - [Checkbox](checkbox.md): Toggles an option in a list or selects multiple values.
 - [ChipInput](chip-input.md): Collects several structured values in one field, each with its own options.
+- [Form](form.md): Composes fields and explicit submission actions in a native form.
+- [FormActions](form-actions.md): Groups form actions and optional feedback, with inline or sticky placement.
 - [FormField](form-field.md): Composes Label, a form control, HelperText, and ValidationMessage with consistent ID and ARIA wiring.
 - [HelperText](helper-text.md): Provides persistent, non-error context for a form control.
 - [IconButton](icon-button.md): Triggers a compact icon-only action with a required accessible name.
@@ -74,6 +76,8 @@ behavioral reference where one exists.
 - [Toast](toast.md): Reports transient system feedback without replacing in-page status or field errors.
 
 ## Required compositions
+
+- [Form](form.md) with explicit submission includes fields and [FormActions](form-actions.md).
 
 - [FormField](form-field.md) composes [Label](label.md) + [Input](input.md) (or another form control) + [HelperText](helper-text.md) + [ValidationMessage](validation-message.md).
 - [ApplicationShell](app-shell.md) composes [Sidebar](sidebar.md) + [Navigation](navigation.md) + [Header](header.md) + page content, or a top-bar-only frame with brand in [Header](header.md).

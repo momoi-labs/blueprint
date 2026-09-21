@@ -3,6 +3,7 @@
 import * as React from "react"
 import { clsx as cn } from "clsx"
 import { Button } from "./button.js"
+import { Form, FormActions } from "./form.js"
 import { Input } from "./input.js"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover.js"
 
@@ -69,7 +70,7 @@ function TimeRangeForm({ value, bounds, onApply }: { value: TimeRange; bounds: T
   const [from, setFrom] = React.useState(dateInput(value.from))
   const [to, setTo] = React.useState(dateInput(value.to))
   const [error, setError] = React.useState("")
-  return <form className="stack-sm" onSubmit={event => {
+  return <Form className="stack-sm" onSubmit={event => {
     event.preventDefault()
     const range = { from: Date.parse(`${from}Z`), to: Date.parse(`${to}Z`) }
     if (!validRange(range) || range.from < bounds.from || range.to > bounds.to) {
@@ -87,6 +88,6 @@ function TimeRangeForm({ value, bounds, onApply }: { value: TimeRange; bounds: T
       min={dateInput(bounds.from)} max={dateInput(bounds.to)} onChange={event => { setTo(event.target.value); setError("") }}
       aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined} />
     {error && <p id={`${id}-error`} role="alert" className="field-error">{error}</p>}
-    <Button type="submit" variant="primary">Apply range</Button>
-  </form>
+    <FormActions><Button type="submit" variant="primary">Apply range</Button></FormActions>
+  </Form>
 }

@@ -15,13 +15,13 @@ immediate vs deferred persistence, and unambiguous save feedback.
 
 | Region | Compose with | Role |
 | --- | --- | --- |
-| Page framing | [PageHeader](../components/page-header.md) | "Settings" or section title; optional save actions when the page uses explicit save |
+| Page framing | [PageHeader](../components/page-header.md) | "Settings" or section title; section context; submit actions belong in FormActions |
 | Section nav | [Tabs](../components/tabs.md) or Sidebar sub-nav [Link](../components/link.md)s | Split General / Notifications / API, etc. |
 | Groups | [Card](../components/card.md) | One settings group per Card |
 | Text / choice fields | [FormField](../components/form-field.md) | [Label](../components/label.md) + [Input](../components/input.md) / [Select](../components/select.md) / [Textarea](../components/textarea.md) + [HelperText](../components/helper-text.md) + [ValidationMessage](../components/validation-message.md) |
 | Repeated values with their own options | [ChipInput](../components/chip-input.md) | One field for a list a person types, such as dependencies or scopes, instead of a form section per entry |
 | Booleans | [Switch](../components/switch.md) (immediate) or [Checkbox](../components/checkbox.md) inside FormField (part of a saved form) | Switch for single immediate preferences; Checkbox when the value submits with Save |
-| Actions | [Button](../components/button.md) | Save (primary), Reset/Cancel (secondary) for explicit-save sections |
+| Actions | [FormActions](../components/form-actions.md) + [Button](../components/button.md) | Save (primary), Reset/Cancel (secondary) for explicit-save sections |
 | Feedback | [Toast](../components/toast.md), [Alert](../components/alert.md), [ValidationMessage](../components/validation-message.md) | Saved confirmation; section errors; field errors |
 | Shell | [Application shell](application-shell.md) | Authenticated framing |
 
@@ -57,6 +57,19 @@ The accent is the second row of the same card, with
 [AccentSelector](../components/accent-selector.md). It follows the same three
 points: `violet` is the default, the choice is local and instant, and it
 persists under `kiso-accent` outside the section's Save button.
+
+## Form actions
+
+Every explicit-submit form composes [Form](../components/form.md) and
+[FormActions](../components/form-actions.md). Place one primary submit action
+and any secondary actions after the fields. Use sticky actions when the form
+extends beyond the page or panel viewport. Follow the FormActions contract for
+scroll ownership, optional messages, and responsive layout.
+
+The product owns dirty tracking, validation, submission, and navigation.
+Discard restores the last saved values; Cancel leaves the task. Keep entries
+on failure. Announce feedback in the message region, not around the buttons.
+Immediate preferences and automatic filters do not require FormActions.
 
 ## Flow
 

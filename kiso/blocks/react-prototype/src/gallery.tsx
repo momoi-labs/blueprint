@@ -1,5 +1,6 @@
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
+import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
@@ -187,6 +188,8 @@ const catalog = [
     "Controls",
     "Several structured values in one field.",
   ],
+  ["form", "Form", "Forms", "Fields and explicit submission in one native form."],
+  ["form-actions", "FormActions", "Forms", "Actions, optional feedback and sticky placement."],
   ["label", "Label", "Forms", "A visible, associated field name."],
   [
     "form-field",
@@ -354,6 +357,8 @@ const snippets: Record<string, string> = {
     '<Checkbox id="platform" checked={checked} onCheckedChange={setChecked} />\n<Label htmlFor="platform">Show platform services</Label>',
   switch:
     '<Switch id="notifications" checked={on} onCheckedChange={setOn} />\n<Label htmlFor="notifications">Email notifications</Label>',
+  "form": '<Form onSubmit={handleSubmit}>\n  <div className="form-body">\n    <FormField label="Project name" name="name" required />\n  </div>\n  <FormActions>\n    <Button type="submit" variant="primary">Create project</Button>\n  </FormActions>\n</Form>',
+  "form-actions": '<FormActions sticky tone="warning" message="Unsaved changes.">\n  <Button type="button" onClick={discard}>Discard changes</Button>\n  <Button type="submit" variant="primary">Save changes</Button>\n</FormActions>',
   "form-field":
     '<FormField label="Compose file" hint="Docker Compose YAML." error={error}>\n  <Textarea rows={8} />\n</FormField>',
   label: '<Label htmlFor="name">Project name</Label>\n<Input id="name" />',
@@ -1147,6 +1152,10 @@ function Demo({
           <Input id={uid} placeholder="Click the label to focus this field" />
         </div>
       );
+    case "form":
+      return <FormDemo />;
+    case "form-actions":
+      return <FormActionsDemo />;
     case "form-field":
       return (
         <FormField label="Compose file" hint="Docker Compose YAML." error="Image is required.">
@@ -2288,7 +2297,7 @@ export function ComponentGallery({
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro || (showingExample && selected === "forms")}>
           {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
         </p>
         </div>

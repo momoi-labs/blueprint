@@ -17,6 +17,7 @@ export * from "./drawer.js";
 export * from "./dropdown-menu.js";
 export * from "./empty-state.js";
 export * from "./form-field.js";
+export * from "./form.js";
 export * from "./header.js";
 export * from "./input.js";
 export * from "./kv.js";
