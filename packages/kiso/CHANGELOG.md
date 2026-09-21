@@ -1,5 +1,19 @@
 # @momoi-labs/kiso
 
+## 0.12.1
+
+### Patch Changes
+
+- 50a2c5c: Let `.page` and `.stack` shrink below their content width so a wide table, chart, or log line scrolls in place instead of widening the page.
+- eeecd99: Keep hidden corner marks and the selected tab's underline inside their boxes.
+  Marks turned off with `--corner-mark: 0` or `data-corner-marks="none"` no longer
+  reach outside the frame, and the tab underline no longer ends one pixel past the
+  button, so a scroll container around a panel or a sideways-scrolling tab strip
+  stops showing scrollbars for pixels nobody sees.
+- 66e3486: Stack the sidebar above main on narrow viewports instead of hiding it.
+- 39d227f: Keep tab labels on one line in a strip that scrolls sideways.
+- 87fb58c: Size a select in `.table-toolbar` to its content instead of the full row.
+
 ## 0.12.0
 
 ### Minor Changes
