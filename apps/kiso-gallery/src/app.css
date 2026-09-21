@@ -287,14 +287,6 @@
     min-height: var(--size-touch-min);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
 
 .catalog-intro {
   width: 100%;

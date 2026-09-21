@@ -69,7 +69,7 @@ it is a section with a heading, not a Card.
 This is the shared panel contract. Card, [Table](table.md) wrapper,
 [ModalDialog](modal-dialog.md), [Drawer](drawer.md),
 [CommandPalette](command-palette.md), and code or log blocks are **panels**:
-square (`--radius-surface`) with corner marks. Popover, DropdownMenu, Toast,
+square (`--radius-surface`) with corner marks by default. Popover, DropdownMenu, Toast,
 Alert, and Tooltip are transient chrome, not panels: they keep a small radius
 and carry no marks.
 
@@ -91,11 +91,11 @@ accidental.
 
 The gap is the mark. Close it and this is just a thicker border.
 
-Marks go on every panel, without exception. There is no rounded mode and no
-`data-corners` attribute; the corner language was decided once and is not a
-per-product setting.
+Applications can change panel borders, radii, mark shapes, and mark sizes
+with the [appearance attributes](../tokens.md#appearance-attributes).
+Without these attributes, panels keep the square frame and tick marks.
 
-Draw them on one pseudo-element inset by `calc(-1 * (var(--corner-mark-tick) +
+Draw default ticks on one pseudo-element inset by `calc(-1 * (var(--corner-mark-tick) +
 var(--corner-mark-gap)))`, so no markup and no images are needed. If the panel
 scrolls, move `overflow` to an inner element — the marks sit just outside the
 frame and a scrolling wrapper clips them away.
