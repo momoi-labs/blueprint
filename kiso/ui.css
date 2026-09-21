@@ -106,9 +106,11 @@ a, .link {
 a:hover, .link:hover { text-decoration: underline; }
 
 /* --- layout helpers ------------------------------------------------------ */
-.stack   { display: grid; gap: var(--spacing-lg); }
-.stack-sm{ display: grid; gap: var(--spacing-sm); }
-.stack-xs{ display: grid; gap: var(--spacing-xs); }
+/* One explicit column of minmax(0, 1fr), so a wide table, chart, or log line
+   inside a stack cannot widen the page; it scrolls or wraps in place instead. */
+.stack   { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-lg); }
+.stack-sm{ display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-sm); }
+.stack-xs{ display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-xs); }
 .row     { display: flex; align-items: center; gap: var(--spacing-sm); }
 .row-md  { display: flex; align-items: center; gap: var(--spacing-md); }
 .row-wrap{ display: flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; }
@@ -993,7 +995,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
   font-weight: var(--type-weight-medium);
 }
 
-.page { padding: var(--spacing-xl); display: grid; gap: var(--spacing-xl); align-content: start; max-width: var(--size-content-max); }
+.page { padding: var(--spacing-xl); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-xl); align-content: start; min-width: 0; max-width: var(--size-content-max); }
 .page-header { display: grid; gap: var(--spacing-2xs); }
 
 /* ===========================================================================
