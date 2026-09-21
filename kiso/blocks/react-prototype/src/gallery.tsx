@@ -2,7 +2,7 @@
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccentSelector,
   type Accent,
@@ -305,6 +305,36 @@ const catalog = [
     "Search commands and destinations from the keyboard.",
   ],
 ] as const;
+
+type CatalogId = (typeof catalog)[number][0];
+
+// Cards take one column of the browse grid unless listed here.
+// "wide" takes two columns, "full" takes the whole row.
+const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
+  textarea: "wide",
+  select: "wide",
+  "chip-input": "wide",
+  "time-range-control": "wide",
+  "form-field": "wide",
+  table: "wide",
+  chart: "wide",
+  "chart-legend": "wide",
+  "log-view": "wide",
+  "step-list": "wide",
+  "step-bar": "wide",
+  alert: "wide",
+  "dashboard-grid": "wide",
+  "page-header": "wide",
+  header: "wide",
+  "app-shell": "wide",
+  split: "wide",
+  breadcrumb: "wide",
+  tabs: "wide",
+  pagination: "wide",
+  "modal-dialog": "wide",
+  drawer: "wide",
+  "command-palette": "wide",
+};
 
 const snippets: Record<string, string> = {
   "chip-input":
@@ -1931,6 +1961,36 @@ function Demo({
   }
 }
 
+// Wide cards go first so the small ones fill the columns left over.
+function sizeRank(size: "wide" | "full" | undefined) {
+  return size === "full" ? 0 : size === "wide" ? 1 : 2;
+}
+
+const MASONRY_ROW = 8;
+
+// Masonry on a 12-column grid: each card spans only the 8px rows its content
+// needs, so short cards do not wait for the tallest card in the same row.
+function useMasonryRows(grid: RefObject<HTMLDivElement | null>, active: boolean) {
+  useLayoutEffect(() => {
+    const root = grid.current;
+    if (!active || !root) return;
+    const gap = parseFloat(getComputedStyle(root).columnGap) || 0;
+    const fit = (card: HTMLElement) => {
+      const height = card.getBoundingClientRect().height;
+      card.style.setProperty("--catalog-rows", String(Math.ceil((height + gap) / MASONRY_ROW)));
+    };
+    const cards = Array.from(root.children).filter((c): c is HTMLElement => c instanceof HTMLElement);
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) fit(entry.target as HTMLElement);
+    });
+    for (const card of cards) {
+      fit(card);
+      observer.observe(card);
+    }
+    return () => observer.disconnect();
+  });
+}
+
 export function ComponentGallery({
   route,
   theme,
@@ -1954,6 +2014,7 @@ export function ComponentGallery({
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
   const content = useRef<HTMLDivElement>(null);
+  const grid = useRef<HTMLDivElement>(null);
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
@@ -1963,8 +2024,11 @@ export function ComponentGallery({
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
   );
   const visible = browsing
-    ? entries.filter((entry) => group === "all" || entry[2] === group)
+    ? entries
+        .filter((entry) => group === "all" || entry[2] === group)
+        .sort((a, b) => sizeRank(catalogSize[a[0]]) - sizeRank(catalogSize[b[0]]))
     : catalog.filter((entry) => entry[0] === selected);
+  useMasonryRows(grid, browsing);
 
   function showAll() {
     setSearch("");
@@ -2179,11 +2243,12 @@ export function ComponentGallery({
         </div>}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
-        <div className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
+        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
           {visible.map(([id, name, category, description]) => (
             <section
               className="catalog-section"
               key={id}
+              data-size={browsing ? catalogSize[id] : undefined}
               aria-labelledby={browsing ? `catalog-${id}` : undefined}
               aria-label={browsing ? undefined : name}
             >
