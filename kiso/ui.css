@@ -682,6 +682,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
   font-size: var(--type-size-body);
   font-weight: var(--type-weight-medium);
   color: var(--color-muted-foreground);
+  white-space: nowrap; /* a strip that scrolls sideways must not wrap "Last run" */
   cursor: pointer;
 }
 .tabs button:hover { color: var(--color-foreground); }
