@@ -1062,6 +1062,158 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .bars i.on { background: var(--color-primary); }
 
 /* ===========================================================================
+   Screen layout: list, detail and create screens (Kiso: list-detail, crud)
+   =========================================================================== */
+/* The filter row on a list screen. Search first and growing, any extra
+   filter after it, and "Clear filters" only once something is filtered. The
+   way to add one more is in the page header, not here: narrowing a list and
+   adding to it are opposite intentions. */
+.list-filters { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm); }
+.list-filters > .input-group { flex: 1 1 260px; min-width: 0; }
+/* The select is an accessory to the search, not a second field, so it takes
+   only what its longest option needs. */
+.list-filters > .select { flex: none; width: auto; min-width: 11rem; }
+@media (max-width: 560px) {
+  .list-filters > .input-group { flex-basis: 100%; }
+  .list-filters > .select { width: 100%; }
+}
+
+/* The detail screen's first row: the title on the left, the lifecycle row on
+   the right. A title with a description is taller than the row, so the row
+   sits at the top, and it wraps under the title when there is no room. */
+.between:has(> .lifecycle) { align-items: flex-start; flex-wrap: wrap; gap: var(--spacing-lg); }
+
+/* The detail screen's header row: what it is, what you can do to it, and the
+   one action you do not want to hit by accident. The two clusters sit a
+   normal gap apart, and the destructive action gets a wider one so nothing is
+   ever flush against it. */
+.lifecycle { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-md); }
+.lifecycle > .btn-danger-ghost { margin-inline-start: var(--spacing-sm); }
+
+/* A cluster is one object made of several. The children give up their own
+   border and corners to the frame, and a hairline between them is what says
+   they are separate readings, or separate choices. */
+.cluster {
+  display: inline-flex; align-items: stretch;
+  height: var(--size-control-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+/* Status is read, not pressed: no shadow, and each badge keeps the tone
+   surface that carries its meaning. */
+.cluster-status > .badge {
+  height: auto; border-radius: 0;
+  border-block: 0; border-inline-end: 0;
+  padding-inline: var(--spacing-md);
+  font-size: var(--type-size-label);
+}
+/* The tone's own border would double up against the frame's line. */
+.cluster-status > .badge + .badge { border-inline-start-color: var(--color-border); }
+/* The verbs are pressed, so the group carries the surface and the shadow
+   each button carried on its own. */
+.cluster-verbs { background: var(--color-card); box-shadow: var(--shadow-xs); }
+/* `.cluster` twice, so the flat corners beat the appearance rule that rounds
+   every control and comes later in this file. */
+.cluster.cluster-verbs > .btn { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.cluster-verbs > .btn + .btn { border-inline-start: 1px solid var(--color-border); }
+.cluster-verbs > .btn:hover:not(:disabled) { background: var(--color-accent-surface-hover); }
+/* A greyed verb is the row's normal state (Start is off while the thing
+   runs), so it reads as unavailable without punching a hole in the group. */
+.cluster-verbs > .btn:disabled { background: var(--color-disabled-surface); color: var(--color-disabled); }
+/* The focus ring belongs on the group's edge, not on a square inside it. */
+.cluster-verbs > .btn:focus-visible { outline-offset: -2px; }
+/* Wrapped onto its own line, the destructive action has no gap left to set
+   it apart, so the verbs take the row instead, and the row goes under the
+   title rather than squeezing beside it. */
+@media (max-width: 720px) {
+  .lifecycle { flex-basis: 100%; gap: var(--spacing-sm); }
+  .cluster-verbs { width: 100%; }
+  .cluster-verbs > .btn { flex: 1; }
+  .lifecycle > .btn-danger-ghost { margin-inline-start: 0; }
+}
+
+/* One card for everything a detail screen holds: its configuration, and
+   whatever it prints. The card takes the height the header row leaves and
+   each panel scrolls inside it, so switching tabs does not resize the page
+   under the cursor. */
+.detail-tabs { min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr); }
+.detail-tabs > [data-slot="tabs"] { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+/* The card does not clip, or its corner marks would go with the overflow.
+   Its bottom corners pass down to the panel and the form instead, so a
+   sticky footer and an edge-to-edge log follow the card's shape. */
+.detail-tabs > [data-slot="tabs"],
+.detail-tabs [role="tabpanel"],
+.detail-tabs [role="tabpanel"] > .form {
+  border-end-start-radius: inherit; border-end-end-radius: inherit;
+}
+/* The strip scrolls sideways when the tabs do not fit. A scroller's automatic
+   minimum size is zero, so the list keeps its own height explicitly. */
+.detail-tabs [role="tablist"] { max-width: 100%; overflow-x: auto; padding-inline: var(--spacing-xl); }
+.detail-tabs > [data-slot="tabs"] > [role="tablist"] { min-height: min-content; }
+.detail-tabs [role="tabpanel"] { min-width: 0; min-height: 0; overflow: auto; padding: var(--spacing-xl); }
+/* A panel with its own scroller, a log or a thread, takes the card out to
+   its edges. */
+.detail-tabs [role="tabpanel"]:is(.detail-logs, .detail-pane) {
+  display: grid; grid-template-rows: minmax(0, 1fr);
+  overflow: hidden; padding: 0;
+}
+.detail-tabs .logview { min-height: 0; border: 0; border-radius: 0; --corner-mark: 0; }
+.detail-tabs .log-scroll { padding: var(--spacing-lg); }
+/* A display of our own beats the `hidden` a panel keeps after you leave it. */
+.detail-tabs [role="tabpanel"][hidden] { display: none; }
+/* A panel that holds a form gives its padding to the form's body, so a
+   sticky FormActions spans the panel and rests on its bottom edge. */
+.detail-tabs [role="tabpanel"]:has(> .form) { padding: 0; }
+.detail-tabs .form-body { padding: var(--spacing-xl); }
+
+/* A screen that fills the viewport: a detail card, or a list whose table is
+   the page's last child. The page has to stop growing with its content, or
+   the card and the table have no height to take. A list opts out with
+   `data-fill="false"` on its `.table-wrap` and ends with its last row.
+   Below 1024px the sidebar stacks above the content and the document
+   scrolls again, so the cap is lifted with it. */
+@media (min-width: 1024px) {
+  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) { height: 100vh; }
+  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) > main {
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) > main > * { flex: none; }
+  .page:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"])) { display: flex; flex-direction: column; min-height: 0; }
+  .app-shell > main > .page:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"])) { flex: 1; }
+  /* `:where`, so the reset stays below the card's and the table's own flex. */
+  .page:where(:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"]))) > * { flex: none; }
+  .page:has(> .detail-tabs) > .detail-tabs { flex: 1; min-height: 0; }
+  /* The rows scroll inside the table, under its sticky header, and the count
+     stays on the bottom edge. A page with more above the table than the
+     viewport holds keeps a usable table and scrolls instead. */
+  .page:has(> .table-wrap:last-child:not([data-fill="false"])) { overflow-y: auto; }
+  .page > .table-wrap:last-child:not([data-fill="false"]) {
+    flex: 1; min-height: calc(var(--size-control-lg) * 6);
+    display: flex; flex-direction: column;
+  }
+  .page > .table-wrap:last-child:not([data-fill="false"]) > .table-scroll { flex: 1; min-height: 0; }
+  .page > .table-wrap:last-child:not([data-fill="false"]) > .table-footer { flex: none; }
+}
+@media (max-width: 1023px) {
+  .detail-tabs { grid-template-rows: auto; }
+  .detail-tabs [role="tabpanel"] { overflow: visible; }
+  .detail-tabs [role="tabpanel"]:is(.detail-logs, .detail-pane) { height: 60vh; }
+}
+@media (max-width: 720px) {
+  .detail-tabs [role="tablist"] { padding-inline: var(--spacing-lg); }
+  .detail-tabs [role="tabpanel"] { padding: var(--spacing-lg); }
+  .detail-tabs .form-body { padding: var(--spacing-lg); }
+  .detail-tabs [role="tabpanel"]:is(.detail-logs, .detail-pane) { padding: 0; }
+}
+
+/* A create screen is the edit form in a card of its own. A form wider than a
+   readable measure is only longer lines. The footer's corners follow the
+   card's. */
+.form-page { max-width: 720px; }
+.form-page > .form { border-radius: inherit; }
+
+/* ===========================================================================
    Touch targets: the 44px rule applies to coarse pointers only.
    This is the whole reason the desktop UI can be 36px.
    =========================================================================== */

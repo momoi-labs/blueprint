@@ -46,6 +46,7 @@ behavioral reference where one exists.
 - [Search](search.md): Filters visible content such as a list or table.
 - [Sparkline](sparkline.md): Draws the shape of one metric series at cell size.
 - [Stat](stat.md): Presents a named metric with optional change and context.
+- [StatusBadge](status-badge.md): Says a record's state in one of three tones, pulsing while work goes.
 - [StepBar](step-bar.md): Summarises a run as one segment per step, coloured by state.
 - [StepList](step-list.md): Lists a run's steps with a state, a label, a timing, and an output.
 - [Table / DataTable](table.md): Presents structured records with optional sorting, selection, filtering, and pagination.
@@ -60,6 +61,7 @@ behavioral reference where one exists.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
 - [Header](header.md): Composes persistent application navigation and global actions.
+- [Lifecycle](lifecycle.md): Groups a detail screen's status, verbs, and destructive action in one row.
 - [Navigation](navigation.md): Provides a generic semantic container for destination links.
 - [PageHeader](page-header.md): Composes a page title, optional subtitle, and page-scoped action Buttons.
 - [Pagination](pagination.md): Moves through known pages while exposing the current position.

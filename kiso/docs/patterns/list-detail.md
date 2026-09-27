@@ -101,9 +101,84 @@ Narrow (stacked detail):
 └──────────────────────────────────────┘
 ```
 
+## List and detail as separate screens
+
+An alternative to the split: the list is one screen and each record opens a
+detail screen of its own. Use it when a record carries more than a pane can
+hold, such as a form, a log, or a terminal. Its create screen is in
+[CRUD](crud.md#create-screen).
+
+### List screen
+
+```tsx
+<PageHeader actions={<Button size="sm" variant="primary">Deploy application</Button>}>
+  <PageHeaderTitle>Applications</PageHeaderTitle>
+</PageHeader>
+<div className="list-filters">
+  <Search aria-label="Search applications" />
+  <Select>…</Select>
+  {filtering ? <Button size="sm" variant="ghost">Clear filters</Button> : null}
+</div>
+<div className="table-wrap">
+  <Table>…</Table>
+  <div className="table-footer">3 of 12 applications</div>
+</div>
+```
+
+- The one primary verb goes in PageHeader `actions`, not in the filter row.
+  Narrowing a list and adding to it are opposite intentions.
+- `.list-filters`: Search first and growing, a Select sized to its content,
+  "Clear filters" only once something is filtered. Below 560px each control
+  takes the row.
+- The count goes in `.table-footer`, not above the table.
+- From 1024px, a `.table-wrap` that is the last child of `.page` fills the
+  height the header and filters leave: the rows scroll under the sticky
+  header and the count stays on the bottom edge, as a detail card does. Set
+  `data-fill="false"` on the `.table-wrap` to end the table with its last
+  row instead.
+- A small record is created in a [Modal / Dialog](../components/modal-dialog.md).
+
+### Detail screen
+
+```tsx
+<div className="between">
+  <PageHeader><PageHeaderTitle>paperless</PageHeaderTitle></PageHeader>
+  <Lifecycle status={…} actions={…} destructive={…} />
+</div>
+<Card className="detail-tabs">
+  <Tabs defaultValue="configuration">
+    <TabsList aria-label="Application details">…</TabsList>
+    <TabsContent value="configuration">
+      <Form>
+        <div className="form-body">…</div>
+        <FormActions sticky>…</FormActions>
+      </Form>
+    </TabsContent>
+    <TabsContent value="logs" className="detail-logs"><LogView>…</LogView></TabsContent>
+  </Tabs>
+</Card>
+```
+
+- The screen says its own name, and [Lifecycle](../components/lifecycle.md)
+  sits beside it. The destructive action lives in that row, not at the foot
+  of the form.
+- One `Card.detail-tabs`, not a split. When the app reads facts back about
+  the record, a Summary tab comes first.
+- `Form` does not render `.form-body`; write it. A panel whose only child is
+  the form gives its padding to `.form-body`, so a sticky
+  [FormActions](../components/form-actions.md) spans the panel.
+- A panel with its own scroller, a [LogView](../components/log-view.md) or a
+  thread, takes `.detail-logs` or `.detail-pane` and reaches the card's edges.
+- From 1024px, when the card is a direct child of `.page` inside an
+  [AppShell](../components/app-shell.md), the shell stops at the viewport
+  and the card takes the height the header leaves; each panel scrolls inside
+  it. Below 1024px the document scrolls and an edge-to-edge panel is 60vh
+  tall.
+
 ## When to use
 
 - Collections where inspecting one item while keeping list context matters.
+- Records with configuration and output of their own: use separate screens.
 - Entities that share the same columns and detail shape.
 
 ## When NOT to use

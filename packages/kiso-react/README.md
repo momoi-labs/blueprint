@@ -84,6 +84,8 @@ Data and structure
 - LogView, LogViewLine, LogViewTime, and LogViewLevel.
 - StepList, a run's steps with a state each, and StepBar, the same run as
   one segment per step for a summary, a table cell, or a toast.
+- Lifecycle, a detail screen's status, verbs and destructive action in one
+  row, and StatusBadge, a state in one of three tones.
 - Stat, StatHeader, StatLabel, StatValue, StatFoot, and StatDelta.
 - KV, KVKey, and KVValue, a description list of fixed facts.
 - Separator, horizontal or vertical, and Dot and `dotVariants`.

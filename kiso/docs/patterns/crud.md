@@ -49,6 +49,28 @@ Discard restores the last saved values; Cancel leaves the task. Keep entries
 on failure. Announce feedback in the message region, not around the buttons.
 Immediate preferences and automatic filters do not require FormActions.
 
+## Create screen
+
+A record with a recipe is too much for a dialog, so it gets a screen: a
+PageHeader that says what is about to be made, and the same form the detail
+screen edits, in a `Card.form-page`. The card is at most 720px wide and the
+footer's corners follow it. There is no Lifecycle row and no tabs; the
+footer is FormActions with Cancel and the one primary verb. The detail screen
+is in [List-detail](list-detail.md#list-and-detail-as-separate-screens).
+
+```tsx
+<PageHeader><PageHeaderTitle>Deploy an application</PageHeaderTitle></PageHeader>
+<Card className="form-page">
+  <Form>
+    <div className="form-body">…</div>
+    <FormActions>
+      <Button>Cancel</Button>
+      <Button type="submit" variant="primary">Deploy</Button>
+    </FormActions>
+  </Form>
+</Card>
+```
+
 ## Flow
 
 ### Create

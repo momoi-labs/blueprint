@@ -368,3 +368,18 @@
     padding-block: var(--spacing-md) var(--spacing-2xl);
   }
 }
+
+/* List & detail screens: the shell stands in for the viewport, so a detail
+   card or a list's table takes the height the header leaves, as it does in
+   an application. */
+@media (min-width: 1024px) {
+  .layout-shell:has(.layout-content > :is(.detail-tabs, .table-wrap:last-child)) { height: 740px; }
+  .layout-shell:has(.layout-content > :is(.detail-tabs, .table-wrap:last-child)) .layout-workspace {
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .layout-content:has(> :is(.detail-tabs, .table-wrap:last-child)) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .layout-content:has(> :is(.detail-tabs, .table-wrap:last-child)) > * { flex: none; }
+  .layout-content > :is(.detail-tabs, .table-wrap:last-child) { flex: 1; min-height: 0; }
+  .layout-content > .table-wrap:last-child { display: flex; flex-direction: column; }
+  .layout-content > .table-wrap:last-child > .table-scroll { flex: 1; min-height: 0; }
+}
