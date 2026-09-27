@@ -1,5 +1,6 @@
 import { FormsExamples } from "../../../kiso/blocks/react-prototype/src/forms-demo";
-import { useId, type ReactNode } from "react";
+import { CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
+import { useId, useState, type ReactNode } from "react";
 import {
   Alert,
   AlertContent,
@@ -65,7 +66,7 @@ export const layouts = [
     id: "list-detail",
     label: "List & detail",
     description:
-      "A project collection with filters and a selected record alongside it.",
+      "A project collection as a split, or as separate list, detail and create screens.",
   },
   {
     id: "settings",
@@ -783,11 +784,41 @@ function LoginLayout() {
   );
 }
 
+/* The same projects two ways: a split with the selected record beside the
+   list, or separate list, detail and create screens. A screen takes the
+   height the shell leaves. */
+function ListDetailExamples({ description }: { description: string }) {
+  const [scene, setScene] = useState("split");
+  return (
+    <section aria-label="List & detail">
+      <div className="layout-preview-caption">
+        <p className="muted t-label">{description}</p>
+        <nav className="row" aria-label="View">
+          {[["split", "Split"], ["list", "List"], ["detail", "Detail"], ["create", "Create"]].map(([key, label]) => (
+            <Button key={key} size="sm" aria-pressed={scene === key}
+              variant={scene === key ? "primary" : "default"} onClick={() => setScene(key)}>
+              {label}
+            </Button>
+          ))}
+        </nav>
+      </div>
+      <Card className="layout-preview">
+        {scene === "split" ? <ListDetailLayout /> : (
+          <WorkspacePreview page="Projects">
+            {scene === "list" ? <ListScreen /> : scene === "detail" ? <DetailScreen /> : <CreateScreen />}
+          </WorkspacePreview>
+        )}
+      </Card>
+    </section>
+  );
+}
+
 export function LayoutExamples({ route }: { route: string }) {
   const requested = route.split("/")[1];
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
   if (selected.id === "forms") return <section aria-label="Forms"><FormsExamples /></section>;
+  if (selected.id === "list-detail") return <ListDetailExamples description={selected.description} />;
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">
@@ -797,8 +828,6 @@ export function LayoutExamples({ route }: { route: string }) {
       <Card className="layout-preview">
         {selected.id === "dashboard" ? (
           <DashboardLayout />
-        ) : selected.id === "list-detail" ? (
-          <ListDetailLayout />
         ) : selected.id === "settings" ? (
           <SettingsLayout />
         ) : (

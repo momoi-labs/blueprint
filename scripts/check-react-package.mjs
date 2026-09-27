@@ -59,6 +59,9 @@ try {
     path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist/styles.css'), 'utf8');
   assert.match(reactStyles,
     /^@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700&family=JetBrains\+Mono:wght@400;500&display=swap"\);/);
+  for (const rule of ['.list-filters {', '.lifecycle {', '.cluster-verbs {', '.detail-tabs {', '.form-page {', '[data-fill="false"]']) {
+    assert(css.includes(rule), `ui.css is missing ${rule}`);
+  }
   const iconRule = css.match(/\.icon \{([^}]+)\}/)[1];
   for (const declaration of ['stroke: currentColor', 'fill: none', 'stroke-width: 1.75',
     'stroke-linecap: round', 'stroke-linejoin: round']) {
@@ -79,7 +82,7 @@ try {
       ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
-      Toasts, useToast,
+      Toasts, useToast, Lifecycle, StatusBadge,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
@@ -161,6 +164,15 @@ try {
     assert.match(render(h(ValidationMessage, { id: 'e' }, 'Use lowercase letters.')), /class="field-error"/);
     assert.match(render(h(PageHeader, { actions: h(Button, null, 'Deploy') },
       h(PageHeaderTitle, null, 'Applications'))), /class="between"/);
+    const lifecycle = render(h(Lifecycle, { className: 'custom', status: h(StatusBadge, { tone: 'success' }, 'Running'),
+      actions: h(Button, null, 'Stop'), destructive: h(Button, { className: 'btn-danger-ghost' }, 'Remove') }));
+    assert.match(lifecycle, /^<div data-slot="lifecycle" class="lifecycle custom">/);
+    assert.match(lifecycle, /class="cluster cluster-status" role="group" aria-label="Status"><span[^>]*class="badge badge-success"/);
+    assert.match(lifecycle, /class="cluster cluster-verbs" role="group" aria-label="Actions"><button/);
+    assert.match(lifecycle, /<[/]div><button[^>]*class="[^"]*btn-danger-ghost[^"]*"[^>]*>Remove<[/]button><[/]div>$/);
+    assert(!render(h(Lifecycle, { status: 'Built' })).includes('cluster-verbs'));
+    assert(!render(h(StatusBadge, { tone: 'neutral' }, 'Stopped')).includes('dot-pulse'));
+    assert.match(render(h(StatusBadge, { tone: 'danger', pulse: true }, 'Failed')), /class="badge badge-danger"[^>]*><span[^>]*class="dot dot-pulse"/);
     assert.match(render(h(Pagination, null, h(PaginationPage, { active: true }, '2'))), /aria-label="Pagination"/);
     assert.match(render(h(Header, null, 'chrome')), /class="topbar"/);
     assert.match(render(h(Sidebar, null, 'nav')), /class="sidebar"/);

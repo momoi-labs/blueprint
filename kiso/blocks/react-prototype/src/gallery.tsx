@@ -3,6 +3,7 @@
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
+import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccentSelector,
@@ -224,6 +225,7 @@ const catalog = [
   ["dashboard-grid", "DashboardGrid", "Structure", "Responsive panels on twelve columns."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
+  ["status-badge", "StatusBadge", "Data", "A status in one of three tones, pulsing while work goes."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
   ["step-list", "StepList", "Data", "A run's steps with a state, a timing and an output."],
   ["step-bar", "StepBar", "Data", "The same run as one segment per step."],
@@ -234,6 +236,7 @@ const catalog = [
     "Structure",
     "A title, context and page actions.",
   ],
+  ["lifecycle", "Lifecycle", "Structure", "A detail screen's status, verbs and destructive action."],
   ["header", "Header", "Structure", "Shared navigation and global status."],
   ["brand-mark", "BrandMark", "Structure", "A decorative letter or product icon."],
   [
@@ -325,6 +328,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "log-view": "wide",
   "step-list": "wide",
   "step-bar": "wide",
+  lifecycle: "wide",
   alert: "wide",
   "dashboard-grid": "wide",
   "page-header": "wide",
@@ -403,6 +407,8 @@ const snippets: Record<string, string> = {
   separator: '<Separator />\n<Separator orientation="vertical" />',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
   "step-list": '<Split>\n  <Pane>\n    <StepList label="Create run steps" steps={steps} selected={picked} onSelect={setPicked} />\n  </Pane>\n  <Splitter defaultSize={36} aria-label="Resize the steps and output panes" />\n  <Pane className="grow"><LogView follow>{lines}</LogView></Pane>\n</Split>',
+  lifecycle: '<Lifecycle\n  status={<StatusBadge tone="success">Running</StatusBadge>}\n  actions={<><Button size="sm">Stop</Button><Button size="sm">Restart</Button></>}\n  destructive={<Button size="sm" variant="ghost" className="btn-danger-ghost">Remove</Button>}\n/>',
+  "status-badge": '<StatusBadge tone="success">Running</StatusBadge>\n<StatusBadge tone="success" pulse>Provisioning</StatusBadge>\n<StatusBadge tone="danger">Failed</StatusBadge>\n<StatusBadge tone="neutral">Stopped</StatusBadge>',
   "step-bar": '<StepBar label="Create" steps={steps} />\n<span className="mono muted">4 of 11</span>',
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
   "app-shell":
@@ -1965,6 +1971,10 @@ function Demo({
       return <StepListDemo />;
     case "step-bar":
       return <StepBarDemo />;
+    case "lifecycle":
+      return <LifecycleDemo />;
+    case "status-badge":
+      return <StatusBadgeDemo />;
     default:
       return null;
   }
