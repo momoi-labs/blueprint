@@ -1169,23 +1169,28 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .detail-tabs [role="tabpanel"]:has(> .form) { padding: 0; }
 .detail-tabs .form-body { padding: var(--spacing-xl); }
 
-/* A screen that fills the viewport: a detail card, or a list whose table is
-   the page's last child. The page has to stop growing with its content, or
-   the card and the table have no height to take. A list opts out with
-   `data-fill="false"` on its `.table-wrap` and ends with its last row.
+/* A screen that fills the viewport: a detail card, a create card, or a list
+   whose table is the page's last child. The page has to stop growing with
+   its content, or the card and the table have no height to take. A screen
+   opts out with `data-fill="false"` on the card or the `.table-wrap`, and
+   the document scrolls as it did.
    Below 1024px the sidebar stacks above the content and the document
    scrolls again, so the cap is lifted with it. */
 @media (min-width: 1024px) {
-  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) { height: 100vh; }
-  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) > main {
+  .app-shell:has(.page > :is(.detail-tabs, .form-page):not([data-fill="false"]), .page > .table-wrap:last-child:not([data-fill="false"])) { height: 100vh; }
+  .app-shell:has(.page > :is(.detail-tabs, .form-page):not([data-fill="false"]), .page > .table-wrap:last-child:not([data-fill="false"])) > main {
     display: flex; flex-direction: column; min-height: 0;
   }
-  .app-shell:has(.page > .detail-tabs, .page > .table-wrap:last-child:not([data-fill="false"])) > main > * { flex: none; }
-  .page:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"])) { display: flex; flex-direction: column; min-height: 0; }
-  .app-shell > main > .page:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"])) { flex: 1; }
+  .app-shell:has(.page > :is(.detail-tabs, .form-page):not([data-fill="false"]), .page > .table-wrap:last-child:not([data-fill="false"])) > main > * { flex: none; }
+  .page:has(> :is(.detail-tabs, .form-page):not([data-fill="false"]), > .table-wrap:last-child:not([data-fill="false"])) { display: flex; flex-direction: column; min-height: 0; }
+  .app-shell > main > .page:has(> :is(.detail-tabs, .form-page):not([data-fill="false"]), > .table-wrap:last-child:not([data-fill="false"])) { flex: 1; }
   /* `:where`, so the reset stays below the card's and the table's own flex. */
-  .page:where(:has(> .detail-tabs, > .table-wrap:last-child:not([data-fill="false"]))) > * { flex: none; }
-  .page:has(> .detail-tabs) > .detail-tabs { flex: 1; min-height: 0; }
+  .page:where(:has(> :is(.detail-tabs, .form-page):not([data-fill="false"]), > .table-wrap:last-child:not([data-fill="false"]))) > * { flex: none; }
+  .page > :is(.detail-tabs, .form-page):not([data-fill="false"]) { flex: 1; min-height: 0; }
+  /* The create card scrolls its form, so sticky actions rest on its edge. */
+  .page > .form-page:not([data-fill="false"]) { display: grid; grid-template-rows: minmax(0, 1fr); }
+  .page > .form-page:not([data-fill="false"]) > .form { min-height: 0; overflow: auto; }
+  .page > .form-page[data-fill="false"] > .form > .form-actions[data-sticky="true"] { position: static; }
   /* The rows scroll inside the table, under its sticky header, and the count
      stays on the bottom edge. A page with more above the table than the
      viewport holds keeps a usable table and scrolls instead. */
@@ -1199,6 +1204,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 @media (max-width: 1023px) {
   .detail-tabs { grid-template-rows: auto; }
+  /* The document scrolls, so the create form's actions end it in flow rather
+     than float over a card whose marks would not follow them. */
+  .form-page > .form > .form-actions[data-sticky="true"] { position: static; }
   .detail-tabs [role="tabpanel"] { overflow: visible; }
   .detail-tabs [role="tabpanel"]:is(.detail-logs, .detail-pane) { height: 60vh; }
 }
@@ -1211,7 +1219,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 
 /* A create screen is the edit form in a card of its own. A form wider than a
    readable measure is only longer lines. The footer's corners follow the
-   card's. */
+   card's. From 1024px the card fills the viewport like a detail card, above. */
 .form-page { max-width: 720px; }
 .form-page > .form { border-radius: inherit; }
 

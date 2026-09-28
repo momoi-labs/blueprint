@@ -172,8 +172,9 @@ hold, such as a form, a log, or a terminal. Its create screen is in
 - From 1024px, when the card is a direct child of `.page` inside an
   [AppShell](../components/app-shell.md), the shell stops at the viewport
   and the card takes the height the header leaves; each panel scrolls inside
-  it. Below 1024px the document scrolls and an edge-to-edge panel is 60vh
-  tall.
+  it. Set `data-fill="false"` on the card to let the document scroll
+  instead. Below 1024px the document scrolls and an edge-to-edge panel is
+  60vh tall.
 
 ## When to use
 
