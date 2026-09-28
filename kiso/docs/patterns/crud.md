@@ -55,7 +55,12 @@ A record with a recipe is too much for a dialog, so it gets a screen: a
 PageHeader that says what is about to be made, and the same form the detail
 screen edits, in a `Card.form-page`. The card is at most 720px wide and the
 footer's corners follow it. There is no Lifecycle row and no tabs; the
-footer is FormActions with Cancel and the one primary verb. The detail screen
+footer is FormActions with Cancel and the one primary verb. From 1024px,
+when the card is a direct child of `.page` inside an AppShell, it takes the
+height the header leaves and the form scrolls inside it, so pass `sticky` to
+FormActions and it rests on the card's edge. Below 1024px, or with
+`data-fill="false"` on the card, the document scrolls and the actions end the
+form in flow. The detail screen
 is in [List-detail](list-detail.md#list-and-detail-as-separate-screens).
 
 ```tsx
@@ -63,7 +68,7 @@ is in [List-detail](list-detail.md#list-and-detail-as-separate-screens).
 <Card className="form-page">
   <Form>
     <div className="form-body">…</div>
-    <FormActions>
+    <FormActions sticky>
       <Button>Cancel</Button>
       <Button type="submit" variant="primary">Deploy</Button>
     </FormActions>
