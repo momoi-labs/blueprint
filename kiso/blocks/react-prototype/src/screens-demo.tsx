@@ -140,20 +140,49 @@ export function DetailScreen() {
   </>;
 }
 
+/* A record with a recipe: long enough that the dialog is the wrong place. */
 export function CreateScreen() {
+  const [sent, setSent] = useState(false);
+  const section = (title: string, fields: ReactNode) =>
+    <section className="stack" aria-label={title}><h3 className="t-h3">{title}</h3>{fields}</section>;
+  const select = (label: string, name: string, options: string[]) =>
+    <FormField label={label}><select className="select" name={name} defaultValue={options[0]}>
+      {options.map(option => <option key={option}>{option}</option>)}
+    </select></FormField>;
   return <>
     <PageHeader>
       <PageHeaderTitle asChild><h2>New project</h2></PageHeaderTitle>
-      <PageHeaderDescription>A name, an owner, and what it is for.</PageHeaderDescription>
+      <PageHeaderDescription>A name, an owner, a schedule and the people on it.</PageHeaderDescription>
     </PageHeader>
     <Card className="form-page">
-      <Form onSubmit={event => event.preventDefault()}>
+      <Form onSubmit={event => { event.preventDefault(); setSent(true); }} aria-label="New project">
         <div className="form-body">
-          <FormField label="Name" name="name" required />
-          <FormField label="Owner" name="owner" required />
-          <FormField label="Description" name="description" hint="One sentence your team will read first." />
+          {section("Basics", <>
+            <FormField label="Name" name="name" required />
+            <FormField label="Owner" name="owner" required />
+            <FormField label="Description" name="description" hint="One sentence your team will read first." />
+          </>)}
+          {section("Schedule", <>
+            <FormField label="Start date" name="start" type="date" />
+            <FormField label="Due date" name="due" type="date" />
+            {select("Priority", "priority", ["Medium", "High", "Low"])}
+          </>)}
+          {section("Team", <>
+            {select("Category", "category", ["Design", "Content", "Research", "Product"])}
+            <FormField label="Repository" name="repository" placeholder="github.com/northstar/website" />
+            {select("Who can invite members?", "access", ["Admins only", "All members"])}
+          </>)}
+          {section("Budget", <>
+            <FormField label="Budget" name="budget" type="number" />
+            {select("Currency", "currency", ["USD", "BRL", "EUR"])}
+            <FormField label="Cost center" name="cost-center" />
+          </>)}
+          {section("Notifications", <>
+            <FormField label="Notification email" name="email" type="email" />
+            {select("Email digest", "digest", ["Weekly", "Daily", "Never"])}
+          </>)}
         </div>
-        <FormActions>
+        <FormActions sticky message={sent ? <strong>Project created.</strong> : undefined}>
           <Button size="sm">Cancel</Button>
           <Button size="sm" type="submit" variant="primary">Create project</Button>
         </FormActions>
