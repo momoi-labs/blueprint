@@ -176,7 +176,7 @@ try {
     assert.match(render(h(Pagination, null, h(PaginationPage, { active: true }, '2'))), /aria-label="Pagination"/);
     assert.match(render(h(Header, null, 'chrome')), /class="topbar"/);
     assert.match(render(h(Sidebar, null, 'nav')), /class="sidebar"/);
-    assert.match(render(h(EmptyState, { size: 'sm' })), /class="empty empty-sm"/);
+    assert.match(render(h(EmptyState, { size: 'sm' })), /class="empty hatch empty-sm"/);
     assert.match(render(h(Link, { href: '/x', variant: 'standalone', active: true }, 'x')), /class="nav-item"/);
     for (const part of [CommandPalette, Drawer, DropdownMenu, Popover, Select, Switch, Tabs, Toast, Tooltip]) {
       assert.equal(typeof part, 'function');

@@ -56,7 +56,7 @@ error — errors are Alert. Do not color the whole EmptyState with status
 tokens.
 
 Surface tokens: text `--color-foreground` / `--color-muted-foreground` on
-the surrounding `--color-surface` or `--color-background`. Icon uses
+`--color-card` under the hatch that marks the region as not data. Icon uses
 `--color-muted-foreground` unless it is purely decorative brand chrome.
 
 ## Sizes
@@ -121,8 +121,7 @@ PageHeader.
 
 ## Tokens
 
-`--color-foreground`, `--color-muted-foreground`, `--color-surface` /
-`--color-background`, optional icon `--color-muted-foreground`, `--spacing-lg`
+`--color-foreground`, `--color-muted-foreground`, `--color-card`, optional icon `--color-muted-foreground`, `--spacing-lg`
 padding (`--spacing-md` for `sm`), `--spacing-sm` gap, `--radius-lg` on the
 icon frame, the hatch tokens (`--color-hatch`, `--hatch-line`,
 `--hatch-period`, `--hatch-angle`), and
