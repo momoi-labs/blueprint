@@ -376,13 +376,15 @@
    card or a list's table takes the height the header leaves, as it does in
    an application. */
 @media (min-width: 1024px) {
-  .layout-shell:has(.layout-content > :is(.detail-tabs, .table-wrap:last-child)) { height: 740px; }
-  .layout-shell:has(.layout-content > :is(.detail-tabs, .table-wrap:last-child)) .layout-workspace {
+  .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { height: 740px; }
+  .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) .layout-workspace {
     display: flex; flex-direction: column; min-height: 0;
   }
-  .layout-content:has(> :is(.detail-tabs, .table-wrap:last-child)) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-  .layout-content:has(> :is(.detail-tabs, .table-wrap:last-child)) > * { flex: none; }
-  .layout-content > :is(.detail-tabs, .table-wrap:last-child) { flex: 1; min-height: 0; }
+  .layout-content:has(> :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .layout-content:has(> :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) > * { flex: none; }
+  .layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"]) { flex: 1; min-height: 0; }
+  .layout-content > .form-page:not([data-fill="false"]) { display: grid; grid-template-rows: minmax(0, 1fr); }
+  .layout-content > .form-page:not([data-fill="false"]) > .form { min-height: 0; overflow: auto; }
   .layout-content > .table-wrap:last-child { display: flex; flex-direction: column; }
   .layout-content > .table-wrap:last-child > .table-scroll { flex: 1; min-height: 0; }
 }
