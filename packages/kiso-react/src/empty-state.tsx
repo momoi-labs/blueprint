@@ -4,8 +4,8 @@ import { clsx as cn } from "clsx";
 import { Slot } from "radix-ui";
 
 // Emptiness is not an error: the variants change which action belongs here, not
-// the colour of the surface.
-const emptyStateVariants = cva("empty", {
+// the colour of the surface. The hatch says "this region is not data".
+const emptyStateVariants = cva("empty hatch", {
   variants: {
     variant: { "first-run": "", "no-results": "", informational: "" },
     size: { md: "", sm: "empty-sm" },
