@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { CreateProjectForm } from "./forms-demo";
 import {
-  Button, Card, Form, FormActions, FormField, Lifecycle, LogView, LogViewLevel, LogViewLine,
+  Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, Form, FormActions, FormField, Lifecycle, LogView, LogViewLevel, LogViewLine,
   LogViewTime, PageHeader, PageHeaderDescription, PageHeaderTitle, Search, Select, SelectContent,
   SelectItem, SelectTrigger, SelectValue, StatusBadge, Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, type StatusTone,
@@ -36,14 +37,26 @@ export function StatusBadgeDemo() {
   </div>;
 }
 
-export function ListScreen() {
+/* The create dialog a list opens from its New project button. */
+export function CreateProjectDialog({ trigger, fail = false }: { trigger: ReactNode; fail?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return <Dialog open={open} onOpenChange={setOpen}>
+    <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <DialogContent>
+      <DialogHeader><DialogTitle>Create project</DialogTitle><DialogDescription>Give your team a shared space to work.</DialogDescription></DialogHeader>
+      <CreateProjectForm fail={fail} onCancel={() => setOpen(false)} />
+    </DialogContent>
+  </Dialog>;
+}
+
+export function ListScreen({ createFails = false }: { createFails?: boolean }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const visible = projects.filter(project => project.name.toLowerCase().includes(query.toLowerCase())
     && (status === "all" || project.tone === status));
   const filtering = query !== "" || status !== "all";
   return <>
-    <PageHeader actions={<Button size="sm" variant="primary">New project</Button>}>
+    <PageHeader actions={<CreateProjectDialog fail={createFails} trigger={<Button size="sm" variant="primary">New project</Button>} />}>
       <PageHeaderTitle asChild><h2>Projects</h2></PageHeaderTitle>
       <PageHeaderDescription>Plan, organize and keep track of your team's work.</PageHeaderDescription>
     </PageHeader>

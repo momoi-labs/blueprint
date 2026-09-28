@@ -1,5 +1,4 @@
-import { FormsExamples } from "../../../kiso/blocks/react-prototype/src/forms-demo";
-import { CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
+import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
 import { useId, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -61,12 +60,11 @@ export const layouts = [
     description:
       "A workspace overview with sidebar, metrics, chart and data table.",
   },
-  { id: "forms", label: "Forms", description: "Interactive forms with inline and sticky actions, submission and recovery." },
   {
     id: "list-detail",
     label: "List & detail",
     description:
-      "A project collection as a split, or as separate list, detail and create screens.",
+      "A project collection as a split, or as separate list, detail and create screens. New project opens a dialog.",
   },
   {
     id: "settings",
@@ -450,7 +448,7 @@ function DashboardLayout() {
   );
 }
 
-function ListDetailLayout() {
+function ListDetailLayout({ createFails = false }: { createFails?: boolean }) {
   return (
     <WorkspacePreview page="Projects">
       <div className="layout-between">
@@ -460,9 +458,10 @@ function ListDetailLayout() {
             Plan, organize and keep track of your team's work.
           </p>
         </PageHeader>
-        <Button variant="primary" size="sm">
-          ＋ New project
-        </Button>
+        <CreateProjectDialog fail={createFails} trigger={
+          <Button variant="primary" size="sm">
+            ＋ New project
+          </Button>} />
       </div>
       <div className="layout-list-detail">
         <div className="layout-section">
@@ -787,25 +786,40 @@ function LoginLayout() {
 /* The same projects two ways: a split with the selected record beside the
    list, or separate list, detail and create screens. A screen takes the
    height the shell leaves. */
-function ListDetailExamples({ description }: { description: string }) {
-  const [scene, setScene] = useState("split");
+const scenes = [["split", "Split"], ["list", "List"], ["detail", "Detail"], ["create", "Create"]] as const;
+
+function ListDetailExamples({ description, initialScene }: { description: string; initialScene?: string }) {
+  const [scene, setScene] = useState(initialScene && scenes.some(([key]) => key === initialScene) ? initialScene : "split");
+  const [createFails, setCreateFails] = useState(false);
+  const id = useId();
   return (
     <section aria-label="List & detail">
       <div className="layout-preview-caption">
         <p className="muted t-label">{description}</p>
-        <nav className="row" aria-label="View">
-          {[["split", "Split"], ["list", "List"], ["detail", "Detail"], ["create", "Create"]].map(([key, label]) => (
-            <Button key={key} size="sm" aria-pressed={scene === key}
-              variant={scene === key ? "primary" : "default"} onClick={() => setScene(key)}>
-              {label}
-            </Button>
-          ))}
-        </nav>
+        <div className="row-wrap layout-scene-controls">
+          {scene === "split" || scene === "list" ? (
+            <label className="row t-label" htmlFor={`${id}-result`}>
+              Save result
+              <select id={`${id}-result`} className="select" value={createFails ? "error" : "success"}
+                onChange={event => setCreateFails(event.target.value === "error")}>
+                <option value="success">Success</option>
+                <option value="error">Error, then retry succeeds</option>
+              </select>
+            </label>
+          ) : null}
+          <div className="btn-group" role="group" aria-label="View">
+            {scenes.map(([key, label]) => (
+              <Button key={key} size="sm" aria-pressed={scene === key} onClick={() => setScene(key)}>
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
       <Card className="layout-preview">
-        {scene === "split" ? <ListDetailLayout /> : (
+        {scene === "split" ? <ListDetailLayout createFails={createFails} /> : (
           <WorkspacePreview page="Projects">
-            {scene === "list" ? <ListScreen /> : scene === "detail" ? <DetailScreen /> : <CreateScreen />}
+            {scene === "list" ? <ListScreen createFails={createFails} /> : scene === "detail" ? <DetailScreen /> : <CreateScreen />}
           </WorkspacePreview>
         )}
       </Card>
@@ -814,11 +828,10 @@ function ListDetailExamples({ description }: { description: string }) {
 }
 
 export function LayoutExamples({ route }: { route: string }) {
-  const requested = route.split("/")[1];
+  const [, requested, scene] = route.split("/");
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
-  if (selected.id === "forms") return <section aria-label="Forms"><FormsExamples /></section>;
-  if (selected.id === "list-detail") return <ListDetailExamples description={selected.description} />;
+  if (selected.id === "list-detail") return <ListDetailExamples key={scene} description={selected.description} initialScene={scene} />;
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">

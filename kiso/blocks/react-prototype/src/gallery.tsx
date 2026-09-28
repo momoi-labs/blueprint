@@ -2320,7 +2320,7 @@ export function ComponentGallery({
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingAppearance || (showingExample && selected === "forms")}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingAppearance}>
           {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
         </p>
         </div>

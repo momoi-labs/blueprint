@@ -9,6 +9,9 @@
   gap: var(--spacing-md);
   padding-block-end: var(--spacing-lg);
 }
+.layout-scene-controls label { white-space: nowrap; }
+.layout-scene-controls .select { width: auto; }
+
 .layout-preview {
   container-type: inline-size;
   background: var(--color-background);
