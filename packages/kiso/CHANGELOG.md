@@ -1,5 +1,49 @@
 # @momoi-labs/kiso
 
+## 0.13.0
+
+### Minor Changes
+
+- dc26213: Add FilterInput with continuous typing, editable filter segments, IN lists,
+  and nested logical groups while preserving ChipInput.
+- cd5356e: `.form-page` fills the viewport from 1024px the way `.detail-tabs` does: the
+  card takes the height the header leaves and the form scrolls inside it under
+  sticky FormActions. Both cards accept `data-fill="false"` to let the document
+  scroll instead, the opt-out a list's `.table-wrap` already had.
+- 06e2899: Add Lifecycle and StatusBadge, and the list, detail and create screen classes:
+  `.list-filters`, `.lifecycle` with its `.cluster-status` and `.cluster-verbs`,
+  `.detail-tabs` with `.detail-logs` and `.detail-pane`, and `.form-page`.
+  From 1024px a detail card, and a list's `.table-wrap` that is the last child
+  of `.page`, fill the viewport; set `data-fill="false"` on the `.table-wrap` to
+  keep a list at its natural height.
+  Products that copied them from self-host (ADR-0024) can delete their copies;
+  rename `.detail-terminal` to `.detail-pane`. Evidence is in issue #112.
+
+### Patch Changes
+
+- b63f071: Fix overlapping checkbox targets and give switches, tabs, and time range triggers 44px touch targets without changing desktop sizing.
+- df5391b: Give editable chip segments 44px touch targets while preserving compact mouse controls.
+- 7cc19f1: Wrap long Meter, Progress, and BarGauge labels inside their panels while
+  keeping values visible.
+- 0cbb61c: Keep `.btn-group` buttons joined under every border style. The appearance
+  rule that rounds each control came later with the same specificity, so the
+  buttons kept their own corners and the group read as loose buttons.
+- ccfecb8: Raise LogView timestamp contrast on its fixed dark surface.
+- 19b8dbd: Use the normal-text foreground role for small labels, placeholders, and chip
+  syntax, and clarify the subtle role's contrast limits.
+- 9edbbcc: Keep structured chips within narrow forms and scroll long segments without shrinking their controls.
+- 4c8ea69: Fix clipped Lifecycle actions on touch devices by letting the group grow around its 44px buttons and borders.
+- 49159e3: Give pagination controls 44px touch targets and wrap narrow rows.
+
+  Give Splitter a 44px touch target with reserved space beside adjacent controls.
+
+  Use the selected foreground color for ChipInput suggestion descriptions so they
+  meet text contrast requirements in both themes.
+
+- e25cba8: Preserve adjacent filter conditions during autocomplete and announce repeated
+  changes. Fix selected suggestion description contrast.
+- 2fc2e12: Add space between dialog headers and footers when the body is omitted.
+
 ## 0.12.1
 
 ### Patch Changes
