@@ -1522,7 +1522,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .meter, .bar-gauge { display: grid; gap: var(--spacing-sm); min-width: 0; }
 .bar-gauge { gap: var(--spacing-md); }
 .meter-label { display: flex; justify-content: space-between; gap: var(--spacing-md); font-size: var(--type-size-label); }
-.meter-label > :last-child { text-align: end; font-variant-numeric: tabular-nums; }
+.meter-label > :first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.meter-label > :last-child { max-width: 50%; overflow-wrap: anywhere; text-align: end; font-variant-numeric: tabular-nums; }
 .meter-track { height: calc(var(--spacing-xs) + var(--spacing-2xs)); border-radius: var(--radius-xs); background-color: var(--color-secondary); overflow: hidden; }
 .meter-track > span { display: block; height: 100%; background: var(--color-secondary-foreground); }
 .disclosure { min-width: 0; }
