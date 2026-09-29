@@ -397,10 +397,10 @@ fieldset.form-body { border: 0; margin: 0; }
 }
 
 /* chip input: several structured values in one field */
-.chip-input { position: relative; display: grid; gap: var(--spacing-xs); }
+.chip-input { position: relative; display: grid; min-width: 0; gap: var(--spacing-xs); }
 .chip-input-box {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-xs);
-  width: 100%;
+  width: 100%; min-width: 0;
   min-height: var(--size-control-md);
   padding: var(--spacing-xs);
   border: 1px solid var(--color-input);
@@ -450,6 +450,9 @@ fieldset.form-body { border: 0; margin: 0; }
   font-size: var(--type-size-label);
   line-height: 1;
 }
+/* A structured chip can scroll without widening its field or shrinking targets. */
+.chip-input .chip:not(.filter-chip) { overflow-x: auto; }
+.chip-input .chip:not(.filter-chip) > * { flex-shrink: 0; }
 .chip:has(.is-editing) { background: var(--color-card); border-color: var(--color-primary); }
 .chip[data-state="invalid"] { background: var(--color-danger-surface); border-color: var(--color-danger-border); color: var(--color-danger); }
 /* The chip reads left to right like a call: what installs it, what it is,
