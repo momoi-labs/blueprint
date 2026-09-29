@@ -67,6 +67,9 @@ for (const target of ['field', 'value', 'option', 'add', 'command']) {
           input = page.getByRole('textbox', { name: label, exact: true });
           await input.fill('22');
         }
+        if (target === 'field' || target === 'command') {
+          await page.locator('[role="option"][aria-selected="true"]').waitFor();
+        }
         const active = await input.getAttribute('aria-activedescendant');
         if (signal !== 'legacy') await input.dispatchEvent('compositionstart');
         for (const key of ['Enter', 'ArrowDown', 'ArrowUp', 'Escape', 'Tab', 'Backspace']) {
@@ -81,6 +84,9 @@ for (const target of ['field', 'value', 'option', 'add', 'command']) {
           await input.dispatchEvent('keydown', { key: 'Backspace', isComposing: signal === 'native', keyCode: signal === 'legacy' ? 229 : 0 });
           assert(await page.getByRole('button', { name: 'Remove node' }).isVisible());
           await input.fill('py');
+          // Recreating the list also recreates its option IDs. Wait for the
+          // highlight effect before testing confirmation of that suggestion.
+          await page.locator('[role="option"][aria-selected="true"]').waitFor();
         }
         if (signal !== 'legacy') await input.dispatchEvent('compositionend');
         await input.press('Enter');
