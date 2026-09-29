@@ -1057,7 +1057,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    container scrolls for the corner marks it draws just outside its own frame.
    Height goes on `.logview`; the scroller takes what is left. */
 .logview > .log-scroll { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
-.logview .log-time { color: var(--color-neutral-600); margin-inline-end: var(--spacing-sm); }
+.logview .log-time { color: var(--color-neutral-500); margin-inline-end: var(--spacing-sm); }
 .logview .log-warn { color: var(--color-warning-on-dark); }
 .logview .log-error{ color: var(--color-danger-on-dark); }
 .logview .log-info { color: var(--color-info-on-dark); }

@@ -35,7 +35,7 @@ No size variants. The product chooses the frame height. The frame uses
 `--color-neutral-950`, text `--color-neutral-300`, `--color-border`,
 `--radius-surface`, and `--spacing-md` padding. Log text uses `--font-mono`,
 `--type-size-label`, and `--type-line-height-relaxed`. Timestamps use
-`--color-neutral-600` with `--spacing-sm` after them.
+`--color-neutral-500` with `--spacing-sm` after them.
 
 ## States
 
