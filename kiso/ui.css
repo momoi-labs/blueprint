@@ -1240,6 +1240,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   /* The chip grows with its segments, so the floor goes on the chip and the
      segments stretch to it. */
   .chip, .chip-input-field { min-height: var(--size-touch-min); }
+  button.chip-value, button.chip-option,
+  .chip-value.is-editing, .chip-option.is-editing {
+    min-width: var(--size-touch-min); min-height: var(--size-touch-min);
+  }
   .chip-action { min-width: var(--size-touch-min); height: var(--size-touch-min); }
 }
 
