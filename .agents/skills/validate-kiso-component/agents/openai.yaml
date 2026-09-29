@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validate Kiso component"
+  short_description: "Stress-test Kiso behavior and accessibility"
+  default_prompt: "Use $validate-kiso-component to validate the requested Kiso component and report reproducible defects."
