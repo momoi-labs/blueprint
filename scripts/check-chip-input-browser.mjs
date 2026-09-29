@@ -360,7 +360,7 @@ for (const colorScheme of ['light', 'dark']) {
 }
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`Native touch swipes reach both ends of structured chips in ${colorScheme}`, { skip: browserType.name() !== 'chromium' }, async () => {
+  test(`CDP touch gestures reach both ends of structured chips in ${colorScheme}`, { skip: browserType.name() !== 'chromium' }, async () => {
     const page = await browser.newPage({ colorScheme, hasTouch: true, viewport: { width: 320, height: 844 } });
     await page.route('https://fonts.googleapis.com/**', route => route.abort());
     const session = await page.context().newCDPSession(page);
@@ -371,13 +371,28 @@ for (const colorScheme of ['light', 'dark']) {
         const chip = page.locator('.chip');
         const area = await chip.boundingBox();
         const distance = await chip.evaluate(element => element.scrollWidth);
-        const gesture = { x: area.x + area.width / 2, y: area.y + area.height / 2, gestureSourceType: 'touch', speed: 1500, preventFling: true };
         for (const direction of [-1, 1, -1]) {
-          await session.send('Input.synthesizeScrollGesture', { ...gesture, xDistance: direction * distance });
+          // Keep each finger movement inside the visible chip. Long chips
+          // need several gestures, just as they do on a touch screen.
+          for (let attempt = 0; attempt < Math.ceil(distance / (area.width - 64)) + 2; attempt++) {
+            const reached = await chip.evaluate((element, direction) => direction === -1
+              ? element.scrollLeft >= element.scrollWidth - element.clientWidth - 1
+              : element.scrollLeft <= 1, direction);
+            if (reached) break;
+            const start = direction === -1 ? area.x + area.width - 16 : area.x + 16;
+            const travel = (area.width - 32) * direction;
+            const y = area.y + area.height / 2;
+            await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: start, y }] });
+            for (let step = 1; step <= 6; step++) {
+              await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start + travel * step / 6, y }] });
+              await page.evaluate(() => new Promise(requestAnimationFrame));
+            }
+            await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          }
           await page.waitForFunction(end => {
             const chip = document.querySelector('.chip');
             return end ? chip.scrollLeft >= chip.scrollWidth - chip.clientWidth - 1 : chip.scrollLeft <= 1;
-          }, direction === -1);
+          }, direction === -1, { timeout: 5000 });
           assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Swiping stays within the chip');
           if (direction === 1) {
             const scope = await page.locator('.chip-scope').boundingBox();
