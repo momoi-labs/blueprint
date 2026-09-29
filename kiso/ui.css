@@ -1646,6 +1646,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .filter-suggestions { position: absolute; z-index: 20; inset-inline: 0; top: calc(100% + var(--spacing-xs)); max-height: 20em; overflow: auto; box-shadow: var(--shadow-lg); }
 .filter-suggestions .menu-item { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-sm); cursor: pointer; }
 .filter-suggestions .menu-item[aria-selected="true"] { background: var(--color-selected); color: var(--color-selected-foreground); }
+.filter-suggestions .menu-item[aria-selected="true"] .muted { color: inherit; }
 @media (pointer: coarse) {
   .filter-segment, .filter-join, button.filter-boundary, .filter-segment-input { min-height: var(--size-touch-min); }
   .filter-segment, .filter-join, button.filter-boundary { min-width: var(--size-touch-min); }

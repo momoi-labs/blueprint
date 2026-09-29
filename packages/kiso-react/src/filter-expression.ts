@@ -182,15 +182,22 @@ export function getFilterSuggestions(source: string, fields: readonly FilterFiel
   if (complete.ok && complete.value.length) return [];
   const input = tokens(source, true);
   let start = 0;
-  const stack: ("group" | "list")[] = [];
+  const stack: { kind: "group" | "list"; start: number }[] = [];
   input.forEach((token, index) => {
+    // A complete prefix marks an implicit AND boundary, using the parser grammar.
+    if (!stack.some(frame => frame.kind === "list")) {
+      const preceding = parseFilterExpression(source.slice(start, token.start), fields, { allowLeadingJoin: true });
+      if (preceding.ok && preceding.value.length) start = token.start;
+    }
     if (token.quoted) return;
     if (token.text === "(" || token.text === "[") {
       const list = input[index - 1]?.text.toUpperCase() === "IN" && !input[index - 1].quoted;
-      stack.push(list ? "list" : "group");
+      stack.push({ kind: list ? "list" : "group", start });
       if (!list) start = token.end;
-    } else if (token.text === ")" || token.text === "]") stack.pop();
-    else if (!stack.includes("list") && /^(AND|OR)$/i.test(token.text) && /\s/.test(source[token.end] ?? "")) start = token.end;
+    } else if (token.text === ")" || token.text === "]") {
+      const frame = stack.pop();
+      if (frame?.kind === "group") start = frame.start;
+    } else if (!stack.some(frame => frame.kind === "list") && /^(AND|OR)$/i.test(token.text) && /\s/.test(source[token.end] ?? "")) start = token.end;
   });
   const prefix = source.slice(0, start);
   const tail = source.slice(start).trimStart();
@@ -225,6 +232,8 @@ export function getFilterSuggestions(source: string, fields: readonly FilterFiel
     const search = tokens(partial, true)[0]?.text ?? "";
     return wrap((field.values ?? []).filter(value => String(value).toLowerCase().startsWith(search.toLowerCase())).map(value => ({ label: String(value), text: `${field.key} IN (${committed ? `${committed} ` : ""}${formatFilterScalar(value)}, `, description: "Add value; type ) to finish" })));
   }
-  const partial = tokens(rawValue, true)[0]?.text ?? "";
+  const valueTokens = tokens(rawValue, true);
+  if (valueTokens.length > 1) return [];
+  const partial = valueTokens[0]?.text ?? "";
   return wrap((field.values ?? []).filter(value => String(value).toLowerCase().startsWith(partial.toLowerCase())).map(value => ({ label: String(value), text: `${field.key} ${operator} ${formatFilterScalar(value)}`, description: "Complete condition" })));
 }
