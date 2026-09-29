@@ -2,6 +2,11 @@
 
 For design-system consumption rules, read [`kiso/AGENTS.md`](kiso/AGENTS.md).
 
+### Component validation
+
+For deep component audits, release-readiness reviews, or catalog-wide validation,
+use [validate-kiso-component](.agents/skills/validate-kiso-component/SKILL.md).
+
 ### Issue tracker
 
 Issues and specs for this repository live in GitHub Issues. See
