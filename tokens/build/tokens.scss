@@ -90,7 +90,7 @@ $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
 $semantic-foreground: #eeece9; // Primary text. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
 $semantic-muted-foreground: #aba9a5; // Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.
-$semantic-subtle-foreground: #94928e; // Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces.
+$semantic-subtle-foreground: #94928e; // Large supporting text and non-text graphics only (>=3:1 on their surface). Never small text. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces.
 $semantic-border: #494744; // Dividers and input outlines. Non-text role.
 $semantic-primary: #684bb5; // Primary fill: primary buttons, solid badges, checked controls, the brand mark. Deep violet in both themes; on dark it is a dedicated fill and is not text-eligible, so ink roles (link, focus) take accent.base instead.
 $semantic-accent: #ded5fb; // Emphasis and highlight. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes.

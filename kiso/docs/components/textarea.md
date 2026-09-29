@@ -78,7 +78,7 @@ the loading status independently perceivable.
 ## Tokens
 
 Use the same exact mapping as Input: `--color-surface`, `--color-foreground`,
-`--color-subtle-foreground`, `--color-border`, `--color-focus`,
+`--color-muted-foreground`, `--color-border`, `--color-focus`,
 `--color-disabled`, `--color-danger`; all five body typography properties;
 `--spacing-sm` block and `--spacing-md` inline padding; `--radius-md`;
 `--motion-duration-fast`; and `--motion-easing-standard`. No primitive colors
