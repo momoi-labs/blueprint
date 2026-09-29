@@ -229,6 +229,11 @@
 }
 [data-slot="select-trigger"]:disabled { cursor: not-allowed; }
 [data-slot="select-item"] { justify-content: space-between; }
+[data-slot="select-content"] {
+  max-height: var(--radix-select-content-available-height);
+  overflow: hidden;
+}
+[data-slot="select-viewport"] { min-height: 0; }
 
 /* Portalled surfaces: above the page, never wider than it. */
 .kiso-react-floating {

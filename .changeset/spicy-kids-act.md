@@ -9,3 +9,6 @@ legacy composition key events and Escape dismissal.
 
 Restore focus after chip edits, option additions, and removals, including when a
 controlled parent replaces the edited segment.
+
+Constrain Select menus to the available viewport height so long option lists can
+scroll on touch screens.
