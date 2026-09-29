@@ -94,11 +94,11 @@ form column.
 | hover | Quiet border emphasis on the box. A hovered version segment deepens its fill. | `--color-border-strong`, `--color-accent-surface`. |
 | focus | One ring around the whole box, never around the bare input. | `--color-ring`. |
 | editing a segment | The value or the options become an input sized to their content; the chip takes an accent border and a confirm control appears. | `--color-primary`, `--color-accent-surface`. |
-| no options | Only the `+` segment remains, in the subtle foreground. | `--color-subtle-foreground`. |
+| no options | Only the `+` segment remains, in the muted foreground. | `--color-muted-foreground`. |
 | chip invalid | The single chip is marked, not the field. Say why next to the field. | `--color-danger-surface`, `--color-danger-border`, `--color-danger`. |
 | field invalid | `aria-invalid` on the box plus [ValidationMessage](validation-message.md). | `--color-danger`. |
 | disabled | The box and every chip control are unavailable; chips stay readable. | `--color-disabled-surface`, `--color-disabled`. |
-| empty | Placeholder in the input showing the shape of one entry. | `--color-subtle-foreground`. |
+| empty | Placeholder in the input showing the shape of one entry. | `--color-muted-foreground`. |
 
 An invalid chip and an invalid field are different failures. A version that
 does not exist marks the chip; "add at least one dependency" marks the field.
@@ -157,7 +157,7 @@ ChipInput must have an explicit submit Button.
 ## Tokens
 
 Box and input follow [Input](input.md): `--color-card`, `--color-input`,
-`--color-border-strong`, `--color-foreground`, `--color-subtle-foreground`,
+`--color-border-strong`, `--color-foreground`, `--color-muted-foreground`,
 `--color-ring`, `--color-disabled`, `--color-disabled-surface`, `--radius-md`,
 `--shadow-xs`, `--size-control-md`, `--spacing-xs` padding,
 `--motion-duration-fast` and `--motion-easing-standard`.
@@ -165,8 +165,8 @@ Box and input follow [Input](input.md): `--color-card`, `--color-input`,
 Chips: `--color-secondary`, `--color-secondary-foreground`, `--radius-sm`,
 `--size-control-sm`, `--type-size-label`, `--font-mono` and
 `--type-size-metadata` for the segments, `--color-muted-foreground` for the
-scope and for an option's name, `--color-subtle-foreground` for the `=`, the
-brackets and the empty `+`, `--color-border` for the rules between segments,
+scope, option names, `=`, brackets and the empty `+`, `--color-border` for
+the rules between segments,
 `--color-card` for the value and option segments with `--color-accent-surface`
 when hovered, `--color-foreground` for an option's value, `--color-link` for
 the version,

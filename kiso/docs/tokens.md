@@ -60,7 +60,7 @@ never text on dark.
 | `elevated-surface` | Menus, popovers, and dialogs. | `dark.700` | `white` |
 | `foreground` | Primary text and content that must carry the strongest hierarchy. | `dark.100` | `neutral.900` |
 | `muted-foreground` | Secondary text and labels. It remains normal-text eligible. | `dark.400` | `neutral.600` |
-| `subtle-foreground` | Placeholders, timestamps, and non-essential hints; large text only, never body copy. | `dark.450` | `neutral.500` |
+| `subtle-foreground` | Large supporting text and non-text graphics where the surface provides 3:1 contrast; never small text. | `dark.450` | `neutral.500` |
 | `border` | Dividers and control outlines; never text. | `dark.600` | `neutral.300` |
 | `primary` | The primary fill: primary buttons, solid badges, checked controls, the brand mark. Not text-eligible on dark. | `#684bb5` | `#5b3fc4` |
 | `accent` | Secondary emphasis and highlights, not the page's main action. | `accent.300` | `accent.800` |
@@ -143,8 +143,9 @@ terminals — which cannot follow `color-scheme`, so their text cannot either.
 
 Use `foreground` for default reading, `muted-foreground` when content is
 secondary but still needs normal-text contrast, and `subtle-foreground` only
-for large or non-essential supporting copy. Use `primary` for the fill of the
-action that drives the current task; use `link` for anything that reads as a
+for large supporting copy or non-text graphics on surfaces that provide at
+least 3:1 contrast. Use `primary` for the fill of the action that drives the
+current task; use `link` for anything that reads as a
 link or an active indicator, because the fill is not text-eligible on dark.
 Use `accent` to draw secondary attention without creating another primary
 action.

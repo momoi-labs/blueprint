@@ -75,7 +75,7 @@ h1, h2, h3, h4, p, figure { margin: 0; }
   font-weight: var(--type-weight-semibold);
   letter-spacing: var(--type-letter-spacing-caps);
   text-transform: uppercase;
-  color: var(--color-subtle-foreground);
+  color: var(--color-muted-foreground);
 }
 .t-mono, .mono, code, pre, kbd {
   font-family: var(--font-mono);
@@ -359,7 +359,7 @@ fieldset.form-body { border: 0; margin: 0; }
   transition: border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 .textarea { height: auto; min-height: 76px; padding-block: var(--spacing-sm); line-height: var(--type-line-height-normal); resize: vertical; }
-.input::placeholder, .textarea::placeholder { color: var(--color-subtle-foreground); }
+.input::placeholder, .textarea::placeholder { color: var(--color-muted-foreground); }
 .input:hover, .select:hover, .textarea:hover { border-color: var(--color-border-strong); }
 .input:disabled, .select:disabled, .textarea:disabled {
   background: var(--color-disabled-surface);
@@ -427,7 +427,7 @@ fieldset.form-body { border: 0; margin: 0; }
   font: inherit; font-size: var(--type-size-body);
   outline: none;
 }
-.chip-input-field::placeholder { color: var(--color-subtle-foreground); }
+.chip-input-field::placeholder { color: var(--color-muted-foreground); }
 .chip-input-list {
   position: absolute; inset-inline: 0; top: 100%; z-index: 40;
   margin-block-start: var(--spacing-xs);
@@ -484,8 +484,8 @@ fieldset.form-body { border: 0; margin: 0; }
 .chip-option { color: var(--color-foreground); }
 .chip-value:hover, .chip-option:hover { background: var(--color-accent-surface); }
 .chip-option-name { color: var(--color-muted-foreground); }
-.chip-option-mark { color: var(--color-subtle-foreground); }
-.chip-option[data-empty="true"] { color: var(--color-subtle-foreground); }
+.chip-option-mark { color: var(--color-muted-foreground); }
+.chip-option[data-empty="true"] { color: var(--color-muted-foreground); }
 .chip-value:last-child, .chip-option:last-child {
   border-start-end-radius: var(--radius-xs);
   border-end-end-radius: var(--radius-xs);
@@ -1488,7 +1488,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .chart .grid { stroke: var(--color-border); stroke-width: 1; }
 .chart .line { fill: none; stroke: currentColor; stroke-width: 1.5; }
 .chart .area { fill: currentColor; fill-opacity: 0.12; }
-.chart-axis { display: flex; justify-content: space-between; font-size: var(--type-size-metadata); color: var(--color-subtle-foreground); margin-block-start: var(--spacing-sm); }
+.chart-axis { display: flex; justify-content: space-between; font-size: var(--type-size-metadata); color: var(--color-muted-foreground); margin-block-start: var(--spacing-sm); }
 
 /* Sparkline — one metric series at cell size (issue #84). No axis, no grid,
    no legend, no tooltip: the number beside the line carries the precision,

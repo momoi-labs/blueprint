@@ -50,7 +50,7 @@ FormField patterns.
 | `submit` | Applies on Enter or an explicit "Search" Button. Good for expensive server queries. |
 
 Appearance follows Input: `--color-surface`, `--color-border`,
-`--color-foreground`, placeholder `--color-subtle-foreground`. Leading icon
+`--color-foreground`, placeholder `--color-muted-foreground`. Leading icon
 `--color-muted-foreground`.
 
 Do not add a "global" variant — that is CommandPalette.
@@ -127,7 +127,7 @@ a different global binding.
 ## Tokens
 
 Same semantic set as Input: `--color-surface`, `--color-foreground`,
-`--color-subtle-foreground`, `--color-muted-foreground`, `--color-border`,
+`--color-muted-foreground`, `--color-border`,
 `--color-focus`, `--color-disabled`, `--spacing-sm` block and `--spacing-md`
 inline padding, `--radius-md`, the five property-qualified body typography
 tokens, `--motion-duration-fast`, and `--motion-easing-standard`.

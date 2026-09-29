@@ -125,7 +125,7 @@ export const semanticElevatedSurface: string;
 export const semanticForeground: string;
 /** Secondary text, labels. Text-eligible: passes WCAG AA 4.5:1 on background, surface and elevated-surface in both themes. */
 export const semanticMutedForeground: string;
-/** Placeholders, timestamps, hints. Large text and non-essential metadata only (>=3:1). Never body copy. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces. */
+/** Large supporting text and non-text graphics only (>=3:1 on their surface). Never small text. On dark this is dark.450, because dark.500 misses 3:1 on the dark surfaces. */
 export const semanticSubtleForeground: string;
 /** Dividers and input outlines. Non-text role. */
 export const semanticBorder: string;

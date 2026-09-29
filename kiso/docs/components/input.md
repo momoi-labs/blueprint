@@ -44,7 +44,7 @@ for large. It does not reduce text or target size below accessible product norms
 
 | State | Behavior |
 | --- | --- |
-| Default | `--color-surface` background, `--color-border` outline, `--color-foreground` value; placeholder uses `--color-subtle-foreground`. |
+| Default | `--color-surface` background, `--color-border` outline, `--color-foreground` value; placeholder uses `--color-muted-foreground`. |
 | Hover | Border emphasis may increase without changing layout or implying focus. |
 | Focus | Visible `--color-focus` ring; do not rely on border color alone. |
 | Active | Native text selection and editing behavior; no separate persistent visual state. |
@@ -85,7 +85,7 @@ silently disable a field merely to show activity.
 ## Tokens
 
 Use only semantic roles: `--color-surface`, `--color-foreground`,
-`--color-subtle-foreground`, `--color-border`, `--color-focus`,
+`--color-muted-foreground`, `--color-border`, `--color-focus`,
 `--color-disabled`, and `--color-danger`; the five property-qualified body
 typography tokens; `--spacing-xs`, `--spacing-sm`, `--spacing-md`, and
 `--spacing-lg` as mapped above; `--radius-md`; `--shadow-sm` for elevated

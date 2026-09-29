@@ -225,7 +225,7 @@
   cursor: pointer;
 }
 [data-slot="select-trigger"][data-placeholder] {
-  color: var(--color-subtle-foreground);
+  color: var(--color-muted-foreground);
 }
 [data-slot="select-trigger"]:disabled { cursor: not-allowed; }
 [data-slot="select-item"] { justify-content: space-between; }
