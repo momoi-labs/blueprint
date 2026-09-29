@@ -361,10 +361,11 @@ work is not.
 
 ## Fix validation follow-up, 2026-09-29
 
-The following evidence applies to the open fix branches below. It does not
-change the historical audit results or establish a pass on `main`. Each branch
-started from `ff5b2dbbd41eb87e0996a38752a308439d22196b` unless its PR lists a
-dependent base. No fix PR or release PR #115 was merged during this work.
+The following evidence names the tested fix revisions and preserves the
+historical audit results. Each branch started from
+`ff5b2dbbd41eb87e0996a38752a308439d22196b` unless its PR lists a dependent base.
+The user subsequently authorized merging the reviewed fixes. Integration
+results are recorded below. Release PR #115 remains unmerged.
 
 Environment: macOS 26.6.2 arm64, Node 26.8.2, Playwright 1.62.1,
 Chromium 151.0.7922.34, Firefox 153.0, and WebKit 26.5. Package versions remained
@@ -379,11 +380,23 @@ from native browser and text-only zoom.
 | #130, [#140](https://github.com/momoi-labs/blueprint/pull/140) | `7f9cae5467add76a3a0989b02b88eb2cdfd2712b` | Short editable segments measured 23.61px wide at 320/390px in both themes. | Maintained suite 23/23 in Chromium and Firefox; WebKit issue subset 11/11. Value, option, add and editor targets meet 44px minimums under coarse pointers, with edge hit tests and taps. Fine-pointer sizing stays compact. Linux Chromium rounded a fractional edge tap into its neighbor; the corrected harness retains fractional DOM probes and taps whole pixels inside each edge. Final Linux CI passes. |
 | #131, [#143](https://github.com/momoi-labs/blueprint/pull/143) | `2ceb5683ae537af9742fc5c635b8cbcd17e2db7b` (Chromium); `86789a4d65a5e786738f92de6c7b4f6e07b0864a` (Firefox/WebKit) | With #130 applied, the supplied dependency widened a 320px coarse document to 396px; long values reached 785px. | ChipInput suite 33/33 in Chromium; Firefox 31 passed with two Chromium-only gesture cases skipped; WebKit issue subset 19/19. Narrow columns, long values, editing/removal, and separate chip wrapping pass in both themes and pointer modes. CDP touch gestures reach both ends, followed by an unassisted removal tap. The audited Dependencies consumer snapshot `4845b50` passes 18 engine/theme/width combinations with mocked API effects. |
 | #132, [#141](https://github.com/momoi-labs/blueprint/pull/141) | `aec572bb962cffbae5090880389b633ebc6956ef` | All 39 long-label cases failed per engine; all 36 short-label controls passed. | Suite 75/75 per engine for Meter, Progress and BarGauge. Covers 320/390/1280px, both themes, CSS 100%/200% magnification, standalone and dashboard cards, zero/missing/negative/over-limit values, containment and label/value separation. |
+| #133, [#146](https://github.com/momoi-labs/blueprint/pull/146) | `37905ea8245269cb41dee9eaa4aed812add62a99` | Light text minimum 3.271:1; dark popover group labels 3.766:1. | Eight cases pass per engine across both themes, covering small labels, placeholders, chip syntax and empty options in normal/hover states, legacy chart axes and separate 3:1 icon controls. Light minimum is now 6.019:1; dark popover minimum is 4.986:1. Actual Sidebar, Split and StepBar consumers pass 36 engine/theme/width combinations. Approved contract descriptions changed; token values and aliases did not. |
+| #134, [#147](https://github.com/momoi-labs/blueprint/pull/147) | `96892c9b3c149394d18a29c2b04fde8720307552` | Timestamp contrast 2.770:1 in both themes; all four baseline cases fail. | Four cases pass per engine at 320/1280px in both themes. Timestamps reach 5.097:1; main/info/warn/error colors remain unchanged. Actual LogView and DetailScreen Activity consumers pass 24 engine/theme/width combinations, checking 7 and 60 timestamps respectively. |
 | #135, [#137](https://github.com/momoi-labs/blueprint/pull/137) | `0c52f180208d5fb02f3976cb5bd018563cc6e424` | All four Chromium theme/width cases returned no matches for Website. | Actual production gallery test passes 4/4 per engine at 390/1280px in both themes. Website/website/WEBSITE, guide, unknown query, empty feedback and clear/focus assertions pass. Full gallery suite 12/12 in Chromium. |
 | #136 FilterInput harness, [#142](https://github.com/momoi-labs/blueprint/pull/142) | `d889f50b0cc58c4b8ee0be2f4448e0514db52164` | The unchanged script passed Chromium, failed Firefox's synthetic-composition assertion, and failed WebKit's Tab-to-Search assumption. | The full script passes each engine's desktop cases and all four 320/390px light/dark touch matrices. It fills before opening synthetic composition, asserts no commit on Space during composition, and keeps the post-composition commit check. A native input/button/input probe determines the exact expected Tab destination. No cases are duplicated or excluded. |
 
-The ChipInput PRs form a review stack: #138, then #140, then #143. Each has
-one implementation owner. Review each PR against its declared base.
+After user review, PRs #137, #138, #139, #140, #141, #142 and #143 were
+merged using rebase-and-merge. The resulting main revision is
+`7cc19f1c070f4bd424f12a8f2c48102c613e35df`. Its Git tree matches the tested
+integration revision `2f1766b43217f776e7ea5bd5c854c4c53d5b7a45` from #141.
+The only rebase conflict was the browser command list; both ThemeSelector and
+metric-label checks were retained. The integrated branch passed the complete
+Chromium browser gate, 470 React tests, gallery 12/12, token/package/type/CSS
+checks, isolated tarball installation and the deploy dry run. Metric checks
+passed 75/75 in each engine again, and Linux CI passed before merge.
+
+The ChipInput PRs used one implementation owner and a dependent review stack:
+#138, then #140, then #143. GitHub merged that stack in dependency order.
 
 #143's Linux gesture diagnosis compared ChipInput with a plain HTML scroller.
 CDP `synthesizeScrollGesture` left both at zero scroll, while
@@ -409,23 +422,19 @@ checks and the changeset gate. #122 and #124 regression assertions remain in
 place. PR descriptions contain the commands and any narrower browser subsets;
 a subset pass is not a full suite pass.
 
-### Remaining verification
+PRs #146 and #147 remain open for review. The user approved their #133 and
+#134 contract corrections on 2026-09-29 under
+`kiso/AGENTS.md`. They reuse existing tokens: `muted-foreground` for small text
+and placeholders, and `neutral-500` for timestamps on the fixed dark log
+surface. Token values and aliases remain unchanged. The original proposal
+evidence remains linked from each issue. The table records the contrast
+revisions tested before integration; their PR descriptions track later rebases.
 
-[#133](https://github.com/momoi-labs/blueprint/issues/133#issuecomment-5893494336)
-and [#134](https://github.com/momoi-labs/blueprint/issues/134#issuecomment-5893504722)
-have tested proposals pending a contract decision under
-`kiso/AGENTS.md`. Their contracts explicitly select the failing text colors.
-The proposed changes reuse existing tokens and leave token values and aliases
-unchanged: `muted-foreground` for small text and placeholders, `neutral-500`
-for timestamps on the fixed dark log surface. Source fixes were not applied.
-Proposal probes on built CSS measured minimum 4.986:1 for the affected normal
-text paths and 5.097:1 for timestamps. Both issues contain before/proposed
-screenshots and engine-specific evidence. These measurements do not mark the
-issues fixed.
+### Remaining verification
 
 The unavailable environments in #136 remain pending: native IME, actual
 screen-reader announcements, physical touch and software keyboards, intended
 fonts with native/text zoom, exhaustive states and accents, Card mapping, and
 real self-host/backend integration. The earlier WebKit ChipInput button-focus
 limitations remain pending actual Safari full-keyboard-access verification.
-Open fix branches do not close these gaps or authorize the release.
+The merged fixes do not close these gaps or authorize the release.
