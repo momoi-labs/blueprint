@@ -76,6 +76,7 @@ See [Publishing Kiso](docs/publishing.md) for the first npm publication, trusted
 publisher setup, release PRs, and version tags.
 
 Run `npx playwright install chromium` once, then `npm run check:browser` to
-check Lifecycle hit targets, taps, disabled actions, and keyboard focus in
-Chromium. The check covers coarse and fine pointers at 390px and 1280px in
-both themes. Set `SCREENSHOT_DIR=artifacts/lifecycle` to save screenshots.
+check touch targets, taps, disabled controls, and keyboard interaction for
+Lifecycle, Checkbox, Switch, Tabs, and TimeRangeControl in Chromium. Checks
+cover coarse and fine pointers at 390px and 1280px in both themes. Set
+`SCREENSHOT_DIR=artifacts/touch-controls` to save screenshots.

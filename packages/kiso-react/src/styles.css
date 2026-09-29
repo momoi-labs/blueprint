@@ -161,9 +161,17 @@
 }
 
 @media (pointer: coarse) {
-  .kiso-checkbox::before {
+  /* Reserve the extended target in layout so adjacent controls cannot overlap. */
+  .kiso-checkbox { margin: calc((var(--size-touch-min) - var(--size-icon-md)) / 2); }
+  .kiso-react-switch {
+    margin-block: calc((var(--size-touch-min) - 18px) / 2);
+    margin-inline: calc((var(--size-touch-min) - 32px) / 2);
+  }
+  .kiso-checkbox::before, .kiso-react-switch::before {
     content: "";
     position: absolute;
+    top: 50%; left: 50%;
+    translate: -50% -50%;
     width: var(--size-touch-min);
     height: var(--size-touch-min);
   }

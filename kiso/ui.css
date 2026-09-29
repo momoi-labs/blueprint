@@ -1228,10 +1228,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    This is the whole reason the desktop UI can be 36px.
    =========================================================================== */
 @media (pointer: coarse) {
-  .btn, .input, .select, .nav-item, .menu-item {
+  .btn, .input, .select, .nav-item, .menu-item, .tabs button {
     min-height: var(--size-touch-min);
   }
-  .btn-icon { min-width: var(--size-touch-min); }
+  .btn-icon, .tabs button { min-width: var(--size-touch-min); }
   /* Let the frame include the touch-sized buttons and both borders. */
   .cluster-verbs { height: auto; }
   /* The chip grows with its segments, so the floor goes on the chip and the
@@ -1528,6 +1528,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   .dashboard-panel, .dashboard-panel[data-span="12"] { grid-column: 1; }
 }
 @media (pointer: coarse) {
+  .time-range-trigger { min-height: var(--size-touch-min); }
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
 }
 
