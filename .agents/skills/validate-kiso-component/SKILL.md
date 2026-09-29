@@ -33,6 +33,13 @@ explicitly; a missing dedicated export is not a defect when a documented
 composition implements the contract. Maintain an inventory with component,
 exports, contract, scenarios, result, evidence, and issue links.
 
+After building packages, run `node .agents/skills/validate-kiso-component/scripts/inventory.mjs`
+from the repository root to enumerate catalog files and built runtime exports
+by module. Review the mapping rather than inferring coverage from name matches.
+Account for exported variant helpers and hooks, and distinguish type-only and
+internal exports from the public runtime API. Record documented compositions
+under their contracts even when they share another component's exports.
+
 ## Exercise the implementation
 
 Use an isolated fixture importing the built package and its distributed CSS.
@@ -56,6 +63,27 @@ arbitrary test count. Seed generated inputs and retain failing inputs. For a
 shared handler or CSS rule, inspect its other consumers and exercise each
 behaviorally distinct path before declaring the failure isolated or fixed.
 
+Keep a case ledger: component/exports, input and action, expected assertion,
+environment, observed result, and evidence location. Reset between independent
+cases. A failed open overlay can hide unrelated controls from role queries and
+turn subsequent failures into noise. Wait for the asserted focus/state change,
+not only for popup visibility. Confirm fixture readiness, locator identity, and
+caller-required layout before classifying a timeout or overflow as a defect.
+
+When reusing checks across browsers, verify their native-control assumptions.
+Button tab/click focus can follow platform policy, and an automation fill can
+emit composition events. Compare a plain HTML control and inspect the event
+sequence before attributing those differences to the component. Preserve failed
+suite results; report a portable subset with its exclusions, not as a suite pass.
+
+Run consumer examples with their required layout styles, then reduce failures
+against distributed package CSS alone. Record which styles and mocked effects
+each run used. Load styles before mount for initial layout/scroll assertions;
+late development-server CSS can invalidate that precondition. Test late style
+or font changes separately when the contract or consumer requires them.
+Preserve the failed probe and the corrected fixture result when
+the harness, rather than the component, caused the failure.
+
 ## Confirm and record findings
 
 Reduce each failure to a stable reproduction. Record:
@@ -77,6 +105,11 @@ into separate issues. Publish issues only when the user requested it or gave
 standing authorization. Otherwise provide reviewable issue drafts. Use English
 and include enough evidence to reproduce without access to local scratch files.
 
+When the user assigns known defects to parallel work, link that owner issue and
+mark its affected checks pending verification. Continue unrelated checks in the
+same components. Rerun the affected checks after the fixes merge; neither an
+open fix branch nor a closed issue alone is evidence of a pass.
+
 Audit requests authorize diagnosis. Implement fixes, alter contracts, or add
 maintained regression tests when included in the requested scope. Preserve
 scratch reproductions and results for handoff; keep screenshots and temporary
@@ -88,6 +121,12 @@ A component is covered when every mapped requirement and applicable matrix
 category has a recorded result: passed, failed with evidence, or untested with
 a reason. Report untested material requirements as gaps, not as a pass. An
 all-component audit additionally accounts for every catalog entry and export.
+
+Give exclusions an explicit not-applicable reason. Keep pending verification
+separate from executed failures and passes. A suite result applies only to its
+assertions, not every scenario for the exports it imports. Link follow-up work
+for material gaps, including native IME, assistive technology, real touch
+hardware, and text-only zoom when those environments were unavailable.
 
 Before publishing, check whether the target SHA and linked issue states changed.
 Inspect the intervening diff and rerun affected scenarios; keep the original SHA

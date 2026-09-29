@@ -21,11 +21,14 @@ checks. The catalog and contracts define the APIs; this matrix defines probes.
 Use browser zoom or a documented equivalent for zoom testing and identify the
 method. A smaller viewport alone does not establish 200% text-zoom behavior.
 Use deterministic waits for observable state rather than arbitrary sleeps.
+Record layout magnification and text-only zoom separately. Include browser
+versions, pointer emulation, font availability, and consumer styling in evidence.
 
 ## Text entry, chips, and filters
 
 - Test Enter, Tab, Shift+Tab, Escape, arrows, Backspace, and Delete as applicable.
   Include an enclosing form and assert submission counts, not just key handling.
+  Exercise empty input and no highlighted option as well as a populated list.
 - Check IME composition with all relevant shortcuts. Pair synthetic events with
   ordinary input controls and identify native IME checks still needed.
 - Exercise caret positions, selection replacement, paste, partial syntax,
@@ -46,6 +49,8 @@ Use deterministic waits for observable state rather than arbitrary sleeps.
   scrollHeight/clientHeight, and body scroll locks.
 - Change or remove the active entry, disable options, and confirm selection only
   occurs on the documented trigger. Distinguish focus/highlight from selection.
+- For mutually exclusive controls, check the contracted arrow-key behavior and
+  number of tab stops. Pointer selection alone does not validate their keymap.
 - Cover opening, dismissal, Escape, outside interaction, focus containment where
   required, and focus restoration. Include nested overlays if consumers use them.
 - For confirmation dialogs, verify cancel and rejected/prevented actions preserve
@@ -61,6 +66,8 @@ Use deterministic waits for observable state rather than arbitrary sleeps.
   series association, timestamps, clamping, and rejection of unsupported inputs.
 - Verify accessible labels and exact-value alternatives as well as plotted output.
   Assert validity of generated coordinates; a successful render alone is not enough.
+- Test long row and series labels in addition to large datasets. Check that the
+  panel wraps labels or owns its scroll range without widening the document.
 - Use realistic upper bounds from consumers for volume and update rate. Record
   responsiveness or memory evidence when performance is in scope; avoid invented
   extreme limits that the component does not promise to support.
