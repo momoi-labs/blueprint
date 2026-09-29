@@ -85,10 +85,13 @@ function ChipInputField({
   className,
   onKeyDown,
   onRemoveLast,
+  onCompositionStart,
+  onCompositionEnd,
   ...props
 }: React.ComponentProps<"input"> & { onRemoveLast?: () => void }) {
   const { activeId, setActiveId, listId, listRef, fieldRef, open } =
     useChipInput();
+  const composing = React.useRef(false);
 
   // Typing changes the list under the highlight, so re-anchor it every render
   // instead of tracking an index the filter invalidates.
@@ -100,6 +103,10 @@ function ChipInputField({
   });
 
   function keys(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) {
+      event.stopPropagation();
+      return;
+    }
     const visible = options(listRef.current);
     const index = visible.findIndex((option) => option.id === activeId);
 
@@ -141,6 +148,14 @@ function ChipInputField({
       aria-autocomplete="list"
       autoComplete="off"
       onKeyDown={keys}
+      onCompositionStart={(event) => {
+        composing.current = true;
+        onCompositionStart?.(event);
+      }}
+      onCompositionEnd={(event) => {
+        composing.current = false;
+        onCompositionEnd?.(event);
+      }}
       className={cn("chip-input-field", className)}
       {...props}
     />
@@ -278,6 +293,7 @@ function EditableSegment({
   maxWidth?: number;
 }) {
   const [draft, setDraft] = React.useState<string | null>(null);
+  const composing = React.useRef(false);
 
   if (!editable || !onCommit) {
     return (
@@ -307,7 +323,11 @@ function EditableSegment({
           }}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={() => commit(draft)}
+          onCompositionStart={() => { composing.current = true; }}
+          onCompositionEnd={() => { composing.current = false; }}
           onKeyDown={(event) => {
+            event.stopPropagation();
+            if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) return;
             if (event.key === "Enter") {
               event.preventDefault();
               commit(draft);
@@ -315,7 +335,6 @@ function EditableSegment({
               event.preventDefault();
               setDraft(null);
             }
-            event.stopPropagation();
           }}
         />
         <button

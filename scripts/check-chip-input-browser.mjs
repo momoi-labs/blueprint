@@ -19,6 +19,7 @@ after(async () => { await browser?.close(); await server.close(); });
 
 test('Shift+Tab navigates backward; Tab and Enter select only enabled suggestions', async () => {
   const page = await browser.newPage();
+    page.setDefaultTimeout(5000);
   await page.route('https://fonts.googleapis.com/**', route => route.abort());
   try {
     for (const mode of ['normal', 'disabled', 'empty']) {
@@ -42,3 +43,49 @@ test('Shift+Tab navigates backward; Tab and Enter select only enabled suggestion
     }
   } finally { await page.close(); }
 });
+
+for (const target of ['field', 'value', 'option', 'add', 'command']) {
+  test(`IME composition does not activate ${target} shortcuts`, async () => {
+    const page = await browser.newPage();
+    page.setDefaultTimeout(5000);
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      for (const signal of ['native', 'composition', 'legacy']) {
+        await page.goto(url);
+        let input;
+        const counter = page.locator(`output[aria-label="${target === 'field' ? 'Selections' : target === 'command' ? 'Commands run' : 'Commits'}"]`);
+        if (target === 'field') {
+          input = page.getByRole('combobox', { name: 'Dependencies' });
+          await input.fill('py');
+        } else if (target === 'command') {
+          await page.getByRole('button', { name: 'Open commands' }).click();
+          input = page.getByRole('combobox', { name: 'Commands', exact: true });
+          await input.fill('de');
+        } else {
+          const label = { value: 'Edit version', option: 'Edit option', add: 'Add option' }[target];
+          await page.getByRole('button', { name: label, exact: true }).click();
+          input = page.getByRole('textbox', { name: label, exact: true });
+          await input.fill('22');
+        }
+        const active = await input.getAttribute('aria-activedescendant');
+        if (signal !== 'legacy') await input.dispatchEvent('compositionstart');
+        for (const key of ['Enter', 'ArrowDown', 'ArrowUp', 'Escape', 'Tab', 'Backspace']) {
+          await input.dispatchEvent('keydown', { key, code: key, isComposing: signal === 'native', keyCode: signal === 'legacy' ? 229 : 0 });
+          if (screenshots && signal === 'native' && key === 'Enter') await page.screenshot({ path: `${screenshots}/ime-${target}.png` });
+          assert.equal(await counter.textContent(), '0', `${signal}/${key}: IME must not activate ${target}`);
+          assert(await input.isVisible(), `${signal}/${key}: editor must remain open`);
+          assert.equal(await input.getAttribute('aria-activedescendant'), active, `${signal}/${key}: highlight must stay put`);
+        }
+        if (target === 'field') {
+          await input.fill('');
+          await input.dispatchEvent('keydown', { key: 'Backspace', isComposing: signal === 'native', keyCode: signal === 'legacy' ? 229 : 0 });
+          assert(await page.getByRole('button', { name: 'Remove node' }).isVisible());
+          await input.fill('py');
+        }
+        if (signal !== 'legacy') await input.dispatchEvent('compositionend');
+        await input.press('Enter');
+        assert.equal(await counter.textContent(), '1', 'Ordinary Enter runs exactly once after composition');
+      }
+    } finally { await page.close(); }
+  });
+}
