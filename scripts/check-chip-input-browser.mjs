@@ -133,3 +133,28 @@ test('Removing a controlled chip returns focus to the field', async () => {
     }
   } finally { await page.close(); }
 });
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`Selected ChipInput descriptions meet 4.5:1 contrast in ${colorScheme}`, async () => {
+    const page = await browser.newPage({ colorScheme, viewport: { width: 390, height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      await page.goto(url);
+      await page.getByRole('combobox', { name: 'Dependencies' }).fill('py');
+      const selected = page.locator('[data-slot="chip-input-option"][aria-selected="true"]');
+      await selected.waitFor();
+      const contrast = await selected.evaluate(element => {
+        const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
+          .map(channel => channel / 255)
+          .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+          .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+        const foreground = luminance(getComputedStyle(element.querySelector('.muted')).color);
+        const background = luminance(getComputedStyle(element).backgroundColor);
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      if (screenshots) await page.screenshot({ path: `${screenshots}/chip-contrast-${colorScheme}.png` });
+      assert(contrast >= 4.5, `${colorScheme}: selected description contrast ${contrast.toFixed(2)}:1`);
+      console.log(`${colorScheme}: selected ChipInput description contrast ${contrast.toFixed(2)}:1`);
+    } finally { await page.close(); }
+  });
+}

@@ -434,6 +434,7 @@ fieldset.form-body { border: 0; margin: 0; }
   max-height: 240px; overflow-y: auto;
 }
 .chip-input-list .menu-item[aria-selected="true"] { background: var(--color-selected); color: var(--color-selected-foreground); }
+.chip-input-list .menu-item[aria-selected="true"] .muted { color: inherit; }
 .chip-input-list .menu-item .muted { margin-inline-start: auto; }
 
 .chip {
