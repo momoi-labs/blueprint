@@ -1465,6 +1465,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .splitter { flex: none; width: 1px; background: var(--color-border); cursor: col-resize; position: relative; }
 .splitter::after { content: ""; position: absolute; inset-block: 0; inset-inline: -3px; }
 .splitter:hover, .splitter.dragging { background: var(--color-ring); }
+@media (pointer: coarse) {
+  /* Reserve the hit area so it cannot cover controls at either pane's edge. */
+  .splitter {
+    margin-inline: calc((var(--size-touch-min) - 1px) / 2);
+    touch-action: none;
+  }
+  .splitter::after { inset-inline: calc((1px - var(--size-touch-min)) / 2); }
+}
 
 /* Legacy single-series SVG helpers. Interactive metrics use .framed-chart
    below; these selectors remain compatible with existing consumers. */

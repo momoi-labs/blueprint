@@ -53,6 +53,7 @@ function Splitter({
   const ref = React.useRef<HTMLDivElement>(null)
   const [size, setSize] = React.useState(defaultSize)
   const [dragging, setDragging] = React.useState(false)
+  const dragStart = React.useRef({ x: 0, size: defaultSize })
 
   useIsomorphicLayoutEffect(() => {
     const pane = ref.current?.previousElementSibling
@@ -81,6 +82,7 @@ function Splitter({
       {...props}
       onPointerDown={(event) => {
         onPointerDown?.(event)
+        dragStart.current = { x: event.clientX, size }
         event.currentTarget.setPointerCapture(event.pointerId)
         setDragging(true)
       }}
@@ -88,7 +90,7 @@ function Splitter({
         onPointerMove?.(event)
         if (!dragging) return
         const box = event.currentTarget.parentElement?.getBoundingClientRect()
-        if (box) resize(((event.clientX - box.left) / box.width) * 100)
+        if (box) resize(dragStart.current.size + ((event.clientX - dragStart.current.x) / box.width) * 100)
       }}
       /* Covers the pointer being released and the drag being cancelled. */
       onLostPointerCapture={(event) => {

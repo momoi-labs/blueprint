@@ -2,6 +2,8 @@ import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../packages/kiso-react/dist/select.js';
 import { Pagination, PaginationPrevious, PaginationPage, PaginationNext, PaginationEllipsis } from '../../packages/kiso-react/dist/pagination.js';
+import { Split, Pane, Splitter } from '../../packages/kiso-react/dist/split.js';
+import { Button } from '../../packages/kiso-react/dist/button.js';
 import '../../packages/kiso-react/dist/styles.css';
 
 function PaginationFixture() {
@@ -23,6 +25,23 @@ function PaginationFixture() {
   );
 }
 
+function SplitFixture() {
+  const [left, setLeft] = useState(0);
+  const [right, setRight] = useState(0);
+  return h('main', null,
+    h('h1', null, 'Resizable panes'),
+    h(Split, { style: { height: '180px' } },
+      h(Pane, { style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' } },
+        h(Button, { onClick: () => setLeft(left + 1) }, 'Left')),
+      h(Splitter),
+      h(Pane, { className: 'grow', style: { display: 'flex', alignItems: 'center' } },
+        h(Button, { onClick: () => setRight(right + 1) }, 'Right')),
+    ),
+    h('output', { 'aria-label': 'Left clicks' }, left),
+    h('output', { 'aria-label': 'Right clicks' }, right),
+  );
+}
+
 function Fixture() {
   const [value, setValue] = useState('12');
   return h('main', null,
@@ -39,4 +58,4 @@ function Fixture() {
   );
 }
 
-createRoot(document.getElementById('root')).render(h(new URLSearchParams(location.search).has('pagination') ? PaginationFixture : Fixture));
+createRoot(document.getElementById('root')).render(h(new URLSearchParams(location.search).has('pagination') ? PaginationFixture : new URLSearchParams(location.search).has('split') ? SplitFixture : Fixture));
