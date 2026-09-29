@@ -1232,6 +1232,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     min-height: var(--size-touch-min);
   }
   .btn-icon { min-width: var(--size-touch-min); }
+  /* Let the frame include the touch-sized buttons and both borders. */
+  .cluster-verbs { height: auto; }
   /* The chip grows with its segments, so the floor goes on the chip and the
      segments stretch to it. */
   .chip, .chip-input-field { min-height: var(--size-touch-min); }
