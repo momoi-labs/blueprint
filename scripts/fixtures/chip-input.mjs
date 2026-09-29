@@ -1,6 +1,6 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChipInput, ChipInputBox, ChipInputField, ChipInputList, ChipInputOption, Chip, ChipName, ChipRemove, ChipValue, ChipOption, ChipOptionAdd } from '../../packages/kiso-react/dist/chip-input.js';
+import { ChipInput, ChipInputBox, ChipInputField, ChipInputList, ChipInputOption, Chip, ChipName, ChipScope, ChipRemove, ChipValue, ChipOption, ChipOptionAdd } from '../../packages/kiso-react/dist/chip-input.js';
 import { CommandPalette, CommandPaletteInput, CommandPaletteList, CommandPaletteItem } from '../../packages/kiso-react/dist/command-palette.js';
 import '../../packages/kiso-react/dist/styles.css';
 
@@ -18,6 +18,7 @@ function Fixture() {
   const [commandQuery, setCommandQuery] = useState('');
   const commit = setter => value => { setter(value); setCommits(count => count + 1); };
   const [submits, setSubmits] = useState(0);
+  if (mode?.startsWith('layout')) return h(LayoutFixture, { mode });
   if (['keyboard', 'keyboard-long', 'always', 'free-text'].includes(mode)) {
     return h('main', null,
       h('h1', null, 'Package form'),
@@ -82,6 +83,35 @@ function Fixture() {
       h(CommandPaletteList, null,
         ...['Deploy', 'Delete'].filter(name => name.toLowerCase().includes(commandQuery)).map(name => h(CommandPaletteItem, { key: name, onSelect: () => setCommands(count => count + 1) }, name)),
       ),
+    ),
+  );
+}
+
+function LayoutFixture({ mode }) {
+  const long = mode === 'layout-long';
+  const [items, setItems] = useState(mode === 'layout-many' ? ['node', 'python', 'ruby', 'go', 'cargo', 'deno'] : [long ? '@scope/a-very-long-unbroken-package-name-for-build-tooling' : 't3']);
+  const [version, setVersion] = useState(long ? '2026.09.29-release-candidate-with-a-long-version' : 'latest');
+  const [option, setOption] = useState(long ? ['a-very-long-unbroken-native-module-name', 'another-long-build-dependency'] : ['node-pty']);
+  const [added, setAdded] = useState('');
+  const [query, setQuery] = useState('');
+  return h('main', null,
+    h('h1', null, 'Dependencies'),
+    h('form', { onSubmit: event => event.preventDefault() },
+      h(ChipInput, null,
+        h(ChipInputBox, null,
+          items.map(name => h(Chip, { key: name },
+            h(ChipScope, null, 'npm'),
+            h(ChipName, null, name),
+            mode !== 'layout-many' && h(ChipValue, { value: version, onCommit: setVersion, editLabel: 'Edit dependency version' }),
+            mode !== 'layout-many' && h(ChipOption, { name: 'allow_builds', value: option, onCommit: setOption, editLabel: 'Edit build options' }),
+            mode !== 'layout-many' && h(ChipOptionAdd, { label: name, onCommit: setAdded, editLabel: 'Add dependency option' }),
+            h(ChipRemove, { 'aria-label': `Remove ${name}`, onClick: () => setItems(items.filter(item => item !== name)) }),
+          )),
+          h(ChipInputField, { 'aria-label': 'Packages', value: query, onChange: event => setQuery(event.target.value) }),
+        ),
+      ),
+      h('button', { type: 'submit' }, 'Save'),
+      h('output', { 'aria-label': 'Added option' }, added),
     ),
   );
 }

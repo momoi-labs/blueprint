@@ -297,3 +297,106 @@ test('Fine pointer chip segments retain dense sizing', async () => {
     }
   } finally { await page.close(); }
 });
+
+for (const colorScheme of ['light', 'dark']) {
+  for (const hasTouch of [false, true]) {
+    for (const width of [320, 390]) {
+      test(`Structured chips stay inside ${width}px forms with ${hasTouch ? 'coarse' : 'fine'} pointers in ${colorScheme}`, async () => {
+        const page = await browser.newPage({ colorScheme, hasTouch, viewport: { width, height: 844 } });
+        await page.route('https://fonts.googleapis.com/**', route => route.abort());
+        try {
+          for (const mode of ['layout', 'layout-long', 'layout-many']) {
+            await page.goto(`${url}?mode=${mode}`);
+            await page.waitForFunction(() => getComputedStyle(document.querySelector('.chip-input-box')).display === 'flex');
+            if (screenshots && width === 320) await page.screenshot({ path: `${screenshots}/${mode}-${hasTouch ? 'coarse' : 'fine'}-${colorScheme}.png` });
+            const bounds = await page.locator('.chip-input-box').evaluate(element => ({ right: element.getBoundingClientRect().right, document: document.documentElement.scrollWidth }));
+            assert(bounds.right <= width - 16 && bounds.document <= width, `${mode}: box right ${bounds.right}, document ${bounds.document}, viewport ${width}`);
+            if (mode === 'layout-long') {
+              assert(await page.locator('.chip').evaluate(element => element.scrollWidth > element.clientWidth), 'Long segments own a horizontal scroll range');
+              assert(await page.locator('.chip-name, button.chip-value, button.chip-option').evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth)), 'Segment text remains readable within the chip scroll range');
+            }
+            if (mode === 'layout-many') {
+              const rows = await page.locator('.chip').evaluateAll(chips => new Set(chips.map(chip => chip.getBoundingClientRect().top)).size);
+              assert(rows > 1, 'Several short chips still wrap onto new rows');
+              continue;
+            }
+            for (const label of ['Edit dependency version', 'Edit build options', 'Add dependency option']) {
+              const target = page.getByRole('button', { name: label, exact: true });
+              await target.focus();
+              await target.scrollIntoViewIfNeeded();
+              const box = await target.boundingBox();
+              const point = await target.evaluate((element, touch) => {
+                const target = element.getBoundingClientRect();
+                const clip = element.closest('.chip').getBoundingClientRect();
+                // Native overlay scrollbars can cover the lower half of a
+                // compact mouse control immediately after scrolling.
+                return { x: (Math.max(target.left, clip.left + 1) + Math.min(target.right, clip.right - 1)) / 2, y: target.top + target.height * (touch ? 0.5 : 0.25) };
+              }, hasTouch);
+              assert(await target.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), point), `${label}: reachable inside field`);
+              if (hasTouch) {
+                assert(box.width >= 44 && box.height >= 44, `${label}: keeps its touch target`);
+                await page.touchscreen.tap(point.x, point.y);
+              } else await target.press('Enter');
+              const editor = page.getByRole('textbox', { name: label, exact: true });
+              await editor.waitFor();
+              if (screenshots && width === 320 && mode === 'layout' && label === 'Edit build options') await page.screenshot({ path: `${screenshots}/layout-editor-${hasTouch ? 'coarse' : 'fine'}-${colorScheme}.png` });
+              assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Editing must stay within the document');
+              await editor.press('Escape');
+              await page.waitForFunction(label => document.activeElement?.getAttribute('aria-label') === label && document.activeElement?.tagName === 'BUTTON', label);
+            }
+            const remove = page.getByRole('button', { name: /^Remove / });
+            await remove.focus();
+            await remove.scrollIntoViewIfNeeded();
+            if (screenshots && width === 320) await page.screenshot({ path: `${screenshots}/${mode}-end-${hasTouch ? 'coarse' : 'fine'}-${colorScheme}.png` });
+            if (hasTouch) await remove.tap();
+            else await remove.press('Enter');
+            assert.equal(await page.locator('.chip').count(), 0, 'Removal remains reachable after the segments');
+            assert(await page.getByRole('combobox', { name: 'Packages' }).isVisible());
+          }
+        } finally { await page.close(); }
+      });
+    }
+  }
+}
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`Native touch swipes reach both ends of structured chips in ${colorScheme}`, { skip: browserType.name() !== 'chromium' }, async () => {
+    const page = await browser.newPage({ colorScheme, hasTouch: true, viewport: { width: 320, height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    const session = await page.context().newCDPSession(page);
+    try {
+      for (const mode of ['layout', 'layout-long']) {
+        await page.goto(`${url}?mode=${mode}`);
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('.chip')).minHeight === '44px');
+        const chip = page.locator('.chip');
+        const area = await chip.boundingBox();
+        const distance = await chip.evaluate(element => element.scrollWidth);
+        const gesture = { x: area.x + area.width / 2, y: area.y + area.height / 2, gestureSourceType: 'touch', speed: 1500, preventFling: true };
+        for (const direction of [-1, 1, -1]) {
+          await session.send('Input.synthesizeScrollGesture', { ...gesture, xDistance: direction * distance });
+          await page.waitForFunction(end => {
+            const chip = document.querySelector('.chip');
+            return end ? chip.scrollLeft >= chip.scrollWidth - chip.clientWidth - 1 : chip.scrollLeft <= 1;
+          }, direction === -1);
+          assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Swiping stays within the chip');
+          if (direction === 1) {
+            const scope = await page.locator('.chip-scope').boundingBox();
+            assert(scope.x >= area.x && scope.x + scope.width <= area.x + area.width, 'The leading scope is visible after swiping back');
+          } else {
+            const remove = page.getByRole('button', { name: /^Remove / });
+            const target = await remove.boundingBox();
+            assert(target.x >= area.x && target.x + target.width <= area.x + area.width, 'The remove target is fully visible after swiping');
+            for (const dx of [-21, 21]) {
+              const point = { x: target.x + target.width / 2 + dx, y: target.y + target.height / 2 };
+              assert(await remove.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), point), 'Swiped removal edges hit their own control');
+            }
+          }
+        }
+        const remove = await page.getByRole('button', { name: /^Remove / }).boundingBox();
+        if (screenshots) await page.screenshot({ path: `${screenshots}/gesture-${mode}-end-${colorScheme}.png` });
+        await page.touchscreen.tap(Math.floor(remove.x + remove.width / 2 + 21), Math.round(remove.y + remove.height / 2));
+        assert.equal(await chip.count(), 0, 'An edge tap removes the chip without focus or auto-scroll assistance');
+      }
+    } finally { await session.detach(); await page.close(); }
+  });
+}
