@@ -1215,7 +1215,10 @@ function Demo({
           )}
         </div>
       );
-    case "search":
+    case "search": {
+      const matchingProjects = ["Website", "Brand guide", "Website refresh"].filter(
+        (name) => name.toLowerCase().includes(value.toLowerCase()),
+      );
       return (
         <div className="stack">
           <Search
@@ -1225,17 +1228,14 @@ function Demo({
             onChange={(event) => setValue(event.target.value)}
           />
           <ul className="gallery-results">
-            {["Website", "Brand guide", "Website refresh"]
-              .filter((name) => name.includes(value.toLowerCase()))
-              .map((name) => (
-                <li key={name}>{name}</li>
-              ))}
+            {matchingProjects.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
           </ul>
-          {!["Website", "Brand guide", "Website refresh"].some((name) =>
-            name.includes(value.toLowerCase()),
-          ) && <p className="muted">No matching projects.</p>}
+          {matchingProjects.length === 0 && <p className="muted">No matching projects.</p>}
         </div>
       );
+    }
     case "badge":
       return (
         <div className="demo-row">
