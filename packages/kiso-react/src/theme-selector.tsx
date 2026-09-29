@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Button } from "./button.js";
 
 export function ThemeSelector({
@@ -9,6 +10,7 @@ export function ThemeSelector({
   theme: string;
   onChange: (theme: string) => void;
 }) {
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const options = [
     {
       value: "system",
@@ -29,17 +31,31 @@ export function ThemeSelector({
   return (
     <div className="theme-row">
       <span className="t-label">Theme</span>
-      <div className="theme-buttons" role="group" aria-label="Theme">
-        {options.map((option) => (
+      <div className="theme-buttons" role="radiogroup" aria-label="Theme">
+        {options.map((option, index) => (
           <Button
             key={option.value}
+            ref={(button) => { buttons.current[index] = button; }}
             variant="ghost"
             size="sm"
             className="btn-icon"
+            role="radio"
             aria-label={option.label}
             title={option.label}
-            aria-pressed={theme === option.value}
+            aria-checked={theme === option.value}
+            tabIndex={theme === option.value ? 0 : -1}
             onClick={() => onChange(option.value)}
+            onKeyDown={(event) => {
+              if (event.altKey || event.ctrlKey || event.metaKey) return;
+              const direction = event.key === "ArrowRight" || event.key === "ArrowDown"
+                ? 1
+                : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+              if (!direction) return;
+              event.preventDefault();
+              const next = (index + direction + options.length) % options.length;
+              buttons.current[next]?.focus();
+              onChange(options[next].value);
+            }}
           >
             <svg
               className="icon icon-sm"
