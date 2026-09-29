@@ -2,15 +2,27 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
-const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const playwright = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const engine = process.env.BROWSER || 'chromium';
+assert(['chromium', 'firefox', 'webkit'].includes(engine), `Unsupported browser: ${engine}`);
 const screenshots = process.env.SCREENSHOT_DIR;
 if (screenshots) await mkdir(screenshots, { recursive: true });
 const server = await createServer({ root: fileURLToPath(new URL('../', import.meta.url)), configFile: false, logLevel: 'error', server: { host: '127.0.0.1', port: 0 } });
 let browser;
 try {
   await server.listen();
-  browser = await chromium.launch();
+  browser = await playwright[engine].launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  // Native button tab stops follow platform keyboard settings. Establish the
+  // destination before checking that dismissed suggestions preserve that policy.
+  await page.setContent('<input id="before"><button id="button">Native</button><input id="after">');
+  await page.locator('#before').focus();
+  await page.keyboard.press('Tab');
+  const nativeDestination = await page.evaluate(() => document.activeElement.id);
+  assert(['button', 'after'].includes(nativeDestination), `Unexpected native Tab destination: ${nativeDestination}`);
+  const buttonsInTabOrder = nativeDestination === 'button';
+  console.log(`${engine} ${browser.version()}; fallback fonts; native button tab stops: ${buttonsInTabOrder}`);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/scripts/fixtures/filter-input.html`);
@@ -83,8 +95,12 @@ try {
   assert.deepEqual((await state())[0].value, ['Ana Silva']);
 
   await clear();
+  // Firefox fill() emits its own compositionend. Fill before opening the
+  // synthetic composition, then type the delimiter that would commit a chip.
+  await input.fill('status=active');
   await input.dispatchEvent('compositionstart');
-  await input.fill('status=active ');
+  await input.press('Space');
+  assert.equal(await input.inputValue(), 'status=active ');
   assert.equal((await state()).length, 0);
   await input.dispatchEvent('compositionend');
   assert.equal((await state()).length, 1);
@@ -196,7 +212,10 @@ try {
   await input.press('Escape');
   assert.equal(await input.getAttribute('aria-expanded'), 'false');
   await input.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Search', 'Tab leaves the filter when suggestions are dismissed');
+  const tabDestination = buttonsInTabOrder ? page.getByRole('button', { name: 'Search', exact: true })
+    : page.getByRole('combobox', { name: 'Dependencies', exact: true });
+  assert(await tabDestination.evaluate(element => element === document.activeElement), 'Tab leaves the filter according to the native button policy when suggestions are dismissed');
+  if (!buttonsInTabOrder) console.log('Native Tab skips buttons; full keyboard access on Safari remains pending in #136.');
   const legacy = page.getByRole('button', { name: 'Edit value, currently latest' });
   await legacy.click();
   await page.getByRole('textbox', { name: 'Edit value, currently latest' }).fill('22');
@@ -208,8 +227,9 @@ try {
 
   for (const width of [320, 390]) {
     for (const colorScheme of ['light', 'dark']) {
-      const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width, height: 844 }, colorScheme });
+      const context = await browser.newContext({ hasTouch: true, ...(engine === 'firefox' ? {} : { isMobile: true }), viewport: { width, height: 844 }, colorScheme });
       const mobile = await context.newPage();
+      await mobile.route('https://fonts.googleapis.com/**', route => route.abort());
       mobile.on('pageerror', error => errors.push(error.message));
       await mobile.goto(`http://127.0.0.1:${server.httpServer.address().port}/scripts/fixtures/filter-input.html`);
       const filter = mobile.locator('[data-slot="filter-input"]');
@@ -270,7 +290,7 @@ try {
       assert.equal(JSON.parse(await mobile.getByRole('status', { name: 'Filter state' }).textContent())[0].value, 'long'.repeat(30));
       assert(await mobile.evaluate(width => document.documentElement.scrollWidth <= width, width), 'Long values must wrap on mobile');
       assert.deepEqual(errors, []);
-      console.log(`${width}/${colorScheme}: mobile suggestions, IN, nested groups, touch targets, editing, disabled state and overflow passed.`);
+      console.log(`${width}/${colorScheme}: touch viewport suggestions, IN, nested groups, touch targets, editing, disabled state and overflow passed.${engine === 'firefox' ? ' Firefox hasTouch only; isMobile is unsupported.' : ''}`);
       await context.close();
     }
   }
