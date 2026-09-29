@@ -17,6 +17,36 @@ function Fixture() {
   const [commandQuery, setCommandQuery] = useState('');
   const commit = setter => value => { setter(value); setCommits(count => count + 1); };
   const mode = new URLSearchParams(location.search).get('mode');
+  const [submits, setSubmits] = useState(0);
+  if (['keyboard', 'always', 'free-text'].includes(mode)) {
+    return h('main', null,
+      h('h1', null, 'Package form'),
+      h('form', { onSubmit: event => { event.preventDefault(); setSubmits(count => count + 1); } },
+        h(ChipInput, null,
+          h(ChipInputBox, null,
+            h(ChipInputField, {
+              'aria-label': 'Packages', value: query, onChange: event => setQuery(event.target.value),
+              onKeyDown: event => {
+                if (mode === 'free-text' && event.key === 'Enter' && !event.defaultPrevented && query) {
+                  event.preventDefault();
+                  setDependencies(items => [...items, query]);
+                  setQuery('');
+                  setSelected(count => count + 1);
+                }
+              },
+            }),
+          ),
+          (query || mode === 'always') && mode !== 'free-text' && h(ChipInputList, null,
+            h(ChipInputOption, { onSelect: () => { setQuery(''); setSelected(count => count + 1); } }, 'Package'),
+          ),
+        ),
+        h('button', { type: 'submit' }, 'Save'),
+        h('p', null, 'Submissions: ', h('output', { 'aria-label': 'Submissions' }, submits)),
+        h('p', null, 'Selections: ', h('output', { 'aria-label': 'Selections' }, selected)),
+        h('p', null, 'Values: ', dependencies.join(', ')),
+      ),
+    );
+  }
   return h('main', null,
     h('h1', null, 'Dependencies'),
     h(ChipInput, null,

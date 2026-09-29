@@ -84,19 +84,20 @@ function ChipInputBox({
 function ChipInputField({
   className,
   onKeyDown,
+  onChange,
   onRemoveLast,
   onCompositionStart,
   onCompositionEnd,
   ...props
 }: React.ComponentProps<"input"> & { onRemoveLast?: () => void }) {
-  const { activeId, setActiveId, listId, listRef, fieldRef, open } =
+  const { activeId, setActiveId, listId, listRef, fieldRef, open, setOpen } =
     useChipInput();
   const composing = React.useRef(false);
 
   // Typing changes the list under the highlight, so re-anchor it every render
   // instead of tracking an index the filter invalidates.
   React.useEffect(() => {
-    const visible = options(listRef.current);
+    const visible = open ? options(listRef.current) : [];
     if (!visible.some((option) => option.id === activeId)) {
       setActiveId(visible[0]?.id ?? "");
     }
@@ -107,14 +108,18 @@ function ChipInputField({
       event.stopPropagation();
       return;
     }
-    const visible = options(listRef.current);
+    const visible = open ? options(listRef.current) : [];
     const index = visible.findIndex((option) => option.id === activeId);
 
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
-      if (!visible.length) return;
+      const available = options(listRef.current);
+      if (!available.length) return;
+      setOpen(true);
       const step = event.key === "ArrowDown" ? 1 : -1;
-      const next = visible[(index + step + visible.length) % visible.length];
+      const next = available[index < 0
+        ? (step > 0 ? 0 : available.length - 1)
+        : (index + step + available.length) % available.length];
       setActiveId(next.id);
       next.scrollIntoView({ block: "nearest" });
     } else if (
@@ -126,6 +131,11 @@ function ChipInputField({
       // highlight falls through to the product, which may take the query.
       event.preventDefault();
       visible[index]?.click();
+    } else if (event.key === "Enter" && event.currentTarget.value === "") {
+      event.preventDefault();
+    } else if (event.key === "Escape") {
+      setOpen(false);
+      setActiveId("");
     } else if (
       event.key === "Backspace" &&
       event.currentTarget.value === "" &&
@@ -144,10 +154,14 @@ function ChipInputField({
       role="combobox"
       aria-expanded={open}
       aria-controls={listId}
-      aria-activedescendant={activeId || undefined}
+      aria-activedescendant={open && activeId ? activeId : undefined}
       aria-autocomplete="list"
       autoComplete="off"
       onKeyDown={keys}
+      onChange={(event) => {
+        if (listRef.current) setOpen(true);
+        onChange?.(event);
+      }}
       onCompositionStart={(event) => {
         composing.current = true;
         onCompositionStart?.(event);
@@ -167,7 +181,7 @@ function ChipInputList({
   "aria-label": ariaLabel = "Suggestions",
   ...props
 }: React.ComponentProps<"div">) {
-  const { listId, listRef, setOpen } = useChipInput();
+  const { listId, listRef, open, setOpen } = useChipInput();
 
   React.useEffect(() => {
     setOpen(true);
@@ -179,6 +193,7 @@ function ChipInputList({
       id={listId}
       ref={listRef}
       role="listbox"
+      hidden={!open}
       aria-label={ariaLabel}
       data-slot="chip-input-list"
       className={cn("menu chip-input-list", className)}

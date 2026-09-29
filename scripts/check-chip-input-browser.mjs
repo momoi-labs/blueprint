@@ -4,7 +4,8 @@ import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 
-const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const playwright = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const browserType = playwright[process.env.BROWSER || 'chromium'];
 const screenshots = process.env.SCREENSHOT_DIR;
 const server = await createServer({ root: fileURLToPath(new URL('../', import.meta.url)), configFile: false, logLevel: 'error', server: { host: '127.0.0.1', port: 0 } });
 let browser;
@@ -13,7 +14,8 @@ before(async () => {
   if (screenshots) await mkdir(screenshots, { recursive: true });
   await server.listen();
   url = `http://127.0.0.1:${server.httpServer.address().port}/scripts/fixtures/chip-input.html`;
-  browser = await chromium.launch();
+  browser = await browserType.launch();
+  console.log(`${browserType.name()} ${browser.version()}`);
 });
 after(async () => { await browser?.close(); await server.close(); });
 
@@ -142,7 +144,7 @@ test('Removing a controlled chip returns focus to the field', async () => {
 
 for (const colorScheme of ['light', 'dark']) {
   test(`Selected ChipInput descriptions meet 4.5:1 contrast in ${colorScheme}`, async () => {
-    const page = await browser.newPage({ colorScheme, viewport: { width: 390, height: 844 } });
+    const page = await browser.newPage({ colorScheme, viewport: { width: Number(process.env.VIEWPORT_WIDTH || 390), height: 844 } });
     await page.route('https://fonts.googleapis.com/**', route => route.abort());
     try {
       await page.goto(url);
@@ -161,6 +163,63 @@ for (const colorScheme of ['light', 'dark']) {
       if (screenshots) await page.screenshot({ path: `${screenshots}/chip-contrast-${colorScheme}.png` });
       assert(contrast >= 4.5, `${colorScheme}: selected description contrast ${contrast.toFixed(2)}:1`);
       console.log(`${colorScheme}: selected ChipInput description contrast ${contrast.toFixed(2)}:1`);
+    } finally { await page.close(); }
+  });
+}
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`Empty Enter keeps the form open in ${colorScheme}`, async () => {
+    const page = await browser.newPage({ colorScheme, viewport: { width: Number(process.env.VIEWPORT_WIDTH || 390), height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      for (const mode of ['keyboard', 'always']) {
+        await page.goto(`${url}?mode=${mode}`);
+        const input = page.getByRole('combobox', { name: 'Packages' });
+        await input.focus();
+        await input.press('Enter');
+        if (screenshots) await page.screenshot({ path: `${screenshots}/empty-enter-${mode}-${colorScheme}.png` });
+        assert.equal(await page.getByRole('status', { name: 'Submissions' }).textContent(), '0');
+        assert(await input.evaluate(element => element === document.activeElement));
+        await page.getByRole('button', { name: 'Save', exact: true }).press('Enter');
+        assert.equal(await page.getByRole('status', { name: 'Submissions' }).textContent(), '1');
+      }
+    } finally { await page.close(); }
+  });
+
+  test(`Escape dismisses suggestions and typing or arrows reopen in ${colorScheme}`, async () => {
+    const page = await browser.newPage({ colorScheme, viewport: { width: Number(process.env.VIEWPORT_WIDTH || 390), height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      for (const reopen of ['typing', 'ArrowDown', 'ArrowUp']) {
+        await page.goto(`${url}?mode=keyboard`);
+        const input = page.getByRole('combobox', { name: 'Packages' });
+        await input.fill('p');
+        await page.locator('[role="option"][aria-selected="true"]').waitFor();
+        await input.press('Escape');
+        if (screenshots) await page.screenshot({ path: `${screenshots}/escape-${colorScheme}.png` });
+        assert.equal(await page.getByRole('listbox').count(), 0);
+        assert.equal(await input.getAttribute('aria-expanded'), 'false');
+        assert.equal(await input.getAttribute('aria-activedescendant'), null);
+        assert.equal(await input.inputValue(), 'p');
+        assert(await input.evaluate(element => element === document.activeElement));
+        await input.press('Enter');
+        assert.equal(await page.getByRole('status', { name: 'Selections' }).textContent(), '0', 'Hidden suggestions must not be selected');
+        if (reopen === 'typing') await input.press('a');
+        else await input.press(reopen);
+        await page.getByRole('listbox').waitFor();
+        await page.locator('[role="option"][aria-selected="true"]').waitFor();
+        assert.equal(await input.getAttribute('aria-expanded'), 'true');
+        await input.press(reopen === 'typing' ? 'Enter' : 'Tab');
+        assert.equal(await page.getByRole('status', { name: 'Selections' }).textContent(), '1');
+      }
+      await page.goto(`${url}?mode=free-text`);
+      const input = page.getByRole('combobox', { name: 'Packages' });
+      await input.fill('custom');
+      await input.press('Enter');
+      assert.equal(await page.getByRole('status', { name: 'Selections' }).textContent(), '1');
+      assert.equal(await page.getByRole('status', { name: 'Submissions' }).textContent(), '0');
+      assert.equal(await input.inputValue(), '');
+      assert.match(await page.locator('main').textContent(), /Values: node, custom/);
     } finally { await page.close(); }
   });
 }
