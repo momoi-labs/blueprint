@@ -67,7 +67,6 @@ function tokens(source: string, incomplete = false): Token[] {
           if (escape === "u") {
             const hex = source.slice(index, index + 4);
             if (!/^[0-9a-f]{4}$/i.test(hex)) {
-              if (incomplete) break;
               throw new Error("Complete the Unicode escape with four hexadecimal digits.");
             }
             text += String.fromCharCode(parseInt(hex, 16)); index += 4; continue;
@@ -81,7 +80,8 @@ function tokens(source: string, incomplete = false): Token[] {
     } else {
       const match = /^(>=|<=|!=|[=<>:~(),\[\]]|[^\s=<>!:~(),\[\]"']+)/.exec(source.slice(index));
       if (!match) {
-        if (incomplete) return result;
+        // A final "!" may become "!="; any other unexpected character stays an error.
+        if (incomplete && source.slice(index) === "!") { result.push({ text: "!", quoted: false, start, end: ++index }); continue; }
         throw new Error(`Unexpected character "${source[index]}". Choose a suggested operator.`);
       }
       index += match[0].length;
@@ -180,7 +180,9 @@ export function parseFilterExpression(
 export function getFilterSuggestions(source: string, fields: readonly FilterField[], existing = false): FilterSuggestion[] {
   const complete = parseFilterExpression(source, fields, { allowLeadingJoin: existing });
   if (complete.ok && complete.value.length) return [];
-  const input = tokens(source, true);
+  let input: Token[];
+  // Never suggest past a lexical error: accepting would drop the unread suffix.
+  try { input = tokens(source, true); } catch { return []; }
   let start = 0;
   const stack: { kind: "group" | "list"; start: number }[] = [];
   input.forEach((token, index) => {
@@ -225,7 +227,13 @@ export function getFilterSuggestions(source: string, fields: readonly FilterFiel
   if (operator === "IS NULL") return [];
   if (operator === "IN") {
     const valueTokens = tokens(rawValue, true);
-    if (valueTokens.at(-1)?.text === ")" || valueTokens.at(-1)?.text === "]") return [];
+    // Complete only "(a, b, c": members alternate with commas and the list stays open.
+    const opened = !!valueTokens[0] && !valueTokens[0].quoted && /^[(\[]$/.test(valueTokens[0].text);
+    const listTokens = opened ? valueTokens.slice(1) : valueTokens;
+    const wellFormed = listTokens.every((token, index) => index % 2
+      ? token.text === "," && !token.quoted
+      : token.quoted || !/^(AND|OR|[(),\[\]])$/i.test(token.text));
+    if (!wellFormed || (!opened && listTokens.length > 1)) return [];
     const lastComma = [...valueTokens].reverse().find(token => token.text === "," && !token.quoted);
     const partial = lastComma ? rawValue.slice(lastComma.end).trim() : rawValue.replace(/^\s*[(\[]/, "").trim();
     const committed = lastComma ? rawValue.slice(0, lastComma.end).replace(/^\s*[(\[]/, "").trim() : "";

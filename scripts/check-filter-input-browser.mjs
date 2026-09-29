@@ -123,6 +123,35 @@ try {
       assert.equal(await input.inputValue(), '');
     }
   }
+  const malformed = ['status=active!', 'status=active! region=unknown', 'region IN (eu us', 'region IN (eu, us ap',
+    'region IN (eu OR status=paused', '(status=active! region=unknown', 'region IN (e) status=active', 'region IN (eu, u) status=act'];
+  for (const wholeExpression of [false, true]) {
+    for (const source of malformed) {
+      await clear();
+      await input.fill('lag=10');
+      await input.press('Enter');
+      const confirmed = await state();
+      if (wholeExpression) await root.getByRole('button', { name: 'Edit expression', exact: true }).click();
+      await input.fill(source);
+      // No option exists to click, and Tab has nothing to accept.
+      assert.equal(await page.getByRole('option').count(), 0, source);
+      await input.press('Tab');
+      await input.focus();
+      assert.equal(await input.inputValue(), source);
+      await input.press('Enter');
+      assert.equal(await input.inputValue(), source);
+      assert.equal(await input.getAttribute('aria-invalid'), 'true', source);
+      assert.deepEqual(await state(), confirmed, source);
+      await input.pressSequentially(')');
+      await input.press('Enter');
+      assert.equal(await input.inputValue(), `${source})`);
+      assert.deepEqual(await state(), confirmed, source);
+      if (wholeExpression) await input.press('Escape');
+    }
+  }
+  assert.equal(await page.getByRole('status', { name: 'Submissions' }).textContent(), '0');
+  console.log('Malformed drafts kept their text and confirmed filters through Enter, Tab and click.');
+
   await clear();
   await input.fill('(status=active region=e');
   await input.press('Tab');
