@@ -119,3 +119,68 @@ for (const width of [320, 390]) for (const hasTouch of [true, false]) for (const
     } finally { await page.close(); }
   });
 }
+
+for (const width of [320, 390, 1280]) for (const hasTouch of [true, false]) {
+  test(`Splitter at ${width}/${hasTouch ? 'touch' : 'desktop'} can drag at both edges without intercepting buttons`, async () => {
+    const context = await browser.newContext({ hasTouch, viewport: { width, height: 844 } });
+    const page = await context.newPage();
+    page.setDefaultTimeout(5000);
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      await page.goto(`${url}?split`);
+      const splitter = page.getByRole('separator', { name: 'Resize panes' });
+      await splitter.waitFor();
+      if (screenshots) await page.locator('main').screenshot({ path: `${screenshots}/splitter-${width}-${hasTouch ? 'touch' : 'desktop'}.png` });
+      const box = await splitter.boundingBox();
+      assert.equal(box.width, 1, 'Keep the divider visually 1px wide');
+      for (const dx of hasTouch ? [-21, 21] : [-3, 3]) {
+        assert(await splitter.evaluate((element, dx) => {
+          const box = element.getBoundingClientRect();
+          return element.contains(document.elementFromPoint(box.x + box.width / 2 + dx, box.y + 20));
+        }, dx), `Divider misses target at ${dx}px`);
+      }
+      for (const name of ['Left', 'Right']) {
+        const button = page.getByRole('button', { name, exact: true });
+        const bounds = await button.boundingBox();
+        const x = hasTouch ? (name === 'Left' ? bounds.x + bounds.width - 2 : bounds.x + 2) : bounds.x + bounds.width / 2;
+        const y = bounds.y + bounds.height / 2;
+        assert(await button.evaluate((element, { x, y }) => element.contains(document.elementFromPoint(x, y)), { x, y }), 'Divider must not cover adjacent controls');
+        if (hasTouch) await page.touchscreen.tap(x, y);
+        else await page.mouse.click(x, y);
+        assert.equal(await page.getByRole('status', { name: `${name} clicks` }).textContent(), '1');
+        assert.equal(await splitter.getAttribute('aria-valuenow'), '50');
+      }
+      const session = hasTouch ? await context.newCDPSession(page) : null;
+      for (const edge of [-1, 1]) {
+        const bounds = await splitter.boundingBox();
+        const start = bounds.x + bounds.width / 2 + edge * (hasTouch ? 21 : 3);
+        const y = bounds.y + 20;
+        const splitWidth = await page.locator('[data-slot="split"]').evaluate(element => element.getBoundingClientRect().width);
+        const move = splitWidth * 0.1 * edge;
+        if (hasTouch) {
+          await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: start, y }] });
+          for (let step = 1; step <= 5; step++) {
+            await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start + move * step / 5, y }] });
+            await page.evaluate(() => new Promise(requestAnimationFrame));
+          }
+          await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        } else {
+          await page.mouse.move(start, y);
+          await page.mouse.down();
+          await page.mouse.move(start + move, y, { steps: 5 });
+          await page.mouse.up();
+        }
+        assert.equal(await splitter.getAttribute('aria-valuenow'), edge === -1 ? '40' : '50', 'Drag must resize by the pointer delta without jumping at the target edge');
+        await page.waitForFunction(() => !document.querySelector('[data-slot="splitter"]').classList.contains('dragging'));
+        assert(!((await splitter.getAttribute('class')).includes('dragging')), 'Pointer release ends dragging');
+      }
+      await splitter.focus();
+      for (const [key, expected] of [['ArrowLeft', '48'], ['ArrowRight', '50'], ['Home', '25'], ['ArrowLeft', '25'], ['End', '75'], ['ArrowRight', '75']]) {
+        await splitter.press(key);
+        assert.equal(await splitter.getAttribute('aria-valuenow'), expected, `${key} respects bounds`);
+      }
+      assert.equal(await page.getByRole('status', { name: 'Left clicks' }).textContent(), '1');
+      assert.equal(await page.getByRole('status', { name: 'Right clicks' }).textContent(), '1');
+    } finally { await context.close(); }
+  });
+}
