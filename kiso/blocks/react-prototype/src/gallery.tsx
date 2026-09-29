@@ -457,48 +457,42 @@ function Plus() {
   );
 }
 
-function TaskDialog() {
-  const [saved, setSaved] = useState(false);
+function TaskDialog({ onSave }: { onSave: () => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="stack-sm">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button>Edit project</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <form
-            className="dialog-scroll"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setSaved(true);
-              setOpen(false);
-            }}
-          >
-            <DialogHeader>
-              <DialogTitle>Edit project</DialogTitle>
-              <DialogDescription>
-                Update the example project name.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogBody>
-              <FormField label="Name" defaultValue="Website refresh" required />
-            </DialogBody>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button>Cancel</Button>
-              </DialogClose>
-              <Button variant="primary" type="submit">
-                Save changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <p className="muted t-label" role="status">
-        {saved ? "Example changes saved." : ""}
-      </p>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Edit project</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <form
+          className="dialog-scroll"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSave();
+            setOpen(false);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit project</DialogTitle>
+            <DialogDescription>
+              Update the example project name.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <FormField label="Name" defaultValue="Website refresh" required />
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>Cancel</Button>
+            </DialogClose>
+            <Button variant="primary" type="submit">
+              Save changes
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1624,7 +1618,7 @@ function Demo({
       return (
         <div className="stack">
           <div className="demo-row">
-            <TaskDialog />
+            <TaskDialog onSave={() => setMessage("Example changes saved.")} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">Remove project</Button>
