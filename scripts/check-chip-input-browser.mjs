@@ -246,3 +246,54 @@ for (const colorScheme of ['light', 'dark']) {
     } finally { await page.close(); }
   });
 }
+
+for (const colorScheme of ['light', 'dark']) {
+  for (const width of [320, 390]) {
+    test(`Coarse chip segments have separate 44px targets at ${width}px in ${colorScheme}`, async () => {
+      const page = await browser.newPage({ colorScheme, hasTouch: true, viewport: { width, height: 844 } });
+      await page.route('https://fonts.googleapis.com/**', route => route.abort());
+      try {
+        await page.goto(`${url}?mode=touch`);
+        await page.waitForFunction(() => matchMedia('(pointer: coarse)').matches && getComputedStyle(document.querySelector('.chip')).minHeight === '44px');
+        if (screenshots) await page.screenshot({ path: `${screenshots}/touch-${width}-${colorScheme}.png` });
+        for (const label of ['Edit version', 'Edit option', 'Add option', 'Remove node']) {
+          const target = page.getByRole('button', { name: label, exact: true });
+          for (const [dx, dy] of [[-21, 0], [21, 0], [0, -21], [0, 21]]) {
+            const box = await target.boundingBox();
+            assert(box.width >= 44 && box.height >= 44, `${label}: ${box.width} by ${box.height}`);
+            const point = { x: box.x + box.width / 2 + dx, y: box.y + box.height / 2 + dy };
+            assert(await target.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), point), `${label}: edge must hit its own target`);
+            if (label === 'Remove node') continue;
+            // Native touch dispatch can adjust fractional edge coordinates to
+            // a neighbor. Tap the nearest whole pixel inside the tested edge.
+            const tap = {
+              x: dx > 0 ? Math.floor(point.x) : dx < 0 ? Math.ceil(point.x) : Math.round(point.x),
+              y: dy > 0 ? Math.floor(point.y) : dy < 0 ? Math.ceil(point.y) : Math.round(point.y),
+            };
+            assert(await target.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), tap), `${label}: integer edge must hit its own target`);
+            await page.touchscreen.tap(tap.x, tap.y);
+            const editor = page.getByRole('textbox', { name: label, exact: true });
+            await editor.waitFor({ timeout: 5000 });
+            assert.equal(await page.getByRole('textbox').count(), 1, 'Only the intended editor opens');
+            if (screenshots && width === 320 && dx === -21) await page.screenshot({ path: `${screenshots}/touch-edit-${label.replaceAll(' ', '-')}-${colorScheme}.png` });
+            await editor.press('Escape');
+            await page.waitForFunction(label => document.activeElement?.getAttribute('aria-label') === label && document.activeElement?.tagName === 'BUTTON', label);
+          }
+        }
+      } finally { await page.close(); }
+    });
+  }
+}
+
+test('Fine pointer chip segments retain dense sizing', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  try {
+    await page.goto(`${url}?mode=touch`);
+    await page.waitForFunction(() => matchMedia('(pointer: fine)').matches && getComputedStyle(document.querySelector('.chip')).minHeight === '32px');
+    for (const label of ['Edit version', 'Edit option', 'Add option']) {
+      const box = await page.getByRole('button', { name: label, exact: true }).boundingBox();
+      assert(box.width < 44 && box.height < 44, `${label}: retain compact fine-pointer dimensions`);
+    }
+  } finally { await page.close(); }
+});

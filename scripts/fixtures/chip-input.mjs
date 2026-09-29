@@ -5,18 +5,18 @@ import { CommandPalette, CommandPaletteInput, CommandPaletteList, CommandPalette
 import '../../packages/kiso-react/dist/styles.css';
 
 function Fixture() {
+  const mode = new URLSearchParams(location.search).get('mode');
   const [query, setQuery] = useState('');
   const [dependencies, setDependencies] = useState(['node']);
   const [selected, setSelected] = useState(0);
-  const [version, setVersion] = useState('latest');
-  const [option, setOption] = useState('linux');
+  const [version, setVersion] = useState(mode === 'touch' ? '1' : 'latest');
+  const [option, setOption] = useState(mode === 'touch' ? '1' : 'linux');
   const [added, setAdded] = useState('');
   const [commits, setCommits] = useState(0);
   const [commands, setCommands] = useState(0);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const commit = setter => value => { setter(value); setCommits(count => count + 1); };
-  const mode = new URLSearchParams(location.search).get('mode');
   const [submits, setSubmits] = useState(0);
   if (['keyboard', 'keyboard-long', 'always', 'free-text'].includes(mode)) {
     return h('main', null,
@@ -53,8 +53,8 @@ function Fixture() {
       h(ChipInputBox, null,
         dependencies.map(name => h(Chip, { key: name },
           h(ChipName, null, name),
-          name === 'node' && h(ChipValue, { key: version, value: version, onCommit: commit(setVersion), editLabel: 'Edit version' }),
-          name === 'node' && h(ChipOption, { key: option, name: 'os', value: option, onCommit: commit(value => setOption(value.replace(/^os=/, ''))), editLabel: 'Edit option' }),
+          name === 'node' && h(ChipValue, { key: `version-${version}`, value: version, onCommit: commit(setVersion), editLabel: 'Edit version' }),
+          name === 'node' && h(ChipOption, { key: `option-${option}`, name: mode === 'touch' ? 'x' : 'os', value: option, onCommit: commit(value => setOption(value.replace(/^os=/, ''))), editLabel: 'Edit option' }),
           name === 'node' && (added
             ? h(ChipOption, { name: 'arch', value: added, onCommit: commit(setAdded), editLabel: 'Edit added option' })
             : h(ChipOptionAdd, { label: 'node', onCommit: commit(setAdded), editLabel: 'Add option' })),
