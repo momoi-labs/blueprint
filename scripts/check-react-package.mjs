@@ -20,7 +20,7 @@ try {
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
       ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -82,7 +82,7 @@ try {
       ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
-      Toasts, useToast, Lifecycle, StatusBadge,
+      Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
@@ -92,6 +92,13 @@ try {
     }));
     assert.match(metrics, /Not collected/);
     assert.match(metrics, /View exact values/);
+    const filterFields = [{ key: 'region', type: 'text', values: ['eu', 'us'] }];
+    const filterValue = parseFilterExpression('region IN (eu, us,)', filterFields);
+    assert.equal(filterValue.ok, true);
+    const filter = render(h(FilterInput, { label: 'Filters', fields: filterFields,
+      value: filterValue.value, onValueChange() {} }));
+    assert.match(filter, /data-slot="filter-input"/);
+    assert.match(filter, /role="combobox"/);
     const form = render(h(Form, { id: 'project', action: '/projects', method: 'post', className: 'custom' },
       h(FormField, { label: 'Name', name: 'name', required: true }),
       h(FormActions, { sticky: true, tone: 'warning', message: 'Unsaved changes.' },

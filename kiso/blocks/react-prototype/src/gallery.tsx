@@ -1,5 +1,6 @@
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
+import { FilterInputDemo } from "./filter-input-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
@@ -189,6 +190,7 @@ const catalog = [
     "Controls",
     "Several structured values in one field.",
   ],
+  ["filter-input", "FilterInput", "Controls", "Type conditions into editable chips, with IN lists and nested AND/OR groups."],
   ["form", "Form", "Forms", "Fields and explicit submission in one native form."],
   ["form-actions", "FormActions", "Forms", "Actions, optional feedback and sticky placement."],
   ["label", "Label", "Forms", "A visible, associated field name."],
@@ -320,6 +322,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   textarea: "wide",
   select: "wide",
   "chip-input": "wide",
+  "filter-input": "wide",
   "time-range-control": "wide",
   "form-field": "wide",
   table: "wide",
@@ -344,6 +347,18 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
 };
 
 const snippets: Record<string, string> = {
+  "filter-input": `const fields: FilterField[] = [
+  { key: "status", type: "text", values: ["active", "paused"] },
+  { key: "region", type: "text", values: ["eu", "us"] },
+  { key: "lag", type: "number" },
+];
+const [filters, setFilters] = useState<FilterNode[]>([]);
+
+<FilterInput label="Find replicas" fields={fields}
+  value={filters} onValueChange={setFilters} />
+
+// Type: (status=active OR status=paused) AND region IN (eu, us)
+// Only confirmed filters reach onValueChange. Query data in the product.`,
   "chip-input":
     '<ChipInput>\n  <ChipInputBox>\n    <Chip>\n      <ChipName>npm:t3</ChipName>\n      <ChipValue value="latest" onCommit={setVersion} />\n      <ChipOptions label="npm:t3 options" count={1}>\n        <FormField label="allow_builds" value={allowBuilds} onChange={...} />\n      </ChipOptions>\n      <ChipRemove aria-label="Remove npm:t3" onClick={remove} />\n    </Chip>\n    <ChipInputField value={query} onChange={...} onRemoveLast={removeLast} />\n  </ChipInputBox>\n  <ChipInputList aria-label="Dependency suggestions">\n    <ChipInputOption onSelect={add}>node</ChipInputOption>\n  </ChipInputList>\n</ChipInput>',
   "brand-mark":
@@ -1075,6 +1090,8 @@ function Demo({
       );
     case "chip-input":
       return <ChipInputDemo />;
+    case "filter-input":
+      return <FilterInputDemo />;
     case "select":
       return (
         <div className="stack">

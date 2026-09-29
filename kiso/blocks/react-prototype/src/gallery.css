@@ -348,3 +348,9 @@
 .gallery-step-cell .step-bar {
   width: 88px;
 }
+
+.filter-demo { min-width: 0; width: 100%; }
+.filter-demo-table { width: 100%; overflow-x: auto; }
+.filter-demo-table .table { width: 100%; white-space: nowrap; }
+.filter-demo-table td:nth-child(4), .filter-demo-table th:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
+.filter-demo > details > .filter-input { margin-top: var(--spacing-md); }
