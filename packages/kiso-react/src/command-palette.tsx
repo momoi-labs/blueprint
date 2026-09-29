@@ -10,6 +10,7 @@ import { DialogOverlay, DialogPortal } from "./dialog.js";
 // product's: render the items that match the query. The shortcut that opens it
 // is product chrome too, so the palette stays controlled.
 const CommandPaletteContext = React.createContext<{
+  composing: React.RefObject<boolean>;
   activeId: string;
   setActiveId: (id: string) => void;
   listId: string;
@@ -42,6 +43,7 @@ function CommandPalette({
   label?: string;
 }) {
   const [activeId, setActiveId] = React.useState("");
+  const composing = React.useRef(false);
   const listId = React.useId();
   const listRef = React.useRef<HTMLDivElement>(null);
 
@@ -51,6 +53,9 @@ function CommandPalette({
         <DialogOverlay />
         <DialogPrimitive.Content
           aria-modal="true"
+          onEscapeKeyDown={(event) => {
+            if (composing.current || event.isComposing || event.keyCode === 229) event.preventDefault();
+          }}
           data-slot="command-palette-content"
           className={cn("palette kiso-react-palette", className)}
         >
@@ -58,7 +63,7 @@ function CommandPalette({
             <DialogPrimitive.Title>{label}</DialogPrimitive.Title>
           </VisuallyHidden.Root>
           <CommandPaletteContext.Provider
-            value={{ activeId, setActiveId, listId, listRef }}
+            value={{ composing, activeId, setActiveId, listId, listRef }}
           >
             {children}
           </CommandPaletteContext.Provider>
@@ -71,9 +76,11 @@ function CommandPalette({
 function CommandPaletteInput({
   className,
   onKeyDown,
+  onCompositionStart,
+  onCompositionEnd,
   ...props
 }: React.ComponentProps<"input">) {
-  const { activeId, setActiveId, listId, listRef } = useCommandPalette();
+  const { composing, activeId, setActiveId, listId, listRef } = useCommandPalette();
 
   // The query changes the list under the highlight, so re-anchor it every
   // render rather than tracking an index that the filter invalidates.
@@ -85,6 +92,10 @@ function CommandPaletteInput({
   });
 
   function move(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) {
+      event.stopPropagation();
+      return;
+    }
     const visible = items(listRef.current);
     const index = visible.findIndex((item) => item.id === activeId);
 
@@ -123,6 +134,14 @@ function CommandPaletteInput({
         autoComplete="off"
         autoFocus
         onKeyDown={move}
+        onCompositionStart={(event) => {
+          composing.current = true;
+          onCompositionStart?.(event);
+        }}
+        onCompositionEnd={(event) => {
+          composing.current = false;
+          onCompositionEnd?.(event);
+        }}
         className={className}
         {...props}
       />
