@@ -55,7 +55,7 @@ export function FilterInput({
   const composing = React.useRef(false);
   const [draft, setDraft] = React.useState("");
   const [error, setError] = React.useState("");
-  const [message, setMessage] = React.useState("");
+  const [message, setAnnouncement] = React.useState({ text: "", revision: 0 });
   const [focused, setFocused] = React.useState(false);
   const [dismissed, setDismissed] = React.useState(false);
   const [active, setActive] = React.useState(0);
@@ -73,6 +73,10 @@ export function FilterInput({
     if (visible) host.current?.querySelector(`#${CSS.escape(`${id}-option-${selected}`)}`)?.scrollIntoView({ block: "nearest" });
   }, [selected, visible, id]);
 
+  // Replace the live region content even when consecutive actions use the same text.
+  function setMessage(text: string) {
+    setAnnouncement(previous => ({ text, revision: previous.revision + 1 }));
+  }
   function updateDraft(text: string) {
     setDraft(text); onDraftChange?.(text); setError(""); setActive(0); setDismissed(false);
   }
@@ -253,6 +257,6 @@ export function FilterInput({
       <Button size="sm" variant="ghost" disabled={disabled || busy || !value.length} onClick={() => { updateDraft(serializeFilterExpression(value)); setWholeExpression(true); input.current?.focus(); }}>Edit expression</Button>
       <Button size="sm" variant="ghost" disabled={disabled || (!value.length && !draft && !edit)} onClick={() => { onValueChange([]); setEdit(null); setWholeExpression(false); updateDraft(""); setMessage("Filters cleared."); requestAnimationFrame(() => input.current?.focus()); }}>Clear filters</Button>
     </div>
-    <span className="filter-status" role="status" aria-atomic="true">{message}</span>
+    <span className="filter-status" role="status" aria-atomic="true"><span key={message.revision}>{message.text}</span></span>
   </div>;
 }

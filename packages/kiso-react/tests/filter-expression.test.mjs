@@ -67,3 +67,27 @@ test('schema restricts operators and known values without executing input', () =
   assert.equal(parse('owner="x\'; DROP TABLE items; --"')[0].value, "x'; DROP TABLE items; --");
   assert.equal(parseFilterExpression('('.repeat(70) + 'status=active' + ')'.repeat(70), fields).ok, false);
 });
+
+test('completion preserves adjacent conditions and parenthesized groups', () => {
+  for (const prefix of [
+    'status=active ',
+    '(status=active OR status=paused) ',
+    '(status=active ',
+    '((status=active) ',
+    'region IN (us, eu) ',
+    'owner IS NULL ',
+    'owner="AND (region)" ',
+  ]) {
+    const suggestions = getFilterSuggestions(`${prefix}region=e`, fields);
+    assert.deepEqual(suggestions.map(item => item.text), [`${prefix}region = eu`], prefix);
+    assert.deepEqual(getFilterSuggestions(`${prefix}region=unknown`, fields), [], prefix);
+  }
+  assert.equal(getFilterSuggestions('status=active reg', fields)[0].text, 'status=active region ');
+  assert.equal(getFilterSuggestions('status=active region IN (u', fields)[0].text, 'status=active region IN (us, ');
+});
+
+test('completion never shortens malformed adjacent conditions or closed groups', () => {
+  for (const source of ['status=act region=e', '(status=act)', 'status=act)', 'status=act unknown=e']) {
+    assert.deepEqual(getFilterSuggestions(source, fields), [], source);
+  }
+});

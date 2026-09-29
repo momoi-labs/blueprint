@@ -89,7 +89,80 @@ try {
   await input.dispatchEvent('compositionend');
   assert.equal((await state()).length, 1);
 
+  for (const wholeExpression of [false, true]) {
+    for (const prefix of ['status=active ', '(status=active OR status=paused) ']) {
+      await clear();
+      await input.fill('lag=10');
+      await input.press('Enter');
+      const confirmed = await state();
+      if (wholeExpression) await root.getByRole('button', { name: 'Edit expression', exact: true }).click();
+      await input.fill(`${prefix}region=unknown`);
+      await input.press('Enter');
+      assert.equal(await input.inputValue(), `${prefix}region=unknown`);
+      assert.equal(await input.getAttribute('aria-invalid'), 'true');
+      assert.match(await root.getByRole('alert').textContent(), /listed value for region/);
+      assert.deepEqual(await state(), confirmed);
+      await input.fill(`${prefix}region=e`);
+      assert.equal(await page.getByRole('option').count(), 1);
+      assert.match(await page.getByRole('option').textContent(), /^eu/);
+      await input.press('Tab');
+      if (wholeExpression) {
+        assert.equal(await input.inputValue(), `${prefix}region = eu`);
+        assert.deepEqual(await state(), confirmed);
+        await input.press('Enter');
+      }
+      const completed = await state();
+      assert.equal(completed.length, wholeExpression ? 2 : 3);
+      assert.equal(completed.at(-1).field, 'region');
+      assert.equal(completed.at(-1).value, 'eu');
+      const preceding = completed.at(-2);
+      if (prefix.startsWith('(')) {
+        assert.equal(preceding.kind, 'group');
+        assert.deepEqual(preceding.children.map(node => node.value), ['active', 'paused']);
+      } else assert.equal(preceding.value, 'active');
+      assert.equal(await input.inputValue(), '');
+    }
+  }
   await clear();
+  await input.fill('(status=active region=e');
+  await input.press('Tab');
+  assert.equal(await input.inputValue(), '(status=active region = eu');
+  assert.deepEqual(await state(), []);
+  await input.pressSequentially(')');
+  assert.deepEqual((await state())[0].children.map(node => node.value), ['active', 'eu']);
+
+  await clear();
+  await root.locator('.filter-status').evaluate(element => {
+    window.filterAnnouncements = [];
+    new MutationObserver(() => {
+      if (element.textContent) window.filterAnnouncements.push(element.textContent);
+    }).observe(element, { childList: true, characterData: true, subtree: true });
+  });
+  const announces = async (action, expected) => {
+    const before = await page.evaluate(() => window.filterAnnouncements.length);
+    await action();
+    const announcements = await page.evaluate(() => window.filterAnnouncements);
+    assert(announcements.length > before, `Expected a new announcement: ${expected}`);
+    assert.match(announcements.at(-1), expected);
+  };
+  for (const value of ['active', 'paused']) {
+    await announces(async () => {
+      await input.fill(`status=${value}`);
+      await input.press('Enter');
+    }, /Filters updated/);
+  }
+  for (const value of ['paused', 'active']) {
+    await announces(async () => {
+      await root.getByRole('button', { name: `Edit value in status = ${value}`, exact: true }).click();
+      await root.getByRole('textbox').fill('failed');
+      await root.getByRole('textbox').press('Enter');
+    }, /Filter updated/);
+  }
+  for (let index = 0; index < 2; index++) {
+    await announces(() => root.getByRole('button', { name: 'Remove status = failed', exact: true }).first().click(), /Filter removed/);
+  }
+  console.log('Pasted adjacent conditions, group boundaries, whole-expression completion and consecutive accessible announcements passed.');
+
   await input.click();
   await input.press('Escape');
   assert.equal(await input.getAttribute('aria-expanded'), 'false');
@@ -115,6 +188,16 @@ try {
       await field.tap();
       await field.pressSequentially('reg');
       const suggestion = mobile.getByRole('option').filter({ hasText: 'region' });
+      const contrast = await suggestion.evaluate(element => {
+        const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
+          .map(channel => channel / 255)
+          .map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+          .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+        const foreground = luminance(getComputedStyle(element.lastElementChild).color);
+        const background = luminance(getComputedStyle(element).backgroundColor);
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      assert(contrast >= 4.5, `${width}/${colorScheme}: selected description contrast ${contrast.toFixed(2)}:1`);
       if (screenshots) await filter.screenshot({ path: `${screenshots}/filter-input-${width}-${colorScheme}-suggestions.png` });
       await suggestion.tap();
       assert.equal(await field.inputValue(), 'region ');
