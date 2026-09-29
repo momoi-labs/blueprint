@@ -89,3 +89,47 @@ for (const target of ['field', 'value', 'option', 'add', 'command']) {
     } finally { await page.close(); }
   });
 }
+
+for (const label of ['Edit version', 'Edit option', 'Add option']) {
+  test(`${label} restores focus after confirm and cancel with a controlled parent`, async () => {
+    const page = await browser.newPage();
+    page.setDefaultTimeout(5000);
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      for (const action of ['Enter', 'Escape', 'confirm', 'blur']) {
+        await page.goto(url);
+        const trigger = page.getByRole('button', { name: label, exact: true });
+        await trigger.click();
+        const editor = page.getByRole('textbox', { name: label, exact: true });
+        await editor.fill('22');
+        if (action === 'confirm') await page.getByRole('button', { name: /^Confirm/ }).click();
+        else if (action === 'blur') await page.getByRole('button', { name: 'Continue', exact: true }).click();
+        else await editor.press(action);
+        if (screenshots && action === 'Enter') await page.screenshot({ path: `${screenshots}/focus-${label.replaceAll(' ', '-')}.png` });
+        const destination = action === 'blur' ? page.getByRole('button', { name: 'Continue', exact: true })
+          : label === 'Add option' && action !== 'Escape' ? page.getByRole('button', { name: 'Edit added option', exact: true }) : trigger;
+        await page.waitForFunction(label => document.activeElement?.getAttribute('aria-label') === label || (label === 'Continue' && document.activeElement?.textContent === label), action === 'blur' ? 'Continue' : label === 'Add option' && action !== 'Escape' ? 'Edit added option' : label);
+        assert(await destination.evaluate(element => element === document.activeElement), `${label}/${action}: focus must return to a surviving control`);
+        assert.equal(await page.getByRole('status', { name: 'Commits' }).textContent(), action === 'Escape' ? '0' : '1');
+        if (action === 'Escape' && label === 'Edit version') assert.equal(await trigger.textContent(), 'latest');
+      }
+    } finally { await page.close(); }
+  });
+}
+
+test('Removing a controlled chip returns focus to the field', async () => {
+  const page = await browser.newPage();
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  try {
+    for (const action of ['Enter', 'Space', 'click']) {
+      await page.goto(url);
+      const remove = page.getByRole('button', { name: 'Remove node' });
+      if (action === 'click') await remove.click();
+      else await remove.press(action);
+      if (screenshots && action === 'Enter') await page.screenshot({ path: `${screenshots}/focus-removal.png` });
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-slot') === 'chip-input-field');
+      assert.equal(await page.getByRole('button', { name: 'Remove node' }).count(), 0);
+      assert(await page.getByRole('combobox', { name: 'Dependencies' }).evaluate(element => element === document.activeElement));
+    }
+  } finally { await page.close(); }
+});

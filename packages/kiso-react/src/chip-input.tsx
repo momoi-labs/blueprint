@@ -267,6 +267,18 @@ function ChipName({ className, ...props }: React.ComponentProps<"span">) {
   );
 }
 
+// Resolve the control after the parent's update: adding an option can replace
+// the editor's entire component, so a ref on its old button is not enough.
+function restoreSegmentFocus(editor: HTMLInputElement | null) {
+  const chip = editor?.parentElement;
+  if (!chip || !editor) return;
+  const controls = 'button[data-slot], input[data-slot]';
+  const index = Array.from(chip.querySelectorAll(controls)).indexOf(editor);
+  requestAnimationFrame(() => {
+    chip.querySelectorAll<HTMLElement>(controls)[index]?.focus();
+  });
+}
+
 // Every editable segment behaves the same: press it, it becomes an input
 // sized to its text, Enter or the check confirms, Escape restores.
 function EditableSegment({
@@ -294,6 +306,7 @@ function EditableSegment({
 }) {
   const [draft, setDraft] = React.useState<string | null>(null);
   const composing = React.useRef(false);
+  const editorRef = React.useRef<HTMLInputElement>(null);
 
   if (!editable || !onCommit) {
     return (
@@ -312,6 +325,7 @@ function EditableSegment({
     return (
       <>
         <input
+          ref={editorRef}
           data-slot={`${slot}-input`}
           className={cn(className, "is-editing")}
           aria-label={editLabel}
@@ -330,9 +344,11 @@ function EditableSegment({
             if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) return;
             if (event.key === "Enter") {
               event.preventDefault();
+              restoreSegmentFocus(editorRef.current);
               commit(draft);
             } else if (event.key === "Escape") {
               event.preventDefault();
+              restoreSegmentFocus(editorRef.current);
               setDraft(null);
             }
           }}
@@ -344,6 +360,7 @@ function EditableSegment({
           // Commit before the input's blur can unmount this button.
           onMouseDown={(event) => {
             event.preventDefault();
+            restoreSegmentFocus(editorRef.current);
             commit(draft);
           }}
         >
@@ -467,13 +484,24 @@ function ChipOptionAdd({
   );
 }
 
-function ChipRemove({ className, ...props }: React.ComponentProps<"button">) {
+function ChipRemove({ className, onClick, ...props }: React.ComponentProps<"button">) {
   return (
     <button
       type="button"
       data-slot="chip-remove"
       className={cn("chip-action", className)}
       {...props}
+      onClick={(event) => {
+        const button = event.currentTarget;
+        const root = button.closest('[data-slot="chip-input"]');
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        requestAnimationFrame(() => {
+          if (!button.isConnected) {
+            root?.querySelector<HTMLInputElement>('[data-slot="chip-input-field"]')?.focus();
+          }
+        });
+      }}
     >
       <CloseIcon />
     </button>
