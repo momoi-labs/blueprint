@@ -18,7 +18,7 @@ function Fixture() {
   const commit = setter => value => { setter(value); setCommits(count => count + 1); };
   const mode = new URLSearchParams(location.search).get('mode');
   const [submits, setSubmits] = useState(0);
-  if (['keyboard', 'always', 'free-text'].includes(mode)) {
+  if (['keyboard', 'keyboard-long', 'always', 'free-text'].includes(mode)) {
     return h('main', null,
       h('h1', null, 'Package form'),
       h('form', { onSubmit: event => { event.preventDefault(); setSubmits(count => count + 1); } },
@@ -37,7 +37,7 @@ function Fixture() {
             }),
           ),
           (query || mode === 'always') && mode !== 'free-text' && h(ChipInputList, null,
-            h(ChipInputOption, { onSelect: () => { setQuery(''); setSelected(count => count + 1); } }, 'Package'),
+            ...Array.from({ length: mode === 'keyboard-long' ? 20 : 1 }, (_, index) => h(ChipInputOption, { key: index, onSelect: () => { setQuery(''); setSelected(count => count + 1); } }, mode === 'keyboard-long' ? `Package ${index + 1}` : 'Package')),
           ),
         ),
         h('button', { type: 'submit' }, 'Save'),

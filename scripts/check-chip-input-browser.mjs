@@ -223,3 +223,26 @@ for (const colorScheme of ['light', 'dark']) {
     } finally { await page.close(); }
   });
 }
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`Reopening a long suggestion list scrolls its highlight into view in ${colorScheme}`, async () => {
+    const page = await browser.newPage({ colorScheme, viewport: { width: 390, height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      await page.goto(`${url}?mode=keyboard-long`);
+      const input = page.getByRole('combobox', { name: 'Packages' });
+      await input.fill('p');
+      await page.locator('[role="option"][aria-selected="true"]').waitFor();
+      await input.press('Escape');
+      await input.press('ArrowUp');
+      const last = page.getByRole('option', { name: 'Package 20', exact: true });
+      assert.equal(await last.getAttribute('aria-selected'), 'true');
+      const list = await page.getByRole('listbox').boundingBox();
+      const selected = await last.boundingBox();
+      if (screenshots) await page.screenshot({ path: `${screenshots}/reopen-long-${colorScheme}.png` });
+      assert(selected.y >= list.y && selected.y + selected.height <= list.y + list.height, 'The reopened last highlight must be visible');
+      await input.press('Enter');
+      assert.equal(await page.getByRole('status', { name: 'Selections' }).textContent(), '1');
+    } finally { await page.close(); }
+  });
+}

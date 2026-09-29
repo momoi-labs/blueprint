@@ -103,6 +103,11 @@ function ChipInputField({
     }
   });
 
+  // Reopening must render the list before scrolling its highlight.
+  React.useEffect(() => {
+    if (open) options(listRef.current).find((option) => option.id === activeId)?.scrollIntoView({ block: "nearest" });
+  }, [activeId, open, listRef]);
+
   function keys(event: React.KeyboardEvent<HTMLInputElement>) {
     if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) {
       event.stopPropagation();
@@ -121,7 +126,6 @@ function ChipInputField({
         ? (step > 0 ? 0 : available.length - 1)
         : (index + step + available.length) % available.length];
       setActiveId(next.id);
-      next.scrollIntoView({ block: "nearest" });
     } else if (
       (event.key === "Enter" || (event.key === "Tab" && !event.shiftKey)) &&
       index >= 0
