@@ -124,7 +124,7 @@ try {
       await field.fill('(status=active OR (status=paused AND region IN (eu, us,))) AND lag>=100');
       await field.press('Enter');
       assert.equal(await filter.getByRole('group').count(), 2);
-      assert(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${width}/${colorScheme}: page must not overflow`);
+      assert(await mobile.evaluate(width => document.documentElement.scrollWidth <= width, width), `${width}/${colorScheme}: page must not overflow`);
       for (const button of await filter.locator('button:enabled').all()) {
         const box = await button.boundingBox();
         assert(box.height >= 44, `${width}/${colorScheme}: touch target height ${box.height}`);
@@ -146,6 +146,7 @@ try {
       await editor.fill('250');
       await filter.getByRole('button', { name: 'Save', exact: true }).tap();
       assert.equal(JSON.parse(await mobile.getByRole('status', { name: 'Filter state' }).textContent())[1].value, 250);
+      await mobile.waitForFunction(() => document.activeElement.getAttribute('data-filter-control') === '1-value');
       await mobile.getByRole('button', { name: 'Toggle disabled' }).tap();
       assert(await field.isDisabled());
       assert.equal(await filter.locator('button:enabled').count(), 0);
@@ -155,7 +156,7 @@ try {
       await field.fill(`owner=${'long'.repeat(30)}`);
       await field.press('Enter');
       assert.equal(JSON.parse(await mobile.getByRole('status', { name: 'Filter state' }).textContent())[0].value, 'long'.repeat(30));
-      assert(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Long values must wrap on mobile');
+      assert(await mobile.evaluate(width => document.documentElement.scrollWidth <= width, width), 'Long values must wrap on mobile');
       assert.deepEqual(errors, []);
       console.log(`${width}/${colorScheme}: mobile suggestions, IN, nested groups, touch targets, editing, disabled state and overflow passed.`);
       await context.close();
