@@ -25,6 +25,7 @@ which options a chip accepts. ChipInput never parses.
 | One value from a known set | [Select](select.md) | Single choice. |
 | Free text that is not a list | [Input](input.md) or [Textarea](textarea.md) | Nothing to chip. |
 | Filtering what is already on screen | [Search](search.md) | A query, not stored values. |
+| Filtering by fields, operators, and logical groups | [FilterInput](filter-input.md) | Typed conditions with IN lists and AND/OR groups. |
 | Running a global action | [CommandPalette](command-palette.md) | Commands, not data. |
 
 ## Anatomy

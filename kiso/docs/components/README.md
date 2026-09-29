@@ -41,6 +41,7 @@ behavioral reference where one exists.
 - [Dot](dot.md): Adds a decorative status mark beside readable text.
 - [DropdownMenu](dropdown-menu.md): Presents contextual actions anchored to a specific object or trigger.
 - [EmptyState](empty-state.md): Replaces an empty collection with an explanation and optional next action.
+- [FilterInput](filter-input.md): Turns typed conditions into editable field/operator/value chips, with IN lists and nested AND/OR groups.
 - [KV](kv.md): Describes one object through named facts.
 - [LogView](log-view.md): Displays scrollable log output with follow-tail behavior.
 - [Search](search.md): Filters visible content such as a list or table.

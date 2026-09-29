@@ -28,6 +28,7 @@ invent a per-list filter kit.
 | Toggle a single facet on/off | [Switch](../components/switch.md) or [Checkbox](../components/checkbox.md) | "Show only replicas with lag" |
 | Multiple values from a set | [Checkbox](../components/checkbox.md) group inside a [Popover](../components/popover.md) | "Region: ☑ eu ☑ us ☐ ap" |
 | Range or complex facet | [Popover](../components/popover.md) with form controls | "Lag: 0–500 ms" |
+| Typed conditions across fields, with logical groups | [FilterInput](../components/filter-input.md) | `(status=active OR region IN (eu, us)) AND lag>100` |
 | Quick toggles (few, stable) | [Button](../components/button.md) `ghost` toggle or [Tabs](../components/tabs.md) | "All / Active / Archived" |
 | Active-filter summary | [Badge](../components/badge.md) per active filter or a text line | "Status: degraded ×" |
 
@@ -117,7 +118,9 @@ When filters exclude everything:
 - Do not invent a filter UI that competes with [Select](../components/select.md)
   / [Checkbox](../components/checkbox.md) / [Popover](../components/popover.md).
   If the facet is one-of-many, use Select; if many-of-many, use a Checkbox
-  group in a Popover.
+  group in a Popover. Use [FilterInput](../components/filter-input.md) when
+  people need typed conditions, per-field operators, or nested AND/OR groups.
+  Its chips already show and remove active filters; do not duplicate them as Badges.
 - Filter state is part of the list's state, not global. Navigating away and
   back may restore it (documented per surface) but filters must not leak into
   unrelated lists.

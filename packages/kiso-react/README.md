@@ -68,6 +68,8 @@ Controls and forms
   field. Each chip reads as a call: scope, name, value, then one segment per
   option as name=value or name=[a, b].
 - ValidationMessage, for a field error referenced by `aria-describedby`.
+- FilterInput, for typed field/operator/value conditions, IN lists, and nested
+  AND/OR groups. ChipInput keeps its existing API for structured stored values.
 
 Data and structure
 
@@ -205,10 +207,44 @@ import { BrandMark, TerminalIcon } from '@momoi-labs/kiso-react';
 </div>
 ```
 
+## Structured filters
+
+`FilterInput` turns completed conditions into editable chips. The application
+supplies a field schema and owns the confirmed filter tree and search results.
+
+```tsx
+import { useState } from 'react';
+import { FilterInput, type FilterField, type FilterNode } from '@momoi-labs/kiso-react';
+
+const fields: FilterField[] = [
+  { key: 'status', type: 'text', values: ['active', 'paused'] },
+  { key: 'region', type: 'text', values: ['us', 'eu', 'ap'] },
+  { key: 'lag', type: 'number' },
+];
+
+export function ReplicaFilters() {
+  const [filters, setFilters] = useState<FilterNode[]>([]);
+  return <FilterInput label="Find replicas" fields={fields}
+    value={filters} onValueChange={setFilters} />;
+}
+```
+
+Type `status=active ` to create a chip, or
+`(region IN (us, eu,) OR lag>100)` to create a group. Click a chip's field,
+operator, or value to edit that segment. Use Edit expression to change grouping
+across existing chips.
+
+`parseFilterExpression` validates saved text against the schema;
+`serializeFilterExpression` converts the confirmed tree back to text. The
+component does not execute queries. Products own server validation and
+parameterized query translation. See the
+[FilterInput contract](../../kiso/docs/components/filter-input.md) for syntax,
+draft handling, keyboard behavior, and mobile states.
+
 ## Development
 
 From the repository root, run `npm ci`, then `npm run prototype`. The component
-gallery opens at <http://127.0.0.1:5173/#components> and covers all 44 Kiso
+gallery opens at <http://127.0.0.1:5173/#components> and covers the Kiso
 catalog entries, each rendering the component this package exports. Its sample
 data is simulated in memory.
 
