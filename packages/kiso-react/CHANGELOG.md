@@ -1,5 +1,64 @@
 # @momoi-labs/kiso-react
 
+## 0.9.0
+
+### Minor Changes
+
+- dc26213: Add FilterInput with continuous typing, editable filter segments, IN lists,
+  and nested logical groups while preserving ChipInput.
+- 06e2899: Add Lifecycle and StatusBadge, and the list, detail and create screen classes:
+  `.list-filters`, `.lifecycle` with its `.cluster-status` and `.cluster-verbs`,
+  `.detail-tabs` with `.detail-logs` and `.detail-pane`, and `.form-page`.
+  From 1024px a detail card, and a list's `.table-wrap` that is the last child
+  of `.page`, fill the viewport; set `data-fill="false"` on the `.table-wrap` to
+  keep a list at its natural height.
+  Products that copied them from self-host (ADR-0024) can delete their copies;
+  rename `.detail-terminal` to `.detail-pane`. Evidence is in issue #112.
+
+### Patch Changes
+
+- b63f071: Fix overlapping checkbox targets and give switches, tabs, and time range triggers 44px touch targets without changing desktop sizing.
+- b86a06d: Stop FilterInput autocomplete from deleting malformed input. Suggestions no
+  longer drop text after an unexpected character or repair malformed IN lists.
+- 48f0c27: Make ThemeSelector a radio group with arrow-key selection and one tab stop.
+- 19b8dbd: Use the normal-text foreground role for small labels, placeholders, and chip
+  syntax, and clarify the subtle role's contrast limits.
+- af116bd: EmptyState renders with the hatch, as the `.empty.hatch` block in `ui.css`
+  always intended. The React component never applied the class, so empty
+  regions looked like plain cards.
+- e25cba8: Preserve adjacent filter conditions during autocomplete and announce repeated
+  changes. Fix selected suggestion description contrast.
+- 3886a67: Keep Shift+Tab navigation from accepting ChipInput suggestions.
+
+  Ignore ChipInput and CommandPalette shortcuts during IME composition, including
+  legacy composition key events and Escape dismissal.
+
+  Restore focus after chip edits, option additions, and removals, including when a
+  controlled parent replaces the edited segment.
+
+  Constrain Select menus to the available viewport height so long option lists can
+  scroll on touch screens.
+
+  Keep Splitter drags relative to the initial pointer position so grabbing an edge
+  of its touch target does not jump the pane size.
+
+- ab919ac: Keep empty ChipInput Enter from submitting forms and let Escape dismiss suggestions without losing the query.
+- Updated dependencies [b63f071]
+- Updated dependencies [df5391b]
+- Updated dependencies [7cc19f1]
+- Updated dependencies [0cbb61c]
+- Updated dependencies [ccfecb8]
+- Updated dependencies [19b8dbd]
+- Updated dependencies [9edbbcc]
+- Updated dependencies [4c8ea69]
+- Updated dependencies [dc26213]
+- Updated dependencies [49159e3]
+- Updated dependencies [cd5356e]
+- Updated dependencies [06e2899]
+- Updated dependencies [e25cba8]
+- Updated dependencies [2fc2e12]
+  - @momoi-labs/kiso@0.13.0
+
 ## 0.8.1
 
 ### Patch Changes
