@@ -23,8 +23,8 @@ function Fixture() {
       h(ChipInputBox, null,
         dependencies.map(name => h(Chip, { key: name },
           h(ChipName, null, name),
-          name === 'node' && h(ChipValue, { value: version, onCommit: commit(setVersion), editLabel: 'Edit version' }),
-          name === 'node' && h(ChipOption, { name: 'os', value: option, onCommit: commit(value => setOption(value.replace(/^os=/, ''))), editLabel: 'Edit option' }),
+          name === 'node' && h(ChipValue, { key: version, value: version, onCommit: commit(setVersion), editLabel: 'Edit version' }),
+          name === 'node' && h(ChipOption, { key: option, name: 'os', value: option, onCommit: commit(value => setOption(value.replace(/^os=/, ''))), editLabel: 'Edit option' }),
           name === 'node' && (added
             ? h(ChipOption, { name: 'arch', value: added, onCommit: commit(setAdded), editLabel: 'Edit added option' })
             : h(ChipOptionAdd, { label: 'node', onCommit: commit(setAdded), editLabel: 'Add option' })),
