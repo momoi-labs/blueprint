@@ -110,7 +110,10 @@ function ChipInputField({
       const next = visible[(index + step + visible.length) % visible.length];
       setActiveId(next.id);
       next.scrollIntoView({ block: "nearest" });
-    } else if ((event.key === "Enter" || event.key === "Tab") && index >= 0) {
+    } else if (
+      (event.key === "Enter" || (event.key === "Tab" && !event.shiftKey)) &&
+      index >= 0
+    ) {
       // Tab only commits a highlighted suggestion; with none it still leaves
       // the field, so the box never traps the keyboard. Enter with no
       // highlight falls through to the product, which may take the query.
