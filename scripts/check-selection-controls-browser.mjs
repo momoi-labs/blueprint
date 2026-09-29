@@ -79,3 +79,43 @@ for (const width of [320, 390]) for (const colorScheme of ['light', 'dark']) {
     } finally { await context.close(); }
   });
 }
+
+for (const width of [320, 390]) for (const hasTouch of [true, false]) for (const compact of [false, true]) {
+  test(`Pagination at ${width}/${hasTouch ? 'touch' : 'desktop'}/${compact ? 'compact' : 'full'} has usable targets`, async () => {
+    const page = await browser.newPage({ hasTouch, viewport: { width, height: 844 } });
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    try {
+      await page.goto(`${url}?pagination${compact ? '&compact' : ''}`);
+      const navigation = page.getByRole('navigation', { name: 'Pagination' });
+      await navigation.waitFor();
+      if (screenshots) await navigation.screenshot({ path: `${screenshots}/pagination-${width}-${hasTouch ? 'touch' : 'desktop'}-${compact ? 'compact' : 'full'}.png` });
+      const pages = navigation.locator('[data-slot="pagination-page"]');
+      for (const control of await pages.all()) {
+        const box = await control.boundingBox();
+        assert.equal(box.height, hasTouch ? 44 : 32);
+        if (hasTouch) {
+          assert(box.width >= 44, `Page targets must be 44px wide, got ${box.width}`);
+          for (const [dx, dy] of [[-21, 0], [21, 0], [0, -21], [0, 21]]) {
+            assert(await control.evaluate((element, [dx, dy]) => {
+              const box = element.getBoundingClientRect();
+              return element.contains(document.elementFromPoint(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy));
+            }, [dx, dy]), `Page target overlaps or misses (${dx}, ${dy})`);
+          }
+          await page.touchscreen.tap(box.x + box.width / 2 + 21, box.y + box.height / 2);
+        } else {
+          assert(box.width < 44, 'Keep desktop pages compact');
+          await control.click();
+        }
+        assert.equal(await control.getAttribute('aria-current'), 'page');
+        assert.equal(await page.getByRole('status', { name: 'Current page' }).textContent(), await control.textContent());
+      }
+      if (hasTouch) assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Pagination must fit a narrow page');
+      assert.equal(await navigation.locator('[data-slot="pagination-ellipsis"][tabindex]').count(), 0);
+      await pages.first().focus();
+      await page.keyboard.press('Tab');
+      assert(await pages.nth(1).evaluate(element => element === document.activeElement));
+      await page.keyboard.press('Enter');
+      assert.equal(await page.getByRole('status', { name: 'Current page' }).textContent(), '2');
+    } finally { await page.close(); }
+  });
+}
