@@ -74,6 +74,35 @@ it. Without `onClick`, the destination remains a normal link. Use
 `navigationLabel` to distinguish this navigation landmark when the default
 `Primary` label is not specific enough.
 
+### Optional sidebar collapse
+
+Set `collapsible` to add a toggle to the sidebar header. The sidebar starts
+expanded; `defaultCollapsed` changes that initial state. `collapsed` and
+`onCollapsedChange` provide controlled state when the product needs to store
+the user's preference. Navigation updates do not reset the state. Kiso does
+not write to browser storage.
+
+```tsx
+<ApplicationShell
+  collapsible
+  collapsed={sidebarCollapsed}
+  onCollapsedChange={setSidebarCollapsed}
+  brand={<ProductBrand />}
+  navigation={groups}
+>
+  {page}
+</ApplicationShell>
+```
+
+Use each destination's `leading` slot for its icon. Collapsed destinations keep
+their accessible labels and active indication; destinations without icons keep
+visible text. The collapsed header retains the toggle, while brand, primary
+action, group labels, trailing content, and footer are hidden. Expanding brings
+them back. These props apply only to `layout="sidebar"`.
+
+The control uses the current appearance tokens. It does not choose a border
+style, corner shape, accent, or theme for the product.
+
 ## Variants
 
 `layout="sidebar"` (default) mounts Sidebar with brand and primary action in
@@ -87,16 +116,68 @@ or `footer` in this mode — there is no rail to host them.
 Compose [Header](header.md) and [PageHeader](page-header.md) inside the main
 slot as the page requires when using AppShell directly.
 
+### Inset content
+
+`variant="inset"` adds space around the shell and a border around its main
+content. `variant="default"` keeps the existing edge-to-edge layout. Both
+AppShell and ApplicationShell accept this option, independently of `layout`.
+
+Set `data-app-shell="inset"` on `html` to choose the frame across an
+application. Omit `variant` to follow that preference. An explicit `variant`
+overrides it for one shell. Without either setting, the default stays
+edge-to-edge. The gallery saves this choice under Appearance > Application
+frame.
+
+An embedded preview can mark its content wrapper with
+`data-slot="app-shell-main"` to receive the frame without nesting main landmarks.
+
+The inset frame uses the current Appearance settings for border style, corner
+size, and corner marks. Colors follow the active theme and palette. It does
+not force rounded corners. The surrounding area uses `--color-sidebar`; the
+main area uses `--color-background` and `--color-border`.
+
+```tsx
+<ApplicationShell
+  variant="inset"
+  collapsible
+  brand={<ProductBrand />}
+  navigation={groups}
+>
+  <div className="page">
+    <PageHeader variant="editorial">
+      <PageHeaderTitle>Your homelab</PageHeaderTitle>
+      <PageHeaderDescription>
+        Applications, machines, and images in one place.
+      </PageHeaderDescription>
+    </PageHeader>
+    {content}
+  </div>
+</ApplicationShell>
+```
+
+PageHeader's variant controls the heading. AppShell's variant controls the
+frame. Either can be used alone.
+
 ## Sizes
 
 The Sidebar column uses `--size-sidebar`; the main column takes the remaining
 width with a zero minimum. The shell has a minimum height of one viewport.
-At widths of 1023px or less, a sidebar layout becomes one column and Sidebar is
-hidden. The product must provide access to navigation at that width, for
-example through a [Drawer](drawer.md).
+The collapsed rail leaves room for touch targets and navigation padding.
+At widths of 1023px or less, a sidebar layout becomes one column. Sidebar
+stacks above the content with a scrollable body and a maximum height of 40vh.
+Labels remain visible, and the desktop collapse toggle is hidden. Resizing
+back to desktop restores the collapse state.
 
 `layout="topbar"` is a single main column at every width. It does not rely on
 the 1023px media query to collapse a sidebar track.
+
+The inset variant reserves `--spacing-lg` around the shell within its viewport
+height. On desktop, a top-level inset shell keeps its frame, header, and sidebar
+in place while its page container scrolls. Wrap page content in one container,
+such as `.page`, beside the optional Header. This keeps the top border and
+corner marks visible during scrolling. Embedded shells keep their natural
+height. On narrow screens, navigation stacks above the main content and the
+document scrolls as in the default variant.
 
 ## States
 
@@ -113,6 +194,9 @@ Those states belong inside AppShellMain. There is no disabled or active shell.
   create a mobile menu or manage its focus.
 - A top-bar layout has no Sidebar navigation landmark; put destinations in the
   Header or elsewhere in the product chrome.
+- The collapse Button names its action and exposes `aria-expanded` and
+  `aria-controls`. If collapsing would hide the focused control, focus moves
+  to the toggle. Enter and Space activate it through native Button behavior.
 
 ### Keyboard
 
@@ -138,4 +222,5 @@ retain their own keyboard behavior.
 
 No dedicated Radix primitive. Compose Sidebar and a semantic main region.
 AppShell supplies Kiso's column layout; it does not add a Sidebar provider,
-routing, or collapse state.
+routing, or collapse state. ApplicationShell owns optional collapse state, or
+accepts it from the product.

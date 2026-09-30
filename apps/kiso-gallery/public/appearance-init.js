@@ -7,10 +7,16 @@
     cornerMarks: ["ticks", "none", "brackets", "arcs", "dots"],
     cornerSize: ["medium", "small", "large", "off"],
     markSize: ["medium", "small", "large"],
+    visualStyle: ["default", "editorial"],
+    appShell: ["default", "inset"],
   };
   const defaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
-  const attributes = { theme: "theme", accent: "accent", borderStyle: "borderStyle", cornerMarks: "cornerMarks", cornerSize: "cornerSize", markSize: "markSize" };
+  const attributes = { theme: "theme", accent: "accent", borderStyle: "borderStyle", cornerMarks: "cornerMarks", cornerSize: "cornerSize", markSize: "markSize", visualStyle: "visualStyle", appShell: "appShell" };
   function validate(value) {
+    // Carry forward the earlier heading-only preference.
+    if (value?.visualStyle === undefined && options.visualStyle.includes(value?.pageHeader)) {
+      value = { ...value, visualStyle: value.pageHeader };
+    }
     // Preserve hidden marks from the earlier Off size setting.
     if (value?.markSize === "off") value = { ...value, cornerMarks: "none", markSize: "medium" };
     return Object.fromEntries(Object.entries(options).map(([key, values]) => [
@@ -28,6 +34,7 @@
   }
   function apply(value) {
     const settings = validate(value);
+    delete document.documentElement.dataset.pageHeader;
     for (const [key, attr] of Object.entries(attributes)) {
       if (key === "theme" && settings[key] === "system") delete document.documentElement.dataset[attr];
       else document.documentElement.dataset[attr] = settings[key];

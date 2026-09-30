@@ -6,6 +6,8 @@ Layout tabs at `/#example` show a dashboard,
 a list-detail screen, workspace settings and a login screen. Each composition
 uses sample data. Preview actions do not save, authenticate or send requests.
 The component navigation stays available across all layouts.
+The header links to the Kiso release notes. Its version comes from
+`packages/kiso/package.json` at build time.
 
 The app imports the gallery from
 `kiso/blocks/react-prototype/src/gallery.tsx`. It does not import the Self Host
@@ -14,23 +16,35 @@ of demonstrations, using the shared React components in both entry points.
 
 ## Appearance study
 
-Open `/#appearance` to choose the theme, accent, border style, corner marks,
-and size presets. Corner size offers Off, Small, Medium, and Large. Mark size
-offers Small, Medium, and Large. Theme and accent controls live on
-this page rather than in the gallery header or sidebar. Changes apply throughout
-the gallery,
-including layouts and dialogs. Reset appearance restores system theme, violet,
-square panels, original ticks, and Medium sizes.
+Open `/#appearance` to choose the theme, accent, visual style, application
+frame, border style, corner marks, and size presets. Corner size offers Off,
+Small, Medium, and Large. Mark size offers Small, Medium, and Large. Theme and
+accent controls live on this page rather than in the gallery header or sidebar.
+Changes apply throughout the gallery, including layouts and dialogs.
+Reset appearance restores system theme, violet,
+square panels, original ticks, Medium sizes, and Default visual style and frame.
+Visual style offers Default and Editorial for headings, cards, metrics, and
+section spacing. Controls and tables retain their density. Application frame
+offers Default and Inset. These choices apply to the gallery and its examples.
+PageHeader and AppShell can keep an explicit `variant`; a region can opt out with
+`data-visual-style="default"`.
+
+On desktop, Appearance keeps live component examples on the left and a
+scrollable options panel on the right. Disclosure groups organize Colors,
+Layout, Borders, and Corner marks. Each group opens independently without
+resetting its controls. Use in code stays below the examples in the left
+column. Narrow screens stack the preview and usage examples above the options.
+Colors uses ThemeSelector's `cards` variant and AccentSelector's live preview.
 
 Preferences are local to this browser and origin. The blocking
 `public/appearance-init.js` script validates stored values before first paint.
 Theme and accent retain their `kiso-theme` and `kiso-accent` keys; the complete
 selection uses `kiso-gallery-appearance`. Unavailable storage falls back to the
-defaults on reload.
+defaults on reload. Stored `pageHeader` preferences migrate to `visualStyle`
+unless a visual style has already been saved.
 
-This is an explicit gallery-only design experiment approved for validation.
-`src/appearance.css` overrides the current square-panel contract locally;
-the published packages and their contracts keep their existing behavior.
+The shared Kiso stylesheet applies these preferences. The gallery owns the
+controls and browser storage.
 Panels show the full border treatment. Buttons, inputs, and navigation retain
 solid contours with proportional corners. Corner marks apply only to panels.
 Corner size Off removes rounding, including on controls. Choose None under
@@ -40,10 +54,10 @@ as radios keep their shape.
 
 The Use in code section generates HTML and JavaScript from the current
 selection, with copy buttons. It also shows the required CSS imports and
-explains which settings still need the gallery's experimental stylesheet.
-
-After validation, promoting these options to Kiso requires updating the shared
-tokens, component contracts, and package implementations together.
+explains how component variants can override the global layout preferences.
+These gallery snippets are a local exception to the v1 monochrome code rule.
+They use syntax highlighting with existing theme colors for keywords, tags,
+attributes, strings, and comments. Copy buttons retain the original plain text.
 
 Medium matches the prototype: panel radii are 0, 8, 16, 12, and 6 px for
 square, subtle, wide, asymmetric, and rail styles; other styles use 8 px.

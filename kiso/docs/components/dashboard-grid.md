@@ -22,7 +22,9 @@ Give sections meaningful headings and each chart its own name.
 
 ## Tokens and composition
 
-Use `--spacing-lg` for gaps. Span is layout metadata, not a new spacing token.
+Use `--presentation-grid-gap` for gaps. It resolves to `--spacing-lg` in the
+default style and `--spacing-xl` in the editorial style. Span is layout
+metadata, not a new spacing token.
 Compose [Card](card.md), [Chart](chart.md), [Disclosure](disclosure.md), and
 [TimeRangeControl](time-range-control.md) under the
 [Dashboard pattern](../patterns/dashboard.md). CSS Grid needs no dependency.

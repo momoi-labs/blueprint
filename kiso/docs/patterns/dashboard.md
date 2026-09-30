@@ -55,6 +55,17 @@ related panels. Compose [DashboardGrid](../components/dashboard-grid.md) and
 Keep widget count deliberate. If a Card has no job beyond decoration, remove
 it.
 
+## Editorial composition
+
+The shared `data-visual-style="editorial"` preference increases page and
+section hierarchy, metric emphasis, panel padding, and separation between
+widgets. PageHeader, Card, Stat, and DashboardGrid follow the same
+[presentation tokens](../tokens.md#visual-styles). Custom page wrappers use
+the page-padding and section-gap tokens rather than a separate spacing scale.
+Table rows, chart labels, status badges, and controls keep their density.
+Use `data-visual-style="default"` on an embedded region that needs the compact
+composition. Changing visual style does not change data, status, or actions.
+
 ## States
 
 | State | Behavior |

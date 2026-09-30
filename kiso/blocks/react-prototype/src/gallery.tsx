@@ -392,15 +392,15 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<EmptyState variant="first-run">\n  <EmptyStateTitle>No projects yet</EmptyStateTitle>\n  <EmptyStateDescription>Create your first project.</EmptyStateDescription>\n  <EmptyStateActions>\n    <Button variant="primary">Create project</Button>\n  </EmptyStateActions>\n</EmptyState>',
   card: "<Card>\n  <CardHeader><h2>Project</h2></CardHeader>\n  <CardContent>Configuration</CardContent>\n  <CardFooter><Button>Save</Button></CardFooter>\n</Card>",
   "page-header":
-    '<PageHeader actions={<Button variant="primary">Create project</Button>}>\n  <PageHeaderTitle>Projects</PageHeaderTitle>\n  <PageHeaderDescription>2 projects in your workspace</PageHeaderDescription>\n</PageHeader>',
+    '<PageHeader\n  actions={<Button variant="primary">Deploy application</Button>}\n>\n  <PageHeaderTitle>Your homelab</PageHeaderTitle>\n  <PageHeaderDescription>\n    Applications, machines, and images in one place.\n  </PageHeaderDescription>\n</PageHeader>',
   sidebar:
-    "<Sidebar>\n  <SidebarHeader>{brand}</SidebarHeader>\n  <SidebarBody>\n    <Navigation aria-label=\"Projects\">\n      <NavigationGroup label=\"Projects\">\n        <NavigationList>\n          <NavigationItem>\n            <NavigationLink href=\"#components/sidebar\" active>Website</NavigationLink>\n          </NavigationItem>\n        </NavigationList>\n      </NavigationGroup>\n    </Navigation>\n  </SidebarBody>\n</Sidebar>",
+    '<ApplicationShell\n  collapsible\n  brand={brand}\n  navigation={groups}\n  collapsed={collapsed}\n  onCollapsedChange={setCollapsed}\n>\n  {page}\n</ApplicationShell>',
   navigation:
     '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#components/app-shell" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
   breadcrumb:
     '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Workspace</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>Website refresh</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
   link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
-  "theme-selector": "<ThemeSelector theme={theme} onChange={setTheme} />",
+  "theme-selector": '<ThemeSelector theme={theme} onChange={setTheme} />\n<ThemeSelector variant="cards" theme={theme} onChange={setTheme} />',
   "accent-selector": "<AccentSelector accent={accent} onChange={setAccent} />",
   alert:
     '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not save</AlertTitle>\n    <AlertDescription>The request failed. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
@@ -427,7 +427,7 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
   "step-bar": '<StepBar label="Create" steps={steps} />\n<span className="mono muted">4 of 11</span>',
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
   "app-shell":
-    '<ApplicationShell brand={brand} navigation={groups} header={header}>\n  {page}\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
+    '<ApplicationShell collapsible brand={brand} navigation={groups} header={header}>\n  <div className="page">\n    <PageHeader>\n      <PageHeaderTitle>Your homelab</PageHeaderTitle>\n      <PageHeaderDescription>Applications, machines, and images in one place.</PageHeaderDescription>\n    </PageHeader>\n    {content}\n  </div>\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
 };
 
 function ToastDemoButton() {
@@ -937,6 +937,95 @@ function ChipInputDemo() {
   );
 }
 
+function PageHeaderDemo({ onAction }: { onAction: () => void }) {
+  return (
+    <div className="stack">
+      <PageHeader
+        actions={<Button variant="primary" onClick={onAction}>Deploy application</Button>}
+      >
+        <PageHeaderTitle asChild><h3>Your homelab</h3></PageHeaderTitle>
+        <PageHeaderDescription>Applications, machines, and images in one place.</PageHeaderDescription>
+      </PageHeader>
+    </div>
+  );
+}
+
+function AppShellDemo() {
+  return (
+    <div className="stack">
+      <ApplicationShell
+        collapsible
+        className="gallery-shell-preview gallery-shell-editorial"
+        brand={
+          <div className="brand">
+            <BrandMark>
+              <TerminalIcon />
+            </BrandMark>
+            <span className="t-label">Kiso 基礎</span>
+          </div>
+        }
+        navigation={[{
+          destinations: [
+            { href: "#components/app-shell", active: true, label: "Overview", leading: <TerminalIcon /> },
+            { href: "#components/sidebar", label: "Projects", leading: <TerminalIcon /> },
+          ],
+        }]}
+        navigationLabel="Example shell navigation"
+        header={
+          <>
+            <nav className="breadcrumb" aria-label="Example shell breadcrumb">
+              <a href="#components/app-shell">Workspace</a>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">Overview</span>
+            </nav>
+            <span className="row success t-label">
+              <Dot pulse />
+              <span className="fg">Healthy</span>
+            </span>
+          </>
+        }
+      >
+        <div className="gallery-shell-page">
+          <PageHeader>
+            <PageHeaderTitle asChild><h3>Your homelab</h3></PageHeaderTitle>
+            <PageHeaderDescription>Applications, machines, and images in one place.</PageHeaderDescription>
+          </PageHeader>
+          <div className="stack-sm">
+            <div className="between"><span>grafana</span><Badge variant="success">Running</Badge></div>
+            <Separator />
+            <div className="between"><span>paperless</span><Badge variant="warning">Degraded</Badge></div>
+          </div>
+        </div>
+      </ApplicationShell>
+      <ApplicationShell
+        layout="topbar"
+        className="gallery-shell-preview"
+        brand={
+          <div className="brand">
+            <BrandMark>
+              <TerminalIcon />
+            </BrandMark>
+            <span className="t-label">Organizeitor</span>
+          </div>
+        }
+        primaryAction={
+          <Button variant="primary" size="sm">
+            Create project
+          </Button>
+        }
+        header={
+          <span className="muted t-label grow">Board chrome in the top bar</span>
+        }
+      >
+        <div className="gallery-shell-page">
+          <h3 className="t-h3">Board</h3>
+          <p className="muted t-label">Single-surface layout without a rail.</p>
+        </div>
+      </ApplicationShell>
+    </div>
+  );
+}
+
 function Demo({
   id,
   theme,
@@ -1326,25 +1415,7 @@ function Demo({
         </div>
       );
     case "page-header":
-      return (
-        <PageHeader
-          actions={
-            <Button
-              variant="primary"
-              onClick={() => setMessage("Create project activated.")}
-            >
-              Create project
-            </Button>
-          }
-        >
-          <PageHeaderTitle asChild>
-            <h3 className="t-h1">Projects</h3>
-          </PageHeaderTitle>
-          <PageHeaderDescription>
-            2 projects in your workspace
-          </PageHeaderDescription>
-        </PageHeader>
-      );
+      return <PageHeaderDemo onAction={() => setMessage("Deploy application activated.")} />;
     case "header":
       return (
         <Header className="gallery-header-preview">
@@ -1382,45 +1453,24 @@ function Demo({
       );
     case "sidebar":
       return (
-        <div className="gallery-sidebar-frame">
-          <Sidebar>
-            <SidebarHeader>
-              <div className="brand">
-                <BrandMark>
-                  <TerminalIcon />
-                </BrandMark>
-                <span className="t-label">Kiso 基礎</span>
-              </div>
-            </SidebarHeader>
-            <SidebarBody>
-              <Navigation aria-label="Example sidebar">
-                <NavigationGroup>
-                  <NavigationList>
-                    <NavigationItem>
-                      <NavigationLink href="#components/sidebar" active>
-                        Overview
-                      </NavigationLink>
-                    </NavigationItem>
-                  </NavigationList>
-                </NavigationGroup>
-                <NavigationGroup label="Projects">
-                  <NavigationList>
-                    {["Website", "Brand guide"].map((name) => (
-                      <NavigationItem key={name}>
-                        <NavigationLink href="#components/sidebar">
-                          {name}
-                        </NavigationLink>
-                      </NavigationItem>
-                    ))}
-                  </NavigationList>
-                </NavigationGroup>
-              </Navigation>
-            </SidebarBody>
-            <SidebarFooter>
-              <ThemeSelector theme={theme} onChange={onThemeChange} />
-            </SidebarFooter>
-          </Sidebar>
-        </div>
+        <ApplicationShell
+          collapsible
+          className="gallery-shell-preview"
+          brand={<div className="brand"><BrandMark><TerminalIcon /></BrandMark><span className="t-label">Kiso 基礎</span></div>}
+          navigationLabel="Example sidebar"
+          navigation={[{
+            destinations: [{ href: "#components/sidebar", active: true, label: "Overview", leading: <TerminalIcon /> }],
+          }, {
+            label: "Projects",
+            destinations: ["Website", "Brand guide"].map(label => ({ href: "#components/sidebar", label, leading: <TerminalIcon /> })),
+          }]}
+          footer={<ThemeSelector theme={theme} onChange={onThemeChange} />}
+        >
+          <div className="gallery-shell-page">
+            <h3 className="t-h3">Workspace</h3>
+            <p className="muted t-label">Collapse the sidebar to make room for the page.</p>
+          </div>
+        </ApplicationShell>
       );
     case "navigation":
       return (
@@ -1531,6 +1581,7 @@ function Demo({
       return (
         <div className="gallery-theme-preview">
           <ThemeSelector theme={theme} onChange={onThemeChange} />
+          <ThemeSelector variant="cards" theme={theme} onChange={onThemeChange} />
           <p className="muted t-label">
             This control updates the whole gallery.
           </p>
@@ -1745,71 +1796,7 @@ function Demo({
     case "command-palette":
       return <CommandPaletteDemo />;
     case "app-shell":
-      return (
-        <div className="stack-sm">
-          <ApplicationShell
-            className="gallery-shell-preview"
-            brand={
-              <div className="brand">
-                <BrandMark>
-                  <TerminalIcon />
-                </BrandMark>
-                <span className="t-label">Kiso 基礎</span>
-              </div>
-            }
-            navigation={[{
-              destinations: [
-                { href: "#components/app-shell", active: true, label: "Overview" },
-                { href: "#components/sidebar", label: "Projects" },
-              ],
-            }]}
-            navigationLabel="Example shell navigation"
-            header={
-              <>
-                <nav className="breadcrumb" aria-label="Example shell breadcrumb">
-                  <a href="#components/app-shell">Workspace</a>
-                  <span aria-hidden="true">/</span>
-                  <span aria-current="page">Overview</span>
-                </nav>
-                <span className="row success t-label">
-                  <Dot pulse />
-                  <span className="fg">Healthy</span>
-                </span>
-              </>
-            }
-          >
-            <div className="gallery-shell-page">
-              <h3 className="t-h3">Overview</h3>
-              <p className="muted t-label">Console layout with a sidebar rail.</p>
-            </div>
-          </ApplicationShell>
-          <ApplicationShell
-            layout="topbar"
-            className="gallery-shell-preview"
-            brand={
-              <div className="brand">
-                <BrandMark>
-                  <TerminalIcon />
-                </BrandMark>
-                <span className="t-label">Organizeitor</span>
-              </div>
-            }
-            primaryAction={
-              <Button variant="primary" size="sm">
-                Create project
-              </Button>
-            }
-            header={
-              <span className="muted t-label grow">Board chrome in the top bar</span>
-            }
-          >
-            <div className="gallery-shell-page">
-              <h3 className="t-h3">Board</h3>
-              <p className="muted t-label">Single-surface layout without a rail.</p>
-            </div>
-          </ApplicationShell>
-        </div>
-      );
+      return <AppShellDemo />;
     case "split":
       return (
         <div className="stack-sm">
@@ -2023,6 +2010,7 @@ function useMasonryRows(grid: RefObject<HTMLDivElement | null>, active: boolean)
 
 export function ComponentGallery({
   route,
+  version,
   theme,
   onThemeChange,
   accent,
@@ -2033,6 +2021,7 @@ export function ComponentGallery({
   appearance,
 }: {
   route: string;
+  version?: string;
   theme: string;
   onThemeChange: (theme: string) => void;
   accent: string;
@@ -2082,7 +2071,9 @@ export function ComponentGallery({
     )
       return;
     setMenuOpen(false);
-    content.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
+    content.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    content.current?.querySelector<HTMLHeadingElement>("h1")?.focus({ preventScroll: true });
   }, [route]);
 
   const current = catalog.find((entry) => entry[0] === selected);
@@ -2201,6 +2192,11 @@ export function ComponentGallery({
             </NavigationList>
           </Navigation>
           <div className="catalog-tools">
+            {version && <Link className="catalog-version t-label mono"
+              href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
+              title={`Kiso ${version} release notes`} target="_blank" rel="noreferrer">
+              v{version}
+            </Link>}
             <Search
               aria-label="Find a component"
               placeholder="Find a component..."
@@ -2289,7 +2285,7 @@ export function ComponentGallery({
         <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingAppearance || showingExample || showingIntro}>
           {visible.map(([id, name, category, description]) => (
             <section
-              className="catalog-section"
+              className={browsing ? "catalog-section card" : "catalog-section"}
               key={id}
               data-size={browsing ? catalogSize[id] : undefined}
               aria-labelledby={browsing ? `catalog-${id}` : undefined}

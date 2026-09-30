@@ -46,16 +46,28 @@ Do not implement `system` by reading `prefers-color-scheme` and writing
 | `light` | sun | "Light theme" |
 | `dark` | moon | "Dark theme" |
 
-Icon-only. The three concepts are conventional enough that icons carry them,
-and visible text would make the row wider than the setting deserves. The
-accessible name is required, not optional — see
-[IconButton](icon-button.md).
+The default `variant="compact"` uses icons only. Each icon has the accessible
+name above. See [IconButton](icon-button.md).
+
+`variant="cards"` shows a miniature interface, a visible name, and a short
+description for each option. Light and Dark previews force their own color
+scheme. System shows light and dark halves to represent following the device.
+The previews are decorative and hidden from assistive technology. The radio
+names and keyboard behavior are the same in both variants.
+
+```tsx
+<ThemeSelector variant="cards" theme={theme} onChange={setTheme} />
+```
 
 ## Layout
 
-A single configuration row: label left, control right, aligned to the baseline
-of the label. This is the standard settings row, not a Card of its own. See
-[Settings](../patterns/settings.md#theme).
+The compact variant uses a single row with the label on the left and the
+control on the right. See [Settings](../patterns/settings.md#theme).
+
+The cards variant places the label above a responsive grid. Wide containers
+show three cards; narrower containers wrap to two columns or one. Each card
+is one radio target, including its preview and description. Use it in
+appearance settings where comparing the themes helps the choice.
 
 ```text
 Theme                                   [ ▣ ][ ☀ ][ ☾ ]
@@ -71,6 +83,12 @@ The selected option takes `--color-card`, `--color-foreground`, and
 `--shadow-xs` — a raised chip inside a recessed track. Transition on
 `--motion-duration-fast` / `--motion-easing-standard`.
 
+Cards use `--spacing-sm` for padding and internal gaps, `--spacing-md` between
+options, `--radius-md` for corners, and `--color-border` for outlines. The
+selected card uses `--color-focus` for its border and `--color-accent-surface`
+for its background. Previews use the current palette's background, sidebar,
+foreground, border, link, and primary colors in each forced color scheme.
+
 Do not fill the selected option with `--color-primary`. This control does not
 advance a task; it is a preference, and a violet chip here competes with the
 page's actual primary action.
@@ -82,7 +100,7 @@ page's actual primary action.
 | default | Three options, exactly one selected. |
 | hover | Unselected option raises text to `--color-foreground`. |
 | focus | Visible ring using `--color-ring`. Never remove it. |
-| selected | Raised chip as above, plus the accessible selected state. |
+| selected | Raised chip in compact mode, outlined and tinted card in cards mode, plus the accessible selected state. |
 | disabled | Not a state. The theme is always changeable. |
 
 There is no loading state. The change is local and instant; do not wait on a

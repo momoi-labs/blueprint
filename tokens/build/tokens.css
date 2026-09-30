@@ -155,6 +155,7 @@
   --type-size-h2: 18px;
   --type-size-h1: 22px;
   --type-size-display: 30px;
+  --type-size-editorial: 48px;
   --type-weight-regular: 400;
   --type-weight-medium: 500;
   --type-weight-semibold: 600;
@@ -245,6 +246,16 @@
   --hatch-line: 5px;
   --hatch-period: 10px;
   --hatch-angle: 45deg;
+  --presentation-page-title-size: var(--type-size-h1);
+  --presentation-section-title-size: var(--type-size-h2);
+  --presentation-card-title-size: var(--type-size-h3);
+  --presentation-metric-size: var(--type-size-display);
+  --presentation-page-padding: var(--spacing-xl);
+  --presentation-section-gap: var(--spacing-xl);
+  --presentation-grid-gap: var(--spacing-lg);
+  --presentation-panel-padding: var(--spacing-lg);
+  --presentation-panel-gap: var(--spacing-md);
+  --presentation-heading-gap: var(--spacing-2xs);
   --font-variant-numeric: tabular-nums;
 }
 

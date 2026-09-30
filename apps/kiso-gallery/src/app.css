@@ -16,11 +16,17 @@
   container-type: inline-size;
   background: var(--color-background);
 }
+.layout-preview > .layout-shell {
+  border-radius: inherit;
+  overflow: clip;
+}
 .layout-shell {
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr);
   min-height: 740px;
 }
+.app-shell.layout-shell { min-height: 740px; }
+.app-shell.layout-shell > .layout-sidebar { height: auto; }
 .layout-sidebar {
   position: static;
   width: auto;
@@ -74,8 +80,8 @@
 .layout-content {
   display: grid;
   align-content: start;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-xl);
+  gap: var(--presentation-section-gap);
+  padding: var(--presentation-page-padding);
 }
 .layout-content > *,
 .layout-section > * {
@@ -107,7 +113,7 @@
 .layout-section {
   display: grid;
   align-content: start;
-  gap: var(--spacing-lg);
+  gap: var(--presentation-grid-gap);
 }
 .layout-chart {
   height: 220px;
@@ -213,18 +219,24 @@
 }
 .layout-login {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   place-items: center;
+  gap: var(--spacing-4xl);
   min-height: 740px;
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  padding: var(--spacing-3xl);
 }
+.layout-login-intro,
 .layout-login-form {
   display: grid;
-  gap: var(--spacing-xl);
+  min-width: 0;
+  gap: var(--spacing-2xl);
   width: min(100%, 380px);
 }
-.layout-login-form > .brand,
-.layout-login-form > p {
-  justify-self: center;
+.layout-login-intro h2 {
+  max-width: 9ch;
+}
+.layout-login-form .card-header {
+  text-align: center;
 }
 .layout-divider {
   display: flex;
@@ -282,6 +294,8 @@
     flex-wrap: wrap;
   }
   .layout-login {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-2xl);
     padding: var(--spacing-xl) var(--spacing-md);
   }
 }

@@ -361,8 +361,10 @@ export const typeSizeH3: string;
 export const typeSizeH2: string;
 /** Page headings. */
 export const typeSizeH1: string;
-/** Display headings and stat values — the calm ceiling. */
+/** Display headings and stat values. */
 export const typeSizeDisplay: string;
+/** Upper size for editorial page headers. Dense pages keep the existing heading scale. */
+export const typeSizeEditorial: string;
 /** Regular - body, metadata, code. */
 export const typeWeightRegular: number;
 /** Medium - labels, display headings. */
@@ -487,3 +489,23 @@ export const hatchLine: string;
 export const hatchPeriod: string;
 /** Stripe angle. DTCG has no angle type, so the CSS unit rides in the namespaced extension and the formatter emits "45deg". */
 export const hatchAngle: string;
+/** Page title size for the default visual style. */
+export const presentationPageTitleSize: string;
+/** Section title size for the default visual style. */
+export const presentationSectionTitleSize: string;
+/** Card title size for the default visual style. */
+export const presentationCardTitleSize: string;
+/** Prominent metric size for the default visual style. */
+export const presentationMetricSize: string;
+/** Padding around page content. */
+export const presentationPagePadding: string;
+/** Space between page sections. */
+export const presentationSectionGap: string;
+/** Space between dashboard panels and section content. */
+export const presentationGridGap: string;
+/** Padding inside cards and metric blocks. */
+export const presentationPanelPadding: string;
+/** Space between groups inside a panel. */
+export const presentationPanelGap: string;
+/** Space between a heading or metric and its supporting text. */
+export const presentationHeadingGap: string;

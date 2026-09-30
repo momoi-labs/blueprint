@@ -49,6 +49,15 @@ numerals. The foot has `--spacing-sm` above it. Delta uses
 `--type-size-metadata`, `--type-weight-medium`, and `--spacing-xs` between
 its content parts.
 
+The [shared editorial style](../tokens.md#visual-styles) changes padding through
+`--presentation-panel-padding`, slot spacing through
+`--presentation-heading-gap`, and value size through
+`--presentation-metric-size`. Values scale from 30px to 48px with viewport
+width and wrap when necessary. Label, foot, and delta retain their text sizes.
+The header can wrap its label and delta on narrow cards. Tabular numerals and
+status meanings stay the same. Use `data-visual-style="default"` on a region
+to keep its original metric density.
+
 ## States
 
 The default is a readable metric. The product replaces unknown values with
