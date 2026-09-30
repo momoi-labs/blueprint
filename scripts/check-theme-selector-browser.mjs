@@ -19,23 +19,36 @@ before(async () => {
 });
 after(async () => { await browser?.close(); await server.close(); });
 
-for (const width of [320, 390, 1280]) for (const colorScheme of ['light', 'dark']) {
-  test(`ThemeSelector keyboard and controlled state at ${width}/${colorScheme}`, async () => {
+for (const variant of ['compact', 'cards']) for (const width of [320, 390, 1280]) for (const colorScheme of ['light', 'dark']) {
+  test(`ThemeSelector ${variant} keyboard and controlled state at ${width}/${colorScheme}`, async () => {
     const page = await browser.newPage({ viewport: { width, height: 844 }, colorScheme });
     page.setDefaultTimeout(5000);
     await page.route('https://fonts.googleapis.com/**', route => route.abort());
     try {
-      await page.goto(url);
+      await page.goto(`${url}?variant=${variant}`);
       const group = page.getByRole('radiogroup', { name: 'Theme', exact: true });
       await group.waitFor();
       const radios = group.getByRole('radio');
+      if (variant === 'cards') {
+        const previews = await group.locator('.theme-card-scene').evaluateAll(elements => elements.map(element => ({
+          scheme: getComputedStyle(element).colorScheme,
+          background: getComputedStyle(element).backgroundColor,
+        })));
+        assert.deepEqual(previews.map(preview => preview.scheme), ['light', 'dark', 'light', 'dark']);
+        assert.deepEqual(previews.slice(0, 2), previews.slice(2), 'System shows the same light and dark previews');
+        assert.notEqual(previews[0].background, previews[1].background, 'Previews keep distinct colors in either system theme');
+      }
       const changes = () => page.getByRole('status', { name: 'Theme changes' }).textContent().then(JSON.parse);
       const assertSelected = async name => {
         assert.equal(await group.getByRole('radio', { checked: true }).count(), 1);
         assert.equal(await group.getByRole('radio', { checked: true }).getAttribute('aria-label'), name);
         assert.equal(await radios.evaluateAll(elements => elements.filter(element => element.tabIndex === 0).length), 1);
         assert.equal(await group.locator('[tabindex="0"]').getAttribute('aria-label'), name);
-        assert(await group.getByRole('radio', { checked: true }).evaluate(element => getComputedStyle(element).boxShadow !== 'none'), 'The selected option retains its raised chip style');
+        if (variant === 'compact') assert(await group.getByRole('radio', { checked: true }).evaluate(element => getComputedStyle(element).boxShadow !== 'none'), 'The selected option retains its raised chip style');
+        else {
+          await group.evaluate(element => Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished)));
+          assert.notEqual(await group.getByRole('radio', { checked: true }).evaluate(element => getComputedStyle(element).backgroundColor), await group.getByRole('radio', { checked: false }).first().evaluate(element => getComputedStyle(element).backgroundColor), 'The selected card has a distinct surface');
+        }
       };
       await assertSelected('Follow system');
       assert.equal(await group.locator('[aria-pressed]').count(), 0);
@@ -57,7 +70,7 @@ for (const width of [320, 390, 1280]) for (const colorScheme of ['light', 'dark'
         assert(await selected.evaluate(element => element === document.activeElement), `${key} moves focus`);
         assert.deepEqual(await changes(), [...previous, value], `${key} calls onChange once`);
         assert(await selected.evaluate(element => element.matches(':focus-visible') && getComputedStyle(element).outlineStyle !== 'none' && parseFloat(getComputedStyle(element).outlineWidth) >= 2), 'Keyboard focus has a visible ring');
-        if (screenshots && ['ArrowRight', 'ArrowDown'].includes(key)) await page.locator('.theme-row').screenshot({ path: `${screenshots}/theme-${width}-${colorScheme}-${value}-focus.png` });
+        if (screenshots && ['ArrowRight', 'ArrowDown'].includes(key)) await page.locator('[data-slot="theme-selector"]').screenshot({ path: `${screenshots}/theme-${variant}-${width}-${colorScheme}-${value}-focus.png` });
       }
       await page.keyboard.press('Tab');
       assert(await page.getByRole('textbox', { name: 'After theme' }).evaluate(element => element === document.activeElement), 'Tab leaves the whole group');
@@ -80,16 +93,21 @@ for (const width of [320, 390, 1280]) for (const colorScheme of ['light', 'dark'
       assert.deepEqual(await changes(), [...previous, 'system'], 'Controlled replacement does not call onChange');
       assert.equal(await page.getByRole('status', { name: 'Form submissions' }).textContent(), '0');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'The row fits the viewport');
+      if (variant === 'cards') {
+        await page.evaluate(() => Object.assign(document.documentElement.dataset, { borderStyle: 'asym', cornerSize: 'medium' }));
+        assert.equal(await radios.first().evaluate(element => getComputedStyle(element).borderRadius), '6px 2px', 'Card controls follow appearance corners');
+        assert.equal(await group.locator('.theme-card-preview').first().evaluate(element => getComputedStyle(element).borderRadius), '12px 3px', 'Miniature frames follow appearance corners');
+      }
     } finally { await page.close(); }
   });
 }
 
-for (const colorScheme of ['light', 'dark']) {
-  test(`ThemeSelector coarse targets at 320/${colorScheme}`, async () => {
+for (const variant of ['compact', 'cards']) for (const colorScheme of ['light', 'dark']) {
+  test(`ThemeSelector ${variant} coarse targets at 320/${colorScheme}`, async () => {
     const page = await browser.newPage({ hasTouch: true, viewport: { width: 320, height: 844 }, colorScheme });
     await page.route('https://fonts.googleapis.com/**', route => route.abort());
     try {
-      await page.goto(url);
+      await page.goto(`${url}?variant=${variant}`);
       const group = page.getByRole('radiogroup', { name: 'Theme', exact: true });
       await group.waitFor();
       for (const radio of await group.getByRole('radio').all()) {
@@ -106,7 +124,7 @@ for (const colorScheme of ['light', 'dark']) {
       }
       assert.deepEqual(JSON.parse(await page.getByRole('status', { name: 'Theme changes' }).textContent()), ['system', 'light', 'dark']);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      if (screenshots) await page.locator('.theme-row').screenshot({ path: `${screenshots}/theme-320-${colorScheme}-touch.png` });
+      if (screenshots) await page.locator('[data-slot="theme-selector"]').screenshot({ path: `${screenshots}/theme-${variant}-320-${colorScheme}-touch.png` });
     } finally { await page.close(); }
   });
 }

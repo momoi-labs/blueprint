@@ -3,6 +3,9 @@
 A persistent navigation region for products with several destinations or
 collapsible groups.
 
+`Sidebar` accepts a controlled `collapsed` boolean for custom compositions.
+`ApplicationShell` supplies the toggle and state when `collapsible` is enabled.
+
 ## Purpose
 
 Sidebar makes a broad product structure scannable without turning the Header
@@ -47,6 +50,17 @@ spacing uses semantic tokens without changing Link or disclosure-control sizes.
 | active | Current destination has `aria-current="page"`; expanded disclosures have `aria-expanded="true"`. |
 | disabled | Sidebar is not disabled; omit unavailable destinations or explain them adjacent to a disabled child. |
 | collapsed | Sections reduce to an explicit compact navigation; essential labels must remain available without Tooltip. |
+
+In ApplicationShell, destinations with `leading` content reduce to icons while
+their labels remain accessible to assistive technology. Plain-text labels also
+provide native titles. Destinations without icons keep visible, wrapping text.
+The current destination keeps its active marker. Brand, primary action, group
+headings, trailing badges, and footer return when the user expands the sidebar.
+
+Collapse applies to desktop widths of 1024px and above. At narrower widths,
+navigation stacks above the page with labels visible and the toggle hidden.
+Returning to desktop restores the chosen state. Appearance attributes continue
+to control colors, borders, and corner treatment.
 
 ## Accessibility
 

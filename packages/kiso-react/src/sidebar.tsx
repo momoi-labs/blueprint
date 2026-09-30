@@ -3,9 +3,18 @@ import { clsx as cn } from "clsx";
 
 // Sidebar is layout. Its destinations are Navigation children, so it holds no
 // route, no active item, and no disclosure state of its own.
-function Sidebar({ className, ...props }: React.ComponentProps<"aside">) {
+function Sidebar({
+  className,
+  collapsed = false,
+  ...props
+}: React.ComponentProps<"aside"> & { collapsed?: boolean }) {
   return (
-    <aside data-slot="sidebar" className={cn("sidebar", className)} {...props} />
+    <aside
+      data-slot="sidebar"
+      data-collapsed={collapsed || undefined}
+      className={cn("sidebar", className)}
+      {...props}
+    />
   );
 }
 

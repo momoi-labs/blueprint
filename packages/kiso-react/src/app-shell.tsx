@@ -1,7 +1,11 @@
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
+"use client"
+
 import * as React from "react"
 import { clsx as cn } from "clsx"
+import { Button } from "./button.js"
 import { Header } from "./header.js"
+import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 import {
   Navigation,
   NavigationGroup,
@@ -11,10 +15,15 @@ import {
 } from "./navigation.js"
 import { Sidebar, SidebarBody, SidebarFooter, SidebarHeader } from "./sidebar.js"
 
-function AppShell({ className, ...props }: React.ComponentProps<"div">) {
+function AppShell({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & { variant?: "default" | "inset" }) {
   return (
     <div
       data-slot="app-shell"
+      data-variant={variant}
       className={cn("app-shell", className)}
       {...props}
     />
@@ -63,6 +72,10 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
   navigation: readonly ApplicationShellGroup[]
   navigationLabel?: string
   footer?: React.ReactNode
+  collapsible?: boolean
+  collapsed?: boolean
+  defaultCollapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
 type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
@@ -70,6 +83,10 @@ type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
   navigation?: never
   navigationLabel?: never
   footer?: never
+  collapsible?: never
+  collapsed?: never
+  defaultCollapsed?: never
+  onCollapsedChange?: never
 }
 
 type ApplicationShellProps =
@@ -79,9 +96,11 @@ type ApplicationShellProps =
 function ApplicationShellNavigation({
   navigation,
   navigationLabel,
+  collapsible = false,
 }: {
   navigation: readonly ApplicationShellGroup[]
   navigationLabel: string
+  collapsible?: boolean
 }) {
   return (
     <Navigation aria-label={navigationLabel}>
@@ -94,15 +113,23 @@ function ApplicationShellNavigation({
                   <NavigationLink
                     href={destination.href}
                     active={destination.active}
+                    className={collapsible && destination.leading ? "sidebar-link-with-icon" : undefined}
+                    title={collapsible && typeof destination.label === "string" ? destination.label : undefined}
                     onClick={(event) => {
                       if (!destination.onClick) return
                       event.preventDefault()
                       destination.onClick()
                     }}
                   >
-                    {destination.leading}
-                    <span className="grow truncate">{destination.label}</span>
-                    {destination.trailing}
+                    {collapsible ? <>
+                      {destination.leading && <span className="sidebar-link-icon" aria-hidden="true">{destination.leading}</span>}
+                      <span className="sidebar-link-label grow truncate">{destination.label}</span>
+                      {destination.trailing && <span className="sidebar-link-trailing">{destination.trailing}</span>}
+                    </> : <>
+                      {destination.leading}
+                      <span className="grow truncate">{destination.label}</span>
+                      {destination.trailing}
+                    </>}
                   </NavigationLink>
                 </NavigationItem>
               ))}
@@ -134,32 +161,80 @@ function ApplicationShell(props: ApplicationShellProps) {
     )
   }
 
-  const {
-    brand,
-    primaryAction,
-    navigation,
-    navigationLabel = "Primary",
-    footer,
-    header,
-    children,
-    layout: _layout,
-    ...shellProps
-  } = props
+  return <ApplicationShellSidebar {...props} />
+}
+
+function ApplicationShellSidebar({
+  brand,
+  primaryAction,
+  navigation,
+  navigationLabel = "Primary",
+  footer,
+  header,
+  children,
+  layout: _layout,
+  collapsible = false,
+  collapsed,
+  defaultCollapsed = false,
+  onCollapsedChange,
+  ...shellProps
+}: ApplicationShellSidebarProps) {
+  const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed)
+  const isCollapsed = collapsible && (collapsed ?? internalCollapsed)
+  const sidebarId = React.useId()
+  const sidebarRef = React.useRef<HTMLElement>(null)
+  const toggleRef = React.useRef<HTMLButtonElement>(null)
+
+  useIsomorphicLayoutEffect(() => {
+    const sidebar = sidebarRef.current
+    const focused = sidebar?.ownerDocument.activeElement
+    if (isCollapsed && focused && sidebar?.contains(focused) && !focused.getClientRects().length) {
+      toggleRef.current?.focus()
+    }
+  }, [isCollapsed])
+
+  function toggleSidebar() {
+    const next = !isCollapsed
+    if (collapsed === undefined) setInternalCollapsed(next)
+    onCollapsedChange?.(next)
+  }
 
   return (
     <AppShell {...shellProps}>
-      <Sidebar>
-        <SidebarHeader>
-          {brand}
-          {primaryAction}
+      <Sidebar ref={sidebarRef} id={sidebarId} collapsed={isCollapsed}>
+        <SidebarHeader className={collapsible ? "sidebar-header-collapsible" : undefined}>
+          {collapsible ? <>
+            <div className="sidebar-expanded-content">
+              {brand}
+              {primaryAction}
+            </div>
+            <Button
+              ref={toggleRef}
+              variant="ghost"
+              size="sm"
+              className="sidebar-toggle btn-icon"
+              aria-controls={sidebarId}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={toggleSidebar}
+            >
+              <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="1.5" y="2" width="13" height="12" rx="1.5" />
+                <path d="M5.5 2v12" />
+                <path d={isCollapsed ? "m8.5 5.5 2.5 2.5-2.5 2.5" : "m11 5.5-2.5 2.5 2.5 2.5"} />
+              </svg>
+            </Button>
+          </> : <>{brand}{primaryAction}</>}
         </SidebarHeader>
         <SidebarBody>
           <ApplicationShellNavigation
             navigation={navigation}
             navigationLabel={navigationLabel}
+            collapsible={collapsible}
           />
         </SidebarBody>
-        {footer && <SidebarFooter>{footer}</SidebarFooter>}
+        {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
         {header && <Header>{header}</Header>}

@@ -8,11 +8,16 @@ function PageHeader({
   className,
   actions,
   children,
+  variant,
   ...props
-}: React.ComponentProps<"div"> & { actions?: React.ReactNode }) {
+}: React.ComponentProps<"div"> & {
+  actions?: React.ReactNode;
+  variant?: "default" | "editorial";
+}) {
   const heading = (
     <div
       data-slot="page-header"
+      data-variant={variant}
       className={cn("page-header", className)}
       {...props}
     >
@@ -23,7 +28,7 @@ function PageHeader({
   if (!actions) return heading;
 
   return (
-    <div data-slot="page-header-row" className="between">
+    <div data-slot="page-header-row" data-variant={variant} className="between">
       {heading}
       <div data-slot="page-header-actions" className="row-wrap">
         {actions}

@@ -113,6 +113,17 @@ Size changes padding and gap, not type roles.
 Media that bleeds to the edges still uses the size token for the remaining
 sections, not for the image itself.
 
+### Visual style
+
+Cards follow the [shared visual style](../tokens.md#visual-styles).
+The editorial style uses `--presentation-panel-padding` and
+`--presentation-panel-gap` for the content regions, and
+`--presentation-heading-gap` between header text. Titles using `t-h3`,
+including CardTitle, use `--presentation-card-title-size`.
+Controls inside a Card keep their existing dimensions. Border and corner
+preferences remain independent. A surrounding `data-visual-style="default"`
+keeps a region compact without adding Card-specific variants.
+
 ## States
 
 Card is a container. It does not have hover/active/disabled of its own

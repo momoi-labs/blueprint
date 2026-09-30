@@ -46,7 +46,7 @@ try {
   assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
   const tokens = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/tokens/build/tokens.css'), 'utf8');
   const { html: appearanceHTML } = appearanceCode({ theme: 'dark', accent: 'terracotta',
-    borderStyle: 'soft', cornerMarks: 'arcs', cornerSize: 'small', markSize: 'medium' });
+    borderStyle: 'soft', cornerMarks: 'arcs', cornerSize: 'small', markSize: 'medium', visualStyle: 'editorial', appShell: 'inset' });
   for (const [, attribute] of appearanceHTML.matchAll(/(data-[\w-]+)="[^"]+"/g)) {
     assert((tokens + css).includes(`[${attribute}`), `Package CSS ignores ${attribute}`);
   }
@@ -272,7 +272,7 @@ try {
     '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { ApplicationShell, Button, FormField, BrandMark, TerminalIcon, Textarea,
+    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea,
       Toasts, useToast } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
@@ -284,6 +284,9 @@ try {
       <FormField label="Compose" error="Required"><Textarea /></FormField>
       <Toasts><NoticeButton /></Toasts>
       <ApplicationShell brand="Kiso" navigation={[]}><div>Page</div></ApplicationShell>
+      <ApplicationShell variant="inset" collapsible brand="Kiso" navigation={[]}>
+        <PageHeader variant="editorial"><PageHeaderTitle>Homelab</PageHeaderTitle></PageHeader>
+      </ApplicationShell>
       <BrandMark className="custom">S</BrandMark>
       <BrandMark><TerminalIcon /></BrandMark>
       <BrandMark><svg viewBox="0 0 16 16"><path d="M1 1L2 2" /></svg></BrandMark>

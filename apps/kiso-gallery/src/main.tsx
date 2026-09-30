@@ -30,6 +30,7 @@ function App() {
   return (
     <ComponentGallery
       route={route}
+      version={import.meta.env.VITE_KISO_VERSION}
       theme={settings.theme}
       onThemeChange={theme => update({ theme })}
       accent={settings.accent}

@@ -11,6 +11,8 @@ export interface AppearanceSettings {
   cornerMarks: CornerMarks;
   cornerSize: Size;
   markSize: MarkSize;
+  visualStyle: "default" | "editorial";
+  appShell: "default" | "inset";
 }
 
 declare global {
@@ -31,6 +33,8 @@ export function appearanceCode(settings: AppearanceSettings) {
     ["data-corner-marks", settings.cornerMarks],
     ["data-corner-size", settings.cornerSize],
     ["data-mark-size", settings.markSize],
+    ["data-visual-style", settings.visualStyle],
+    ["data-app-shell", settings.appShell],
   ];
   return {
     html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <!-- Your application -->\n</html>`,

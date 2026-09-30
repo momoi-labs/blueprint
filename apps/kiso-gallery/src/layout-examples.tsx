@@ -230,7 +230,7 @@ function WorkspacePreview({
           </div>
         </div>
       </Sidebar>
-      <div className="layout-workspace">
+      <div data-slot="app-shell-main" className="layout-workspace">
         <Header className="layout-header">
           <Breadcrumb aria-label="Example location">
             <BreadcrumbList>
@@ -730,15 +730,21 @@ function SettingsLayout() {
 function LoginLayout() {
   return (
     <div className="layout-login">
-      <div className="layout-login-form">
+      <div className="layout-login-intro">
         <div className="brand">
           <BrandMark>N</BrandMark>
           <span className="t-label">Northstar</span>
         </div>
+        <PageHeader>
+          <h2 className="t-h1">Welcome back</h2>
+          <p className="muted">Sign in to your workspace to continue.</p>
+        </PageHeader>
+        <p className="muted t-label">A shared space for your team's work.</p>
+      </div>
+      <div className="layout-login-form">
         <Card>
           <CardHeader>
-            <h2 className="t-h1">Welcome back</h2>
-            <p className="muted">Sign in to your workspace to continue.</p>
+            <h3 className="t-h3">Sign in</h3>
           </CardHeader>
           <CardContent>
             <Button>Continue with Google</Button>
@@ -777,7 +783,6 @@ function LoginLayout() {
             </Button>
           </CardFooter>
         </Card>
-        <p className="muted t-label">A shared space for your team's work.</p>
       </div>
     </div>
   );

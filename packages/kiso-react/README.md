@@ -103,7 +103,8 @@ Navigation
 - Tabs, TabsList, TabsTrigger, TabsContent.
 - ThemeSelector, a controlled selector. The application owns theme persistence
   and applies `data-theme="light"` or `data-theme="dark"` to the document root.
-  Remove the attribute for system mode.
+  Remove the attribute for system mode. The default `variant="compact"` uses
+  icons. Set `variant="cards"` for labeled options with light and dark previews.
 - AccentSelector, a controlled selector, plus the `accents` list and `Accent`
   type. The application owns accent persistence and applies
   `data-accent="<name>"` to the document root, or to any container that should
@@ -151,6 +152,45 @@ Destinations keep routing in the product through `{ href, active, onClick? }`;
 the package owns the repeated Sidebar, Navigation, Header, and main
 arrangement. With `layout="topbar"`, omit navigation and footer: brand and
 primary action move into Header beside the existing header slot.
+
+Add `collapsible` to let the user reduce the sidebar to compact navigation.
+Use destination `leading` slots for icons. The toggle preserves accessible
+names, the active destination, and keyboard focus. `defaultCollapsed` sets the
+initial state; `collapsed` with `onCollapsedChange` lets the product control or
+persist the preference. On narrow screens the navigation keeps its labels and
+returns to the chosen state when the viewport widens. Existing appearance
+settings apply to both states.
+
+PageHeader accepts `variant="editorial"` for a larger responsive title and
+more space around the heading.
+AppShell and ApplicationShell accept `variant="inset"` to put the main content
+inside a frame with space around it. These options work independently and
+preserve the current Appearance settings.
+
+Set `data-visual-style="editorial"` on `html` to share the editorial hierarchy
+across headings, cards, metrics, and page layouts. Buttons, fields, and tables
+keep their existing density. A region with `data-visual-style="default"` keeps
+the compact composition. The earlier `data-page-header` attribute still works
+for heading-only styling.
+
+`data-app-shell="inset"` chooses the application frame independently.
+PageHeader and AppShell follow these preferences when `variant` is omitted;
+an explicit `variant` overrides the corresponding treatment. Without
+preferences, the existing heading sizes, spacing, and frame remain the default.
+
+```tsx
+<ApplicationShell variant="inset" collapsible brand={brand} navigation={groups}>
+  <div className="page">
+    <PageHeader variant="editorial" actions={<Button>Deploy application</Button>}>
+      <PageHeaderTitle>Your homelab</PageHeaderTitle>
+      <PageHeaderDescription>
+        Applications, machines, and images in one place.
+      </PageHeaderDescription>
+    </PageHeader>
+    {content}
+  </div>
+</ApplicationShell>
+```
 
 Navigation, Sidebar, and Link know nothing about routing. Mark the current
 destination with `active`, and pass `asChild` to render a router's own link

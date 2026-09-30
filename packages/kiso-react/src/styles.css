@@ -21,6 +21,33 @@
   color: var(--color-foreground);
   box-shadow: var(--shadow-xs);
 }
+.theme-selector-cards { display: grid; gap: var(--spacing-md); min-width: 0; }
+.theme-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: var(--spacing-md); }
+.theme-cards .theme-card {
+  display: grid; align-content: start; justify-content: stretch; gap: var(--spacing-sm);
+  height: auto; min-width: 0; padding: var(--spacing-sm);
+  border: 1px solid var(--color-border); border-radius: var(--appearance-control-corners, var(--radius-md));
+  background: transparent; color: var(--color-foreground);
+  text-align: start; white-space: normal; line-height: var(--type-line-height-normal);
+}
+.theme-cards .theme-card:hover { background: var(--color-accent-surface-hover); }
+.theme-cards .theme-card[aria-checked="true"] { border-color: var(--color-focus); background: var(--color-accent-surface); }
+.theme-card-label { display: flex; align-items: center; gap: var(--spacing-sm); }
+.theme-card-description { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
+.theme-card-preview {
+  display: flex; height: calc(2 * var(--spacing-3xl)); margin: var(--spacing-sm);
+  overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface));
+}
+.theme-card-scene { display: grid; grid-template-columns: var(--spacing-lg) minmax(0, 1fr); flex: 1; min-width: 0; background: var(--color-background); }
+.theme-card-sidebar { display: grid; align-content: start; gap: var(--spacing-xs); padding: var(--spacing-sm) var(--spacing-xs); background: var(--color-sidebar); border-inline-end: 1px solid var(--color-border); }
+.theme-card-scene i { display: block; height: var(--spacing-2xs); background: var(--color-muted-foreground); }
+.theme-card-sidebar i:first-child { height: var(--spacing-sm); margin-bottom: var(--spacing-xs); background: var(--color-link); }
+.theme-card-main { display: grid; grid-template-rows: var(--spacing-lg) minmax(0, 1fr); min-width: 0; }
+.theme-card-header { border-bottom: 1px solid var(--color-border); }
+.theme-card-content { display: grid; align-content: start; gap: var(--spacing-xs); padding: var(--spacing-sm); }
+.theme-card-content i:first-child { height: var(--spacing-xs); width: 80%; background: var(--color-foreground); }
+.theme-card-content i:nth-child(2) { width: 60%; }
+.theme-card-content i:last-child { height: var(--spacing-sm); width: 45%; background: var(--color-primary); }
 /* AccentSelector: a pill row that chooses, and one preview that answers.
    Each pill and the preview carry their own data-accent, so their colours
    resolve under that accent without any inline values. */

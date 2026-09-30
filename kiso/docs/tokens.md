@@ -323,6 +323,8 @@ No gallery CSS or JavaScript is required.
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `dots` | `ticks` |
 | `data-mark-size` | `small`, `medium`, `large` | `medium` |
+| `data-visual-style` | `default`, `editorial` | `default` |
+| `data-app-shell` | `default`, `inset` | `default` |
 
 `data-corner-size` scales the radii selected by `data-border-style`: `off`
 sets them to zero; `small`, `medium`, and `large` use 0.5, 1, and 1.5 times
@@ -341,6 +343,44 @@ The generated token defaults remain unchanged.
 
 Keep scrolling on `.log-scroll`, `.table-scroll`, dialog bodies, and
 `pre > code`. The outer frame owns the marks, which extend outside it.
+
+### Visual styles
+
+Set `data-visual-style="editorial"` on `html` to apply one hierarchy across
+page titles, section headings, cards, metrics, and page layouts. Color, border
+style, corner marks, and the application frame remain separate choices.
+
+| Presentation token | Default | Editorial |
+| --- | --- | --- |
+| `--presentation-page-title-size` | 22px | 30px to 48px, responsive |
+| `--presentation-section-title-size` | 18px | 22px |
+| `--presentation-card-title-size` | 16px | 18px |
+| `--presentation-metric-size` | 30px | 30px to 48px, responsive |
+| `--presentation-page-padding` | 24px | 24px to 32px, responsive |
+| `--presentation-section-gap` | 24px | 32px |
+| `--presentation-grid-gap` | 16px | 24px |
+| `--presentation-panel-padding` | 16px | 16px to 24px, responsive |
+| `--presentation-panel-gap` | 12px | 16px |
+| `--presentation-heading-gap` | 2px | 8px |
+
+These aliases reuse the existing type and spacing scales. The stylesheet
+remaps them without changing base tokens. Buttons, fields, navigation, badges,
+table cells, chart labels, and code keep their existing dimensions and text
+sizes. PageHeader also adds its editorial description and vertical spacing.
+
+Page, Card, Stat, and DashboardGrid consume these tokens directly. Custom
+page compositions should use the page padding, section gap, and grid gap
+tokens for their corresponding regions. Typography classes `t-h1`, `t-h2`,
+`t-h3`, and `t-display` follow the same hierarchy.
+
+```html
+<html lang="en" data-visual-style="editorial" data-app-shell="inset">
+```
+
+Set `data-visual-style="default"` on a region to keep that region compact.
+Its descendants inherit the local choice. PageHeader's explicit `variant`
+still overrides its heading treatment. The earlier `data-page-header`
+attribute remains supported for heading-only compositions.
 
 ## Hatch
 
@@ -387,6 +427,10 @@ deepens with the theme instead of staying a fixed black at a fixed alpha.
 `display`. Tighter than a modular ramp on purpose: these are the steps a
 console actually uses, each distinguishable from its neighbour at a 14px body.
 Body is 14px, not 16px, because a console is read at desk distance, in density.
+
+`--type-size-editorial` adds a 48px ceiling for the optional editorial
+PageHeader. Its title scales down to the existing 30px display step on narrow
+screens. Default page headings and stat values keep their existing sizes.
 
 ## Generated files
 

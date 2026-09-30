@@ -36,33 +36,83 @@ body {
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* Visual styles change hierarchy and composition without resizing controls. */
+[data-visual-style="default"] {
+  --presentation-page-title-size: var(--type-size-h1);
+  --presentation-section-title-size: var(--type-size-h2);
+  --presentation-card-title-size: var(--type-size-h3);
+  --presentation-metric-size: var(--type-size-display);
+  --presentation-page-padding: var(--spacing-xl);
+  --presentation-section-gap: var(--spacing-xl);
+  --presentation-grid-gap: var(--spacing-lg);
+  --presentation-panel-padding: var(--spacing-lg);
+  --presentation-panel-gap: var(--spacing-md);
+  --presentation-heading-gap: var(--spacing-2xs);
+}
+[data-visual-style="editorial"] {
+  --presentation-page-title-size: clamp(var(--type-size-display), 4vw, var(--type-size-editorial));
+  --presentation-section-title-size: var(--type-size-h1);
+  --presentation-card-title-size: var(--type-size-h2);
+  --presentation-metric-size: clamp(var(--type-size-display), 3vw, var(--type-size-editorial));
+  --presentation-page-padding: clamp(var(--spacing-xl), 3vw, var(--spacing-2xl));
+  --presentation-section-gap: var(--spacing-2xl);
+  --presentation-grid-gap: var(--spacing-xl);
+  --presentation-panel-padding: clamp(var(--spacing-lg), 2vw, var(--spacing-xl));
+  --presentation-panel-gap: var(--spacing-lg);
+  --presentation-heading-gap: var(--spacing-sm);
+}
+:root, [data-visual-style="default"], [data-page-header="default"],
+.page-header[data-variant="default"], [data-slot="page-header-row"][data-variant="default"] {
+  --page-header-title-size: var(--type-size-h1);
+  --page-header-gap: var(--spacing-2xs);
+  --page-header-padding: 0px;
+  --page-header-description-size: var(--type-size-label);
+  --page-header-description-weight: var(--type-weight-medium);
+  --page-header-tracking: var(--type-letter-spacing-heading);
+  --page-header-actions-gap: var(--spacing-md);
+  --page-header-actions-wrap: nowrap;
+  --page-header-flex: initial;
+}
+[data-visual-style="editorial"], [data-page-header="editorial"],
+.page-header[data-variant="editorial"], [data-slot="page-header-row"][data-variant="editorial"] {
+  --page-header-title-size: clamp(var(--type-size-display), 4vw, var(--type-size-editorial));
+  --page-header-gap: var(--spacing-md);
+  --page-header-padding: var(--spacing-lg);
+  --page-header-description-size: var(--type-size-body);
+  --page-header-description-weight: var(--type-weight-regular);
+  --page-header-tracking: var(--type-letter-spacing-display);
+  --page-header-actions-gap: var(--spacing-xl);
+  --page-header-actions-wrap: wrap;
+  --page-header-flex: 1 1 auto;
+}
+
 /* --- typography roles ---------------------------------------------------- */
 h1, h2, h3, h4, p, figure { margin: 0; }
 
 .t-display {
   font-family: var(--font-heading);
-  font-size: var(--type-size-display);
+  font-size: var(--presentation-metric-size);
   font-weight: var(--type-weight-semibold);
   line-height: var(--type-line-height-tight);
   letter-spacing: var(--type-letter-spacing-display);
 }
 .t-h1 {
   font-family: var(--font-heading);
-  font-size: var(--type-size-h1);
+  font-size: var(--presentation-page-title-size);
   font-weight: var(--type-weight-semibold);
   line-height: var(--type-line-height-tight);
   letter-spacing: var(--type-letter-spacing-heading);
 }
 .t-h2 {
   font-family: var(--font-heading);
-  font-size: var(--type-size-h2);
+  font-size: var(--presentation-section-title-size);
   font-weight: var(--type-weight-semibold);
   line-height: var(--type-line-height-snug);
   letter-spacing: var(--type-letter-spacing-heading);
 }
 .t-h3 {
   font-family: var(--font-heading);
-  font-size: var(--type-size-h3);
+  font-size: var(--presentation-card-title-size);
   font-weight: var(--type-weight-semibold);
   line-height: var(--type-line-height-snug);
   letter-spacing: var(--type-letter-spacing-heading);
@@ -605,25 +655,27 @@ fieldset.form-body { border: 0; margin: 0; }
   border-radius: var(--radius-surface);
   box-shadow: var(--shadow-xs);
 }
-.card-header { padding: var(--spacing-lg) var(--spacing-lg) 0; display: grid; gap: var(--spacing-2xs); }
-.card-body   { padding: var(--spacing-lg); display: grid; gap: var(--spacing-md); }
+.card-header { padding: var(--presentation-panel-padding) var(--presentation-panel-padding) 0; display: grid; gap: var(--presentation-heading-gap); }
+.card-body   { padding: var(--presentation-panel-padding); display: grid; gap: var(--presentation-panel-gap); }
 .card-footer {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--presentation-panel-gap) var(--presentation-panel-padding);
   border-top: 1px solid var(--color-border);
   display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm);
   background: var(--color-muted);
   border-end-start-radius: var(--radius-surface);
   border-end-end-radius: var(--radius-surface);
 }
-.card-header + .card-body { padding-block-start: var(--spacing-md); }
+.card-header + .card-body { padding-block-start: var(--presentation-panel-gap); }
 .card-interactive { cursor: pointer; transition: border-color var(--motion-duration-fast) var(--motion-easing-standard); }
 .card-interactive:hover { border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
 
 /* stat / KPI tile */
-.stat { display: grid; gap: var(--spacing-2xs); padding: var(--spacing-lg); }
+.stat { display: grid; min-width: 0; gap: var(--presentation-heading-gap); padding: var(--presentation-panel-padding); }
+.stat > [data-slot="stat-header"] { flex-wrap: wrap; }
 .stat-label { font-size: var(--type-size-label); color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
 .stat-value {
-  font-size: var(--type-size-display);
+  font-size: var(--presentation-metric-size);
+  overflow-wrap: anywhere;
   font-weight: var(--type-weight-semibold);
   line-height: var(--type-line-height-tight);
   letter-spacing: var(--type-letter-spacing-display);
@@ -896,6 +948,43 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 
 .app-shell { display: grid; grid-template-columns: var(--size-sidebar) minmax(0, 1fr); min-height: 100vh; }
 .app-shell[data-layout="topbar"] { grid-template-columns: minmax(0, 1fr); }
+/* An explicit variant overrides the document Appearance preference. */
+.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  padding: var(--spacing-lg);
+  min-height: 100dvh;
+  background: var(--color-sidebar);
+}
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  position: relative;
+  min-height: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+  background: var(--color-background);
+}
+.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar { border: 0; }
+@media (min-width: 1024px) {
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar {
+    top: var(--spacing-lg);
+    height: calc(100dvh - 2 * var(--spacing-lg));
+  }
+  /* Keep the outer frame and its marks still while the page scrolls inside.
+     Embedded shells retain their natural height within the parent page. */
+  .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { height: 100dvh; }
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+    display: flex; flex-direction: column;
+  }
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > .topbar { flex: none; }
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :not(.topbar) {
+    flex: 1; min-height: 0; overflow: auto;
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
+  }
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :only-child { border-radius: inherit; }
+}
 .sidebar {
   display: flex; flex-direction: column;
   min-width: 0;
@@ -908,6 +997,24 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
 .sidebar-body   { flex: 1; overflow-y: auto; padding: 0 var(--spacing-sm) var(--spacing-sm); display: grid; gap: var(--spacing-lg); align-content: start; }
 .sidebar-footer { padding: var(--spacing-sm); border-top: 1px solid var(--color-sidebar-border); display: grid; gap: var(--spacing-2xs); }
 .sidebar-footer .settings-row { padding-inline: var(--spacing-sm); } /* match .nav-item's inset */
+.sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr) auto; gap: var(--spacing-sm); align-items: start; }
+.sidebar-expanded-content { min-width: 0; display: grid; gap: var(--spacing-md); }
+.sidebar-link-icon { display: inline-flex; flex: none; }
+.sidebar-toggle { justify-self: end; }
+/* Collapse belongs to the desktop rail. Narrow layouts keep navigation visible. */
+@media (min-width: 1024px) {
+  .app-shell:has(> .sidebar[data-collapsed="true"]) { grid-template-columns: calc(var(--size-touch-min) + 2 * var(--spacing-md)) minmax(0, 1fr); }
+  .sidebar[data-collapsed="true"] :is(.sidebar-expanded-content, .nav-group > .t-caps, .sidebar-link-trailing) { display: none; }
+  .sidebar[data-collapsed="true"] .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); padding: var(--spacing-sm); }
+  .sidebar[data-collapsed="true"] .sidebar-toggle { justify-self: center; }
+  .sidebar[data-collapsed="true"] .nav-item { justify-content: center; }
+  .sidebar[data-collapsed="true"] .sidebar-link-with-icon .sidebar-link-label {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) { height: auto; min-height: var(--size-control-sm); padding-block: var(--spacing-sm); }
+  .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) .sidebar-link-label { white-space: normal; overflow-wrap: anywhere; text-align: center; }
+}
 .nav-group { display: grid; gap: var(--spacing-2xs); }
 .nav-group > .t-caps { padding-inline: var(--spacing-sm); margin-block-end: var(--spacing-2xs); }
 .nav-item {
@@ -1005,8 +1112,21 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
   font-weight: var(--type-weight-medium);
 }
 
-.page { padding: var(--spacing-xl); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-xl); align-content: start; min-width: 0; max-width: var(--size-content-max); }
-.page-header { display: grid; gap: var(--spacing-2xs); }
+.page { padding: var(--presentation-page-padding); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--presentation-section-gap); align-content: start; min-width: 0; max-width: var(--size-content-max); }
+.page-header {
+  display: grid; min-width: 0; gap: var(--page-header-gap);
+  padding-block: var(--page-header-padding); overflow-wrap: anywhere;
+}
+.page-header > :is([data-slot="page-header-title"], .t-h1) {
+  font-size: var(--page-header-title-size);
+  letter-spacing: var(--page-header-tracking);
+}
+.page-header > :is([data-slot="page-header-description"], p) {
+  font-size: var(--page-header-description-size);
+  font-weight: var(--page-header-description-weight);
+}
+[data-slot="page-header-row"] { gap: var(--page-header-actions-gap); flex-wrap: var(--page-header-actions-wrap); }
+[data-slot="page-header-row"] > .page-header { flex: var(--page-header-flex); max-width: 100%; }
 
 /* ===========================================================================
    Developer-oriented surfaces (Kiso: developer-oriented-interfaces pattern)
@@ -1257,6 +1377,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    page down. */
 @media (max-width: 1023px) {
   .app-shell { grid-template-columns: 1fr; }
+  .sidebar-toggle { display: none; }
+  .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); }
   .sidebar {
     position: static; height: auto; max-height: 40vh;
     border-inline-end: 0;
@@ -1325,12 +1447,12 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-panel-shadow: 3px 3px 0 0 var(--color-border-strong);
 }
 
-:where([data-border-style]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre) {
+:where([data-border-style]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) {
   border-radius: var(--appearance-corners);
   border-style: var(--appearance-panel-border);
 }
 /* Paint decorative edges above table headers and panel footers. */
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before {
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before {
   content: var(--appearance-overlay-content, none);
   position: absolute;
   inset: var(--appearance-overlay-inset);
@@ -1362,7 +1484,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-images: initial;
 }
 [data-corner-marks="none"] { --corner-mark: 0; }
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after {
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after {
   content: "";
   position: absolute;
   pointer-events: none;
@@ -1537,7 +1659,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .time-range-presets > button { height: auto; min-height: var(--size-touch-min); display: flex; align-items: flex-start; flex-direction: column; text-align: start; }
 .time-range-presets small { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
-.dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--spacing-lg); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--presentation-grid-gap); }
 .dashboard-panel { grid-column: span var(--dashboard-span, 6); min-width: 0; display: grid; } /* the panel is a grid so its single child stretches to the row */
 @media (max-width: 1024px) {
   .dashboard-panel { grid-column: span 6; }

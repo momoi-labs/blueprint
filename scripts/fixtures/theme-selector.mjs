@@ -2,6 +2,8 @@ import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeSelector } from '@momoi-labs/kiso-react';
 
+const variant = new URLSearchParams(location.search).get('variant') || 'compact';
+
 function Fixture() {
   const [theme, setTheme] = useState('system');
   const [changes, setChanges] = useState([]);
@@ -13,7 +15,7 @@ function Fixture() {
       onSubmit: event => { event.preventDefault(); setSubmits(count => count + 1); },
     },
       h('input', { 'aria-label': 'Before theme', defaultValue: 'Workspace' }),
-      h(ThemeSelector, { theme, onChange: value => { setTheme(value); setChanges(previous => [...previous, value]); } }),
+      h(ThemeSelector, { variant, theme, onChange: value => { setTheme(value); setChanges(previous => [...previous, value]); } }),
       h('input', { 'aria-label': 'After theme', defaultValue: 'Project' }),
       h('button', { type: 'button', onClick: () => setTheme('light') }, 'Replace with light'),
       h('output', { 'aria-label': 'Selected theme' }, theme),

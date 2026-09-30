@@ -257,7 +257,8 @@ $type-size-body: 14px; // Body copy and control text; base size for code and num
 $type-size-h3: 16px; // Card and panel titles.
 $type-size-h2: 18px; // Section headings.
 $type-size-h1: 22px; // Page headings.
-$type-size-display: 30px; // Display headings and stat values — the calm ceiling.
+$type-size-display: 30px; // Display headings and stat values.
+$type-size-editorial: 48px; // Upper size for editorial page headers. Dense pages keep the existing heading scale.
 $type-weight-regular: 400; // Regular - body, metadata, code.
 $type-weight-medium: 500; // Medium - labels, display headings.
 $type-weight-semibold: 600; // Semibold - headings.
@@ -320,3 +321,13 @@ $corner-mark-gap: 2px; // Distance from tick end to the frame it points at. The 
 $hatch-line: 5px; // Stripe width.
 $hatch-period: 10px; // Stripe-to-stripe distance. Half of it is stripe, half is gap.
 $hatch-angle: 45deg; // Stripe angle. DTCG has no angle type, so the CSS unit rides in the namespaced extension and the formatter emits "45deg".
+$presentation-page-title-size: 22px; // Page title size for the default visual style.
+$presentation-section-title-size: 18px; // Section title size for the default visual style.
+$presentation-card-title-size: 16px; // Card title size for the default visual style.
+$presentation-metric-size: 30px; // Prominent metric size for the default visual style.
+$presentation-page-padding: 24px; // Padding around page content.
+$presentation-section-gap: 24px; // Space between page sections.
+$presentation-grid-gap: 16px; // Space between dashboard panels and section content.
+$presentation-panel-padding: 16px; // Padding inside cards and metric blocks.
+$presentation-panel-gap: 12px; // Space between groups inside a panel.
+$presentation-heading-gap: 2px; // Space between a heading or metric and its supporting text.

@@ -20,20 +20,48 @@ PageHeader
 
 Title uses `--type-role-heading-font-family`, `--type-role-heading-font-size`,
 `--type-role-heading-font-weight`, `--type-role-heading-letter-spacing`, and
-`--type-role-heading-line-height` with `--color-foreground`; subtitle uses the
-five property-qualified body typography tokens and `--color-muted-foreground`.
-Layout uses `--spacing-lg` between regions and `--spacing-sm` between title and
-subtitle. Actions retain Button tokens and behavior.
+`--type-role-heading-line-height` with `--color-foreground`. The default
+subtitle uses label size and weight with `--color-muted-foreground`.
+The default layout uses `--spacing-md` between regions and `--spacing-2xs`
+between title and subtitle. Actions retain Button tokens and behavior.
 
 ## Variants
 
-No visual variants. Subtitle and actions are optional anatomy; their presence
-does not create separate PageHeader variants.
+| `variant` | Use | Appearance |
+| --- | --- | --- |
+| `default` | Lists, settings, and dense workspaces. | Existing page heading and compact spacing. |
+| `editorial` | Overview pages and introductions that need more emphasis. | Larger responsive title, body-size description, and more space around the heading. |
+
+Without a preference, the default remains unchanged. Both variants accept
+the same children and `actions` slot. Editorial actions wrap below the text when space runs out.
+
+Set `data-visual-style="editorial"` on `html` to use the shared editorial
+style across an application. Omit `variant` to follow that preference. An explicit
+`variant="default"` or `variant="editorial"` overrides it for one PageHeader.
+The gallery saves this choice under Appearance > Visual style. The earlier
+`data-page-header` attribute remains supported for heading-only styling.
+
+```tsx
+<PageHeader
+  variant="editorial"
+  actions={<Button variant="primary">Deploy application</Button>}
+>
+  <PageHeaderTitle>Your homelab</PageHeaderTitle>
+  <PageHeaderDescription>
+    Applications, machines, and images in one place.
+  </PageHeaderDescription>
+</PageHeader>
+```
 
 ## Sizes
 
-One size. The title keeps the page-heading type role; responsive wrapping is a
-compact state, while child Buttons retain their own sizes.
+The default title uses the page-heading role. The editorial title scales from
+`--type-size-display` to `--type-size-editorial` with viewport width. It keeps
+the heading family, weight, and line height, with display letter spacing.
+Editorial descriptions use the body role. The heading has `--spacing-md`
+between title and description and `--spacing-lg` of vertical padding.
+The actions row uses `--spacing-xl` between regions. Child Buttons retain
+their own sizes. Long titles wrap without pushing actions out of the page.
 
 ## States
 

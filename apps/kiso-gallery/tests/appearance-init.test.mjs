@@ -20,7 +20,7 @@ function boot(values = {}, blocked = false) {
 }
 
 test("restores the complete appearance before React starts", () => {
-  const saved = { theme: "dark", accent: "teal", borderStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small" };
+  const saved = { theme: "dark", accent: "teal", borderStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small", visualStyle: "editorial", appShell: "inset" };
   const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify(saved) });
   assert.deepEqual(dataset, saved);
 });
@@ -30,6 +30,20 @@ test("retains the existing theme and accent storage keys", () => {
   assert.equal(dataset.theme, "light");
   assert.equal(dataset.accent, "nocturne");
   assert.equal(dataset.borderStyle, "square");
+  assert.equal(dataset.visualStyle, "default");
+  assert.equal(dataset.appShell, "default");
+});
+
+test("migrates the heading preference without overriding a saved visual style", () => {
+  for (const value of ["default", "editorial"]) {
+    const { api, dataset, storage } = boot({ "kiso-gallery-appearance": JSON.stringify({ pageHeader: value }) });
+    assert.equal(dataset.visualStyle, value);
+    assert.equal(dataset.pageHeader, undefined);
+    api.save(api.read());
+    assert.equal(JSON.parse(storage.get("kiso-gallery-appearance")).pageHeader, undefined);
+  }
+  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ pageHeader: "editorial", visualStyle: "default" }) });
+  assert.equal(dataset.visualStyle, "default");
 });
 
 test("ignores malformed storage and unsupported values", () => {
@@ -43,12 +57,16 @@ test("ignores malformed storage and unsupported values", () => {
 
 test("persists changes, restores them on reload, and resets system mode", () => {
   const { api, dataset, storage } = boot();
-  api.save({ ...api.defaults, theme: "dark", borderStyle: "dash", cornerMarks: "none" });
+  api.save({ ...api.defaults, theme: "dark", borderStyle: "dash", cornerMarks: "none", visualStyle: "editorial", appShell: "inset" });
   assert.equal(storage.get("kiso-theme"), "dark");
   assert.equal(boot(Object.fromEntries(storage)).dataset.borderStyle, "dash");
+  assert.equal(boot(Object.fromEntries(storage)).dataset.visualStyle, "editorial");
+  assert.equal(boot(Object.fromEntries(storage)).dataset.appShell, "inset");
   api.save(api.defaults);
   assert.equal(dataset.theme, undefined);
   assert.equal(dataset.cornerMarks, "ticks");
+  assert.equal(dataset.visualStyle, "default");
+  assert.equal(dataset.appShell, "default");
   assert.equal(boot(Object.fromEntries(storage)).dataset.theme, undefined);
 });
 
