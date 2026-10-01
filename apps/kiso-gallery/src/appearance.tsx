@@ -21,8 +21,7 @@ const borders: { value: BorderStyle; label: string; description: string }[] = [
 ];
 const corners: { value: CornerStyle; label: string; description: string }[] = [
   { value: "square", label: "Square", description: "Straight panels, small control corners" },
-  { value: "soft", label: "Subtle", description: "Small, rounded corners" },
-  { value: "round", label: "Wide", description: "Larger, rounded corners" },
+  { value: "rounded", label: "Rounded", description: "Even curves at every corner" },
   { value: "asym", label: "Asymmetric", description: "Two opposite, wider corners" },
 ];
 const marks: { value: CornerMarks; label: string }[] = [
@@ -189,13 +188,15 @@ export function Appearance({ settings, onChange, onReset }: {
                 </label>)}
               </div>
             </fieldset>
+          </Disclosure>
+          <Disclosure summary="Corner style">
             <fieldset className="appearance-choices">
-              <legend className="t-h3">Corner shape</legend>
+              <legend className="t-h3">Corner type</legend>
               <div className="appearance-options">
                 {corners.map(corner => <label className="appearance-option" key={corner.value}>
                   <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} onChange={() => onChange({ cornerStyle: corner.value })} />
                   <span className="appearance-option-body">
-                    <span className="appearance-swatch" data-border-style="solid" data-corner-style={corner.value} aria-hidden="true">
+                    <span className="appearance-swatch" data-border-style="solid" data-corner-style={corner.value} data-corner-size="medium" data-corner-marks="none" aria-hidden="true">
                       <span className="card appearance-sample"><i /><i /></span>
                     </span>
                     <span className="t-label">{corner.label}</span>
@@ -205,7 +206,7 @@ export function Appearance({ settings, onChange, onReset }: {
               </div>
             </fieldset>
             <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />
-            <p className="muted t-label">Corner shape and size apply independently of the border. Off removes all rounding.</p>
+            <p className="muted t-label">Type and size apply independently of the border. Off removes all rounding. Square keeps control corners unchanged at other sizes.</p>
           </Disclosure>
           <Disclosure summary="Corner marks">
             <fieldset className="appearance-choices">

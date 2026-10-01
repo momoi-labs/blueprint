@@ -320,7 +320,7 @@ No gallery CSS or JavaScript is required.
 | Attribute | Values | Default when omitted |
 | --- | --- | --- |
 | `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset` | Solid outline |
-| `data-corner-style` | `square`, `soft`, `round`, `asym` | Square panels and existing control radii, or the legacy border style's radii |
+| `data-corner-style` | `square`, `rounded`, `asym` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `dots` | `ticks` |
 | `data-mark-size` | `small`, `medium`, `large` | `medium` |
@@ -337,8 +337,7 @@ Menus and tooltips keep their own outlines and elevation.
 | Corner shape | Panel radius | Control radius |
 | --- | --- | --- |
 | `square` | 0px | 4px |
-| `soft` | 8px | 4px |
-| `round` | 16px | 8px |
+| `rounded` | 16px | 8px |
 | `asym` | 12px / 3px | 6px / 2px |
 
 `data-corner-size` scales the radii selected by `data-corner-style`: `off`
@@ -348,17 +347,22 @@ unchanged unless the size is `off`. Size does not hide marks; use
 `data-corner-marks="none"` for that. Border style `none` also suppresses marks
 without changing the saved mark choice.
 
+Rounded has one type with three sizes: small uses 8px panel and 4px control
+corners, medium uses 16px and 8px, and large uses 24px and 12px.
+
 Legacy `data-border-style="square"`, `"soft"`, `"round"` and `"asym"`
 remain supported with their original radii. Set `data-corner-style` to override
 those radii. An explicit corner choice is inherited through nested border
 scopes. A nested border scope can restore an outline inside a frameless region.
+The earlier corner values `soft` and `round` also retain their original radii.
+The gallery uses a single Rounded choice with a separate size control.
 
 Mark sizes set `--corner-mark-tick` and `--corner-mark-gap` to 2px/1px,
 4px/2px, or 8px/4px. Border styles override the existing radius tokens.
 The generated token defaults remain unchanged.
 
 ```html
-<html lang="en" data-accent="terracotta" data-border-style="solid" data-corner-style="soft"
+<html lang="en" data-accent="terracotta" data-border-style="solid" data-corner-style="rounded"
   data-corner-size="small" data-corner-marks="arcs" data-mark-size="medium">
 ```
 

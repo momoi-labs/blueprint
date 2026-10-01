@@ -15,7 +15,7 @@ async function open(query) {
   return page;
 }
 const radii = el => { const s = getComputedStyle(el); return [s.borderTopLeftRadius, s.borderTopRightRadius].map(parseFloat); };
-for (const [shape, panel, control] of [['square', [0, 0], [4, 4]], ['soft', [8, 8], [4, 4]], ['round', [16, 16], [8, 8]], ['asym', [12, 3], [6, 2]]]) test(`${shape} corners survive independent borders, sizes and nested scopes`, async () => {
+for (const [shape, panel, control] of [['square', [0, 0], [4, 4]], ['soft', [8, 8], [4, 4]], ['round', [16, 16], [8, 8]], ['rounded', [16, 16], [8, 8]], ['asym', [12, 3], [6, 2]]]) test(`${shape} corners survive independent borders, sizes and nested scopes`, async () => {
   const page = await open(`corners=${shape}`);
   try {
     for (const [size, scale] of [['small', .5], ['medium', 1], ['large', 1.5], ['off', 0]]) {
@@ -46,7 +46,7 @@ test('Legacy border presets preserve their radii without a corner override', asy
 });
 
 for (const theme of ['light', 'dark']) test(`Frameless surfaces keep separators, fields and modal focus in ${theme}`, async () => {
-  const page = await open(`border=none&corners=round&theme=${theme}`);
+  const page = await open(`border=none&corners=rounded&theme=${theme}`);
   const frameless = async locator => {
     const style = await locator.evaluate(el => { const s = getComputedStyle(el); return [s.borderTopWidth, s.boxShadow, getComputedStyle(el, '::before').content, getComputedStyle(el, '::after').content]; });
     assert.deepEqual(style, ['0px', 'none', 'none', 'none']);

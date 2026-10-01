@@ -1,7 +1,7 @@
 import type { Accent } from "@momoi-labs/kiso-react";
 
 export type BorderStyle = "solid" | "none" | "rail" | "dash" | "bevel" | "double" | "base" | "offset";
-export type CornerStyle = "square" | "soft" | "round" | "asym";
+export type CornerStyle = "square" | "rounded" | "asym";
 export type CornerMarks = "none" | "ticks" | "brackets" | "arcs" | "dots";
 export type Size = "off" | "small" | "medium" | "large";
 export type MarkSize = Exclude<Size, "off">;

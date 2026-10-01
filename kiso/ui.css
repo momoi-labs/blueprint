@@ -1522,7 +1522,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 [data-corner-style] { --corner-rounded: 1; --corner-panel-opposite: 1; --corner-control-opposite: 1; }
 [data-corner-style="square"] { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
 [data-corner-style="soft"] { --corner-panel-base: 8px; --corner-control-base: 4px; }
-[data-corner-style="round"] { --corner-panel-base: 16px; --corner-control-base: 8px; }
+[data-corner-style="rounded"], [data-corner-style="round"] { --corner-panel-base: 16px; --corner-control-base: 8px; }
 [data-corner-style="asym"] { --corner-panel-base: 12px; --corner-control-base: 6px; --corner-panel-opposite: .25; --corner-control-opposite: calc(1 / 3); }
 [data-border-style], [data-corner-style], [data-corner-size] {
   --appearance-rounded: var(--corner-rounded, var(--appearance-base-rounded, 0));

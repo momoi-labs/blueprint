@@ -23,7 +23,7 @@ function Fixture() {
   if (params.has('matrix')) return h('main', { className: 'page' },
     h('h1', null, 'Border style and corner shape'),
     h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 17rem), 1fr))', gap: 'var(--spacing-xl)' } },
-      ...['solid', 'none'].flatMap(border => ['square', 'soft', 'round', 'asym'].map(corners => h('section', { key: `${border}-${corners}`, 'data-border-style': border, 'data-corner-style': corners }, h(Sample, { id: `${border}-${corners}`, title: `${border} / ${corners}` })))),
+      ...['solid', 'none'].flatMap(border => ['square', 'rounded', 'asym'].map(corners => h('section', { key: `${border}-${corners}`, 'data-border-style': border, 'data-corner-style': corners }, h(Sample, { id: `${border}-${corners}`, title: `${border} / ${corners}` })))),
     ),
   );
   return h('main', { className: 'page' },
