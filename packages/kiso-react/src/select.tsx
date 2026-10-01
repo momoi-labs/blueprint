@@ -23,11 +23,13 @@ function SelectValue({
 
 function SelectTrigger({
   className,
+  controlSize,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & { controlSize?: "sm" | "md" | "lg" }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
+      data-control-size={controlSize}
       className={cn("select", className)}
       {...props}
     />
