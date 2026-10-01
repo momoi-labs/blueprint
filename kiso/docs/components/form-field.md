@@ -92,6 +92,7 @@ visible Label. Do not place actions inside leading or suffix slots. Put
 The group owns its border and focus ring; the native or Radix control retains
 input, selection, focus and disabled behavior. The frame reflects the actual
 control's invalid and disabled states. Labels still target the control.
+Long SelectValue text truncates within the control, clear of its chevron.
 
 ## Sizes
 

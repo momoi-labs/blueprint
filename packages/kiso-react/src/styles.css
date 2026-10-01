@@ -254,6 +254,12 @@
 [data-slot="select-trigger"][data-placeholder] {
   color: var(--color-muted-foreground);
 }
+.field-control > .select > [data-slot="select-value"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 [data-slot="select-trigger"]:disabled { cursor: not-allowed; }
 [data-slot="select-item"] { justify-content: space-between; }
 [data-slot="select-content"] {

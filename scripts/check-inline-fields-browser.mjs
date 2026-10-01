@@ -78,6 +78,12 @@ for (const width of [320, 390]) test(`Inline fields wrap without losing touch ta
       const rect = await control.boundingBox(); assert(rect.height >= 44 && rect.width >= 44);
       assert(await control.evaluate(el => { const r = el.getBoundingClientRect(); return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }));
     }
+    const value = page.getByRole('combobox', { name: 'OS', exact: true }).locator('[data-slot="select-value"]');
+    assert(await value.evaluate(el => {
+      const trigger = el.parentElement;
+      const end = trigger.getBoundingClientRect().right - parseFloat(getComputedStyle(trigger).paddingRight);
+      return el.scrollWidth > el.clientWidth && el.getBoundingClientRect().right <= end && getComputedStyle(el).textOverflow === 'ellipsis';
+    }), 'Long selected values stay outside the chevron padding');
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/fields-${width}.png`, fullPage: true });
   } finally { await page.close(); }
 });

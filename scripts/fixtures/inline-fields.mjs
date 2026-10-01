@@ -18,7 +18,7 @@ function Fixture() {
       h(FormField, { label: 'RAM', layout: 'inline', controlSize, suffix: 'GB', leading: icon, hint: 'Total available memory.', error: error ? 'Enter at least 1 GB.' : undefined, disabled, type: 'number', min: 1, value: ram, onChange: event => { setRam(event.target.value); setChanges(n => n + 1); } }),
       h(Select, { value: os, onValueChange: value => { setOs(value); setChanges(n => n + 1); } },
         h(FormField, { label: 'OS', layout: 'inline', controlSize, hint: 'Target operating system.' }, h(SelectTrigger, null, h(SelectValue))),
-        h(SelectContent, null, h(SelectItem, { value: 'linux' }, 'GNU/Linux'), h(SelectItem, { value: 'windows' }, 'Windows'), h(SelectItem, { value: 'macos' }, 'macOS')),
+        h(SelectContent, null, h(SelectItem, { value: 'linux' }, params.has('long') ? 'GNU/Linux based operating systems for x86-64 servers and workstations' : 'GNU/Linux'), h(SelectItem, { value: 'windows' }, 'Windows'), h(SelectItem, { value: 'macos' }, 'macOS')),
       ),
       h(FormField, { label: 'Connections', layout: 'inline', controlSize, type: 'number', defaultValue: 100 }),
       h(FormField, { label: 'Managed value', layout: 'inline', controlSize, disabled: true, defaultValue: 'Inherited' }),
