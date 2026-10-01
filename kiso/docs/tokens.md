@@ -319,25 +319,46 @@ No gallery CSS or JavaScript is required.
 
 | Attribute | Values | Default when omitted |
 | --- | --- | --- |
-| `data-border-style` | `square`, `soft`, `round`, `asym`, `rail`, `dash`, `bevel`, `double`, `base`, `offset` | Square panels and existing control radii |
+| `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset` | Solid outline |
+| `data-corner-style` | `square`, `soft`, `round`, `asym` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `dots` | `ticks` |
 | `data-mark-size` | `small`, `medium`, `large` | `medium` |
 | `data-visual-style` | `default`, `editorial` | `default` |
 | `data-app-shell` | `default`, `inset` | `default` |
 
-`data-corner-size` scales the radii selected by `data-border-style`: `off`
+Border treatment and corner shape are independent. `none` removes panel
+outlines, decorative edges, shadows and corner marks. It keeps panel surfaces,
+internal separators, control borders, status rails and focus indicators.
+It applies to the same frames as the other border styles: cards, tables,
+dialogs, drawers, palettes, log viewers, code blocks and inset shell content.
+Menus and tooltips keep their own outlines and elevation.
+
+| Corner shape | Panel radius | Control radius |
+| --- | --- | --- |
+| `square` | 0px | 4px |
+| `soft` | 8px | 4px |
+| `round` | 16px | 8px |
+| `asym` | 12px / 3px | 6px / 2px |
+
+`data-corner-size` scales the radii selected by `data-corner-style`: `off`
 sets them to zero; `small`, `medium`, and `large` use 0.5, 1, and 1.5 times
 that style's radii. Square panels stay square and their control radii stay
 unchanged unless the size is `off`. Size does not hide marks; use
-`data-corner-marks="none"` for that.
+`data-corner-marks="none"` for that. Border style `none` also suppresses marks
+without changing the saved mark choice.
+
+Legacy `data-border-style="square"`, `"soft"`, `"round"` and `"asym"`
+remain supported with their original radii. Set `data-corner-style` to override
+those radii. An explicit corner choice is inherited through nested border
+scopes. A nested border scope can restore an outline inside a frameless region.
 
 Mark sizes set `--corner-mark-tick` and `--corner-mark-gap` to 2px/1px,
 4px/2px, or 8px/4px. Border styles override the existing radius tokens.
 The generated token defaults remain unchanged.
 
 ```html
-<html lang="en" data-accent="terracotta" data-border-style="soft"
+<html lang="en" data-accent="terracotta" data-border-style="solid" data-corner-style="soft"
   data-corner-size="small" data-corner-marks="arcs" data-mark-size="medium">
 ```
 

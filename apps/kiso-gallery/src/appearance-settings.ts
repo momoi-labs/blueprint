@@ -1,6 +1,7 @@
 import type { Accent } from "@momoi-labs/kiso-react";
 
-export type BorderStyle = "square" | "soft" | "round" | "asym" | "rail" | "dash" | "bevel" | "double" | "base" | "offset";
+export type BorderStyle = "solid" | "none" | "rail" | "dash" | "bevel" | "double" | "base" | "offset";
+export type CornerStyle = "square" | "soft" | "round" | "asym";
 export type CornerMarks = "none" | "ticks" | "brackets" | "arcs" | "dots";
 export type Size = "off" | "small" | "medium" | "large";
 export type MarkSize = Exclude<Size, "off">;
@@ -8,6 +9,7 @@ export interface AppearanceSettings {
   theme: string;
   accent: Accent;
   borderStyle: BorderStyle;
+  cornerStyle: CornerStyle;
   cornerMarks: CornerMarks;
   cornerSize: Size;
   markSize: MarkSize;
@@ -30,6 +32,7 @@ export function appearanceCode(settings: AppearanceSettings) {
     ...(settings.theme === "system" ? [] : [["data-theme", settings.theme]]),
     ["data-accent", settings.accent],
     ["data-border-style", settings.borderStyle],
+    ["data-corner-style", settings.cornerStyle],
     ["data-corner-marks", settings.cornerMarks],
     ["data-corner-size", settings.cornerSize],
     ["data-mark-size", settings.markSize],

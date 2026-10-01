@@ -3,7 +3,8 @@
   const options = {
     theme: ["system", "light", "dark"],
     accent: ["violet", "terracotta", "teal", "cobalt", "nocturne"],
-    borderStyle: ["square", "soft", "round", "asym", "rail", "dash", "bevel", "double", "base", "offset"],
+    borderStyle: ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset"],
+    cornerStyle: ["square", "soft", "round", "asym"],
     cornerMarks: ["ticks", "none", "brackets", "arcs", "dots"],
     cornerSize: ["medium", "small", "large", "off"],
     markSize: ["medium", "small", "large"],
@@ -11,8 +12,16 @@
     appShell: ["default", "inset"],
   };
   const defaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
-  const attributes = { theme: "theme", accent: "accent", borderStyle: "borderStyle", cornerMarks: "cornerMarks", cornerSize: "cornerSize", markSize: "markSize", visualStyle: "visualStyle", appShell: "appShell" };
+  const attributes = { theme: "theme", accent: "accent", borderStyle: "borderStyle", cornerStyle: "cornerStyle", cornerMarks: "cornerMarks", cornerSize: "cornerSize", markSize: "markSize", visualStyle: "visualStyle", appShell: "appShell" };
   function validate(value) {
+    // Split the old radius presets into border and corner choices.
+    if (options.cornerStyle.includes(value?.borderStyle)) {
+      value = { ...value, cornerStyle: value.cornerStyle ?? value.borderStyle, borderStyle: "solid" };
+    }
+    // Earlier decorative borders used rounded corners.
+    if (value?.cornerStyle === undefined && options.borderStyle.includes(value?.borderStyle) && !["solid", "none"].includes(value.borderStyle)) {
+      value = { ...value, cornerStyle: "soft" };
+    }
     // Carry forward the earlier heading-only preference.
     if (value?.visualStyle === undefined && options.visualStyle.includes(value?.pageHeader)) {
       value = { ...value, visualStyle: value.pageHeader };

@@ -156,9 +156,9 @@
   transform: translate(-50%, -50%);
   width: min(32rem, calc(100vw - 2 * var(--spacing-lg)));
   background: var(--color-elevated-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-surface);
-  box-shadow: var(--shadow-md);
+  border: 1px var(--appearance-panel-border, solid) var(--color-border);
+  border-radius: var(--appearance-corners, var(--radius-surface));
+  box-shadow: var(--appearance-frame-shadow, var(--shadow-md));
 }
 .dialog-scroll {
   max-height: calc(100dvh - 2 * var(--spacing-xl));
@@ -337,8 +337,8 @@
   display: flex;
   flex-direction: column;
   background: var(--color-elevated-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
+  border: 1px var(--appearance-panel-border, solid) var(--color-border);
+  box-shadow: var(--appearance-frame-shadow, var(--shadow-md));
 }
 .kiso-react-drawer[data-placement="side"] {
   inset-block: 0;

@@ -37,17 +37,17 @@ for (const visualStyle of ["Default", "Editorial"]) {
     try {
       await page.goto(`${url}#appearance`);
       await page.getByRole("group", { name: "Visual style", exact: true }).getByRole("radio", { name: visualStyle, exact: true }).check();
-      for (const border of ["asym", "square", "soft", "round", "rail", "dash", "bevel", "double", "base", "offset"]) {
+      for (const border of ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset"]) {
         await page.goto(`${url}#appearance`);
         await page.locator("summary", { hasText: /^Borders$/ }).click();
-        await page.locator(`.appearance-choices input[value="${border}"]`).check();
+        await page.getByRole('group', { name: 'Border style', exact: true }).locator(`input[value="${border}"]`).check();
         const expected = await page.locator(".appearance-preview-grid > .card").evaluate(panelStyle);
         await page.goto(`${url}#components`);
         const cards = page.locator(".catalog-masonry > .catalog-section");
         await cards.first().waitFor();
         const actual = await cards.first().evaluate(panelStyle);
         assert.deepEqual(actual, expected, `Catalog card follows ${border}`);
-        if (screenshots && ["asym", "dash"].includes(border)) await cards.first().screenshot({ path: `${screenshots}/catalog-${visualStyle}-${border}.png` });
+        if (screenshots && ["none", "dash"].includes(border)) await cards.first().screenshot({ path: `${screenshots}/catalog-${visualStyle}-${border}.png` });
       }
     } finally { await page.close(); }
   });
@@ -216,14 +216,14 @@ for (const frame of ["default", "inset"]) {
       assert.notEqual(await layout.locator("..").getAttribute("open"), null, "Groups open independently");
       const borders = settings.locator("summary", { hasText: /^Borders$/ });
       await borders.click();
-      await settings.getByRole("radio", { name: /Wide round/ }).check();
+      await settings.getByRole("radio", { name: /^Wide / }).check();
       assert.equal(await preview.locator(".card").first().evaluate(el => getComputedStyle(el).borderRadius), "16px");
       await borders.focus();
       await page.keyboard.press("Space");
       assert.equal(await borders.locator("..").getAttribute("open"), null);
       assert(await borders.evaluate(el => el === document.activeElement));
       await page.keyboard.press("Enter");
-      assert(await settings.getByRole("radio", { name: /Wide round/ }).isChecked());
+      assert(await settings.getByRole("radio", { name: /^Wide / }).isChecked());
       assert.equal(await page.getByLabel("Service name", { exact: true }).inputValue(), "api-staging");
       await settings.evaluate(el => { el.scrollTop = 0; });
       await page.mouse.move(settingsBox.x + settingsBox.width / 2, settingsBox.y + 100);
