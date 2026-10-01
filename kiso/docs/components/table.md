@@ -83,13 +83,57 @@ Density is a presentation choice, not a named color variant:
 | Density | Use | Tokens |
 | --- | --- | --- |
 | `comfortable` | Default for most product tables. | Cell padding `--spacing-sm` block, `--spacing-md` inline. All five body typography properties. |
-| `compact` | Ops dashboards, wide schemas, log-like grids. | Cell padding `--spacing-xs` block, `--spacing-sm` inline. Same five body typography properties (do not shrink below readable). |
+| `compact` | Ops dashboards, wide schemas, log-like grids. | Cell padding `--spacing-xs` block, `--spacing-sm` inline. Same body typography. |
+| `spacious` | Short comparison tables and content opened for reading. | Cell padding `--spacing-lg` block, `--spacing-md` inline. Same body typography. |
 
-Header background `--color-surface`. Body rows `--color-surface` on
+The default tinted header uses `--color-muted`; a plain header uses
+`--color-surface` with `--color-foreground` text. Both stay opaque while sticky. Body rows `--color-surface` on
 `--color-background` page canvas, or zebra with alternating
 `--color-elevated-surface` / `--color-surface` when it aids scanning — never
 raw stripes. Borders `--color-border`. Text `--color-foreground`; secondary
 cell metadata `--color-muted-foreground`.
+
+### Presentation in React and CSS
+
+`Table` accepts `density="compact" | "comfortable" | "spacious"` and
+`header="tinted" | "plain"`. Omitting these props keeps the existing
+comfortable density and tinted header. CSS consumers set `data-density` and
+`data-header` on `.table`. Density changes padding, not font size.
+
+`TableFrame` renders the existing `.table-wrap` around Table. Its default
+frame follows the application border style. `frame="none"` removes the outer
+border, background, rounding, shadows, decorative edges and corner marks;
+row separators remain. CSS consumers set `data-frame="none"` on `.table-wrap`.
+A plain header remains an independent choice, including in a framed table.
+
+```tsx
+<TableFrame frame="none">
+  <Table density="spacious" header="plain" aria-labelledby="memory-title">
+    {/* TableHeader and TableBody */}
+  </Table>
+</TableFrame>
+```
+
+Table still renders only its scroll container and semantic table. Existing
+consumers that own `.table-wrap` do not gain a second frame. Replace that
+wrapper with TableFrame when a React prop is useful. Keep the scroll container
+inside the frame so rounding clips cell backgrounds without clipping marks.
+
+### Grouped comparisons and inline details
+
+Give each section its own heading and labelled table. Keep column widths
+consistent across sections with `colgroup`. Use numeric alignment for quantities
+and code typography for parameter identifiers. The product owns selection and
+formatting. An active column can use `--color-accent-surface` and a subdued
+reference column `--color-muted`; add a visible selected marker and expose the
+profile button's state with `aria-pressed`. Expanded rows are not selected rows.
+
+Use a named Button with `aria-expanded` and `aria-controls` to reveal an
+adjacent TableRow. Its TableCell spans every column. Give that row the
+`table-detail` class for reading padding independent of table density. Keep
+focus on the trigger, remove hidden controls from the tab order, and put
+side-by-side explanations in a responsive layout inside the detail cell.
+Do not place a Disclosure or a div directly between table rows.
 
 ### Column behaviors
 
@@ -114,7 +158,9 @@ Table has no `sm` / `md` / `lg` control scale like Button. Size comes from:
 | Radius | Outer wrapper `--radius-surface`; internal cells are square. The wrapper is a panel and carries corner marks. Scrolling moves to an inner element so the marks, which sit just outside the frame, are not clipped. |
 | Checkbox / IconButton in cells | `sm` controls so row height stays dense. |
 
-Do not invent a fourth density. Do not set row height in raw pixels.
+The supported densities are `compact`, `comfortable`, and `spacious`.
+Do not set row height in raw pixels. Interactive controls retain their touch
+target minimum regardless of density.
 
 ## States
 

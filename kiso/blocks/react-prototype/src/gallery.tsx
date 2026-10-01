@@ -1,3 +1,4 @@
+import { TableDemo } from "./table-demo";
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { FilterInputDemo } from "./filter-input-demo";
@@ -1333,37 +1334,7 @@ function Demo({
         </div>
       );
     case "table":
-      return (
-        <div className="table-wrap">
-          <Table aria-label="Example projects">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="num">Tasks</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {["Website", "Brand guide"].map((name, i) => (
-                <TableRow key={name}>
-                  <TableCell>
-                    <Link href={`#components/table`}>{name}</Link>
-                  </TableCell>
-                  <TableCell>Alex Morgan</TableCell>
-                  <TableCell>
-                    <Badge variant={i ? "warning" : "success"}>
-                      {i ? "in review" : "active"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="num">{i}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <p className="table-footer">2 projects</p>
-        </div>
-      );
+      return <TableDemo />;
     case "empty-state":
       return (
         <Card>
