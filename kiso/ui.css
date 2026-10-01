@@ -1019,7 +1019,7 @@ table.table {
 .pagination { display: flex; align-items: center; gap: var(--spacing-xs); }
 .pagination .btn[aria-current="page"] { background: var(--color-secondary); }
 
-.app-shell { display: grid; grid-template-columns: var(--size-sidebar) minmax(0, 1fr); min-height: 100vh; }
+.app-shell { --app-shell-sidebar-width: var(--size-sidebar); --app-shell-panel-offset: 0px; display: grid; grid-template-columns: var(--app-shell-sidebar-width) minmax(0, 1fr); min-height: 100vh; }
 .app-shell[data-layout="topbar"] { grid-template-columns: minmax(0, 1fr); }
 /* An explicit variant overrides the document Appearance preference. */
 .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
@@ -1076,7 +1076,7 @@ table.table {
 .sidebar-toggle { justify-self: end; }
 /* Collapse belongs to the desktop rail. Narrow layouts keep navigation visible. */
 @media (min-width: 1024px) {
-  .app-shell:has(> .sidebar[data-collapsed="true"]) { grid-template-columns: calc(var(--size-touch-min) + 2 * var(--spacing-md)) minmax(0, 1fr); }
+  .app-shell:has(> .sidebar[data-collapsed="true"]) { --app-shell-sidebar-width: calc(var(--size-touch-min) + 2 * var(--spacing-md)); grid-template-columns: var(--app-shell-sidebar-width) minmax(0, 1fr); }
   .sidebar[data-collapsed="true"] :is(.sidebar-expanded-content, .nav-group > .t-caps, .sidebar-link-trailing) { display: none; }
   .sidebar[data-collapsed="true"] .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); padding: var(--spacing-sm); }
   .sidebar[data-collapsed="true"] .sidebar-toggle { justify-self: center; }
@@ -1087,6 +1087,50 @@ table.table {
   }
   .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) { height: auto; min-height: var(--size-control-sm); padding-block: var(--spacing-sm); }
   .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) .sidebar-link-label { white-space: normal; overflow-wrap: anywhere; text-align: center; }
+}
+
+/* Optional context panel. Hidden rails release their entire grid track. */
+.app-shell:has(> .sidebar[hidden]) { grid-template-columns: minmax(0, 1fr); }
+.app-shell > :is(.sidebar, .app-shell-panel)[hidden] { display: none; }
+.app-shell-panel {
+  display: flex; flex-direction: column;
+  min-width: 0; min-height: 0;
+  position: sticky; top: 0; align-self: start;
+  height: 100dvh; overflow: auto;
+  background: var(--color-surface);
+  border-inline-start: 1px solid var(--color-border);
+}
+.app-shell-panel-toggle[data-placement="floating"] {
+  position: fixed; top: 50%; inset-inline-end: var(--app-shell-panel-offset, 0px);
+  transform: translateY(-50%); z-index: 10;
+  height: auto; min-width: var(--size-touch-min); min-height: var(--size-touch-min);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-elevated-surface); box-shadow: var(--shadow-sm);
+}
+@media (min-width: 1024px) {
+  .app-shell-panel-toggle[data-placement="floating"][aria-expanded="true"] {
+    inset-inline-end: calc(var(--app-shell-panel-width, var(--size-sidebar)) + var(--app-shell-panel-offset, 0px));
+  }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-panel-offset: var(--spacing-lg); }
+}
+@media (min-width: 1024px) {
+  .app-shell:has(> .app-shell-panel:not([hidden])) {
+    grid-template-columns: var(--app-shell-sidebar-width) minmax(0, 1fr) var(--app-shell-panel-width, var(--size-sidebar));
+  }
+  .app-shell:is([data-layout="topbar"], :not(:has(> .sidebar:not([hidden])))):has(> .app-shell-panel:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr) var(--app-shell-panel-width, var(--size-sidebar));
+  }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .app-shell-panel {
+    top: var(--spacing-lg);
+    height: calc(100dvh - 2 * var(--spacing-lg));
+  }
+}
+@media (max-width: 1023px) {
+  .app-shell-panel {
+    position: static; height: auto; max-height: 50dvh;
+    border-inline-start: 0; border-block-start: 1px solid var(--color-border);
+  }
 }
 .nav-group { display: grid; gap: var(--spacing-2xs); }
 .nav-group > .t-caps { padding-inline: var(--spacing-sm); margin-block-end: var(--spacing-2xs); }

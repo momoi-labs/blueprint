@@ -42,6 +42,31 @@ function AppShellMain({ className, ...props }: React.ComponentProps<"main">) {
   )
 }
 
+function AppShellPanel({ className, ...props }: React.ComponentProps<"aside">) {
+  return <aside data-slot="app-shell-panel" className={cn("app-shell-panel", className)} {...props} />
+}
+
+function AppShellPanelToggle({
+  className,
+  placement = "header",
+  children,
+  "aria-label": label,
+  ...props
+}: React.ComponentProps<typeof Button> & {
+  placement?: "header" | "floating"
+  "aria-controls": string
+  "aria-expanded": boolean
+}) {
+  return <Button variant="ghost" size="sm" data-slot="app-shell-panel-toggle"
+    data-placement={placement} className={cn("app-shell-panel-toggle", className)}
+    aria-label={label ?? (props["aria-expanded"] ? "Close panel" : "Open panel")}
+    title={label ?? (props["aria-expanded"] ? "Close panel" : "Open panel")} {...props}>
+    {children ?? <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="1.5" y="2" width="13" height="12" rx="1.5" /><path d="M10.5 2v12" />
+    </svg>}
+  </Button>
+}
+
 type ApplicationShellDestination = {
   href: string
   active?: boolean
@@ -64,6 +89,7 @@ type ApplicationShellSharedProps = Omit<
   brand: React.ReactNode
   primaryAction?: React.ReactNode
   header?: React.ReactNode
+  panel?: React.ReactNode
   children: React.ReactNode
 }
 
@@ -147,7 +173,7 @@ function ApplicationShellNavigation({
 
 function ApplicationShell(props: ApplicationShellProps) {
   if (props.layout === "topbar") {
-    const { brand, primaryAction, header, children, layout: _layout, ...shellProps } =
+    const { brand, primaryAction, header, panel, children, layout: _layout, ...shellProps } =
       props
     return (
       <AppShell {...shellProps} data-layout="topbar">
@@ -159,6 +185,7 @@ function ApplicationShell(props: ApplicationShellProps) {
           </Header>
           {children}
         </AppShellMain>
+        {panel}
       </AppShell>
     )
   }
@@ -173,6 +200,7 @@ function ApplicationShellSidebar({
   navigationLabel = "Primary",
   footer,
   header,
+  panel,
   children,
   layout: _layout,
   collapsible = false,
@@ -250,11 +278,12 @@ function ApplicationShellSidebar({
         </Header>}
         {children}
       </AppShellMain>
+      {panel}
     </AppShell>
   )
 }
 
-export { AppShell, AppShellMain, ApplicationShell }
+export { AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, ApplicationShell }
 export type {
   ApplicationShellDestination,
   ApplicationShellGroup,

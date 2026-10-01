@@ -6,6 +6,8 @@ import { join, relative } from 'node:path';
 const tokensPath = process.argv[2] ?? 'tokens/build/tokens.css';
 const docsPath = process.argv[3] ?? 'kiso/docs/components';
 const tokenPattern = /--[a-z][a-z0-9-]*(?:[|*][a-z0-9*|-]*)?/g;
+// Host layout inputs are documented component APIs, not generated design tokens.
+const layoutProperties = new Set(['--app-shell-panel-width']);
 
 async function main() {
   const css = await readFile(tokensPath, 'utf8');
@@ -22,7 +24,7 @@ async function main() {
     for (const [index, line] of lines.entries()) {
       for (const token of line.match(tokenPattern) ?? []) {
         references += 1;
-        if (!emittedTokens.has(token)) {
+        if (!emittedTokens.has(token) && !layoutProperties.has(token)) {
           failures.push(`${relative('.', path)}:${index + 1}: ${token}`);
         }
       }
