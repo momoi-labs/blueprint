@@ -4,7 +4,7 @@
     theme: ["system", "light", "dark"],
     accent: ["violet", "terracotta", "teal", "cobalt", "nocturne"],
     borderStyle: ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset"],
-    cornerStyle: ["square", "soft", "round", "asym"],
+    cornerStyle: ["square", "rounded", "asym"],
     cornerMarks: ["ticks", "none", "brackets", "arcs", "dots"],
     cornerSize: ["medium", "small", "large", "off"],
     markSize: ["medium", "small", "large"],
@@ -15,12 +15,18 @@
   const attributes = { theme: "theme", accent: "accent", borderStyle: "borderStyle", cornerStyle: "cornerStyle", cornerMarks: "cornerMarks", cornerSize: "cornerSize", markSize: "markSize", visualStyle: "visualStyle", appShell: "appShell" };
   function validate(value) {
     // Split the old radius presets into border and corner choices.
-    if (options.cornerStyle.includes(value?.borderStyle)) {
+    if (["square", "soft", "round", "asym"].includes(value?.borderStyle)) {
       value = { ...value, cornerStyle: value.cornerStyle ?? value.borderStyle, borderStyle: "solid" };
     }
     // Earlier decorative borders used rounded corners.
     if (value?.cornerStyle === undefined && options.borderStyle.includes(value?.borderStyle) && !["solid", "none"].includes(value.borderStyle)) {
       value = { ...value, cornerStyle: "soft" };
+    }
+    // Fold the earlier rounded presets into one type and the nearest size.
+    if (value?.cornerStyle === "soft") {
+      value = { ...value, cornerStyle: "rounded", cornerSize: value.cornerSize === "off" ? "off" : value.cornerSize === "large" ? "medium" : "small" };
+    } else if (value?.cornerStyle === "round") {
+      value = { ...value, cornerStyle: "rounded" };
     }
     // Carry forward the earlier heading-only preference.
     if (value?.visualStyle === undefined && options.visualStyle.includes(value?.pageHeader)) {

@@ -92,15 +92,25 @@ test("legacy Off mark size migrates to None without enabling marks", () => {
 for (const cornerStyle of ["square", "soft", "round", "asym"]) test(`migrates the ${cornerStyle} border preset into an independent corner choice`, () => {
   const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ borderStyle: cornerStyle, cornerSize: "large" }) });
   assert.equal(dataset.borderStyle, "solid");
-  assert.equal(dataset.cornerStyle, cornerStyle);
-  assert.equal(dataset.cornerSize, "large");
+  assert.equal(dataset.cornerStyle, ["soft", "round"].includes(cornerStyle) ? "rounded" : cornerStyle);
+  assert.equal(dataset.cornerSize, cornerStyle === "soft" ? "medium" : "large");
 });
 
 test("frameless borders retain the saved corner and mark choices", () => {
   const { api, storage } = boot();
-  api.save({ ...api.defaults, borderStyle: "none", cornerStyle: "round", cornerMarks: "arcs" });
+  api.save({ ...api.defaults, borderStyle: "none", cornerStyle: "rounded", cornerMarks: "arcs" });
   const { dataset } = boot(Object.fromEntries(storage));
   assert.equal(dataset.borderStyle, "none");
-  assert.equal(dataset.cornerStyle, "round");
+  assert.equal(dataset.cornerStyle, "rounded");
   assert.equal(dataset.cornerMarks, "arcs");
+});
+
+for (const source of ["borderStyle", "cornerStyle"]) test(`normalizes saved rounded presets from ${source}`, () => {
+  for (const [preset, size, expected] of [["soft", "medium", "small"], ["soft", "off", "off"], ["round", "large", "large"]]) {
+    const { api, dataset, storage } = boot({ "kiso-gallery-appearance": JSON.stringify({ [source]: preset, cornerSize: size }) });
+    assert.equal(dataset.cornerStyle, "rounded");
+    assert.equal(dataset.cornerSize, expected);
+    api.save(api.read());
+    assert.deepEqual(boot(Object.fromEntries(storage)).dataset, dataset);
+  }
 });

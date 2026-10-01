@@ -93,9 +93,9 @@ for (const frame of ["Default", "Inset"]) {
     try {
       await page.goto(`${url}#appearance`);
       await page.getByRole("group", { name: "Application frame", exact: true }).getByRole("radio", { name: frame, exact: true }).check();
-      for (const border of ["round", "asym"]) {
+      for (const border of ["rounded", "asym"]) {
         await page.goto(`${url}#appearance`);
-        await page.locator("summary", { hasText: /^Borders$/ }).click();
+        await page.locator("summary", { hasText: /^Corner style$/ }).click();
         await page.locator(`.appearance-choices input[value="${border}"]`).check();
         await page.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: "Large", exact: true }).check();
         await page.goto(`${url}#example/dashboard`);
@@ -214,16 +214,16 @@ for (const frame of ["default", "inset"]) {
       assert.equal(await colors.locator("..").getAttribute("open"), null);
       const layout = settings.locator("summary", { hasText: /^Layout$/ });
       assert.notEqual(await layout.locator("..").getAttribute("open"), null, "Groups open independently");
-      const borders = settings.locator("summary", { hasText: /^Borders$/ });
+      const borders = settings.locator("summary", { hasText: /^Corner style$/ });
       await borders.click();
-      await settings.getByRole("radio", { name: /^Wide / }).check();
+      await settings.getByRole("radio", { name: /^Rounded / }).check();
       assert.equal(await preview.locator(".card").first().evaluate(el => getComputedStyle(el).borderRadius), "16px");
       await borders.focus();
       await page.keyboard.press("Space");
       assert.equal(await borders.locator("..").getAttribute("open"), null);
       assert(await borders.evaluate(el => el === document.activeElement));
       await page.keyboard.press("Enter");
-      assert(await settings.getByRole("radio", { name: /^Wide / }).isChecked());
+      assert(await settings.getByRole("radio", { name: /^Rounded / }).isChecked());
       assert.equal(await page.getByLabel("Service name", { exact: true }).inputValue(), "api-staging");
       await settings.evaluate(el => { el.scrollTop = 0; });
       await page.mouse.move(settingsBox.x + settingsBox.width / 2, settingsBox.y + 100);

@@ -15,6 +15,7 @@ Add inline FormField labels, decorative icons and described unit suffixes.
 Input, SelectTrigger and FormField now share optional controlSize settings.
 
 Add solid and frameless border styles with independent corner shapes.
+Use `data-corner-style="rounded"` with a separate size to choose roundness.
 Preserve legacy border values and keep control borders and focus visible in
 frameless regions.
 
