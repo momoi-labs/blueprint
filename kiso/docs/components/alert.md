@@ -75,6 +75,36 @@ Do not fill the Alert with the status color. Status color is border, icon,
 and (optionally) title. A solid `--color-danger` panel fights contrast and
 shouts past the content.
 
+### Appearance
+
+Appearance is independent of severity. React accepts
+`appearance="tinted" | "rail"`; tinted preserves the current presentation.
+CSS consumers add `alert-rail` alongside the severity class for the rail
+appearance. Both descriptions use the body typography role.
+
+The rail appearance uses a start border in the severity color, a neutral
+`--color-surface` background and square corners. The icon and title share the
+first line; the description can use the full content width below them.
+It is useful for explanatory notes within longer reading content. Use
+AlertContent around the title and description, including for CSS consumers.
+Its class is `alert-content`.
+
+```tsx
+<Alert variant="warning" appearance="rail" role="note">
+  <WarningIcon className="icon" aria-hidden="true" />
+  <AlertContent>
+    <AlertTitle>Warning</AlertTitle>
+    <AlertDescription>Memory grows with concurrent operations.</AlertDescription>
+  </AlertContent>
+</Alert>
+```
+
+Appearance does not change live-region behavior. Static documentation may use
+`role="note"`; live conditions keep the severity's announcement semantics.
+For rich descriptions, put paragraphs, lists and code inside a
+`<div className="alert-body">` within AlertContent. AlertDescription itself
+renders a paragraph, so do not nest paragraphs or lists inside it.
+
 ### Dismissible vs persistent
 
 | Kind | Behavior |

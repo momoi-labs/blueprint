@@ -1568,41 +1568,15 @@ function Demo({
         </div>
       );
     case "alert":
-      return (
-        <div className="stack">
-          {(
-            [
-              [
-                "info",
-                "Workspace setup required",
-                "Add a name and email to your profile.",
-              ],
-              [
-                "success",
-                "Project saved",
-                "Website refresh is ready.",
-              ],
-              [
-                "warning",
-                "Project archived",
-                "Restore the project to continue working on it.",
-              ],
-              [
-                "error",
-                "Could not save",
-                "The request failed. Try again.",
-              ],
-            ] as const
-          ).map(([variant, title, description]) => (
-            <Alert key={variant} variant={variant}>
-              <AlertContent>
-                <AlertTitle>{title}</AlertTitle>
-                <AlertDescription>{description}</AlertDescription>
-              </AlertContent>
-            </Alert>
-          ))}
-        </div>
-      );
+      return <div className="stack">
+        {(["tinted", "rail"] as const).map(appearance => <section className="stack-sm" key={appearance}>
+          <h3 className="t-h3">{appearance === "rail" ? "Start border" : "Tinted"}</h3>
+          {(["info", "success", "warning", "error"] as const).map(variant => <Alert key={variant} variant={variant} appearance={appearance} role="note">
+            <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" /><path d="M8 4v5M8 11v1" /></svg>
+            <AlertContent><AlertTitle>{variant[0].toUpperCase() + variant.slice(1)}</AlertTitle><AlertDescription>Review the configuration and its effect on concurrent operations.</AlertDescription></AlertContent>
+          </Alert>)}
+        </section>)}
+      </div>;
     case "spinner":
       return (
         <div className="stack">

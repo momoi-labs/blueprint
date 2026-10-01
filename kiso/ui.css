@@ -794,15 +794,31 @@ table.table {
 }
 .alert .icon { margin-block-start: 2px; }
 .alert-title { font-weight: var(--type-weight-medium); }
-.alert-body  { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
-.alert-info    { background: var(--color-info-surface);    border-color: var(--color-info-border); }
+.alert-body  {
+  color: var(--color-muted-foreground);
+  font-family: var(--type-role-body-font-family);
+  font-size: var(--type-role-body-font-size);
+  font-weight: var(--type-role-body-font-weight);
+  line-height: var(--type-role-body-line-height);
+  letter-spacing: var(--type-role-body-letter-spacing);
+}
+.alert-info    { --alert-tone: var(--color-info); background: var(--color-info-surface); border-color: var(--color-info-border); }
 .alert-info    > .icon { color: var(--color-info); }
-.alert-success { background: var(--color-success-surface); border-color: var(--color-success-border); }
+.alert-success { --alert-tone: var(--color-success); background: var(--color-success-surface); border-color: var(--color-success-border); }
 .alert-success > .icon { color: var(--color-success); }
-.alert-warning { background: var(--color-warning-surface); border-color: var(--color-warning-border); }
+.alert-warning { --alert-tone: var(--color-warning); background: var(--color-warning-surface); border-color: var(--color-warning-border); }
 .alert-warning > .icon { color: var(--color-warning); }
-.alert-danger  { background: var(--color-danger-surface);  border-color: var(--color-danger-border); }
+.alert-danger  { --alert-tone: var(--color-danger); background: var(--color-danger-surface); border-color: var(--color-danger-border); }
 .alert-danger  > .icon { color: var(--color-danger); }
+.alert-rail {
+  position: relative; display: block;
+  border: 0; border-inline-start: var(--spacing-xs) solid var(--alert-tone, var(--color-info));
+  border-radius: 0; background: var(--color-surface);
+}
+.alert-rail > .icon { position: absolute; inset-inline-start: var(--spacing-md); inset-block-start: var(--spacing-md); }
+.alert-rail > .icon + .alert-content > .alert-title { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-sm)); }
+.alert-rail .alert-title { color: var(--alert-tone, var(--color-info)); }
+.alert-content { min-width: 0; overflow-wrap: anywhere; }
 
 /* ===========================================================================
    Dialog / drawer / overlay

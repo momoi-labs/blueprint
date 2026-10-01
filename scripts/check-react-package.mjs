@@ -86,6 +86,8 @@ try {
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
+    assert.match(render(h(Alert, { appearance: 'rail', variant: 'warning', role: 'note' })), /role="note"/);
+    assert.match(render(h(Alert, { appearance: 'rail' })), /alert-rail/);
     const table = render(h(TableFrame, { frame: 'none' }, h(Table, { density: 'spacious', header: 'plain' })));
     assert.match(table, /data-frame="none"/);
     assert.match(table, /data-density="spacious"/);
@@ -276,7 +278,7 @@ try {
     '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame,
+    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert,
       Toasts, useToast } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
@@ -284,6 +286,7 @@ try {
       return <Button onClick={() => notify('success', 'Saved')}>Save</Button>;
     }
     createRoot(document.getElementById('root')!).render(<>
+      <Alert appearance="rail" variant="warning" role="note" />
       <TableFrame frame="none"><Table density="spacious" header="plain" /></TableFrame>
       <Button variant="primary">Save</Button><FormField label="Name" hint="Required" />
       <FormField label="Compose" error="Required"><Textarea /></FormField>
