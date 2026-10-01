@@ -7,19 +7,23 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, ThemeSelector,
 } from "@momoi-labs/kiso-react";
 import { AppearanceUsage } from "./appearance-usage";
-import type { AppearanceSettings, BorderStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
+import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 
 const borders: { value: BorderStyle; label: string; description: string }[] = [
-  { value: "square", label: "Current square", description: "Straight corners" },
-  { value: "soft", label: "Subtle round", description: "Small, rounded corners" },
-  { value: "round", label: "Wide round", description: "Larger, rounded corners" },
-  { value: "asym", label: "Asymmetric", description: "Two opposite, wider corners" },
+  { value: "solid", label: "Solid", description: "A single outline" },
+  { value: "none", label: "None", description: "No panel outline, shadow, or marks" },
   { value: "rail", label: "Side rail", description: "A stronger left edge" },
   { value: "dash", label: "Dashed outline", description: "Short dashes around the panel" },
   { value: "bevel", label: "Inset edge", description: "A recessed outline" },
   { value: "double", label: "Double outline", description: "Two lines, set close together" },
   { value: "base", label: "Weighted base", description: "A stronger bottom edge" },
   { value: "offset", label: "Offset outline", description: "A solid, shifted shadow" },
+];
+const corners: { value: CornerStyle; label: string; description: string }[] = [
+  { value: "square", label: "Square", description: "Straight panels, small control corners" },
+  { value: "soft", label: "Subtle", description: "Small, rounded corners" },
+  { value: "round", label: "Wide", description: "Larger, rounded corners" },
+  { value: "asym", label: "Asymmetric", description: "Two opposite, wider corners" },
 ];
 const marks: { value: CornerMarks; label: string }[] = [
   { value: "none", label: "None" },
@@ -63,6 +67,7 @@ export function Appearance({ settings, onChange, onReset }: {
   onReset: () => void;
 }) {
   const borderName = useId();
+  const cornerName = useId();
   const markName = useId();
   const styleName = useId();
   const frameName = useId();
@@ -184,8 +189,23 @@ export function Appearance({ settings, onChange, onReset }: {
                 </label>)}
               </div>
             </fieldset>
+            <fieldset className="appearance-choices">
+              <legend className="t-h3">Corner shape</legend>
+              <div className="appearance-options">
+                {corners.map(corner => <label className="appearance-option" key={corner.value}>
+                  <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} onChange={() => onChange({ cornerStyle: corner.value })} />
+                  <span className="appearance-option-body">
+                    <span className="appearance-swatch" data-border-style="solid" data-corner-style={corner.value} aria-hidden="true">
+                      <span className="card appearance-sample"><i /><i /></span>
+                    </span>
+                    <span className="t-label">{corner.label}</span>
+                    <span className="muted t-label">{corner.description}</span>
+                  </span>
+                </label>)}
+              </div>
+            </fieldset>
             <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />
-            <p className="muted t-label">Corner size Off removes rounding.</p>
+            <p className="muted t-label">Corner shape and size apply independently of the border. Off removes all rounding.</p>
           </Disclosure>
           <Disclosure summary="Corner marks">
             <fieldset className="appearance-choices">

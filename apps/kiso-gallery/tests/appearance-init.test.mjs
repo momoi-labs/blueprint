@@ -20,7 +20,7 @@ function boot(values = {}, blocked = false) {
 }
 
 test("restores the complete appearance before React starts", () => {
-  const saved = { theme: "dark", accent: "teal", borderStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small", visualStyle: "editorial", appShell: "inset" };
+  const saved = { theme: "dark", accent: "teal", borderStyle: "solid", cornerStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small", visualStyle: "editorial", appShell: "inset" };
   const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify(saved) });
   assert.deepEqual(dataset, saved);
 });
@@ -29,7 +29,7 @@ test("retains the existing theme and accent storage keys", () => {
   const { dataset } = boot({ "kiso-theme": "light", "kiso-accent": "nocturne" });
   assert.equal(dataset.theme, "light");
   assert.equal(dataset.accent, "nocturne");
-  assert.equal(dataset.borderStyle, "square");
+  assert.equal(dataset.borderStyle, "solid");
   assert.equal(dataset.visualStyle, "default");
   assert.equal(dataset.appShell, "default");
 });
@@ -49,7 +49,7 @@ test("migrates the heading preference without overriding a saved visual style", 
 test("ignores malformed storage and unsupported values", () => {
   for (const stored of ["{broken", "null", "42", '"text"', '{"borderStyle":"cut","cornerSize":"huge","theme":"invalid"}']) {
     const { dataset } = boot({ "kiso-gallery-appearance": stored });
-    assert.equal(dataset.borderStyle, "square");
+    assert.equal(dataset.borderStyle, "solid");
     assert.equal(dataset.cornerSize, "medium");
     assert.equal(dataset.theme, undefined);
   }
@@ -72,11 +72,11 @@ test("persists changes, restores them on reload, and resets system mode", () => 
 
 test("blocked storage still allows live changes and defaults on reload", () => {
   const { api, dataset } = boot({}, true);
-  assert.equal(dataset.borderStyle, "square");
+  assert.equal(dataset.borderStyle, "solid");
   assert.doesNotThrow(() => api.save({ ...api.defaults, theme: "light", borderStyle: "round" }));
-  assert.equal(dataset.borderStyle, "round");
+  assert.equal(dataset.borderStyle, "solid");
   assert.equal(dataset.theme, "light");
-  assert.equal(boot({}, true).dataset.borderStyle, "square");
+  assert.equal(boot({}, true).dataset.borderStyle, "solid");
 });
 
 test("legacy Off mark size migrates to None without enabling marks", () => {
@@ -85,6 +85,22 @@ test("legacy Off mark size migrates to None without enabling marks", () => {
   const { dataset } = boot(Object.fromEntries(storage));
   assert.equal(dataset.cornerSize, "off");
   assert.equal(dataset.markSize, "medium");
-  assert.equal(dataset.borderStyle, "round");
+  assert.equal(dataset.borderStyle, "solid");
   assert.equal(dataset.cornerMarks, "none");
+});
+
+for (const cornerStyle of ["square", "soft", "round", "asym"]) test(`migrates the ${cornerStyle} border preset into an independent corner choice`, () => {
+  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ borderStyle: cornerStyle, cornerSize: "large" }) });
+  assert.equal(dataset.borderStyle, "solid");
+  assert.equal(dataset.cornerStyle, cornerStyle);
+  assert.equal(dataset.cornerSize, "large");
+});
+
+test("frameless borders retain the saved corner and mark choices", () => {
+  const { api, storage } = boot();
+  api.save({ ...api.defaults, borderStyle: "none", cornerStyle: "round", cornerMarks: "arcs" });
+  const { dataset } = boot(Object.fromEntries(storage));
+  assert.equal(dataset.borderStyle, "none");
+  assert.equal(dataset.cornerStyle, "round");
+  assert.equal(dataset.cornerMarks, "arcs");
 });

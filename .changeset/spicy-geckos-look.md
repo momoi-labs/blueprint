@@ -13,3 +13,7 @@ preserving expanded state, labels and focus recovery.
 
 Add inline FormField labels, decorative icons and described unit suffixes.
 Input, SelectTrigger and FormField now share optional controlSize settings.
+
+Add solid and frameless border styles with independent corner shapes.
+Preserve legacy border values and keep control borders and focus visible in
+frameless regions.
