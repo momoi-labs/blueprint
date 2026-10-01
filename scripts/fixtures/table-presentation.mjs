@@ -7,9 +7,9 @@ Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 
 function Fixture() {
   const [expanded, setExpanded] = useState(false);
   return h('main', { className: 'page' },
-    ...['comfortable', 'compact', 'spacious'].map(density => h(TableFrame, { key: density, id: density, frame: params.has('frameless') ? 'none' : 'default' },
-      h(Table, { density, header: params.has('plain') ? 'plain' : 'tinted', 'aria-label': density },
-        h(TableHeader, null, h(TableRow, null, h(TableHead, null, 'Parameter'), h(TableHead, { className: 'num' }, 'Value'))),
+    ...['comfortable', 'compact', 'spacious'].map(density => h(TableFrame, { key: density, id: density, 'data-fill': 'false', frame: params.has('frameless') ? 'none' : 'default' },
+      h(Table, { density, className: 'comparison-table', header: params.has('plain') ? 'plain' : 'tinted', 'aria-label': density },
+        h(TableHeader, null, h(TableRow, null, h(TableHead, null, 'Parameter'), h(TableHead, { className: 'num', 'data-selected': params.has('selected') || undefined }, 'Value'))),
         h(TableBody, null,
           h(TableRow, null, h(TableCell, null, 'shared_buffers'), h(TableCell, { className: 'num' }, '512 MB')),
           h(TableRow, null, h(TableCell, null, h(Button, { size: 'sm', 'aria-expanded': expanded, 'aria-controls': `${density}-detail`, onClick: () => setExpanded(!expanded) }, 'work_mem')), h(TableCell, { className: 'num' }, '4 MB')),

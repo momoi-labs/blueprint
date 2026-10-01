@@ -766,7 +766,7 @@ table.table {
   color: var(--color-muted-foreground);
   white-space: nowrap;
 }
-.table[data-header="plain"] > thead > tr > th {
+.table[data-header="plain"] > :where(thead) > :where(tr) > :where(th) {
   background: var(--color-surface);
   color: var(--color-foreground);
 }

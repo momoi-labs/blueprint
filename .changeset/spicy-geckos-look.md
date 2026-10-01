@@ -17,3 +17,6 @@ Input, SelectTrigger and FormField now share optional controlSize settings.
 Add solid and frameless border styles with independent corner shapes.
 Preserve legacy border values and keep control borders and focus visible in
 frameless regions.
+
+Keep long inline Select values clear of the chevron and allow selected column
+styles to override the plain table header.
