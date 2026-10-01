@@ -1,3 +1,5 @@
+import { AlertDemo } from "./alert-demo";
+import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { InlineFieldsDemo } from "./inline-fields-demo";
 import { TableDemo } from "./table-demo";
 // Catalogue previews. Every entry renders the published component, so the
@@ -7,13 +9,10 @@ import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccentSelector,
   type Accent,
-  Alert,
-  AlertContent,
-  AlertDescription,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -23,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  AlertTitle,
   AppShell,
   AppShellMain,
   ApplicationShell,
@@ -956,7 +954,7 @@ function AppShellDemo() {
   const [togglePlacement, setTogglePlacement] = useState<"sidebar" | "header">("sidebar");
   return (
     <div className="stack">
-      <label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label>
+      <DemoSettings title="ApplicationShell"><label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label></DemoSettings>
       <ApplicationShell
         collapsible
         togglePlacement={togglePlacement}
@@ -1575,15 +1573,7 @@ function Demo({
         </div>
       );
     case "alert":
-      return <div className="stack">
-        {(["tinted", "rail"] as const).map(appearance => <section className="stack-sm" key={appearance}>
-          <h3 className="t-h3">{appearance === "rail" ? "Start border" : "Tinted"}</h3>
-          {(["info", "success", "warning", "error"] as const).map(variant => <Alert key={variant} variant={variant} appearance={appearance} role="note">
-            <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" /><path d="M8 4v5M8 11v1" /></svg>
-            <AlertContent><AlertTitle>{variant[0].toUpperCase() + variant.slice(1)}</AlertTitle><AlertDescription>Review the configuration and its effect on concurrent operations.</AlertDescription></AlertContent>
-          </Alert>)}
-        </section>)}
-      </div>;
+      return <AlertDemo />;
     case "spinner":
       return (
         <div className="stack">
@@ -1970,7 +1960,9 @@ export function ComponentGallery({
   example,
   examples = [],
   intro,
-  appearance,
+  settingsEnabled = false,
+  panel,
+  settingsToggle,
 }: {
   route: string;
   version?: string;
@@ -1981,8 +1973,19 @@ export function ComponentGallery({
   example?: ReactNode;
   examples?: readonly { id: string; label: string }[];
   intro?: ReactNode;
-  appearance?: ReactNode;
+  settingsEnabled?: boolean;
+  panel?: ReactNode;
+  settingsToggle?: ReactNode;
 }) {
+  const demoSettings = useContext(DemoSettingsContext);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1024px)").matches);
+  useEffect(() => {
+    const media = matchMedia("(min-width: 1024px)");
+    const update = () => setDesktop(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1991,8 +1994,7 @@ export function ComponentGallery({
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
-  const showingAppearance = route === "appearance" && appearance !== undefined;
-  const browsing = !showingAppearance && !showingExample && !showingIntro && selected === "all";
+  const browsing = !showingExample && !showingIntro && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
@@ -2051,6 +2053,7 @@ export function ComponentGallery({
     >
       {!showingIntro && <Sidebar
         id="component-navigation"
+        hidden={desktop && navigationCollapsed}
         className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
       >
         <SidebarHeader>
@@ -2060,13 +2063,6 @@ export function ComponentGallery({
           </a>
         </SidebarHeader>
         <SidebarBody>
-          {appearance !== undefined && (
-            <Navigation aria-label="Gallery settings">
-              <NavigationList><NavigationItem>
-                <NavigationLink href="#appearance" active={showingAppearance}>Appearance</NavigationLink>
-              </NavigationItem></NavigationList>
-            </Navigation>
-          )}
           {showingExample && examples.length > 0 ? (
             <Navigation aria-label="Example layouts">
               <NavigationGroup label="Layouts">
@@ -2109,12 +2105,18 @@ export function ComponentGallery({
           </Navigation>
           )}
         </SidebarBody>
-        {appearance === undefined && <SidebarFooter>
+        {!settingsEnabled && <SidebarFooter>
           <ThemeSelector theme={theme} onChange={onThemeChange} />
         </SidebarFooter>}
       </Sidebar>}
       <AppShellMain>
         <Header className="catalog-header">
+          {!showingIntro && <Button className="catalog-sidebar-toggle" size="sm" variant="ghost"
+            aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
+            aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
+            onClick={() => setNavigationCollapsed(value => !value)}>
+            <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="1" /><path d="M5 2v12" /></svg>
+          </Button>}
           {!showingIntro && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
               <BrandMark><TerminalIcon /></BrandMark>
@@ -2129,7 +2131,7 @@ export function ComponentGallery({
                 </NavigationItem>
               )}
               <NavigationItem>
-                <NavigationLink href="#components" active={!showingAppearance && !showingExample && !showingIntro} onClick={showAll}>
+                <NavigationLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
                   Components
                 </NavigationLink>
               </NavigationItem>
@@ -2138,12 +2140,10 @@ export function ComponentGallery({
                   <NavigationLink href="#example" active={showingExample}>Layouts</NavigationLink>
                 </NavigationItem>
               )}
-              {appearance !== undefined && (
-                <NavigationItem><NavigationLink href="#appearance" active={showingAppearance}>Appearance</NavigationLink></NavigationItem>
-              )}
             </NavigationList>
           </Navigation>
           <div className="catalog-tools">
+            {settingsToggle}
             {version && <Link className="catalog-version t-label mono"
               href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
               title={`Kiso ${version} release notes`} target="_blank" rel="noreferrer">
@@ -2158,8 +2158,8 @@ export function ComponentGallery({
                 window.location.hash = "components";
               }}
             />
-            {appearance === undefined && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
-            {showingIntro && appearance === undefined && <ThemeSelector theme={theme} onChange={onThemeChange} />}
+            {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
+            {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
             {!showingIntro && (
               <Button
                 className="catalog-menu"
@@ -2173,8 +2173,8 @@ export function ComponentGallery({
             )}
           </div>
         </Header>
-        <div ref={content} className={`catalog-main ${showingAppearance ? "catalog-appearance" : showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
-        {!showingIntro && !showingAppearance && <div className="catalog-heading">
+        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        {!showingIntro && <div className="catalog-heading">
           {!browsing && !showingExample && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
@@ -2231,10 +2231,9 @@ export function ComponentGallery({
             </PageHeaderDescription>
           </PageHeader>
         </div>}
-        {showingAppearance && appearance}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
-        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingAppearance || showingExample || showingIntro}>
+        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
           {visible.map(([id, name, category, description]) => (
             <section
               className={browsing ? "catalog-section card" : "catalog-section"}
@@ -2254,6 +2253,7 @@ export function ComponentGallery({
                 </div>
               )}
               <div className="catalog-preview">
+                <DemoSettingsContext.Provider value={browsing ? null : demoSettings}>
                 <Demo
                   id={id}
                   theme={theme}
@@ -2261,6 +2261,7 @@ export function ComponentGallery({
                   accent={accent}
                   onAccentChange={onAccentChange}
                 />
+                </DemoSettingsContext.Provider>
               </div>
               {!browsing && snippets[id] && (
                 <details className="catalog-code">
@@ -2273,17 +2274,18 @@ export function ComponentGallery({
             </section>
           ))}
         </div>
-        {!showingAppearance && !showingExample && !showingIntro && visible.length === 0 && (
+        {!showingExample && !showingIntro && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingAppearance}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro}>
           {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
         </p>
         </div>
       </AppShellMain>
+      {panel}
     </AppShell>
   );
 }
