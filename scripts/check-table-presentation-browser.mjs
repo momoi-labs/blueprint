@@ -49,6 +49,16 @@ for (const border of ['square', 'round', 'double', 'offset']) test(`Frameless ta
     if (process.env.SCREENSHOT_DIR && border === 'square') await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/table-frameless.png`, fullPage: true });
   } finally { await page.close(); }
 });
+test('Plain headers preserve product-specific selected column colors', async () => {
+  const page = await open('plain&selected');
+  try {
+    const cells = page.locator('#comfortable thead th');
+    const colors = await cells.evaluateAll(els => els.map(el => getComputedStyle(el).backgroundColor));
+    assert.notEqual(colors[0], colors[1]);
+    await cells.nth(1).evaluate(el => el.removeAttribute('data-selected'));
+    assert.equal(await cells.nth(1).evaluate(el => getComputedStyle(el).backgroundColor), colors[0]);
+  } finally { await page.close(); }
+});
 for (const width of [320, 390]) test(`Table scroll and controls remain reachable at ${width}px`, async () => {
   const page = await open('frameless', { viewport: { width, height: 850 }, hasTouch: true });
   try {
