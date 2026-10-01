@@ -223,6 +223,7 @@
 /* Below the shell's own breakpoint the Sidebar is gone, so the brand moves to
    the Header and "Show filters" folds the Sidebar in above the content. */
 @media (max-width: 1023px) {
+  .catalog-sidebar:not(.catalog-open) { display: none; }
   .catalog-sidebar.catalog-open {
     display: flex;
     position: static;
@@ -356,3 +357,11 @@
 .filter-demo-table .table { width: 100%; white-space: nowrap; }
 .filter-demo-table td:nth-child(4), .filter-demo-table th:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
 .filter-demo > details > .filter-input { margin-top: var(--spacing-md); }
+
+/* Both gallery rails can release their space to the preview. */
+.catalog-sidebar-toggle { flex: none; }
+.demo-settings-inline { display: flex; flex-wrap: wrap; gap: var(--spacing-md); }
+.demo-settings-inline > .field { flex: 1; min-width: min(100%, 140px); }
+@media (max-width: 1023px) {
+  .catalog-sidebar-toggle { display: none; }
+}

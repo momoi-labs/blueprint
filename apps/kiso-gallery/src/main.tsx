@@ -3,12 +3,13 @@ import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts } from "./layout-examples";
 import { Intro } from "./intro";
-import { Appearance } from "./appearance";
+import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import "@momoi-labs/kiso-react/styles.css";
 import "../../../kiso/blocks/react-prototype/src/gallery.css";
 import "./app.css";
 import "./appearance.css";
+import "./gallery-settings.css";
 
 function App() {
   const [route, setRoute] = useState(
@@ -28,18 +29,22 @@ function App() {
   }, [settings]);
 
   return (
-    <ComponentGallery
-      route={route}
-      version={import.meta.env.VITE_KISO_VERSION}
-      theme={settings.theme}
-      onThemeChange={theme => update({ theme })}
-      accent={settings.accent}
-      onAccentChange={accent => update({ accent })}
-      example={<LayoutExamples route={route} />}
-      examples={layouts}
-      intro={<Intro />}
-      appearance={<Appearance settings={settings} onChange={update} onReset={() => setSettings({ ...window.kisoAppearance.defaults })} />}
-    />
+    <GallerySettings route={route} settings={settings} onChange={update} onReset={() => setSettings({ ...window.kisoAppearance.defaults })}>
+      {(panel, toggle) => <ComponentGallery
+        panel={panel}
+        settingsToggle={toggle}
+        route={route === "appearance" ? "intro" : route}
+        version={import.meta.env.VITE_KISO_VERSION}
+        theme={settings.theme}
+        onThemeChange={theme => update({ theme })}
+        accent={settings.accent}
+        onAccentChange={accent => update({ accent })}
+        example={<LayoutExamples route={route} />}
+        examples={layouts}
+        intro={<Intro />}
+        settingsEnabled
+      />}
+    </GallerySettings>
   );
 }
 

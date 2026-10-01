@@ -14,55 +14,52 @@ The app imports the gallery from
 console or its mock data. There is one catalog and one set
 of demonstrations, using the shared React components in both entry points.
 
-## Appearance study
+## Settings panel
 
-Open `/#appearance` to choose the theme, accent, visual style, application
-frame, border style, corner marks, and size presets. Corner size offers Off,
-Small, Medium, and Large. Mark size offers Small, Medium, and Large. Theme and
-accent controls live on this page rather than in the gallery header or sidebar.
-Changes apply throughout the gallery, including layouts and dialogs.
-Reset appearance restores system theme, violet,
-square panels, original ticks, Medium sizes, and Default visual style and frame.
-Visual style offers Default and Editorial for headings, cards, metrics, and
-section spacing. Controls and tables retain their density. Application frame
-offers Default and Inset. These choices apply to the gallery and its examples.
-PageHeader and AppShell can keep an explicit `variant`; a region can opt out with
-`data-visual-style="default"`.
+Settings is available on every page. The floating button sits halfway down the
+right edge and follows the panel when it opens. Settings > Layout > Settings
+toggle switches between Floating and Header placement. Navigation on the left
+and settings on the right can close independently to give the preview more room.
+The gallery composes the shared AppShellPanel and AppShellPanelToggle.
 
-On desktop, Appearance keeps live component examples on the left and a
-scrollable options panel on the right. Disclosure groups organize Colors,
-Layout, Borders, and Corner marks. Each group opens independently without
-resetting its controls. Use in code stays below the examples in the left
-column. Narrow screens stack the preview and usage examples above the options.
-Colors uses ThemeSelector's `cards` variant and AccentSelector's live preview.
+Desktop keeps the preview interactive beside the panel. Small screens use a
+modal Drawer with Escape dismissal and focus return. The old `/#appearance`
+bookmark opens settings on Intro.
 
-Preferences are local to this browser and origin. The blocking
-`public/appearance-init.js` script validates stored values before first paint.
-Theme and accent retain their `kiso-theme` and `kiso-accent` keys; the complete
-selection uses `kiso-gallery-appearance`. Unavailable storage falls back to the
-defaults on reload. Stored `pageHeader` preferences migrate to `visualStyle`
-unless a visual style has already been saved.
+Colors, Layout, Borders, Corner style, and Corner marks are independent groups.
+Table, Alert, ApplicationShell, and inline field demos append their own controls
+and open the panel on arrival. Closing it retains the current demo values.
+Changing pages replaces the component controls and keeps global preferences.
+The catalog overview and standalone prototype keep controls beside each demo.
 
-The shared Kiso stylesheet applies these preferences. The gallery owns the
-controls and browser storage.
-Panels show the full border treatment. Buttons, inputs, and navigation retain
-solid contours with proportional corners. Corner marks apply only to panels.
-Corner size Off removes rounding, including on controls. Choose None under
-Corner marks to hide them; Mark size is disabled until a mark style is selected.
-Saved Off mark sizes migrate to None with Medium size. Circular controls such
-as radios keep their shape.
+Border styles include Solid, None, Side rail, Dashed outline, Inset edge, Double
+outline, Weighted base, and Offset outline. Corner type offers Square, Rounded,
+and Asymmetric. Rounded uses one type with separate Small, Medium, and Large
+sizes: panel radii are 8, 16, and 24px. Off removes all rounding. Square keeps
+its existing control radii unless size is Off. Corner marks and their size stay
+independent. None borders hide panel outlines, shadows, and marks while keeping
+control borders and focus indicators.
 
-The Use in code section generates HTML and JavaScript from the current
-selection, with copy buttons. It also shows the required CSS imports and
-explains how component variants can override the global layout preferences.
-These gallery snippets are a local exception to the v1 monochrome code rule.
-They use syntax highlighting with existing theme colors for keywords, tags,
-attributes, strings, and comments. Copy buttons retain the original plain text.
+Global preferences apply throughout the gallery, including layouts and dialogs.
+Reset appearance restores system theme, violet, Solid borders, Square corners,
+original ticks, Medium sizes, and Default visual style and application frame.
+Visual style offers Default and Editorial; application frame offers Default
+and Inset. Explicit component variants can override the global choices.
 
-Medium matches the prototype: panel radii are 0, 8, 16, 12, and 6 px for
-square, subtle, wide, asymmetric, and rail styles; other styles use 8 px.
-Small uses half the radius and Large uses 1.5 times the radius. Square keeps
-its existing control radii. Mark length/gap presets are 2/1, 4/2, and 8/4 px.
+Preferences are local to this browser and origin. `public/appearance-init.js`
+validates stored values before first paint. Theme and accent keep their
+`kiso-theme` and `kiso-accent` keys; the complete selection uses
+`kiso-gallery-appearance`. Unavailable storage falls back to defaults on reload.
+Legacy border presets migrate to Solid plus a corner type. Subtle and Wide
+migrate to Rounded with the nearest size. Published CSS retains the legacy
+values. Stored `pageHeader` migrates to `visualStyle` unless already set;
+Off mark sizes migrate to None with Medium size.
+
+Use in code generates HTML and JavaScript from the current global preferences,
+with copy buttons and the required CSS imports. Syntax highlighting uses
+existing theme colors as a local exception to the v1 monochrome code rule.
+Copied code remains plain text. Gallery panel placement is not part of the
+exported appearance settings.
 
 ## Local development
 

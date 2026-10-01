@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { Button, Table, TableFrame, TableBody, TableCell, TableHead, TableHeader, TableRow, type TableProps } from "@momoi-labs/kiso-react";
 
+import { DemoSettings } from "./demo-settings";
+
 export function TableDemo() {
   const id = useId();
   const [density, setDensity] = useState<NonNullable<TableProps["density"]>>("comfortable");
@@ -8,7 +10,7 @@ export function TableDemo() {
   const [header, setHeader] = useState<NonNullable<TableProps["header"]>>("tinted");
   const [expanded, setExpanded] = useState(false);
   return <div className="stack">
-    <div className="row-wrap">
+    <DemoSettings title="Table">
       <label className="field">Density<select className="select" value={density} onChange={event => setDensity(event.target.value as typeof density)}>
         <option value="compact">Compact</option><option value="comfortable">Comfortable</option><option value="spacious">Spacious</option>
       </select></label>
@@ -18,7 +20,7 @@ export function TableDemo() {
       <label className="field">Header<select className="select" value={header} onChange={event => setHeader(event.target.value as typeof header)}>
         <option value="tinted">Tinted</option><option value="plain">Plain</option>
       </select></label>
-    </div>
+    </DemoSettings>
     <TableFrame frame={frame}>
       <Table density={density} header={header} aria-label="Memory comparison">
         <TableHeader><TableRow><TableHead>Parameter</TableHead><TableHead className="num">Default</TableHead><TableHead className="num">Recommended</TableHead></TableRow></TableHeader>
