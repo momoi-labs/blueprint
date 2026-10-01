@@ -27,6 +27,9 @@ for (const variant of ['default','inset']) for (const rtl of [false,true]) test(
     assert.equal(panelBox.width,320);
     assert(Math.abs((rtl?toggleBox.x:toggleBox.x+toggleBox.width)-(rtl?panelBox.x+panelBox.width:panelBox.x))<1,'Floating control follows the panel edge');
     assert(Math.abs(toggleBox.y+toggleBox.height/2-450)<1);
+    const mainBox = await main.boundingBox();
+    assert(rtl ? mainBox.x >= toggleBox.x + toggleBox.width : mainBox.x + mainBox.width <= toggleBox.x,
+      'The floating control has its own space outside the main content');
     await page.getByRole('textbox',{name:'Panel value'}).fill('Retained');
     await page.getByRole('textbox',{name:'Main value'}).fill('Working');
     assert(await panel.isVisible(),'Main content remains interactive');
@@ -37,6 +40,10 @@ for (const variant of ['default','inset']) for (const rtl of [false,true]) test(
     assert.equal(await width(),noNavigation+320);
     assert(await toggle.evaluate(el=>el===document.activeElement));
     assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+    const closedMain = await main.boundingBox();
+    const closedToggle = await toggle.boundingBox();
+    assert(rtl ? closedMain.x >= closedToggle.x + closedToggle.width : closedMain.x + closedMain.width <= closedToggle.x,
+      'The reopening control does not cover main content');
     await page.keyboard.press('Space');
     assert.equal(await page.getByRole('textbox',{name:'Panel value'}).inputValue(),'Retained');
     assert.equal(await page.getByRole('textbox',{name:'Main value'}).inputValue(),'Working');

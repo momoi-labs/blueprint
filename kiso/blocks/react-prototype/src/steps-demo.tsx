@@ -2,7 +2,7 @@
 // in for the Host: the same run drives the list, the bar, and the toast.
 import { useEffect, useId, useMemo, useState } from "react"
 import { Badge, Button, Checkbox, Label, LogView, LogViewLine, Pane, Split, Splitter, StepBar, StepList,
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow, type StepItem, type StepState } from "@momoi-labs/kiso-react"
+  Table, TableFrame, TableBody, TableCell, TableHead, TableHeader, TableRow, type StepItem, type StepState } from "@momoi-labs/kiso-react"
 
 const PLAN: { key: string; label: string; seconds: number; output: string[] }[] = [
   { key: "create", label: "Create the instance", seconds: 3, output: ["Creating instance sf-dev-env", "Allocating 4 CPU, 8 GiB", "Disk image ubuntu-24.04 attached"] },
@@ -156,6 +156,7 @@ export function StepBarDemo() {
     </div>
     <div>
       <p className="t-caps">Machines table</p>
+      <TableFrame frame="none">
       <Table>
         <TableHeader><TableRow><TableHead>Machine</TableHead><TableHead>Status</TableHead><TableHead>Address</TableHead></TableRow></TableHeader>
         <TableBody>
@@ -176,6 +177,7 @@ export function StepBarDemo() {
           </TableRow>
         </TableBody>
       </Table>
+      </TableFrame>
       <p className="muted t-label">One line, the Badge's height, no ticker. The bar appears only while the action runs or after it fails.</p>
     </div>
   </div>
