@@ -292,7 +292,7 @@ try {
       <FormField label="Compose" error="Required"><Textarea /></FormField>
       <Toasts><NoticeButton /></Toasts>
       <ApplicationShell brand="Kiso" navigation={[]}><div>Page</div></ApplicationShell>
-      <ApplicationShell variant="inset" collapsible brand="Kiso" navigation={[]}>
+      <ApplicationShell variant="inset" collapsible togglePlacement="header" brand="Kiso" navigation={[]}>
         <PageHeader variant="editorial"><PageHeaderTitle>Homelab</PageHeaderTitle></PageHeader>
       </ApplicationShell>
       <BrandMark className="custom">S</BrandMark>

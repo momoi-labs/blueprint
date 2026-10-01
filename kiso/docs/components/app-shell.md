@@ -76,7 +76,15 @@ it. Without `onClick`, the destination remains a normal link. Use
 
 ### Optional sidebar collapse
 
-Set `collapsible` to add a toggle to the sidebar header. The sidebar starts
+Set `collapsible` to add a toggle to the sidebar header by default.
+Use `togglePlacement="header"` to place the same control at the start of the
+main header. If the header slot is empty, the shell creates a header for the
+toggle. Omitting `togglePlacement`, or choosing `"sidebar"`, keeps the existing
+placement. The option only applies to collapsible sidebar layouts.
+
+Both positions retain the same label, `aria-controls`, `aria-expanded` and
+focus recovery. There is exactly one toggle; do not hide an internal control
+with CSS. Both positions hide it at the existing narrow breakpoint. The sidebar starts
 expanded; `defaultCollapsed` changes that initial state. `collapsed` and
 `onCollapsedChange` provide controlled state when the product needs to store
 the user's preference. Navigation updates do not reset the state. Kiso does

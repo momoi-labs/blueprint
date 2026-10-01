@@ -28,6 +28,7 @@ function Fixture() {
   const topbar = params.has('topbar');
   const sidebarProps = topbar ? { layout: 'topbar' } : {
     collapsible: !params.has('plain'),
+    togglePlacement: params.has('headerToggle') ? 'header' : 'sidebar',
     defaultCollapsed: params.has('collapsed'),
     ...(controlled ? { collapsed } : {}),
     onCollapsedChange(next) {
@@ -51,7 +52,7 @@ function Fixture() {
     variant: params.get('variant') || undefined,
     brand: h('div', { className: 'brand' }, h(BrandMark, null, 'H'), h('span', { className: 't-label' }, 'self-host')),
     primaryAction: h(Button, { variant: 'primary', onClick: () => setCollapsed(true) }, 'Create application'),
-    header: h('span', null, 'homelab / ', page),
+    header: params.has('noHeader') ? undefined : h('span', null, 'homelab / ', page),
   }, h('section', { className: 'page' },
     h(PageHeader, {
       variant: params.has('editorial') ? 'editorial' : params.get('headingVariant') || undefined,

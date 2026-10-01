@@ -73,6 +73,7 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
   navigationLabel?: string
   footer?: React.ReactNode
   collapsible?: boolean
+  togglePlacement?: "sidebar" | "header"
   collapsed?: boolean
   defaultCollapsed?: boolean
   onCollapsedChange?: (collapsed: boolean) => void
@@ -84,6 +85,7 @@ type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
   navigationLabel?: never
   footer?: never
   collapsible?: never
+  togglePlacement?: never
   collapsed?: never
   defaultCollapsed?: never
   onCollapsedChange?: never
@@ -174,6 +176,7 @@ function ApplicationShellSidebar({
   children,
   layout: _layout,
   collapsible = false,
+  togglePlacement = "sidebar",
   collapsed,
   defaultCollapsed = false,
   onCollapsedChange,
@@ -199,32 +202,36 @@ function ApplicationShellSidebar({
     onCollapsedChange?.(next)
   }
 
+  const toggle = collapsible ? (
+    <Button
+      ref={toggleRef}
+      variant="ghost"
+      size="sm"
+      className="sidebar-toggle btn-icon"
+      aria-controls={sidebarId}
+      aria-expanded={!isCollapsed}
+      aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      onClick={toggleSidebar}
+    >
+      <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1.5" y="2" width="13" height="12" rx="1.5" />
+        <path d="M5.5 2v12" />
+        <path d={isCollapsed ? "m8.5 5.5 2.5 2.5-2.5 2.5" : "m11 5.5-2.5 2.5 2.5 2.5"} />
+      </svg>
+    </Button>
+  ) : null
+
   return (
     <AppShell {...shellProps}>
       <Sidebar ref={sidebarRef} id={sidebarId} collapsed={isCollapsed}>
-        <SidebarHeader className={collapsible ? "sidebar-header-collapsible" : undefined}>
+        <SidebarHeader className={collapsible && togglePlacement === "sidebar" ? "sidebar-header-collapsible" : undefined}>
           {collapsible ? <>
             <div className="sidebar-expanded-content">
               {brand}
               {primaryAction}
             </div>
-            <Button
-              ref={toggleRef}
-              variant="ghost"
-              size="sm"
-              className="sidebar-toggle btn-icon"
-              aria-controls={sidebarId}
-              aria-expanded={!isCollapsed}
-              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              onClick={toggleSidebar}
-            >
-              <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-                <rect x="1.5" y="2" width="13" height="12" rx="1.5" />
-                <path d="M5.5 2v12" />
-                <path d={isCollapsed ? "m8.5 5.5 2.5 2.5-2.5 2.5" : "m11 5.5-2.5 2.5 2.5 2.5"} />
-              </svg>
-            </Button>
+            {togglePlacement === "sidebar" && toggle}
           </> : <>{brand}{primaryAction}</>}
         </SidebarHeader>
         <SidebarBody>
@@ -237,7 +244,10 @@ function ApplicationShellSidebar({
         {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
-        {header && <Header>{header}</Header>}
+        {(header || (collapsible && togglePlacement === "header")) && <Header>
+          {togglePlacement === "header" && toggle}
+          {header}
+        </Header>}
         {children}
       </AppShellMain>
     </AppShell>
