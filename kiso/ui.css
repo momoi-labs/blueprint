@@ -702,11 +702,27 @@ fieldset.form-body { border: 0; margin: 0; }
 /* Scrolling moves to the inner element so the corner marks, which sit just
    outside the frame, are not clipped away. */
 .table-wrap > .table-scroll { overflow: auto; border-radius: inherit; }
-table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size-body); }
+table.table {
+  --table-cell-block: var(--spacing-sm);
+  --table-cell-inline: var(--spacing-md);
+  --table-row-height: var(--size-control-lg);
+  width: 100%; border-collapse: collapse; font-size: var(--type-size-body);
+}
+.table[data-density="compact"] {
+  --table-cell-block: var(--spacing-xs);
+  --table-cell-inline: var(--spacing-sm);
+  --table-row-height: auto;
+}
+.table[data-density="spacious"] {
+  --table-cell-block: var(--spacing-lg);
+  --table-row-height: auto;
+}
+.table-wrap[data-frame="none"] { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.table-wrap[data-frame="none"]::before, .table-wrap[data-frame="none"]::after { content: none; }
 .table thead th {
   position: sticky; top: 0; z-index: 1;
   background: var(--color-muted);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--table-cell-block) var(--table-cell-inline);
   border-bottom: 1px solid var(--color-border);
   text-align: start;
   font-size: var(--type-size-label);
@@ -714,12 +730,17 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--type-size
   color: var(--color-muted-foreground);
   white-space: nowrap;
 }
+.table[data-header="plain"] > thead > tr > th {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+}
 .table tbody td {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--table-cell-block) var(--table-cell-inline);
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
-  height: var(--size-control-lg);
+  height: var(--table-row-height);
 }
+.table > tbody > .table-detail > td { padding: var(--spacing-lg); height: auto; white-space: normal; }
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover { background: var(--color-accent-surface); }
 .table tbody tr[aria-selected="true"] { background: var(--color-selected); }

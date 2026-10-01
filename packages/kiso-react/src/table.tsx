@@ -4,7 +4,20 @@
 import * as React from "react"
 import { clsx as cn } from "clsx"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+type TableProps = React.ComponentProps<"table"> & {
+  density?: "compact" | "comfortable" | "spacious"
+  header?: "tinted" | "plain"
+}
+
+function TableFrame({
+  className,
+  frame = "default",
+  ...props
+}: React.ComponentProps<"div"> & { frame?: "default" | "none" }) {
+  return <div data-slot="table-frame" data-frame={frame} className={cn("table-wrap", className)} {...props} />
+}
+
+function Table({ className, density, header, ...props }: TableProps) {
   return (
     <div
       data-slot="table-container"
@@ -12,6 +25,8 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
+        data-density={density}
+        data-header={header}
         className={cn("table", className)}
         {...props}
       />
@@ -95,6 +110,7 @@ function TableCaption({
 
 export {
   Table,
+  TableFrame,
   TableHeader,
   TableBody,
   TableFooter,
@@ -103,3 +119,4 @@ export {
   TableCell,
   TableCaption,
 }
+export type { TableProps }
