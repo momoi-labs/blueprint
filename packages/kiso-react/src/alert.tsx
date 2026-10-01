@@ -10,13 +10,15 @@ const alertVariants = cva("alert", {
       warning: "alert-warning",
       error: "alert-danger",
     },
+    appearance: { tinted: "", rail: "alert-rail" },
   },
-  defaultVariants: { variant: "info" },
+  defaultVariants: { variant: "info", appearance: "tinted" },
 });
 
 function Alert({
   className,
   variant = "info",
+  appearance = "tinted",
   role,
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
@@ -24,8 +26,9 @@ function Alert({
     <div
       data-slot="alert"
       data-variant={variant}
+      data-appearance={appearance}
       role={role ?? (variant === "error" ? "alert" : "status")}
-      className={cn(alertVariants({ variant }), className)}
+      className={cn(alertVariants({ variant, appearance }), className)}
       {...props}
     />
   );
@@ -35,7 +38,7 @@ function AlertContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-content"
-      className={cn("stack-xs grow", className)}
+      className={cn("alert-content stack-xs grow", className)}
       {...props}
     />
   );
