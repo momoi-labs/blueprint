@@ -278,7 +278,7 @@ try {
     '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert,
+    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
       Toasts, useToast } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
@@ -286,6 +286,8 @@ try {
       return <Button onClick={() => notify('success', 'Saved')}>Save</Button>;
     }
     createRoot(document.getElementById('root')!).render(<>
+      <FormField label="RAM" layout="inline" suffix="GB" controlSize="lg"><Input size={6} /></FormField>
+      <Select defaultValue="linux"><FormField label="OS" layout="inline"><SelectTrigger controlSize="sm"><SelectValue /></SelectTrigger></FormField></Select>
       <Alert appearance="rail" variant="warning" role="note" />
       <TableFrame frame="none"><Table density="spacious" header="plain" /></TableFrame>
       <Button variant="primary">Save</Button><FormField label="Name" hint="Required" />

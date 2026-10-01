@@ -1,3 +1,4 @@
+import { InlineFieldsDemo } from "./inline-fields-demo";
 import { TableDemo } from "./table-demo";
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
@@ -1268,9 +1269,12 @@ function Demo({
       return <FormActionsDemo />;
     case "form-field":
       return (
-        <FormField label="Compose file" hint="Docker Compose YAML." error="Image is required.">
-          <Textarea rows={5} defaultValue={"services:\n  web:\n    image: ''"} />
-        </FormField>
+        <div className="stack">
+          <InlineFieldsDemo />
+          <FormField label="Compose file" hint="Docker Compose YAML." error="Image is required.">
+            <Textarea rows={5} defaultValue={"services:\n  web:\n    image: ''"} />
+          </FormField>
+        </div>
       );
     case "helper-text":
       return (

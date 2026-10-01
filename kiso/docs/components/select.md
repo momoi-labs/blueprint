@@ -40,6 +40,13 @@ boolean or membership in a multi-select set.
 Trigger sizes align with Input sizes. Content width is at least sufficient for
 its items and may match the trigger. Use spacing and size tokens, not raw values.
 
+In React, use `controlSize="sm" | "md" | "lg"` on SelectTrigger.
+The CSS equivalent is `data-control-size` on the control. Omitted or `md`
+keeps the current default. Heights use `--size-control-sm`,
+`--size-control-md`, and `--size-control-lg`; coarse pointers retain the
+minimum touch target. Input's native numeric `size` attribute is independent
+of visual sizing.
+
 ## States
 
 | State | Behavior |

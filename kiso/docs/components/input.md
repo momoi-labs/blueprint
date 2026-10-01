@@ -40,6 +40,13 @@ Size changes internal padding from `--spacing-xs` / `--spacing-sm` for small,
 to `--spacing-sm` / `--spacing-md` for medium, to `--spacing-md` / `--spacing-lg`
 for large. It does not reduce text or target size below accessible product norms.
 
+In React, use `controlSize="sm" | "md" | "lg"` on Input.
+The CSS equivalent is `data-control-size` on the control. Omitted or `md`
+keeps the current default. Heights use `--size-control-sm`,
+`--size-control-md`, and `--size-control-lg`; coarse pointers retain the
+minimum touch target. Input's native numeric `size` attribute is independent
+of visual sizing.
+
 ## States
 
 | State | Behavior |

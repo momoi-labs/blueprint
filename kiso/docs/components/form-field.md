@@ -65,11 +65,46 @@ ValidationMessage
 - **Control substitution** — replaces Input with another Kiso form primitive
   while preserving Label and description/error wiring.
 
+### Inline labels and adornments
+
+`layout="inline"` places the label and control in one frame. Omit it, or use
+`layout="stacked"`, to keep the existing label above the control. `leading`
+accepts a decorative icon; `suffix` accepts non-interactive content such as a
+unit. Both also work with the stacked layout. The suffix has an ID and joins
+`aria-describedby`, preserving the child's descriptions, hint and error.
+
+```tsx
+<FormField label="RAM" layout="inline" suffix="GB" controlSize="lg"
+  type="number" min={1} value={ram} onChange={changeRam} />
+<Select value={os} onValueChange={setOs}>
+  <FormField label="OS" layout="inline" controlSize="lg">
+    <SelectTrigger><SelectValue /></SelectTrigger>
+  </FormField>
+  <SelectContent>{options}</SelectContent>
+</Select>
+```
+
+Use a single Input or SelectTrigger in a framed group. Keep hints and errors
+below its frame. Leading icons are decorative, never a substitute for the
+visible Label. Do not place actions inside leading or suffix slots. Put
+`disabled` and `required` on a supplied child or its Select root as usual.
+
+The group owns its border and focus ring; the native or Radix control retains
+input, selection, focus and disabled behavior. The frame reflects the actual
+control's invalid and disabled states. Labels still target the control.
+
 ## Sizes
 
 - **Small** — inherits the small size of its control and compact semantic gaps.
 - **Medium** — default.
 - **Large** — inherits the large control size where that control supports it.
+
+`controlSize="sm" | "md" | "lg"` aligns the frame and control. When omitted,
+a supplied child's controlSize is used; otherwise the medium size remains.
+An explicit FormField size overrides the child's visual size without changing
+its native `size` attribute. Custom controls must forward `data-control-size`
+along with the existing ID and ARIA props. CSS-only groups use `.field-control`
+inside `.field`, with `data-control-size` on the field and control.
 
 FormField does not scale text independently. Label uses the five
 property-qualified label typography tokens; supporting text uses the five

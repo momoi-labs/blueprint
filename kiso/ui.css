@@ -418,7 +418,10 @@ fieldset.form-body { border: 0; margin: 0; }
 }
 .input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--color-danger); }
 .input[aria-invalid="true"]:focus-visible { outline-color: var(--color-danger); }
-.input-sm { height: var(--size-control-sm); font-size: var(--type-size-label); }
+.input-sm, :is(.input, .select)[data-control-size="sm"] { height: var(--size-control-sm); padding-inline-start: var(--spacing-sm); font-size: var(--type-size-label); }
+:is(.input, .select)[data-control-size="lg"] { height: var(--size-control-lg); padding-inline-start: var(--spacing-lg); }
+.input-sm, .input[data-control-size="sm"] { padding-inline-end: var(--spacing-sm); }
+.input[data-control-size="lg"] { padding-inline-end: var(--spacing-lg); }
 .input.mono, .textarea.mono { font-size: var(--type-size-label); }
 
 .select {
@@ -444,6 +447,39 @@ fieldset.form-body { border: 0; margin: 0; }
   position: absolute;
   inset-inline-end: var(--spacing-sm);
   display: flex; align-items: center; gap: var(--spacing-xs);
+}
+
+/* A label and adornments can share the control's frame. */
+.field:has(> .field-control) { min-width: 0; align-content: start; }
+.field-control {
+  --field-control-height: var(--size-control-md);
+  display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0;
+  min-height: var(--field-control-height); padding-inline: var(--spacing-md);
+  border: 1px solid var(--color-input); border-radius: var(--appearance-control-corners, var(--radius-md));
+  background: var(--color-card); color: var(--color-foreground);
+  font-size: var(--type-size-body); box-shadow: var(--shadow-xs);
+}
+.field[data-control-size="sm"] > .field-control { --field-control-height: var(--size-control-sm); padding-inline: var(--spacing-sm); font-size: var(--type-size-label); }
+.field[data-control-size="lg"] > .field-control { --field-control-height: var(--size-control-lg); padding-inline: var(--spacing-lg); }
+.field-control:hover { border-color: var(--color-border-strong); }
+.field-control:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.field-control > :is(.input, .select) {
+  flex: 1; min-width: 0; width: 0; height: auto; min-height: calc(var(--field-control-height) - 2px);
+  border: 0; border-radius: 0; padding-inline-start: 0;
+  background-color: transparent; box-shadow: none; font-size: inherit;
+}
+.field-control > .input { padding-inline-end: 0; }
+.field-control > .select { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-control > :is(.input, .select):focus-visible { outline: none; box-shadow: none; }
+.field-control > label { max-width: 40%; overflow-wrap: anywhere; color: var(--color-muted-foreground); }
+.field-leading { display: flex; flex: none; color: var(--color-muted-foreground); }
+.field-suffix { flex: none; color: var(--color-muted-foreground); }
+.field-control:has(> :disabled) { background: var(--color-disabled-surface); color: var(--color-disabled); }
+.field-control:has(> [aria-invalid="true"]) { border-color: var(--color-danger); }
+.field-control:has(> [aria-invalid="true"]):focus-within { outline-color: var(--color-danger); }
+@media (pointer: coarse) {
+  .field > .field-control, .field[data-control-size] > .field-control { --field-control-height: calc(var(--size-touch-min) + 2px); }
+  .field-control > :is(.input, .select) { min-width: var(--size-touch-min); }
 }
 
 /* chip input: several structured values in one field */
