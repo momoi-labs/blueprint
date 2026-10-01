@@ -952,10 +952,13 @@ function PageHeaderDemo({ onAction }: { onAction: () => void }) {
 }
 
 function AppShellDemo() {
+  const [togglePlacement, setTogglePlacement] = useState<"sidebar" | "header">("sidebar");
   return (
     <div className="stack">
+      <label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label>
       <ApplicationShell
         collapsible
+        togglePlacement={togglePlacement}
         className="gallery-shell-preview gallery-shell-editorial"
         brand={
           <div className="brand">

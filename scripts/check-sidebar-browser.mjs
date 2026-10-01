@@ -26,6 +26,45 @@ async function open(query = '', options = {}) {
   return page;
 }
 
+for (const controlled of [false, true]) test(`Header toggle preserves state and focus, controlled=${controlled}`, async () => {
+  const page = await open(`headerToggle${controlled ? '&controlled' : ''}`);
+  try {
+    const toggle = page.getByRole('button', { name: 'Collapse sidebar' });
+    assert.equal(await page.locator('.sidebar-toggle').count(), 1);
+    assert.equal(await page.locator('.sidebar .sidebar-toggle').count(), 0);
+    assert.equal(await page.locator('.topbar .sidebar-toggle').count(), 1);
+    assert.equal(await toggle.getAttribute('aria-controls'), await page.locator('.sidebar').getAttribute('id'));
+    await toggle.focus(); await page.keyboard.press('Enter');
+    const expand = page.getByRole('button', { name: 'Expand sidebar' });
+    assert.equal(await expand.getAttribute('aria-expanded'), 'false');
+    assert(await expand.evaluate(el => el === document.activeElement));
+    await page.keyboard.press('Space');
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    if (controlled) {
+      await page.getByRole('button', { name: 'Create application' }).click();
+      assert(await expand.evaluate(el => el === document.activeElement), 'Hidden sidebar content hands focus to the visible header control');
+    }
+    if (screenshots) await page.screenshot({ path: `${screenshots}/sidebar-header-${controlled ? 'controlled' : 'uncontrolled'}.png` });
+  } finally { await page.close(); }
+});
+
+test('Header toggle works without header content and follows the narrow breakpoint', async () => {
+  const page = await open('headerToggle&noHeader&collapsed');
+  try {
+    const expand = page.getByRole('button', { name: 'Expand sidebar' });
+    assert(await expand.isVisible());
+    await page.setViewportSize({ width: 390, height: 850 });
+    assert.equal(await expand.isVisible(), false);
+    assert(await page.getByRole('link', { name: 'Overview', exact: true }).isVisible());
+    await page.setViewportSize({ width: 1280, height: 900 });
+    assert(await expand.isVisible());
+    assert.equal(await expand.getAttribute('aria-expanded'), 'false');
+    await page.goto(`${url}?headerToggle&noHeader&plain`);
+    assert.equal(await page.locator('.sidebar-toggle').count(), 0);
+    assert.equal(await page.locator('.topbar').count(), 0);
+  } finally { await page.close(); }
+});
+
 for (const theme of ['light', 'dark']) for (const border of ['square', 'round']) {
   test(`Sidebar collapses without losing navigation or ${theme}/${border} appearance`, async () => {
     const page = await open(`theme=${theme}&border=${border}&marks=arcs`);
