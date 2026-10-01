@@ -10,6 +10,10 @@ typography for descriptions.
 
 Allow ApplicationShell to place its sidebar toggle in the header while
 preserving expanded state, labels and focus recovery.
+Add AppShellPanel for an optional end panel. Hidden navigation and panel
+columns release their space independently. ApplicationShell accepts a panel
+slot in both layouts.
+AppShellPanelToggle can stay in the header or float beside the panel edge.
 
 Add inline FormField labels, decorative icons and described unit suffixes.
 Input, SelectTrigger and FormField now share optional controlSize settings.

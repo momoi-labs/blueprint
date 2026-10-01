@@ -81,7 +81,7 @@ try {
       Search, Select, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
       ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
-      AppShell, AppShellMain, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
+      AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
     for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
@@ -200,6 +200,8 @@ try {
     assert.match(terminal, /aria-hidden="true"/);
     assert.match(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
       /class="app-shell"><main [^>]*class="grow">Overview/);
+    assert.match(render(h(AppShellPanel, { hidden: true, 'aria-label': 'Settings' }, 'Controls')), /data-slot="app-shell-panel"[^>]*hidden=""/);
+    assert.match(render(h(AppShellPanelToggle, { placement: 'floating', 'aria-controls': 'settings', 'aria-expanded': false })), /aria-label="Open panel"/);
     const applicationShell = render(h(ApplicationShell, {
       brand: h('span', null, 'self-host'),
       navigation: [{ label: 'Applications', destinations: [
@@ -278,7 +280,7 @@ try {
     '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
-    import { ApplicationShell, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
+    import { ApplicationShell, AppShellPanel, AppShellPanelToggle, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
       Toasts, useToast } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
@@ -293,7 +295,7 @@ try {
       <Button variant="primary">Save</Button><FormField label="Name" hint="Required" />
       <FormField label="Compose" error="Required"><Textarea /></FormField>
       <Toasts><NoticeButton /></Toasts>
-      <ApplicationShell brand="Kiso" navigation={[]}><div>Page</div></ApplicationShell>
+      <ApplicationShell brand="Kiso" navigation={[]} panel={<AppShellPanel aria-label="Settings"><AppShellPanelToggle placement="floating" aria-controls="panel" aria-expanded={false} /></AppShellPanel>}><div>Page</div></ApplicationShell>
       <ApplicationShell variant="inset" collapsible togglePlacement="header" brand="Kiso" navigation={[]}>
         <PageHeader variant="editorial"><PageHeaderTitle>Homelab</PageHeaderTitle></PageHeader>
       </ApplicationShell>

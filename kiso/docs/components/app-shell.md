@@ -2,8 +2,9 @@
 
 ## Purpose
 
-AppShell places persistent [Sidebar](sidebar.md) navigation beside the main
-application content. It owns the page columns, not navigation state.
+AppShell places persistent [Sidebar](sidebar.md) navigation and an optional
+context panel beside the main application content. It owns the page columns,
+not navigation or panel state.
 ApplicationShell composes the standard frame when a product wants the complete
 shared chrome — either a console with a rail, or a single-surface top bar.
 
@@ -14,9 +15,10 @@ Console with rail (default):
 ```
 AppShell
 ├── Sidebar
-└── AppShellMain
-    ├── Header or PageHeader (optional)
-    └── page content
+├── AppShellMain
+│   ├── Header or PageHeader (optional)
+│   └── page content
+└── AppShellPanel (optional)
 ```
 
 Single-surface top bar (`layout="topbar"`):
@@ -111,6 +113,64 @@ them back. These props apply only to `layout="sidebar"`.
 The control uses the current appearance tokens. It does not choose a border
 style, corner shape, accent, or theme for the product.
 
+### Optional context panel
+
+Place `AppShellPanel` after `AppShellMain` for settings, an inspector, or
+contextual tools. It renders an `aside` at the inline end, opposite Sidebar.
+Give it an accessible name with `aria-label` or `aria-labelledby`.
+ApplicationShell accepts the same element through its `panel` slot in either
+layout.
+
+`hidden` removes the panel and its column from view while keeping its children
+mounted. A direct Sidebar with `hidden` also releases its whole column.
+Either side can hide independently. Sidebar's existing `collapsed` mode still
+keeps a compact navigation rail.
+
+```tsx
+<AppShell>
+  <Sidebar hidden={!navigationOpen}>{navigation}</Sidebar>
+  <AppShellMain>{header}{page}</AppShellMain>
+  <AppShellPanel hidden={!settingsOpen} aria-label="Settings">
+    {settings}
+  </AppShellPanel>
+</AppShell>
+```
+
+The caller owns open state and toggle Buttons. Keep the toggles outside the
+regions they hide, connect them with `aria-controls` and `aria-expanded`, and
+return focus to the matching toggle before hiding a focused region. The panel
+does not trap focus or close when the user interacts with the main content.
+Closing it must not discard form values.
+
+`AppShellPanelToggle` is a Button with required `aria-controls` and
+`aria-expanded` props. Its default `placement="header"` stays in normal flow.
+`placement="floating"` puts it halfway down the viewport's inline end. While
+expanded, it follows the panel's outer edge; while closed, it returns to the
+viewport edge. Use floating placement in a full-page shell. Embedded previews
+should keep header placement.
+
+Place the toggle inside the shell, outside the panel it controls. Reuse the
+same Button to open and close. It retains native Enter/Space behavior and
+accepts a custom label and children. On narrow screens, floating placement
+stays at the viewport edge; applications adapting the panel to a Drawer use
+the Drawer's close control while its modal overlay is open.
+
+```tsx
+<AppShellPanelToggle
+  placement="floating"
+  aria-controls="settings-panel"
+  aria-expanded={settingsOpen}
+  onClick={() => setSettingsOpen(open => !open)}
+/>
+```
+
+The panel width defaults to `--size-sidebar`. Set `--app-shell-panel-width`
+on the host shell to allocate a different width. On desktop it stays at the
+top of the viewport and scrolls within its own column. At 1023px and below,
+it stacks after the main content with a maximum height of 50vh. Applications
+that need an overlay on narrow screens can render the same controls in
+[Drawer](drawer.md), with its modal focus and dismissal behavior.
+
 ## Variants
 
 `layout="sidebar"` (default) mounts Sidebar with brand and primary action in
@@ -133,7 +193,7 @@ AppShell and ApplicationShell accept this option, independently of `layout`.
 Set `data-app-shell="inset"` on `html` to choose the frame across an
 application. Omit `variant` to follow that preference. An explicit `variant`
 overrides it for one shell. Without either setting, the default stays
-edge-to-edge. The gallery saves this choice under Appearance > Application
+edge-to-edge. The gallery saves this choice under Settings > Layout > Application
 frame.
 
 An embedded preview can mark its content wrapper with

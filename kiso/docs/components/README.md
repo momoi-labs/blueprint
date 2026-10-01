@@ -58,7 +58,7 @@ behavioral reference where one exists.
 - [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.
 - [DashboardGrid](dashboard-grid.md): Responsive twelve-column panel layout.
 
-- [AppShell / ApplicationShell](app-shell.md): Provides low-level columns or the complete shared application frame (sidebar console or top-bar surface).
+- [AppShell / ApplicationShell](app-shell.md): Provides columns, an optional AppShellPanel with a header or floating toggle, or the complete shared application frame.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
 - [Header](header.md): Composes persistent application navigation and global actions.
