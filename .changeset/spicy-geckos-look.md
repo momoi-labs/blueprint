@@ -14,6 +14,8 @@ Add AppShellPanel for an optional end panel. Hidden navigation and panel
 columns release their space independently. ApplicationShell accepts a panel
 slot in both layouts.
 AppShellPanelToggle can stay in the header or float beside the panel edge.
+Floating placement reserves space so the toggle does not cover main content
+or its scrollbar.
 
 Add inline FormField labels, decorative icons and described unit suffixes.
 Input, SelectTrigger and FormField now share optional controlSize settings.

@@ -1103,10 +1103,17 @@ table.table {
 .app-shell-panel-toggle[data-placement="floating"] {
   position: fixed; top: 50%; inset-inline-end: var(--app-shell-panel-offset, 0px);
   transform: translateY(-50%); z-index: 10;
+  width: calc(var(--size-touch-min) + 2 * var(--spacing-md));
   height: auto; min-width: var(--size-touch-min); min-height: var(--size-touch-min);
+  white-space: normal; overflow-wrap: anywhere;
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   background: var(--color-elevated-surface); box-shadow: var(--shadow-sm);
+}
+/* Reserve the floating tab's width even when its panel is closed. Scrolling
+   main content and its actions must never pass underneath the tab. */
+.app-shell > :is(main, [data-slot="app-shell-main"]):has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]) {
+  margin-inline-end: calc(var(--size-touch-min) + 2 * var(--spacing-md));
 }
 @media (min-width: 1024px) {
   .app-shell-panel-toggle[data-placement="floating"][aria-expanded="true"] {
@@ -1127,6 +1134,10 @@ table.table {
   }
 }
 @media (max-width: 1023px) {
+  .app-shell-panel-toggle[data-placement="floating"] { width: var(--size-touch-min); }
+  .app-shell > :is(main, [data-slot="app-shell-main"]):has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]) {
+    margin-inline-end: var(--size-touch-min);
+  }
   .app-shell-panel {
     position: static; height: auto; max-height: 50dvh;
     border-inline-start: 0; border-block-start: 1px solid var(--color-border);

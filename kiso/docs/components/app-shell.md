@@ -149,8 +149,14 @@ expanded, it follows the panel's outer edge; while closed, it returns to the
 viewport edge. Use floating placement in a full-page shell. Embedded previews
 should keep header placement.
 
-Place the toggle inside the shell, outside the panel it controls. Reuse the
-same Button to open and close. It retains native Enter/Space behavior and
+Place the toggle in AppShellMain, directly or inside its Header, outside the
+panel it controls. Floating placement reserves a strip beside the main content
+so the button cannot cover content, actions, or its scrollbar. The strip stays
+available while the panel is closed and disappears with header placement.
+On narrow screens the strip and button use the minimum touch width. Prefer an
+icon with an accessible name there.
+
+Reuse the same Button to open and close. It retains native Enter/Space behavior and
 accepts a custom label and children. On narrow screens, floating placement
 stays at the viewport edge; applications adapting the panel to a Drawer use
 the Drawer's close control while its modal overlay is open.

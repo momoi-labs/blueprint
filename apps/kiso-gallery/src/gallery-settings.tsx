@@ -88,16 +88,15 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   </AppShellPanel> : null;
 
   return <DemoSettingsContext.Provider value={context}>
-    {children(panel, desktop ? toggle : null)}
-    {!desktop && <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>{toggle}</DrawerTrigger>
-      <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}>
+    <Drawer open={!desktop && open} onOpenChange={setOpen}>
+      {children(panel, desktop ? toggle : <DrawerTrigger asChild>{toggle}</DrawerTrigger>)}
+      {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}>
         <div className="gallery-settings-heading">
           <DrawerTitle>Settings</DrawerTitle>
           <Button size="sm" variant="ghost" onClick={close} aria-label="Close settings">Close</Button>
         </div>
         {controls}
-      </DrawerContent>
-    </Drawer>}
+      </DrawerContent>}
+    </Drawer>
   </DemoSettingsContext.Provider>;
 }
