@@ -20,6 +20,9 @@ Appearance is available on every page through the gear after the header search.
 The same button opens and closes the panel. Navigation on the left
 and settings on the right can close independently to give the preview more room.
 The gallery composes the shared AppShellPanel and AppShellPanelToggle.
+Both desktop rails animate with the existing motion tokens. Reduced motion
+and browsers without Web Animations update immediately. Repeated clicks can
+interrupt a transition. Demos retain their values while the workspace resizes.
 
 Desktop keeps the preview interactive beside the panel. Small screens use a
 modal Drawer with Escape dismissal and focus return. The old `/#appearance`

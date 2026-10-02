@@ -1,5 +1,6 @@
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
+import { animateGalleryPanels } from "./gallery-motion";
 import { InlineFieldsDemo } from "./inline-fields-demo";
 import { TableDemo } from "./table-demo";
 // Catalogue previews. Every entry renders the published component, so the
@@ -9,7 +10,7 @@ import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
-import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { memo, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccentSelector,
   type Accent,
@@ -1029,7 +1030,7 @@ function AppShellDemo() {
   );
 }
 
-function Demo({
+const Demo = memo(function Demo({
   id,
   theme,
   onThemeChange,
@@ -1918,7 +1919,7 @@ function Demo({
     default:
       return null;
   }
-}
+});
 
 // Wide cards go first so the small ones fill the columns left over.
 function sizeRank(size: "wide" | "full" | undefined) {
@@ -1927,27 +1928,26 @@ function sizeRank(size: "wide" | "full" | undefined) {
 
 const MASONRY_ROW = 8;
 
-// Masonry on a 12-column grid: each card spans only the 8px rows its content
-// needs, so short cards do not wait for the tallest card in the same row.
-function useMasonryRows(grid: RefObject<HTMLDivElement | null>, active: boolean) {
+// Read card sizes together, then update spans without forcing a layout per card.
+function useMasonryRows(grid: RefObject<HTMLDivElement | null>, active: boolean, items: string) {
   useLayoutEffect(() => {
     const root = grid.current;
     if (!active || !root) return;
     const gap = parseFloat(getComputedStyle(root).columnGap) || 0;
-    const fit = (card: HTMLElement) => {
-      const height = card.getBoundingClientRect().height;
-      card.style.setProperty("--catalog-rows", String(Math.ceil((height + gap) / MASONRY_ROW)));
+    const fit = (sizes: [HTMLElement, number][]) => {
+      for (const [card, height] of sizes) {
+        const rows = String(Math.ceil((height + gap) / MASONRY_ROW));
+        if (card.style.getPropertyValue("--catalog-rows") !== rows) card.style.setProperty("--catalog-rows", rows);
+      }
     };
     const cards = Array.from(root.children).filter((c): c is HTMLElement => c instanceof HTMLElement);
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) fit(entry.target as HTMLElement);
+    const observer = new ResizeObserver(entries => {
+      fit(entries.map(entry => [entry.target as HTMLElement, entry.borderBoxSize[0]?.blockSize ?? entry.target.getBoundingClientRect().height]));
     });
-    for (const card of cards) {
-      fit(card);
-      observer.observe(card);
-    }
+    fit(cards.map(card => [card, card.getBoundingClientRect().height]));
+    for (const card of cards) observer.observe(card);
     return () => observer.disconnect();
-  });
+  }, [grid, active, items]);
 }
 
 export function ComponentGallery({
@@ -2004,7 +2004,7 @@ export function ComponentGallery({
         .filter((entry) => group === "all" || entry[2] === group)
         .sort((a, b) => sizeRank(catalogSize[a[0]]) - sizeRank(catalogSize[b[0]]))
     : catalog.filter((entry) => entry[0] === selected);
-  useMasonryRows(grid, browsing);
+  useMasonryRows(grid, browsing, visible.map(entry => entry[0]).join(","));
 
   function showAll() {
     setSearch("");
@@ -2114,7 +2114,7 @@ export function ComponentGallery({
           {!showingIntro && <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
-            onClick={() => setNavigationCollapsed(value => !value)}>
+            onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
             <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="1" /><path d="M5 2v12" /></svg>
           </Button>}
           {!showingIntro && (

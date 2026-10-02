@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
 import { DemoSettingsContext } from "../../../kiso/blocks/react-prototype/src/demo-settings";
+import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
 import { AppearanceControls } from "./appearance";
 import { AppearanceUsage } from "./appearance-usage";
 import type { AppearanceSettings } from "./appearance-settings";
@@ -47,7 +48,8 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
 
   function close() {
     returnFocus.current = true;
-    setOpen(false);
+    if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
+    else setOpen(false);
   }
   const controls = <>
     <div className="gallery-settings-actions">
@@ -63,8 +65,10 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   const toggle = <AppShellPanelToggle ref={trigger} placement="header"
     className="gallery-settings-trigger btn-icon" aria-label={open ? "Close settings" : "Open settings"}
     aria-expanded={open} aria-controls="gallery-settings" onClick={() => {
-      if (open) close();
-      else { manualOpen.current = true; setOpen(true); }
+      manualOpen.current = true;
+      returnFocus.current = true;
+      if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(value => !value));
+      else setOpen(value => !value);
     }}>
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d="m9.5 3-.5 2-2 1-2-.5-2 3.5 1.5 1.5v3L3 15l2 3.5 2-.5 2 1 .5 2h5l.5-2 2-1 2 .5 2-3.5-1.5-1.5v-3L21 9l-2-3.5-2 .5-2-1-.5-2z" />

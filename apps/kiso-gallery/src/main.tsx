@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useLayoutEffect, useState } from "react";
+import { StrictMode, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts } from "./layout-examples";
@@ -16,7 +16,11 @@ function App() {
     () => window.location.hash.slice(1) || "intro"
   );
   const [settings, setSettings] = useState(window.kisoAppearance.read);
-  const update = (patch: Partial<AppearanceSettings>) => setSettings(current => ({ ...current, ...patch }));
+  const update = useCallback((patch: Partial<AppearanceSettings>) => setSettings(current => ({ ...current, ...patch })), []);
+  const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
+  const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
+  const example = <LayoutExamples route={route} />;
+  const intro = <Intro />;
 
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1) || "intro");
@@ -36,12 +40,12 @@ function App() {
         route={route === "appearance" ? "intro" : route}
         version={import.meta.env.VITE_KISO_VERSION}
         theme={settings.theme}
-        onThemeChange={theme => update({ theme })}
+        onThemeChange={onThemeChange}
         accent={settings.accent}
-        onAccentChange={accent => update({ accent })}
-        example={<LayoutExamples route={route} />}
+        onAccentChange={onAccentChange}
+        example={example}
         examples={layouts}
-        intro={<Intro />}
+        intro={intro}
         settingsEnabled
       />}
     </GallerySettings>
