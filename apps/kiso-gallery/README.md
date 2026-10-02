@@ -17,8 +17,7 @@ of demonstrations, using the shared React components in both entry points.
 ## Appearance panel
 
 Appearance is available on every page through the gear after the header search.
-The same button opens and closes the panel. Use Appearance > Layout > Settings
-toggle to choose Floating placement. Navigation on the left
+The same button opens and closes the panel. Navigation on the left
 and settings on the right can close independently to give the preview more room.
 The gallery composes the shared AppShellPanel and AppShellPanelToggle.
 
@@ -38,10 +37,12 @@ The catalog overview and standalone prototype keep controls beside each demo.
 Border styles include Solid, None, Side rail, Dashed outline, Inset edge, Double
 outline, Weighted base, and Offset outline. Corner type offers Square, Rounded,
 and Asymmetric. Rounded uses one type with separate Small, Medium, and Large
-sizes: panel radii are 8, 16, and 24px. Off removes all rounding. Square keeps
-its existing control radii unless size is Off. Corner marks and their size stay
-independent. None borders hide panel outlines, shadows, and marks while keeping
-control borders and focus indicators.
+sizes: panel radii are 8, 16, and 24px. Square disables the size controls and
+retains the previous size for a later shape change. Rounded and Asymmetric
+disable Off. Switching from Off or restoring a saved curved shape with Off
+selects Medium. The published CSS supports all size values independently of
+shape. Corner marks and their size stay independent. None borders hide panel
+outlines, shadows, and marks while keeping control borders and focus indicators.
 
 Global preferences apply throughout the gallery, including layouts and dialogs.
 Reset appearance restores system theme, violet, Solid borders, Square corners,

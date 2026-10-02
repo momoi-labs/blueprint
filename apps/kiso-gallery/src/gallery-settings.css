@@ -1,13 +1,7 @@
 .component-gallery { --app-shell-panel-width: 320px; }
 .component-gallery:has(> .app-shell-panel) .catalog-detail { max-width: none; }
 .gallery-settings-trigger { flex: none; }
-.gallery-settings-trigger[data-placement="floating"] {
-  display: grid;
-  justify-items: center;
-  gap: var(--spacing-xs);
-}
 @media (max-width: 1023px) {
-  .gallery-settings-trigger[data-placement="floating"] > span { display: none; }
   .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;

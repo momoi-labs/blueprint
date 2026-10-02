@@ -34,9 +34,11 @@
     }
     // Preserve hidden marks from the earlier Off size setting.
     if (value?.markSize === "off") value = { ...value, cornerMarks: "none", markSize: "medium" };
-    return Object.fromEntries(Object.entries(options).map(([key, values]) => [
+    const settings = Object.fromEntries(Object.entries(options).map(([key, values]) => [
       key, value && values.includes(value[key]) ? value[key] : defaults[key],
     ]));
+    if (settings.cornerStyle !== "square" && settings.cornerSize === "off") settings.cornerSize = defaults.cornerSize;
+    return settings;
   }
   function read() {
     let saved = {};

@@ -103,6 +103,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     assert.equal(await page.getByRole("table").getAttribute("data-header"), "plain");
     const initialPanelBox = await panel.boundingBox();
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
+    await page.getByRole("button", { name: "Expand navigation", exact: true }).waitFor();
     assert(await width() > start + 200);
     assert.equal((await panel.boundingBox()).width, initialPanelBox.width);
     await close(page);
@@ -114,6 +115,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     assert.equal(await section.getByRole("combobox", { name: /^Density/ }).inputValue(), "spacious");
     assert.equal(await page.getByRole("button", { name: /work_mem/ }).getAttribute("aria-expanded"), "true");
     await page.getByRole("button", { name: "Expand navigation", exact: true }).click();
+    await page.getByRole("button", { name: "Collapse navigation", exact: true }).waitFor();
     assert.equal(await width(), start);
     const scroll = panel.getByRole("region", { name: "Settings options" });
     const previewBox = await page.locator(".catalog-preview").boundingBox();
@@ -125,7 +127,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
   } finally { await page.close(); }
 });
 
-test("The settings gear starts after search in the header and can opt into floating placement", async () => {
+test("The settings gear stays after search in the header", async () => {
   const page = await open("components/alert");
   try {
     const panel = await settings(page);
@@ -140,17 +142,12 @@ test("The settings gear starts after search in the header and can opt into float
     const searchBox = await page.getByRole("searchbox", { name: "Find a component" }).boundingBox();
     const headerToggleBox = await toggle.boundingBox();
     assert(headerToggleBox.x >= searchBox.x + searchBox.width, "Gear follows the search field");
-    await (await group(panel, "Layout")).getByRole("combobox", { name: "Settings toggle", exact: true }).selectOption("floating");
-    const edge = await panel.boundingBox();
-    const box = await toggle.boundingBox();
-    assert.equal(box.x + box.width, edge.x);
-    assert(Math.abs(box.y + box.height / 2 - 450) < 1);
+    assert.equal(await panel.getByRole("combobox", { name: "Settings toggle", exact: true }).count(), 0);
     await toggle.focus(); await page.keyboard.press("Enter");
+    await panel.waitFor({ state: "hidden" });
     assert.equal(await toggle.getAttribute("aria-expanded"), "false");
-    assert.equal((await toggle.boundingBox()).x + (await toggle.boundingBox()).width, 1440);
     await page.keyboard.press("Space");
     await panel.waitFor();
-    await (await group(panel, "Layout")).getByRole("combobox", { name: "Settings toggle", exact: true }).selectOption("header");
     assert.equal(await toggle.evaluate(el => getComputedStyle(el).position), "static");
     await toggle.click();
     await panel.waitFor({ state: "hidden" });
@@ -170,13 +167,25 @@ for (const width of [390, 1440]) test(`Rounded is one type with independent size
     let corners = await group(panel, "Corner style");
     const choices = corners.getByRole("group", { name: "Corner type", exact: true });
     assert.equal(await choices.getByRole("radio").count(), 3);
+    const size = corners.getByRole("group", { name: "Corner size", exact: true });
+    for (const radio of await size.getByRole("radio").all()) assert(await radio.isDisabled(), "Square disables size adjustments");
     await choices.getByRole("radio", { name: /^Rounded / }).check();
+    assert(await size.getByRole("radio", { name: "Off", exact: true }).isDisabled());
     const table = page.locator(".catalog-preview .table-wrap");
-    for (const [size, radius] of [["Small", "8px"], ["Medium", "16px"], ["Large", "24px"], ["Off", "0px"]]) {
+    for (const [size, radius] of [["Small", "8px"], ["Medium", "16px"], ["Large", "24px"]]) {
       await corners.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: size, exact: true }).check();
       assert.equal(await table.evaluate(el => getComputedStyle(el).borderTopLeftRadius), radius);
     }
-    await corners.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: "Small", exact: true }).check();
+    await choices.getByRole("radio", { name: /^Square / }).check();
+    assert(await size.getByRole("radio", { name: "Large", exact: true }).isChecked(), "Square keeps the last size for a later shape switch");
+    await choices.getByRole("radio", { name: /^Asymmetric / }).check();
+    assert(await size.getByRole("radio", { name: "Off", exact: true }).isDisabled());
+    assert.equal(await table.evaluate(el => getComputedStyle(el).borderTopLeftRadius), "18px");
+    await choices.getByRole("radio", { name: /^Rounded / }).check();
+    assert(await size.getByRole("radio", { name: "Large", exact: true }).isChecked(), "Switching shapes retains an enabled size");
+    const large = size.getByRole("radio", { name: "Large", exact: true });
+    await large.focus(); await page.keyboard.press("Space"); await page.keyboard.press("ArrowRight");
+    assert(await size.getByRole("radio", { name: "Small", exact: true }).isChecked(), "Keyboard navigation skips disabled Off");
     const borders = await group(panel, "Borders");
     assert.equal(await borders.getByRole("radio").count(), 8);
     for (const border of ["none", "dash", "solid"]) {
@@ -298,5 +307,39 @@ test("Old Appearance bookmarks open settings on Intro", async () => {
     await page.waitForURL(`${url}#intro`);
     assert(await page.locator("#gallery-settings").isVisible());
     assert(await page.getByRole("heading", { name: "A shared foundation for your next interface.", exact: true }).isVisible());
+  } finally { await page.close(); }
+});
+
+for (const width of [320, 1440]) test(`Appearance samples stay centered and isolated from full-size frame decorations at ${width}px`, async () => {
+  const page = await open('components', width);
+  try {
+    const panel = await settings(page);
+    await panel.getByRole('radio', { name: /^Rounded / }).check();
+    await panel.getByRole('group', { name: 'Corner size', exact: true }).getByRole('radio', { name: 'Large', exact: true }).check();
+    for (const sample of await panel.locator('.appearance-heading-sample').all()) {
+      assert(await sample.evaluate(el => {
+        const box = el.getBoundingClientRect();
+        const text = el.querySelector('.appearance-heading-title').getBoundingClientRect();
+        return Math.abs(text.x + text.width / 2 - box.x - box.width / 2) <= 1 && Math.abs(text.y + text.height / 2 - box.y - box.height / 2) <= 1;
+      }), 'Aa is centered within its sample');
+    }
+    const frames = panel.getByRole('group', { name: 'Application frame', exact: true });
+    assert.equal(await frames.locator('svg').count(), 2);
+    assert.equal(await frames.locator('.card').count(), 0, 'Frame thumbnails do not inherit full-size card marks');
+    for (const svg of await frames.locator('svg').all()) {
+      assert(await svg.evaluate(el => {
+        const box = el.getBBox(), view = el.viewBox.baseVal;
+        return box.x >= view.x && box.y >= view.y && box.x + box.width <= view.width && box.y + box.height <= view.height;
+      }), 'Frame drawing stays inside its viewBox');
+    }
+    if (width >= 1200) for (const frame of ['Default', 'Inset']) {
+      await frames.getByRole('radio', { name: frame, exact: true }).check();
+      const header = await page.locator('.catalog-header').boundingBox();
+      const left = await page.locator('.catalog-sidebar-toggle').boundingBox();
+      const right = await page.locator('.gallery-settings-trigger').boundingBox();
+      const start = left.x - header.x, end = header.x + header.width - right.x - right.width;
+      assert(Math.abs(start - end) <= 1 && start <= 8 && end <= 8, 'Header toggles have equal small outer margins');
+      assert.equal(left.width, right.width, 'Both toggles use the same icon-button target');
+    }
   } finally { await page.close(); }
 });
