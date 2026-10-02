@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AppShellPanel, AppShellPanelToggle, Button, Disclosure, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
+import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
 import { DemoSettingsContext } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { AppearanceControls } from "./appearance";
 import { AppearanceUsage } from "./appearance-usage";
@@ -51,20 +51,20 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
     setOpen(false);
   }
   const controls = <>
+    <div className="gallery-settings-actions">
+      <Button size="sm" onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
+      <p role="status" className="muted t-label">{message}</p>
+    </div>
     <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0}>
       <AppearanceControls settings={settings} onChange={onChange} workspaceControls={
         <div className="field"><label htmlFor="gallery-panel-toggle">Settings toggle</label>
-          <select id="gallery-panel-toggle" className="select" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}>
+          <select id="gallery-panel-toggle" className="select" data-control-size="sm" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}>
             <option value="header">Header</option><option value="floating">Floating</option>
           </select>
         </div>
       } />
       <div ref={setTarget} className="gallery-component-settings" />
-      <Disclosure summary="Use in code"><AppearanceUsage settings={settings} /></Disclosure>
-    </div>
-    <div className="gallery-settings-footer">
-      <Button onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
-      <p role="status" className="muted t-label">{message}</p>
+      <AppearanceUsage settings={settings} />
     </div>
   </>;
   const toggle = <AppShellPanelToggle ref={trigger} placement={togglePlacement}
@@ -84,7 +84,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       if (event.key === "Escape" && !event.defaultPrevented) { event.stopPropagation(); close(); }
     }}>
     <div className="gallery-settings-heading">
-      <h2 id="gallery-settings-title" className="t-h3" ref={heading} tabIndex={-1}>Settings</h2>
+      <h2 id="gallery-settings-title" className="t-h3" ref={heading} tabIndex={-1}>Appearance</h2>
     </div>
     {controls}
   </AppShellPanel> : null;
@@ -94,7 +94,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       {children(panel, desktop ? toggle : <DrawerTrigger asChild>{toggle}</DrawerTrigger>)}
       {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}>
         <div className="gallery-settings-heading">
-          <DrawerTitle>Settings</DrawerTitle>
+          <DrawerTitle>Appearance</DrawerTitle>
           <Button size="sm" variant="ghost" onClick={close} aria-label="Close settings">Close</Button>
         </div>
         {controls}

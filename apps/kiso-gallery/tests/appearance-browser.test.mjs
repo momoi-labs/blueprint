@@ -32,14 +32,57 @@ async function settings(page) {
   return panel;
 }
 async function group(panel, name) {
-  const summary = panel.locator("summary", { hasText: new RegExp(`^${name}$`) });
-  if (await summary.locator("..").getAttribute("open") === null) await summary.click();
-  return summary.locator("..");
+  const section = panel.getByRole("region", { name, exact: true });
+  await section.waitFor();
+  return section;
 }
 async function close(page) {
   await page.getByRole("button", { name: "Close settings", exact: true }).click();
   await page.locator("#gallery-settings").waitFor({ state: "hidden" });
 }
+
+for (const [width, frame, theme] of [
+  [1440, "Default", "light"], [1440, "Default", "dark"],
+  [1440, "Inset", "light"], [1440, "Inset", "dark"], [320, "Inset", "dark"],
+]) test(`Appearance stays compact with reset above scrolling options at ${width}px in ${frame}/${theme}`, async () => {
+  const page = await open("components", width, theme);
+  try {
+    const panel = await settings(page);
+    await panel.getByRole("group", { name: "Application frame", exact: true }).getByRole("radio", { name: frame, exact: true }).check();
+    assert(await panel.getByRole("heading", { name: "Appearance", exact: true }).isVisible());
+    assert.equal(await panel.locator("details").count(), 0);
+    for (const name of ["Colors", "Layout", "Borders", "Corner style", "Corner marks", "Use in code"]) {
+      assert(await panel.getByRole("region", { name, exact: true }).isVisible());
+    }
+    if (width >= 1200) {
+      assert.equal(await panel.evaluate(el => getComputedStyle(el).backgroundColor),
+        await page.locator(".catalog-sidebar").evaluate(el => getComputedStyle(el).backgroundColor), "Both sidebars share a background");
+      if (frame === "Inset") assert.equal(await panel.evaluate(el => getComputedStyle(el).borderInlineStartWidth), "0px");
+    }
+    const borders = panel.getByRole("group", { name: "Border style", exact: true });
+    assert.equal(await borders.getByRole("radio").count(), 8);
+    assert((await borders.boundingBox()).height <= 260, "Eight border choices fit in four compact rows");
+    const rounded = panel.getByRole("radio", { name: /^Rounded / });
+    await rounded.focus();
+    await page.keyboard.press("Space");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "rounded");
+    const reset = panel.getByRole("button", { name: "Reset appearance", exact: true });
+    const resetBox = await reset.boundingBox();
+    const scroll = panel.getByRole("region", { name: "Settings options", exact: true });
+    await scroll.evaluate(el => el.scrollTop = el.scrollHeight);
+    assert(await scroll.evaluate(el => el.scrollTop > 0));
+    assert.deepEqual(await reset.boundingBox(), resetBox, "Reset stays fixed while the options scroll");
+    assert(resetBox.y + resetBox.height <= (await scroll.boundingBox()).y, "Reset sits above the scroll area");
+    assert(await reset.evaluate(el => {
+      const box = el.getBoundingClientRect();
+      return el.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+    }), "Reset remains clickable without scrolling back up");
+    assert.equal(await panel.evaluate(el => el.scrollTop), 0, "Only the options own the vertical scroll position");
+    await reset.click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "square");
+    assert.equal(await panel.getByRole("status").filter({ hasText: "Global settings reset." }).count(), 1);
+  } finally { await page.close(); }
+});
 
 for (const frame of ["Default", "Inset"]) test(`Both rails release space independently and retain demo state in ${frame}`, async () => {
   const page = await open("components/table");
@@ -114,7 +157,7 @@ test("The settings gear starts after search in the header and can opt into float
     await toggle.click();
     await panel.waitFor();
     if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-toggle-header.png` });
-    await panel.getByRole("heading", { name: "Settings", exact: true }).focus();
+    await panel.getByRole("heading", { name: "Appearance", exact: true }).focus();
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open settings");
   } finally { await page.close(); }
@@ -162,12 +205,12 @@ test("Component options replace each other and open on arrival without resetting
       await page.goto(`${url}#components/${route}`);
       panel = page.locator("#gallery-settings");
       await panel.waitFor();
-      const options = panel.locator("summary", { hasText: title }).locator("..");
-      assert.notEqual(await options.getAttribute("open"), null);
+      const options = panel.getByRole("region", { name: title, exact: true });
+      assert(await options.isVisible());
       const sectionBox = await options.boundingBox();
       const scrollBox = await panel.getByRole("region", { name: "Settings options" }).boundingBox();
       assert(sectionBox.y >= scrollBox.y && sectionBox.y + sectionBox.height <= scrollBox.y + scrollBox.height + 1, "Current component controls scroll into view");
-      assert.equal(await panel.locator(".gallery-component-settings > details").count(), 1);
+      assert.equal(await panel.locator(".gallery-component-settings > section").count(), 1);
       await options.getByRole("combobox", { name: control }).selectOption(value);
       assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
       assert.equal(await page.locator(".catalog-preview .demo-settings-inline").count(), 0);
@@ -205,7 +248,7 @@ for (const colorScheme of ["light", "dark"]) test(`Alert has one live preview fo
 for (const width of [320, 390]) test(`Small screens use a dismissible settings drawer with focus return at ${width}px`, async () => {
   const page = await open("components/table", width);
   try {
-    const panel = await page.getByRole("dialog", { name: "Settings", exact: true });
+    const panel = await page.getByRole("dialog", { name: "Appearance", exact: true });
     await panel.waitFor();
     assert.equal(await panel.getAttribute("aria-modal"), "true");
     await panel.getByRole("combobox", { name: /^Density/ }).selectOption("compact");

@@ -34,8 +34,8 @@ export function AppearanceUsage({ settings }: { settings: AppearanceSettings }) 
     }
   }
   return <section className="appearance-usage" aria-labelledby="appearance-usage-title">
-    <h2 id="appearance-usage-title" className="t-h3">Use in code</h2>
-    <p className="muted">These examples follow your current selection. Attributes on <code>&lt;html&gt;</code> apply to the whole application, including dialogs.</p>
+    <h3 id="appearance-usage-title" className="t-caps">Use in code</h3>
+    <p className="muted t-label">These examples follow your current selection. Attributes on <code>&lt;html&gt;</code> apply to the whole application, including dialogs.</p>
     <section aria-labelledby="appearance-styles-title">
       <h3 id="appearance-styles-title" className="t-label">Load the styles</h3>
       <p className="muted t-label">Theme, accent, layout, borders, and corner marks are included in the Kiso stylesheet. No gallery files are needed.</p>

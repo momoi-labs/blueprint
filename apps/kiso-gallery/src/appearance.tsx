@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { AccentSelector, Disclosure, ThemeSelector } from "@momoi-labs/kiso-react";
+import { AccentSelector, ThemeSelector } from "@momoi-labs/kiso-react";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 
 const borders: { value: BorderStyle; label: string; description: string }[] = [
@@ -53,6 +53,14 @@ function ChoiceSelector<T extends string>({ label, value, onChange, options, dis
   </fieldset>;
 }
 
+function AppearanceSection({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId();
+  return <section className="appearance-section" aria-labelledby={id}>
+    <h3 id={id} className="t-caps">{title}</h3>
+    {children}
+  </section>;
+}
+
 export function AppearanceControls({ settings, onChange, workspaceControls }: {
   settings: AppearanceSettings;
   workspaceControls?: ReactNode;
@@ -64,17 +72,17 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
   const styleName = useId();
   const frameName = useId();
   return <>
-  <Disclosure summary="Colors">
+  <AppearanceSection title="Colors">
     <div className="appearance-colors">
-      <ThemeSelector variant="cards" theme={settings.theme} onChange={theme => onChange({ theme })} />
-      <AccentSelector accent={settings.accent} onChange={accent => onChange({ accent })} />
+      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
+      <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
     </div>
-  </Disclosure>
-  <Disclosure summary="Layout">
+  </AppearanceSection>
+  <AppearanceSection title="Layout">
     <fieldset className="appearance-choices">
       <legend className="t-label">Visual style</legend>
       <div className="appearance-options">
-        {visualStyles.map(heading => <label className="appearance-option" key={heading.value}>
+        {visualStyles.map(heading => <label className="appearance-option" key={heading.value} title={heading.description}>
           <input type="radio" name={styleName} value={heading.value}
             checked={settings.visualStyle === heading.value}
             onChange={() => onChange({ visualStyle: heading.value })}
@@ -87,7 +95,7 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
               </span>
             </span>
             <span id={`${styleName}-${heading.value}-label`} className="t-label">{heading.label}</span>
-            <span id={`${styleName}-${heading.value}-description`} className="muted t-label">{heading.description}</span>
+            <span id={`${styleName}-${heading.value}-description`} className="appearance-option-description">{heading.description}</span>
           </span>
         </label>)}
       </div>
@@ -95,7 +103,7 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
     <fieldset className="appearance-choices">
       <legend className="t-label">Application frame</legend>
       <div className="appearance-options">
-        {applicationFrames.map(frame => <label className="appearance-option" key={frame.value}>
+        {applicationFrames.map(frame => <label className="appearance-option" key={frame.value} title={frame.description}>
           <input type="radio" name={frameName} value={frame.value}
             checked={settings.appShell === frame.value}
             onChange={() => onChange({ appShell: frame.value })}
@@ -112,53 +120,52 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
               </span>
             </span>
             <span id={`${frameName}-${frame.value}-label`} className="t-label">{frame.label}</span>
-            <span id={`${frameName}-${frame.value}-description`} className="muted t-label">{frame.description}</span>
+            <span id={`${frameName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
           </span>
         </label>)}
       </div>
     </fieldset>
     {workspaceControls}
-    <p className="muted t-label">Editorial adjusts headings, cards, metrics, and section spacing. Controls and tables keep their density. Inset controls the application frame independently.</p>
-  </Disclosure>
-  <Disclosure summary="Borders">
+  </AppearanceSection>
+  <AppearanceSection title="Borders">
     <fieldset className="appearance-choices">
-      <legend className="t-h3">Border style</legend>
+      <legend className="t-label">Border style</legend>
       <div className="appearance-options">
-        {borders.map(border => <label className="appearance-option" key={border.value}>
+        {borders.map(border => <label className="appearance-option" key={border.value} title={border.description}>
           <input type="radio" name={borderName} value={border.value} checked={settings.borderStyle === border.value} onChange={() => onChange({ borderStyle: border.value })} />
           <span className="appearance-option-body">
             <span className="appearance-swatch" data-border-style={border.value} aria-hidden="true">
               <span className="card appearance-sample"><i /><i /></span>
             </span>
             <span className="t-label">{border.label}</span>
-            <span className="muted t-label">{border.description}</span>
+            <span className="appearance-option-description">{border.description}</span>
           </span>
         </label>)}
       </div>
     </fieldset>
-  </Disclosure>
-  <Disclosure summary="Corner style">
+  </AppearanceSection>
+  <AppearanceSection title="Corner style">
     <fieldset className="appearance-choices">
-      <legend className="t-h3">Corner type</legend>
+      <legend className="t-label">Corner type</legend>
       <div className="appearance-options">
-        {corners.map(corner => <label className="appearance-option" key={corner.value}>
+        {corners.map(corner => <label className="appearance-option" key={corner.value} title={corner.description}>
           <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} onChange={() => onChange({ cornerStyle: corner.value })} />
           <span className="appearance-option-body">
             <span className="appearance-swatch" data-border-style="solid" data-corner-style={corner.value} data-corner-size="medium" data-corner-marks="none" aria-hidden="true">
               <span className="card appearance-sample"><i /><i /></span>
             </span>
             <span className="t-label">{corner.label}</span>
-            <span className="muted t-label">{corner.description}</span>
+            <span className="appearance-option-description">{corner.description}</span>
           </span>
         </label>)}
       </div>
     </fieldset>
     <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />
-    <p className="muted t-label">Type and size apply independently of the border. Off removes all rounding. Square keeps control corners unchanged at other sizes.</p>
-  </Disclosure>
-  <Disclosure summary="Corner marks">
+    <p className="muted t-label">Off removes rounding. Square keeps control corners at other sizes.</p>
+  </AppearanceSection>
+  <AppearanceSection title="Corner marks">
     <fieldset className="appearance-choices">
-      <legend className="t-h3">Corner marks</legend>
+      <legend className="t-label">Corner marks</legend>
       <div className="appearance-options">
         {marks.map(mark => <label className="appearance-option" key={mark.value}>
           <input type="radio" name={markName} value={mark.value} checked={settings.cornerMarks === mark.value} onChange={() => onChange({ cornerMarks: mark.value })} />
@@ -172,7 +179,6 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
       </div>
     </fieldset>
     <ChoiceSelector options={markSizes} label="Mark size" value={settings.markSize} onChange={markSize => onChange({ markSize })} disabled={settings.cornerMarks === "none"} />
-    <p className="muted t-label">Choose None to hide the marks. Mark size sets their length and gap.</p>
-  </Disclosure>
+  </AppearanceSection>
   </>;
 }

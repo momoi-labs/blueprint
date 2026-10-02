@@ -161,7 +161,7 @@ test("Resizing between panel and drawer retains values, focus and page scrolling
       await settings(page, true);
       assert.equal(await page.getByRole("combobox", { name: /^Density/ }).inputValue(), "spacious");
       if (width < 1200) {
-        const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
+        const dialog = page.getByRole("dialog", { name: "Appearance", exact: true });
         await dialog.waitFor();
         assert(await dialog.evaluate(el => el.contains(document.activeElement)), "Drawer receives focus after resizing");
       }
@@ -181,8 +181,11 @@ for (const width of [320, 1200, 1920]) test(`Settings choices and code remain re
     await settings(page, true);
     const panel = page.locator("#gallery-settings");
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
-    for (const summary of await panel.locator("summary").all()) {
-      if (await summary.locator("..").getAttribute("open") === null) await summary.click();
+    assert.equal(await panel.locator("details").count(), 0, "All settings categories stay expanded");
+    if (width === 320) {
+      for (const button of await panel.getByRole("group", { name: "Accent", exact: true }).getByRole("button").all()) {
+        assert((await button.boundingBox()).height >= 44, "Compact accent options retain their touch targets");
+      }
     }
     for (const style of ["Default", "Editorial"]) {
       await panel.getByRole("group", { name: "Visual style", exact: true }).getByRole("radio", { name: style, exact: true }).check();

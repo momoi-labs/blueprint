@@ -14,10 +14,10 @@ The app imports the gallery from
 console or its mock data. There is one catalog and one set
 of demonstrations, using the shared React components in both entry points.
 
-## Settings panel
+## Appearance panel
 
-Settings is available on every page through the gear after the header search.
-The same button opens and closes the panel. Use Settings > Layout > Settings
+Appearance is available on every page through the gear after the header search.
+The same button opens and closes the panel. Use Appearance > Layout > Settings
 toggle to choose Floating placement. Navigation on the left
 and settings on the right can close independently to give the preview more room.
 The gallery composes the shared AppShellPanel and AppShellPanelToggle.
@@ -26,7 +26,10 @@ Desktop keeps the preview interactive beside the panel. Small screens use a
 modal Drawer with Escape dismissal and focus return. The old `/#appearance`
 bookmark opens settings on Intro.
 
-Colors, Layout, Borders, Corner style, and Corner marks are independent groups.
+The panel uses the navigation sidebar background in Default and Inset frames.
+Reset appearance stays at the top while the options scroll. Colors, Layout,
+Borders, Corner style, and Corner marks remain open, separated by lines.
+Compact choices keep visual samples, labels, and keyboard controls.
 Table, Alert, ApplicationShell, and inline field demos append their own controls
 and open the panel on arrival. Closing it retains the current demo values.
 Changing pages replaces the component controls and keeps global preferences.
