@@ -13,7 +13,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [togglePlacement, setTogglePlacement] = useState<"header" | "floating">("floating");
+  const [togglePlacement, setTogglePlacement] = useState<"header" | "floating">("header");
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1200px)").matches);
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const [message, setMessage] = useState("");
@@ -67,14 +67,16 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       <p role="status" className="muted t-label">{message}</p>
     </div>
   </>;
-  const toggle = <AppShellPanelToggle ref={trigger} placement={desktop ? togglePlacement : "floating"}
-    className="gallery-settings-trigger" aria-label={open ? "Close settings" : "Open settings"}
+  const toggle = <AppShellPanelToggle ref={trigger} placement={togglePlacement}
+    className="gallery-settings-trigger btn-icon" aria-label={open ? "Close settings" : "Open settings"}
     aria-expanded={open} aria-controls="gallery-settings" onClick={() => {
       if (open) close();
       else { manualOpen.current = true; setOpen(true); }
     }}>
-    <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 12h12M5 2v4M11 10v4" /></svg>
-    <span>{open ? "Close" : "Settings"}</span>
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m9.5 3-.5 2-2 1-2-.5-2 3.5 1.5 1.5v3L3 15l2 3.5 2-.5 2 1 .5 2h5l.5-2 2-1 2 .5 2-3.5-1.5-1.5v-3L21 9l-2-3.5-2 .5-2-1-.5-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   </AppShellPanelToggle>;
 
   const panel = desktop ? <AppShellPanel id="gallery-settings" className="gallery-settings-panel appearance-controls" hidden={!open}

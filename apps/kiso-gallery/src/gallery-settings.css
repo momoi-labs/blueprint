@@ -1,5 +1,6 @@
 .component-gallery { --app-shell-panel-width: 360px; }
 .component-gallery:has(> .app-shell-panel) .catalog-detail { max-width: none; }
+.gallery-settings-trigger { flex: none; }
 .gallery-settings-trigger[data-placement="floating"] {
   display: grid;
   justify-items: center;
@@ -7,6 +8,16 @@
 }
 @media (max-width: 1023px) {
   .gallery-settings-trigger[data-placement="floating"] > span { display: none; }
+  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > .catalog-menu {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .gallery-settings-trigger[data-placement="header"] { grid-column: 3; grid-row: 1; }
 }
 .gallery-settings-panel, .gallery-settings-drawer {
   display: flex;
