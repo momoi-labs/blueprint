@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useLayoutEffect, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useId, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Disclosure } from "@momoi-labs/kiso-react";
 
 export const DemoSettingsContext = createContext<{
   target: HTMLElement | null;
@@ -11,6 +10,7 @@ export const DemoSettingsContext = createContext<{
 // Demos retain their state while their controls appear in the gallery panel.
 // The standalone prototype and catalog cards keep controls beside the example.
 export function DemoSettings({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId();
   const settings = useContext(DemoSettingsContext);
   const register = settings?.register;
   const target = settings?.target;
@@ -25,8 +25,9 @@ export function DemoSettings({ title, children }: { title: string; children: Rea
   }, [open, target, title]);
   if (!settings) return <div className="demo-settings-inline">{children}</div>;
   return settings.target ? createPortal(
-    <Disclosure summary={`${title} options`} open>
+    <section className="appearance-section" aria-labelledby={id}>
+      <h3 id={id} className="t-caps">{title} options</h3>
       <div className="stack">{children}</div>
-    </Disclosure>, settings.target,
+    </section>, settings.target,
   ) : null;
 }
