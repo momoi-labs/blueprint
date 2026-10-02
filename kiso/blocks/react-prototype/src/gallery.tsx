@@ -2111,7 +2111,7 @@ export function ComponentGallery({
       </Sidebar>}
       <AppShellMain>
         <Header className="catalog-header">
-          {!showingIntro && <Button className="catalog-sidebar-toggle" size="sm" variant="ghost"
+          {!showingIntro && <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={() => setNavigationCollapsed(value => !value)}>

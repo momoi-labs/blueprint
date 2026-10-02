@@ -13,6 +13,7 @@ preserving expanded state, labels and focus recovery.
 Add AppShellPanel for an optional end panel. Hidden navigation and panel
 columns release their space independently. ApplicationShell accepts a panel
 slot in both layouts.
+Keep the inset main frame and its corner marks above both adjacent rails.
 AppShellPanelToggle can stay in the header or float beside the panel edge.
 Floating placement reserves space so the toggle does not cover main content
 or its scrollbar.

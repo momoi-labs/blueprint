@@ -194,6 +194,7 @@ for (const width of [320, 1200, 1920]) test(`Settings choices and code remain re
         const choices = await group.getByRole("radio").all();
         assert(choices.length > 0, `${groupName} must expose its choices`);
         for (const radio of choices) {
+          if (await radio.isDisabled()) continue;
           await radio.check();
           assert(await radio.isChecked());
           assert.deepEqual(await layoutIssues(page, ".appearance-controls-scroll"), []);

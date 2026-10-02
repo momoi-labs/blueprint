@@ -87,3 +87,19 @@ test('The low-level panel stacks and releases its space on narrow screens',async
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   } finally { await page.close(); }
 });
+
+for (const rtl of [false, true]) test(`Inset frame marks paint above both adjacent rails, rtl=${rtl}`, async () => {
+  const page = await open(`variant=inset${rtl ? '&rtl' : ''}`);
+  try {
+    await page.getByRole('combobox', { name: /^Toggle placement/ }).selectOption('header');
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { borderStyle: 'solid', cornerMarks: 'ticks', markSize: 'medium' }));
+    const main = page.locator('[data-slot="app-shell-main"]');
+    assert.equal(await main.evaluate(el => getComputedStyle(el, '::after').pointerEvents), 'none');
+    // Enable hit testing only for this probe to observe the marks' paint order.
+    await page.addStyleTag({ content: '[data-slot="app-shell-main"]::after { pointer-events: auto !important; }' });
+    assert.deepEqual(await main.evaluate(el => {
+      const box = el.getBoundingClientRect();
+      return [box.left - 2, box.right + 2].map(x => document.elementFromPoint(x, box.top + 1) === el);
+    }), [true, true]);
+  } finally { await page.close(); }
+});

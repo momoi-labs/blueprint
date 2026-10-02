@@ -38,19 +38,34 @@ const applicationFrames = [
   { value: "inset", label: "Inset", description: "Content sits inside a separate frame" },
 ] as const;
 
-function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false }: {
-  label: string; value: T; onChange: (size: T) => void; options: readonly T[]; disabled?: boolean;
+function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false, disabledOptions = [] }: {
+  label: string; value: T; onChange: (size: T) => void; options: readonly T[]; disabled?: boolean; disabledOptions?: readonly T[];
 }) {
   const name = useId();
   return <fieldset className="appearance-size" disabled={disabled}>
     <legend className="t-label">{label}</legend>
     <div className="appearance-segments">
       {options.map(size => <label key={size}>
-        <input type="radio" name={name} value={size} checked={value === size} onChange={() => onChange(size)} />
+        <input type="radio" name={name} value={size} checked={value === size} disabled={disabledOptions.includes(size)} onChange={() => onChange(size)} />
         <span>{size[0].toUpperCase() + size.slice(1)}</span>
       </label>)}
     </div>
   </fieldset>;
+}
+
+function FramePreview({ inset }: { inset: boolean }) {
+  const x = inset ? 13 : 10;
+  const y = inset ? 4 : 1;
+  const width = inset ? 22 : 28;
+  const height = inset ? 28 : 34;
+  return <svg className="appearance-frame-sample" viewBox="0 0 48 36" fill="none" stroke="currentColor" strokeWidth="1.5" focusable="false">
+    <rect className="appearance-frame-outline" x="1" y="1" width="46" height="34" rx="2" />
+    <path d="M4 7h3m-3 5h3m-3 5h3M41 7h3m-3 5h3m-3 5h3" />
+    <g transform={`translate(${x} ${y})`}>
+      <rect className="appearance-frame-main" width={width} height={height} rx={inset ? 2 : 0} />
+      <path d={`M0 7h${width}M4 12h${width - 8}M4 17h${width - 12}`} />
+    </g>
+  </svg>;
 }
 
 function AppearanceSection({ title, children }: { title: string; children: ReactNode }) {
@@ -61,9 +76,8 @@ function AppearanceSection({ title, children }: { title: string; children: React
   </section>;
 }
 
-export function AppearanceControls({ settings, onChange, workspaceControls }: {
+export function AppearanceControls({ settings, onChange }: {
   settings: AppearanceSettings;
-  workspaceControls?: ReactNode;
   onChange: (patch: Partial<AppearanceSettings>) => void;
 }) {
   const borderName = useId();
@@ -111,13 +125,7 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
             aria-describedby={`${frameName}-${frame.value}-description`} />
           <span className="appearance-option-body">
             <span className="appearance-swatch" aria-hidden="true">
-              <span className="appearance-frame-sample" data-frame-style={frame.value}>
-                <span className="appearance-frame-rail"><i /><i /><i /></span>
-                <span className={`appearance-frame-main${frame.value === "inset" ? " card" : ""}`}>
-                  <span className="appearance-frame-header" />
-                  <span className="appearance-frame-content"><i /><i /></span>
-                </span>
-              </span>
+              <FramePreview inset={frame.value === "inset"} />
             </span>
             <span id={`${frameName}-${frame.value}-label`} className="t-label">{frame.label}</span>
             <span id={`${frameName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
@@ -125,7 +133,6 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
         </label>)}
       </div>
     </fieldset>
-    {workspaceControls}
   </AppearanceSection>
   <AppearanceSection title="Borders">
     <fieldset className="appearance-choices">
@@ -149,7 +156,8 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
       <legend className="t-label">Corner type</legend>
       <div className="appearance-options">
         {corners.map(corner => <label className="appearance-option" key={corner.value} title={corner.description}>
-          <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} onChange={() => onChange({ cornerStyle: corner.value })} />
+          <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value}
+            onChange={() => onChange({ cornerStyle: corner.value, ...(corner.value !== "square" && settings.cornerSize === "off" ? { cornerSize: "medium" } : {}) })} />
           <span className="appearance-option-body">
             <span className="appearance-swatch" data-border-style="solid" data-corner-style={corner.value} data-corner-size="medium" data-corner-marks="none" aria-hidden="true">
               <span className="card appearance-sample"><i /><i /></span>
@@ -160,8 +168,9 @@ export function AppearanceControls({ settings, onChange, workspaceControls }: {
         </label>)}
       </div>
     </fieldset>
-    <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />
-    <p className="muted t-label">Off removes rounding. Square keeps control corners at other sizes.</p>
+    <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })}
+      disabled={settings.cornerStyle === "square"} disabledOptions={["off"]} />
+    <p className="muted t-label">Square has no size adjustment. Other shapes require Small, Medium, or Large.</p>
   </AppearanceSection>
   <AppearanceSection title="Corner marks">
     <fieldset className="appearance-choices">

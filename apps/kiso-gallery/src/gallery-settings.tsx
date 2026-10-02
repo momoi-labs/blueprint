@@ -13,7 +13,6 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [togglePlacement, setTogglePlacement] = useState<"header" | "floating">("header");
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1200px)").matches);
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const [message, setMessage] = useState("");
@@ -56,18 +55,12 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       <p role="status" className="muted t-label">{message}</p>
     </div>
     <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0}>
-      <AppearanceControls settings={settings} onChange={onChange} workspaceControls={
-        <div className="field"><label htmlFor="gallery-panel-toggle">Settings toggle</label>
-          <select id="gallery-panel-toggle" className="select" data-control-size="sm" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}>
-            <option value="header">Header</option><option value="floating">Floating</option>
-          </select>
-        </div>
-      } />
+      <AppearanceControls settings={settings} onChange={onChange} />
       <div ref={setTarget} className="gallery-component-settings" />
       <AppearanceUsage settings={settings} />
     </div>
   </>;
-  const toggle = <AppShellPanelToggle ref={trigger} placement={togglePlacement}
+  const toggle = <AppShellPanelToggle ref={trigger} placement="header"
     className="gallery-settings-trigger btn-icon" aria-label={open ? "Close settings" : "Open settings"}
     aria-expanded={open} aria-controls="gallery-settings" onClick={() => {
       if (open) close();

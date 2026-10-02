@@ -199,7 +199,7 @@ AppShell and ApplicationShell accept this option, independently of `layout`.
 Set `data-app-shell="inset"` on `html` to choose the frame across an
 application. Omit `variant` to follow that preference. An explicit `variant`
 overrides it for one shell. Without either setting, the default stays
-edge-to-edge. The gallery saves this choice under Settings > Layout > Application
+edge-to-edge. The gallery saves this choice under Appearance > Layout > Application
 frame.
 
 An embedded preview can mark its content wrapper with
@@ -209,6 +209,7 @@ The inset frame uses the current Appearance settings for border style, corner
 size, and corner marks. Colors follow the active theme and palette. It does
 not force rounded corners. The surrounding area uses `--color-sidebar`; the
 main area uses `--color-background` and `--color-border`.
+The main frame and its outer corner marks paint above both adjacent rails.
 
 ```tsx
 <ApplicationShell
