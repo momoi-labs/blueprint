@@ -2143,7 +2143,6 @@ export function ComponentGallery({
             </NavigationList>
           </Navigation>
           <div className="catalog-tools">
-            {settingsToggle}
             {version && <Link className="catalog-version t-label mono"
               href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
               title={`Kiso ${version} release notes`} target="_blank" rel="noreferrer">
@@ -2171,6 +2170,7 @@ export function ComponentGallery({
                 {menuOpen ? "Hide navigation" : "Show navigation"}
               </Button>
             )}
+            {settingsToggle}
           </div>
         </Header>
         <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>

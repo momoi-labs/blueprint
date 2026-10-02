@@ -82,12 +82,22 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
   } finally { await page.close(); }
 });
 
-test("One floating toggle follows the panel edge and can move to the header", async () => {
+test("The settings gear starts after search in the header and can opt into floating placement", async () => {
   const page = await open("components/alert");
   try {
     const panel = await settings(page);
     const toggle = page.locator(".gallery-settings-trigger");
     assert.equal(await toggle.count(), 1);
+    assert.equal(await toggle.getAttribute("data-placement"), "header");
+    assert.equal(await toggle.evaluate(el => getComputedStyle(el).position), "static");
+    assert.equal((await toggle.textContent()).trim(), "");
+    const mainBox = await page.locator('.component-gallery > [data-slot="app-shell-main"]').boundingBox();
+    const panelBox = await panel.boundingBox();
+    assert.equal(mainBox.x + mainBox.width, panelBox.x, "No empty column between preview and settings");
+    const searchBox = await page.getByRole("searchbox", { name: "Find a component" }).boundingBox();
+    const headerToggleBox = await toggle.boundingBox();
+    assert(headerToggleBox.x >= searchBox.x + searchBox.width, "Gear follows the search field");
+    await (await group(panel, "Layout")).getByRole("combobox", { name: "Settings toggle", exact: true }).selectOption("floating");
     const edge = await panel.boundingBox();
     const box = await toggle.boundingBox();
     assert.equal(box.x + box.width, edge.x);

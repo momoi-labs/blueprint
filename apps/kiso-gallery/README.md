@@ -16,9 +16,9 @@ of demonstrations, using the shared React components in both entry points.
 
 ## Settings panel
 
-Settings is available on every page. The floating button sits halfway down the
-right edge and follows the panel when it opens. Settings > Layout > Settings
-toggle switches between Floating and Header placement. Navigation on the left
+Settings is available on every page through the gear after the header search.
+The same button opens and closes the panel. Use Settings > Layout > Settings
+toggle to choose Floating placement. Navigation on the left
 and settings on the right can close independently to give the preview more room.
 The gallery composes the shared AppShellPanel and AppShellPanelToggle.
 

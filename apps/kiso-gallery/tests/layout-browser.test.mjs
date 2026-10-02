@@ -73,11 +73,20 @@ async function layoutIssues(page, selector) {
     return issues;
   });
 }
-async function assertToggleSpace(page) {
+async function assertSettingsToggle(page) {
   const main = await page.locator('.component-gallery > [data-slot="app-shell-main"]').boundingBox();
-  const toggle = await page.locator(".gallery-settings-trigger").boundingBox();
-  assert(main.x + main.width <= toggle.x + 1, "Floating toggle must not obscure main content or its scrollbar");
-  assert(toggle.width >= 44 && toggle.height >= 44, "The floating control retains its touch target");
+  const trigger = page.locator(".gallery-settings-trigger");
+  const toggle = await trigger.boundingBox();
+  const header = await page.locator(".catalog-header").boundingBox();
+  const search = await page.getByRole("searchbox", { name: "Find a component", exact: true }).boundingBox();
+  assert.equal(await trigger.getAttribute("data-placement"), "header");
+  assert(toggle.x >= header.x && toggle.x + toggle.width <= header.x + header.width + 1);
+  assert(toggle.y >= header.y && toggle.y + toggle.height <= header.y + header.height + 1);
+  assert(toggle.x >= search.x + search.width, "The gear stays to the right of search at every width");
+  const minimum = await page.evaluate(() => matchMedia("(pointer: coarse)").matches ? 44 : 24);
+  assert(toggle.width >= minimum && toggle.height >= minimum, "The settings gear keeps its pointer target");
+  const panel = page.locator(".component-gallery > .app-shell-panel");
+  if (await panel.isVisible()) assert.equal(main.x + main.width, (await panel.boundingBox()).x, "No unused column between preview and settings");
 }
 
 const widths = [320, 390, 768, 1024, 1199, 1200, 1440, 1920];
@@ -92,7 +101,7 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
       else await page.locator(route === "intro" ? ".catalog-intro" : ".catalog-layouts").waitFor();
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await settings(page, width >= 1200);
-      await assertToggleSpace(page);
+      await assertSettingsToggle(page);
       const issues = await layoutIssues(page, route.startsWith("components/") ? ".catalog-preview" : ".catalog-main");
       if (issues.length) failures.push({ route, issues });
     }
@@ -109,7 +118,7 @@ for (const frame of ["default", "inset"]) test(`Catalog uses available space and
       await page.setViewportSize({ width, height: 900 });
       for (const panelOpen of width >= 1200 ? [true, false] : [false]) {
         await settings(page, panelOpen);
-        await assertToggleSpace(page);
+        await assertSettingsToggle(page);
         for (const collapsed of width >= 1200 ? [false, true] : [false]) {
           if (width >= 1200) {
             const button = page.getByRole("button", { name: collapsed ? "Collapse navigation" : "Expand navigation", exact: true });
@@ -213,7 +222,8 @@ test("The StepBar table keeps its last column reachable on a narrow preview", as
     const box = await scroll.boundingBox();
     const cell = await scroll.getByRole("cell", { name: "192.168.5.22", exact: true }).boundingBox();
     assert(cell.x >= box.x && cell.x + cell.width <= box.x + box.width + 1);
-    assert(await scroll.evaluate(el => el.scrollLeft > 0), "The table owns its horizontal scroll range");
+    assert.equal(await scroll.evaluate(el => el.scrollWidth - el.clientWidth - el.scrollLeft), 0,
+      "The last column is reachable whether the table fits or needs scrolling");
   } finally { await page.close(); }
 });
 
@@ -227,7 +237,7 @@ test("The workspace remains usable at an equivalent 200% layout zoom", async () 
     await settings(page, true);
     await page.getByRole("combobox", { name: /^Density/ }).selectOption("spacious");
     await settings(page, false);
-    await assertToggleSpace(page);
+    await assertSettingsToggle(page);
     await page.getByRole("button", { name: /work_mem/ }).click();
     assert.equal(await page.getByRole("button", { name: /work_mem/ }).getAttribute("aria-expanded"), "true");
     assert.deepEqual(await layoutIssues(page, ".catalog-preview"), []);
