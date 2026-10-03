@@ -205,3 +205,15 @@ consumes `--spacing-md`, `--spacing-lg`, or `--spacing-xl` only.
 Use [FormActions](form-actions.md) for form submission controls and feedback.
 It can replace CardFooter at the bottom of a form inside a Card. Do not nest
 the two footers. CardFooter remains a general content-and-actions container.
+
+
+## Appearance scopes
+
+Cards follow the inner [appearance choices](../tokens.md#frames-scopes-and-backgrounds).
+Outer AppShell overrides do not change them. Pixel, Manga and Brush paint their
+contour without clipping the Card root, so focus and marks can extend beyond it.
+Frame scope `outer` removes the Card frame; mark scope remains independent.
+Border None suppresses both its frame and marks.
+
+With a translucent canvas, the Card fill uses 65% opacity. Its text and
+interactive children remain opaque. Cards never repeat the canvas watermark.

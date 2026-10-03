@@ -299,3 +299,25 @@ No dedicated Radix primitive. Compose Sidebar and a semantic main region.
 AppShell supplies Kiso's column layout; it does not add a Sidebar provider,
 routing, or collapse state. ApplicationShell owns optional collapse state, or
 accepts it from the product.
+
+
+## Canvas appearance
+
+The [appearance attributes](../tokens.md#frames-scopes-and-backgrounds) style
+an inset main frame independently from its inner panels. AppShell owns one
+background behind its content column. The background excludes the navigation
+and context panel and follows their expanded or hidden state.
+
+Momoi uses the symbol alone, with equal edge insets and the same frame margin
+as other patterns. Translucent fill changes background paint only. Text, fields and
+portalled overlays stay opaque. An embedded AppShell does not repeat the
+background unless it has `data-background-canvas`.
+
+The CSS works with the existing direct-child anatomy. No React provider,
+extra wrapper, or gallery stylesheet is required.
+
+`data-paper-tone="accent"` tints the canvas, cards and application rails with the current accent
+surface. `data-background-placement` selects `inside`, `outside` or `both`.
+Translucent panel fill works with every background; text and native fields
+remain opaque. Outside patterns keep an opaque main backing, except for the
+Momoi signature that can extend behind translucent content.

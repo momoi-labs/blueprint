@@ -17,7 +17,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-sm);
   padding-inline: var(--spacing-sm);
   height: auto;
   flex-wrap: wrap;
@@ -279,6 +279,9 @@
     padding: var(--spacing-md);
   }
 }
+@media (max-width: 400px) {
+  :where([data-background-style="momoi"]) .catalog-main { padding: var(--spacing-sm); }
+}
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */
 .gallery-shell-preview {
@@ -372,4 +375,11 @@
 .demo-settings-inline > .field { flex: 1; min-width: min(100%, 140px); }
 @media (max-width: 1023px) {
   .catalog-sidebar-toggle { display: none; }
+}
+
+/* Large drawing marks need more than the narrow browse view's edge padding. */
+@media (max-width: 400px) {
+  .catalog-masonry {
+    margin-inline: max(0px, calc(var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px) - var(--spacing-lg)));
+  }
 }

@@ -428,11 +428,22 @@ fieldset.form-body { border: 0; margin: 0; }
   appearance: none;
   padding-inline-end: var(--spacing-2xl);
   /* neutral-500 sits between both themes, so the chevron needs no fork */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a857f' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a857f' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: var(--select-arrow);
   background-repeat: no-repeat;
   background-position: right var(--spacing-md) center;
   background-size: var(--size-icon-md);
 }
+/* Native popups cannot use a control's transparent, layered Pixel fill. */
+select.select :is(option, optgroup) {
+  background-color: var(--color-card);
+  color: var(--color-foreground);
+}
+select.select option:checked {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+select.select option:disabled { color: var(--color-disabled); }
 
 /* input with a leading icon or a trailing affix */
 .input-group { position: relative; display: flex; align-items: center; }
@@ -684,12 +695,13 @@ fieldset.form-body { border: 0; margin: 0; }
    Card
    =========================================================================== */
 .card {
+  --frame-fill: var(--color-card);
   position: relative;
   background: var(--color-card);
   color: var(--color-card-foreground);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--shadow-xs));
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-xs)));
 }
 .card-header { padding: var(--presentation-panel-padding) var(--presentation-panel-padding) 0; display: grid; gap: var(--presentation-heading-gap); }
 .card-body   { padding: var(--presentation-panel-padding); display: grid; gap: var(--presentation-panel-gap); }
@@ -703,7 +715,7 @@ fieldset.form-body { border: 0; margin: 0; }
 }
 .card-header + .card-body { padding-block-start: var(--presentation-panel-gap); }
 .card-interactive { cursor: pointer; transition: border-color var(--motion-duration-fast) var(--motion-easing-standard); }
-.card-interactive:hover { border-color: var(--color-border-strong); box-shadow: var(--appearance-frame-shadow, var(--shadow-sm)); }
+.card-interactive:hover { border-color: var(--color-border-strong); box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-sm))); }
 
 /* stat / KPI tile */
 .stat { display: grid; min-width: 0; gap: var(--presentation-heading-gap); padding: var(--presentation-panel-padding); }
@@ -730,6 +742,7 @@ fieldset.form-body { border: 0; margin: 0; }
    Table
    =========================================================================== */
 .table-wrap {
+  --frame-fill: var(--color-card);
   position: relative;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
@@ -867,13 +880,14 @@ table.table {
   backdrop-filter: blur(2px);
 }
 .dialog {
+  --frame-fill: var(--color-popover);
   position: relative;
   width: 100%; max-width: 440px;
   background: var(--color-popover);
   color: var(--color-popover-foreground);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--shadow-lg));
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg)));
   animation: dialog-in var(--motion-duration-normal) var(--motion-easing-standard);
 }
 @keyframes dialog-in { from { opacity: 0; translate: 0 8px; scale: .98 } }
@@ -939,12 +953,13 @@ table.table {
 }
 
 .palette {
+  --frame-fill: var(--color-popover);
   position: relative;
   width: 100%; max-width: 560px;
   background: var(--color-popover);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--shadow-lg));
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg)));
   overflow: hidden;
 }
 .palette-input {
@@ -1029,6 +1044,8 @@ table.table {
 }
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   position: relative;
+  /* Large marks need room beyond the shell's standard padding. */
+  margin: max(0px, calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px)) - var(--spacing-lg)));
   /* The frame and its outer marks sit above both adjacent rails. */
   z-index: 1;
   min-height: 0;
@@ -1048,7 +1065,7 @@ table.table {
   }
   /* Keep the outer frame and its marks still while the page scrolls inside.
      Embedded shells retain their natural height within the parent page. */
-  .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { height: 100dvh; }
+  .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { height: 100dvh; }
   :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
     display: flex; flex-direction: column;
   }
@@ -1268,6 +1285,7 @@ code {
   border: 1px solid var(--color-border);
 }
 pre {
+  --frame-fill: var(--color-muted);
   position: relative;
   margin: 0;
   padding: var(--spacing-md);
@@ -1290,6 +1308,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .kv dd { margin: 0; font-family: var(--font-mono); font-size: var(--type-size-label); overflow-wrap: anywhere; }
 
 .logview {
+  --frame-fill: var(--color-neutral-950);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1528,7 +1547,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 [data-corner-size="small"] { --appearance-scale: .5; --appearance-square-scale: 1; }
 [data-corner-size="medium"] { --appearance-scale: 1; --appearance-square-scale: 1; }
 [data-corner-size="large"] { --appearance-scale: 1.5; --appearance-square-scale: 1; }
-[data-border-style] {
+[data-border-style],
+:where([data-outer-border-style]:not([data-outer-border-style="inherit"])) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-base-radius: 8px;
   --appearance-control-base: 4px;
   --appearance-base-rounded: 1;
@@ -1538,49 +1558,93 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-panel-shadow: 0 0 transparent;
   --appearance-frame-shadow: initial;
   --appearance-mark-content: initial;
+  --appearance-marks-enabled: 1;
   --appearance-overlay-content: none;
   --appearance-overlay-inset: 0;
   --appearance-overlay-border: 0;
   --appearance-overlay-radius: var(--appearance-corners);
+  --appearance-ink-images: none;
+  --appearance-ink-image-size: auto;
+  --appearance-ink-image-position: center;
+  --appearance-ink-shadow: initial;
+  --appearance-ink-layer: 1;
+  --appearance-ink-mask: none;
+  --appearance-ink-mask-size: 100% 100%;
+  --appearance-ink-mask-position: center;
+  --appearance-ink-color: initial;
+  --appearance-ink-clip: initial;
+  --appearance-border-color: initial;
+  --appearance-effect-clearance: 0px;
+  --appearance-expressive: 0;
+  --appearance-brush: 0;
+  --appearance-band-content: none;
+  --appearance-footer-clip: none;
+  --appearance-header-clip: none;
+  --appearance-header-position: sticky;
 }
-[data-border-style="square"], [data-border-style="solid"], [data-border-style="none"] {
+[data-border-style="square"], [data-border-style="solid"], [data-border-style="none"],
+:where([data-outer-border-style="square"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-border-style="solid"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-border-style="none"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-base-radius: 0px;
   --appearance-base-rounded: 0;
 }
-[data-border-style="none"] {
+[data-border-style="none"],
+:where([data-outer-border-style="none"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-panel-border: none;
   --appearance-frame-shadow: none;
   --appearance-mark-content: none;
+  --appearance-marks-enabled: 0;
 }
-[data-border-style="soft"] { --appearance-base-radius: 8px; }
-[data-border-style="round"] { --appearance-base-radius: 16px; --appearance-control-base: 8px; }
-[data-border-style="asym"] {
+[data-border-style="soft"],
+:where([data-outer-border-style="soft"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-base-radius: 8px; }
+[data-border-style="round"],
+:where([data-outer-border-style="round"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-base-radius: 16px; --appearance-control-base: 8px; }
+[data-border-style="asym"],
+:where([data-outer-border-style="asym"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-base-radius: 12px;
   --appearance-control-base: 6px;
   --appearance-base-opposite: .25;
   --appearance-control-opposite: calc(1 / 3);
 }
-[data-border-style="rail"] { --appearance-overlay-content: ""; --appearance-base-radius: 6px; --appearance-control-base: 3px; --appearance-panel-shadow: inset 3px 0 var(--color-border-strong); }
-[data-border-style="dash"] { --appearance-panel-border: dashed; }
-[data-border-style="bevel"] { --appearance-overlay-content: ""; --appearance-panel-shadow: inset 1px 1px 1px var(--color-shadow-contact), inset -1px -1px var(--color-border-strong); }
-[data-border-style="double"] { --appearance-overlay-content: ""; --appearance-overlay-inset: 3px; --appearance-overlay-border: 1px solid var(--color-border); --appearance-overlay-radius: max(0px, calc(var(--radius-surface) - 3px)); }
-[data-border-style="base"] { --appearance-overlay-content: "";
+[data-border-style="rail"],
+:where([data-outer-border-style="rail"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-base-radius: 6px; --appearance-control-base: 3px; --appearance-panel-shadow: inset 3px 0 var(--color-border-strong); }
+[data-border-style="dash"],
+:where([data-outer-border-style="dash"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-panel-border: dashed; }
+[data-border-style="bevel"],
+:where([data-outer-border-style="bevel"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-panel-shadow: inset 1px 1px 1px var(--color-shadow-contact), inset -1px -1px var(--color-border-strong); }
+[data-border-style="double"],
+:where([data-outer-border-style="double"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-overlay-inset: 3px; --appearance-overlay-border: 1px solid var(--color-border); --appearance-overlay-radius: max(0px, calc(var(--radius-surface) - 3px)); }
+[data-border-style="base"],
+:where([data-outer-border-style="base"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: "";
   /* Match the outer frame so the thick base covers its bottom hairline. */
   --appearance-overlay-inset: -1px;
   --appearance-panel-shadow: inset 0 -3px var(--color-border-strong);
 }
-[data-border-style="offset"] { --appearance-overlay-content: "";
+[data-border-style="offset"],
+:where([data-outer-border-style="offset"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: "";
   --appearance-overlay-inset: -1px;
   /* An opaque, hard shadow keeps underlying content out of the offset. */
   --appearance-panel-shadow: 3px 3px 0 0 var(--color-border-strong);
 }
 
 /* Corner choices override legacy border radii and survive nested border scopes. */
-[data-corner-style] { --corner-rounded: 1; --corner-panel-opposite: 1; --corner-control-opposite: 1; }
-[data-corner-style="square"] { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
-[data-corner-style="soft"] { --corner-panel-base: 8px; --corner-control-base: 4px; }
-[data-corner-style="rounded"], [data-corner-style="round"] { --corner-panel-base: 16px; --corner-control-base: 8px; }
-[data-corner-style="asym"] { --corner-panel-base: 12px; --corner-control-base: 6px; --corner-panel-opposite: .25; --corner-control-opposite: calc(1 / 3); }
+[data-corner-style],
+:where([data-outer-corner-style]:not([data-outer-corner-style="inherit"])) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-pixel: 0;
+  --corner-ink-clip: initial; --corner-ink-color: initial; --corner-frame-shadow: initial;
+  --corner-overlay-content: initial; --corner-overlay-inset: initial;
+  --corner-overlay-border: initial; --corner-panel-shadow: initial;
+  --corner-border-color: initial;
+  --corner-rounded: 1; --corner-panel-opposite: 1; --corner-control-opposite: 1; }
+[data-corner-style="square"],
+:where([data-outer-corner-style="square"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
+[data-corner-style="soft"],
+:where([data-outer-corner-style="soft"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 8px; --corner-control-base: 4px; }
+[data-corner-style="rounded"], [data-corner-style="round"],
+:where([data-outer-corner-style="rounded"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="round"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 16px; --corner-control-base: 8px; }
+[data-corner-style="asym"],
+:where([data-outer-corner-style="asym"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 12px; --corner-control-base: 6px; --corner-panel-opposite: .25; --corner-control-opposite: calc(1 / 3); }
 [data-border-style], [data-corner-style], [data-corner-size] {
   --appearance-rounded: var(--corner-rounded, var(--appearance-base-rounded, 0));
   --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
@@ -1588,7 +1652,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --radius-xs: calc(var(--radius-md) / 2);
   --radius-sm: calc(var(--radius-md) * .75);
   --radius-lg: calc(var(--radius-md) * 1.25);
-  --appearance-corners: var(--radius-surface) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)));
+  --appearance-corners: calc(var(--radius-surface) * (1 - var(--appearance-expressive, 0))) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)) * (1 - var(--appearance-expressive, 0)));
   --appearance-control-corners: var(--radius-md) calc(var(--radius-md) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
   --appearance-footer-start: calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)));
 }
@@ -1599,14 +1663,24 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 /* Paint decorative edges above table headers and panel footers. */
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before {
-  content: var(--appearance-overlay-content, none);
+  content: var(--appearance-mark-content, var(--corner-overlay-content, var(--appearance-overlay-content, none)));
   position: absolute;
-  inset: var(--appearance-overlay-inset);
-  border: var(--appearance-overlay-border);
+  inset: var(--corner-overlay-inset, var(--appearance-overlay-inset));
+  border: var(--corner-overlay-border, var(--appearance-overlay-border));
   border-radius: var(--appearance-overlay-radius);
-  box-shadow: var(--appearance-panel-shadow);
+  box-shadow: var(--appearance-ink-shadow, var(--corner-panel-shadow, var(--appearance-panel-shadow)));
   pointer-events: none;
-  z-index: 1;
+  background-color: color-mix(in srgb, var(--frame-fill, var(--color-card)) calc(var(--appearance-expressive, 0) * 100%), var(--appearance-ink-color, var(--corner-ink-color, transparent)));
+  background-image: var(--appearance-ink-images, none);
+  background-size: var(--appearance-ink-image-size, auto);
+  background-position: var(--appearance-ink-image-position, center);
+  background-repeat: no-repeat;
+  mask-image: var(--appearance-ink-mask, none);
+  mask-size: var(--appearance-ink-mask-size, 100% 100%);
+  mask-position: var(--appearance-ink-mask-position, center);
+  mask-repeat: no-repeat;
+  clip-path: var(--appearance-ink-clip, var(--corner-ink-clip, none));
+  z-index: var(--appearance-ink-layer, 1);
 }
 :where([data-border-style], [data-corner-style], [data-corner-size]) .palette { overflow: visible; }
 :where([data-border-style], [data-corner-style], [data-corner-size]) .palette-list { border-end-start-radius: var(--radius-surface); border-end-end-radius: var(--radius-surface); }
@@ -1621,20 +1695,25 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 [data-mark-size="small"] { --corner-mark-tick: 2px; --corner-mark-gap: 1px; }
 [data-mark-size="medium"] { --corner-mark-tick: 4px; --corner-mark-gap: 2px; }
 [data-mark-size="large"] { --corner-mark-tick: 8px; --corner-mark-gap: 4px; }
-[data-corner-marks] {
+[data-corner-marks],
+:where([data-outer-corner-marks]:not([data-outer-corner-marks="inherit"])) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --corner-mark: 1;
   --appearance-palette-marks: "";
   --appearance-mark-mask: none;
   --appearance-mark-bg: transparent;
   --appearance-mark-inset: initial;
   --appearance-mark-images: initial;
+  --appearance-mark-curve: 0;
+  --appearance-mark-excludes-brush: 0;
 }
-[data-corner-marks="none"] { --corner-mark: 0; }
+[data-corner-marks="none"],
+:where([data-outer-corner-marks="none"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-mark: 0; }
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after {
   content: var(--appearance-mark-content, "");
   position: absolute;
   pointer-events: none;
-  opacity: var(--corner-mark);
+  --marks-visible: calc(var(--corner-mark) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)));
+  opacity: var(--marks-visible);
   background-repeat: no-repeat;
   background-size:
     var(--corner-mark-tick) 1px, 1px var(--corner-mark-tick),
@@ -1653,7 +1732,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   /* Marks that are off (`--corner-mark: 0`) also collapse the inset to 0, so
      the pseudo-element stops reaching outside the frame and a scroll container
      around the panel does not scroll for marks nobody sees. */
-  inset: calc(var(--corner-mark, 1) * var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)))));
+  inset: calc(var(--marks-visible, 1) * (var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)))) - var(--appearance-effect-clearance, 0px) - var(--appearance-sheet-clearance, 0px)));
   background-image: var(--appearance-mark-images,
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
@@ -1665,12 +1744,16 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)));
   background-color: var(--appearance-mark-bg, transparent);
   mask-image: var(--appearance-mark-mask, none);
-  mask-size: calc(var(--corner-mark-tick) + 1px) calc(var(--corner-mark-tick) + 1px);
+  --mark-long: max(calc(var(--corner-mark-tick) + 1px), calc((var(--radius-surface) + var(--corner-mark-gap)) * var(--appearance-mark-curve, 0)));
+  --mark-short: max(calc(var(--corner-mark-tick) + 1px), calc((var(--radius-surface) * var(--corner-panel-opposite, 1) + var(--corner-mark-gap)) * var(--appearance-mark-curve, 0)));
+  mask-size: var(--mark-long) var(--mark-long), var(--mark-short) var(--mark-short), var(--mark-short) var(--mark-short), var(--mark-long) var(--mark-long);
   mask-position: left top, right top, left bottom, right bottom;
   mask-repeat: no-repeat;
 }
 
-[data-corner-marks="brackets"] {
+[data-corner-marks="brackets"],
+:where([data-outer-corner-marks="brackets"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-mark-excludes-brush: 1;
   --appearance-mark-images: none;
   --appearance-mark-bg: var(--color-corner-mark);
   --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + 1px));
@@ -1680,7 +1763,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22translate%2810%2010%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Cpath%20d%3D%22M.5%209.5V.5H9.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 }
 
-[data-corner-marks="arcs"] {
+[data-corner-marks="arcs"],
+:where([data-outer-corner-marks="arcs"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-mark-images: none;
   --appearance-mark-bg: var(--color-corner-mark);
   --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + 1px));
@@ -1690,7 +1774,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22translate%2810%2010%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Cpath%20d%3D%22M.5%209.5Q.5%20.5%209.5%20.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 }
 
-[data-corner-marks="dots"] {
+[data-corner-marks="dots"],
+:where([data-outer-corner-marks="dots"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-mark-images: none;
   --appearance-mark-bg: var(--color-corner-mark);
   --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + 1px));
@@ -1700,8 +1785,289 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22translate%2810%2010%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%223%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 }
 
+[data-border-style="offset"],
+:where([data-outer-border-style="offset"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-effect-clearance: var(--spacing-xs); }
+[data-mark-clearance="normal"] { --appearance-sheet-clearance: 0px; }
+[data-mark-clearance="sheet"] { --appearance-sheet-clearance: var(--spacing-sm); }
+[data-corner-style="pixel"],
+:where([data-outer-corner-style="pixel"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --corner-panel-base: 0px;
+  --corner-control-base: 0px;
+  --appearance-pixel: 1;
+  --corner-frame-shadow: none;
+  --corner-overlay-content: "";
+  --corner-overlay-inset: -1px;
+  --corner-overlay-border: 0;
+  --corner-panel-shadow: none;
+  --corner-border-color: transparent;
+  --corner-ink-color: var(--color-border);
+  --corner-ink-clip: polygon(evenodd, round(calc(12px * var(--appearance-scale, 1)), 1px) 0px, calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)) 0px, calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)) round(calc(4px * var(--appearance-scale, 1)), 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)) round(calc(4px * var(--appearance-scale, 1)), 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)) round(calc(12px * var(--appearance-scale, 1)), 1px), 100% round(calc(12px * var(--appearance-scale, 1)), 1px), 100% calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)) calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)) 100%, round(calc(12px * var(--appearance-scale, 1)), 1px) 100%, round(calc(12px * var(--appearance-scale, 1)), 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)), round(calc(4px * var(--appearance-scale, 1)), 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px)), round(calc(4px * var(--appearance-scale, 1)), 1px) calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)), 0px calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px)), 0px round(calc(12px * var(--appearance-scale, 1)), 1px), round(calc(4px * var(--appearance-scale, 1)), 1px) round(calc(12px * var(--appearance-scale, 1)), 1px), round(calc(4px * var(--appearance-scale, 1)), 1px) round(calc(4px * var(--appearance-scale, 1)), 1px), round(calc(12px * var(--appearance-scale, 1)), 1px) round(calc(4px * var(--appearance-scale, 1)), 1px), round(calc(12px * var(--appearance-scale, 1)), 1px) 0px, calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px) 1px, calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px) calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px), calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px) calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px), calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px) calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px), 1px calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px), 1px calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px), calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px) calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px), calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px), calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px), calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px) calc(100% - 1px), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px) calc(100% - 1px), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px) calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px) calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px), calc(100% - 1px) calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px), calc(100% - 1px) calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px) calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px), calc(100% - round(calc(4px * var(--appearance-scale, 1)), 1px) - 1px) calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px) calc(round(calc(4px * var(--appearance-scale, 1)), 1px) + 1px), calc(100% - round(calc(12px * var(--appearance-scale, 1)), 1px) - 1px) 1px, calc(round(calc(12px * var(--appearance-scale, 1)), 1px) + 1px) 1px, round(calc(12px * var(--appearance-scale, 1)), 1px) 0px);
+}
+/* Expressive borders own their contour, while retaining the saved corner choice. */
+[data-border-style="manga"], [data-border-style="brush"],
+:where([data-outer-border-style="manga"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-border-style="brush"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-overlay-content: "";
+  --appearance-overlay-inset: -3px;
+  --appearance-overlay-border: 0;
+  --appearance-overlay-radius: 0;
+  --appearance-ink-color: var(--color-foreground);
+  --appearance-ink-layer: -1;
+  --appearance-border-color: transparent;
+  --appearance-panel-shadow: none;
+  --appearance-frame-shadow: none;
+  --appearance-effect-clearance: var(--spacing-xs);
+  --appearance-expressive: 1;
+  --appearance-band-content: "";
+  --appearance-footer-clip: inset(0 var(--appearance-overlay-inset) var(--appearance-overlay-inset));
+  --appearance-header-clip: inset(var(--appearance-overlay-inset) var(--appearance-overlay-inset) 0);
+  --appearance-header-position: static;
+  --corner-overlay-inset: initial;
+  --corner-overlay-border: initial;
+  --corner-panel-shadow: initial;
+  --appearance-ink-clip: none;
+}
+[data-frame-detail="small"] { --frame-detail: .7; }
+[data-frame-detail="medium"] { --frame-detail: 1; }
+[data-frame-detail="large"] { --frame-detail: 1.4; }
+[data-border-style="manga"],
+:where([data-outer-border-style="manga"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  /* Fill and ink share one contour. Only this decorative layer is clipped. */
+  --appearance-ink-mask: none;
+  --appearance-ink-clip: polygon(0 calc(5px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 0, 100% 100%, calc(2px * var(--frame-detail, 1)) calc(100% - 3px * var(--frame-detail, 1)));
+  --appearance-ink-images:
+    linear-gradient(var(--color-foreground), var(--color-foreground)),
+    linear-gradient(to bottom right, var(--color-foreground) 50%, transparent 50%),
+    linear-gradient(var(--color-foreground), var(--color-foreground)),
+    linear-gradient(to top right, transparent 50%, var(--color-foreground) 50%),
+    linear-gradient(var(--color-foreground), var(--color-foreground)),
+    linear-gradient(to bottom left, transparent 50%, var(--color-foreground) 50%),
+    linear-gradient(var(--color-foreground), var(--color-foreground)),
+    linear-gradient(to top right, var(--color-foreground) 50%, transparent 50%);
+  --appearance-ink-image-size: 100% round(up, calc(2px * var(--frame-detail, 1)), 1px), 100% calc(5px * var(--frame-detail, 1)), round(up, calc(2px * var(--frame-detail, 1)), 1px) 100%, round(up, calc(2px * var(--frame-detail, 1)), 1px) 100%, 100% round(up, calc(2px * var(--frame-detail, 1)), 1px), 100% calc(3px * var(--frame-detail, 1)), round(up, calc(2px * var(--frame-detail, 1)), 1px) 100%, round(up, calc(2px * var(--frame-detail, 1)), 1px) 100%;
+  --appearance-ink-image-position: left top, left top round(up, calc(2px * var(--frame-detail, 1)), 1px), right top, right round(up, calc(2px * var(--frame-detail, 1)), 1px) top, left bottom, left bottom round(up, calc(2px * var(--frame-detail, 1)), 1px), left top, left round(up, calc(2px * var(--frame-detail, 1)), 1px) top;
+  --appearance-overlay-inset: calc(-1 * round(up, calc(8px * var(--frame-detail, 1)), 1px));
+  --appearance-effect-clearance: var(--spacing-sm);
+}
+[data-border-style="brush"],
+:where([data-outer-border-style="brush"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-brush: 1;
+  --appearance-ink-mask: none;
+  --appearance-ink-clip: polygon(0 calc(3px * var(--frame-detail, 1)), 18% calc(1.5px * var(--frame-detail, 1)), 43% calc(2px * var(--frame-detail, 1)), 70% calc(1.5px * var(--frame-detail, 1)), 100% calc(2.1px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 25%, calc(100% - 2.8px * var(--frame-detail, 1)) 50%, calc(100% - 1.5px * var(--frame-detail, 1)) 75%, calc(100% - 3px * var(--frame-detail, 1)) 100%, 70% calc(100% - 1.5px * var(--frame-detail, 1)), 43% calc(100% - 2px * var(--frame-detail, 1)), 18% calc(100% - 1.5px * var(--frame-detail, 1)), 0 calc(100% - 2.1px * var(--frame-detail, 1)), calc(2px * var(--frame-detail, 1)) 75%, calc(2.8px * var(--frame-detail, 1)) 50%, calc(1.5px * var(--frame-detail, 1)) 25%);
+  --appearance-ink-shadow: inset 0 0 0 calc(5px * var(--frame-detail, 1)) var(--color-foreground);
+  --appearance-overlay-inset: calc(-6px * var(--frame-detail, 1));
+  --appearance-effect-clearance: var(--spacing-sm);
+}
+[data-corner-marks="diagonal"],
+:where([data-outer-corner-marks="diagonal"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-mark-images: none;
+  --appearance-mark-bg: var(--color-corner-mark);
+  --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + var(--corner-mark-tick)));
+  --appearance-mark-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M0%200L10%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M10%200L0%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M10%200L0%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M0%200L10%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E");
+}
+[data-corner-marks="arcs"],
+:where([data-outer-corner-marks="arcs"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-mark-curve: 1;
+}
+
 .palette::after { content: var(--appearance-mark-content, var(--appearance-palette-marks, none)); }
-.marked { position: relative; }
+.marked { position: relative; --frame-fill: var(--color-card); }
+
+
+/* Outer overrides do not leak into nested panels or portalled content. */
+:root, [data-border-style], [data-corner-style], [data-corner-size], [data-corner-marks], [data-mark-size], [data-mark-clearance] {
+  --inner-appearance-base-opposite: var(--appearance-base-opposite);
+  --inner-appearance-base-radius: var(--appearance-base-radius);
+  --inner-appearance-base-rounded: var(--appearance-base-rounded);
+  --inner-appearance-border-color: var(--appearance-border-color);
+  --inner-appearance-control-base: var(--appearance-control-base);
+  --inner-appearance-control-corners: var(--appearance-control-corners);
+  --inner-appearance-control-opposite: var(--appearance-control-opposite);
+  --inner-appearance-corners: var(--appearance-corners);
+  --inner-appearance-effect-clearance: var(--appearance-effect-clearance);
+  --inner-appearance-brush: var(--appearance-brush, 0);
+  --inner-appearance-mark-excludes-brush: var(--appearance-mark-excludes-brush, 0);
+  --inner-appearance-expressive: var(--appearance-expressive);
+  --inner-appearance-band-content: var(--appearance-band-content);
+  --inner-appearance-footer-clip: var(--appearance-footer-clip);
+  --inner-appearance-header-clip: var(--appearance-header-clip);
+  --inner-appearance-header-position: var(--appearance-header-position);
+  --inner-appearance-footer-start: var(--appearance-footer-start);
+  --inner-appearance-frame-shadow: var(--appearance-frame-shadow);
+  --inner-appearance-ink-images: var(--appearance-ink-images);
+  --inner-appearance-ink-image-size: var(--appearance-ink-image-size);
+  --inner-appearance-ink-image-position: var(--appearance-ink-image-position);
+  --inner-appearance-ink-shadow: var(--appearance-ink-shadow);
+  --inner-appearance-ink-layer: var(--appearance-ink-layer);
+  --inner-appearance-ink-clip: var(--appearance-ink-clip);
+  --inner-appearance-ink-color: var(--appearance-ink-color);
+  --inner-appearance-ink-mask: var(--appearance-ink-mask);
+  --inner-appearance-ink-mask-size: var(--appearance-ink-mask-size);
+  --inner-appearance-ink-mask-position: var(--appearance-ink-mask-position);
+  --inner-appearance-mark-bg: var(--appearance-mark-bg);
+  --inner-appearance-marks-enabled: var(--appearance-marks-enabled, 1);
+  --inner-appearance-mark-content: var(--appearance-mark-content);
+  --inner-appearance-mark-images: var(--appearance-mark-images);
+  --inner-appearance-mark-inset: var(--appearance-mark-inset);
+  --inner-appearance-mark-mask: var(--appearance-mark-mask);
+  --inner-appearance-mark-curve: var(--appearance-mark-curve);
+  --inner-appearance-overlay-border: var(--corner-overlay-border, var(--appearance-overlay-border));
+  --inner-appearance-overlay-content: var(--appearance-overlay-content);
+  --inner-appearance-overlay-inset: var(--corner-overlay-inset, var(--appearance-overlay-inset));
+  --inner-appearance-overlay-radius: var(--appearance-overlay-radius);
+  --inner-appearance-palette-marks: var(--appearance-palette-marks);
+  --inner-appearance-panel-border: var(--appearance-panel-border);
+  --inner-appearance-panel-shadow: var(--appearance-panel-shadow);
+  --inner-appearance-pixel: var(--appearance-pixel);
+  --inner-appearance-rounded: var(--appearance-rounded);
+  --inner-appearance-scale: var(--appearance-scale);
+  --inner-appearance-sheet-clearance: var(--appearance-sheet-clearance);
+  --inner-appearance-square-scale: var(--appearance-square-scale);
+  --inner-corner-frame-shadow: var(--corner-frame-shadow);
+  --inner-corner-ink-clip: var(--corner-ink-clip);
+  --inner-corner-ink-color: var(--corner-ink-color);
+  --inner-corner-overlay-content: var(--corner-overlay-content);
+  --inner-corner-overlay-inset: var(--corner-overlay-inset);
+  --inner-corner-overlay-border: var(--corner-overlay-border);
+  --inner-corner-panel-shadow: var(--corner-panel-shadow);
+  --inner-corner-border-color: var(--corner-border-color);
+  --inner-corner-control-base: var(--corner-control-base);
+  --inner-corner-control-opposite: var(--corner-control-opposite);
+  --inner-corner-mark: var(--corner-mark);
+  --inner-corner-mark-gap: var(--corner-mark-gap);
+  --inner-corner-mark-tick: var(--corner-mark-tick);
+  --inner-corner-panel-base: var(--corner-panel-base);
+  --inner-corner-panel-opposite: var(--corner-panel-opposite);
+  --inner-corner-rounded: var(--corner-rounded);
+  --inner-radius-lg: var(--radius-lg);
+  --inner-radius-md: var(--radius-md);
+  --inner-radius-sm: var(--radius-sm);
+  --inner-radius-surface: var(--radius-surface);
+  --inner-radius-xs: var(--radius-xs);
+}
+:where(.app-shell > :is(main, [data-slot="app-shell-main"]) > *) {
+  --appearance-base-opposite: var(--inner-appearance-base-opposite);
+  --appearance-base-radius: var(--inner-appearance-base-radius);
+  --appearance-base-rounded: var(--inner-appearance-base-rounded);
+  --appearance-border-color: var(--inner-appearance-border-color);
+  --appearance-control-base: var(--inner-appearance-control-base);
+  --appearance-control-corners: var(--inner-appearance-control-corners);
+  --appearance-control-opposite: var(--inner-appearance-control-opposite);
+  --appearance-corners: var(--inner-appearance-corners);
+  --appearance-effect-clearance: var(--inner-appearance-effect-clearance);
+  --appearance-brush: var(--inner-appearance-brush);
+  --appearance-mark-excludes-brush: var(--inner-appearance-mark-excludes-brush);
+  --appearance-expressive: var(--inner-appearance-expressive);
+  --appearance-band-content: var(--inner-appearance-band-content);
+  --appearance-footer-clip: var(--inner-appearance-footer-clip);
+  --appearance-header-clip: var(--inner-appearance-header-clip);
+  --appearance-header-position: var(--inner-appearance-header-position);
+  --appearance-footer-start: var(--inner-appearance-footer-start);
+  --appearance-frame-shadow: var(--inner-appearance-frame-shadow);
+  --appearance-ink-images: var(--inner-appearance-ink-images);
+  --appearance-ink-image-size: var(--inner-appearance-ink-image-size);
+  --appearance-ink-image-position: var(--inner-appearance-ink-image-position);
+  --appearance-ink-shadow: var(--inner-appearance-ink-shadow);
+  --appearance-ink-layer: var(--inner-appearance-ink-layer);
+  --appearance-ink-clip: var(--inner-appearance-ink-clip);
+  --appearance-ink-color: var(--inner-appearance-ink-color);
+  --appearance-ink-mask: var(--inner-appearance-ink-mask);
+  --appearance-ink-mask-size: var(--inner-appearance-ink-mask-size);
+  --appearance-ink-mask-position: var(--inner-appearance-ink-mask-position);
+  --appearance-mark-bg: var(--inner-appearance-mark-bg);
+  --appearance-marks-enabled: var(--inner-appearance-marks-enabled);
+  --appearance-mark-content: var(--inner-appearance-mark-content);
+  --appearance-mark-images: var(--inner-appearance-mark-images);
+  --appearance-mark-inset: var(--inner-appearance-mark-inset);
+  --appearance-mark-mask: var(--inner-appearance-mark-mask);
+  --appearance-mark-curve: var(--inner-appearance-mark-curve);
+  --appearance-overlay-border: var(--inner-appearance-overlay-border);
+  --appearance-overlay-content: var(--inner-appearance-overlay-content);
+  --appearance-overlay-inset: var(--inner-appearance-overlay-inset);
+  --appearance-overlay-radius: var(--inner-appearance-overlay-radius);
+  --appearance-palette-marks: var(--inner-appearance-palette-marks);
+  --appearance-panel-border: var(--inner-appearance-panel-border);
+  --appearance-panel-shadow: var(--inner-appearance-panel-shadow);
+  --appearance-pixel: var(--inner-appearance-pixel);
+  --appearance-rounded: var(--inner-appearance-rounded);
+  --appearance-scale: var(--inner-appearance-scale);
+  --appearance-sheet-clearance: var(--inner-appearance-sheet-clearance);
+  --appearance-square-scale: var(--inner-appearance-square-scale);
+  --corner-frame-shadow: var(--inner-corner-frame-shadow);
+  --corner-ink-clip: var(--inner-corner-ink-clip);
+  --corner-ink-color: var(--inner-corner-ink-color);
+  --corner-overlay-content: var(--inner-corner-overlay-content);
+  --corner-overlay-inset: var(--inner-corner-overlay-inset);
+  --corner-overlay-border: var(--inner-corner-overlay-border);
+  --corner-panel-shadow: var(--inner-corner-panel-shadow);
+  --corner-border-color: var(--inner-corner-border-color);
+  --corner-control-base: var(--inner-corner-control-base);
+  --corner-control-opposite: var(--inner-corner-control-opposite);
+  --corner-mark: var(--inner-corner-mark);
+  --corner-mark-gap: var(--inner-corner-mark-gap);
+  --corner-mark-tick: var(--inner-corner-mark-tick);
+  --corner-panel-base: var(--inner-corner-panel-base);
+  --corner-panel-opposite: var(--inner-corner-panel-opposite);
+  --corner-rounded: var(--inner-corner-rounded);
+  --radius-lg: var(--inner-radius-lg);
+  --radius-md: var(--inner-radius-md);
+  --radius-sm: var(--inner-radius-sm);
+  --radius-surface: var(--inner-radius-surface);
+  --radius-xs: var(--inner-radius-xs);
+}
+
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-rounded: var(--corner-rounded, var(--appearance-base-rounded, 0));
+  --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
+  --appearance-corners: calc(var(--radius-surface) * (1 - var(--appearance-expressive, 0))) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)) * (1 - var(--appearance-expressive, 0)));
+}
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border-color: var(--appearance-border-color, var(--corner-border-color, var(--color-border))); }
+
+/* Pixel geometry is painted behind content. Focus and overflow stay rectangular. */
+:where([data-corner-style="pixel"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:where([data-outer-corner-style="pixel"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  --pixel-step: round(calc(4px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  --frame-line: var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
+  border-color: color-mix(in srgb, var(--frame-line) calc((1 - var(--pixel-enabled)) * 100%), transparent);
+  background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--pixel-enabled)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
+  /* Disjoint bands keep translucent fills at one opacity across the contour. */
+  background-image: linear-gradient(var(--frame-fill), var(--frame-fill)), linear-gradient(var(--frame-fill), var(--frame-fill)), linear-gradient(var(--frame-fill), var(--frame-fill)), linear-gradient(var(--frame-fill), var(--frame-fill)), linear-gradient(var(--frame-fill), var(--frame-fill));
+  background-size:
+    calc((100% - 2 * var(--pixel-r)) * var(--pixel-enabled)) var(--pixel-step),
+    calc((100% - 2 * var(--pixel-step)) * var(--pixel-enabled)) calc(var(--pixel-r) - var(--pixel-step)),
+    calc(100% * var(--pixel-enabled)) calc(100% - 2 * var(--pixel-r)),
+    calc((100% - 2 * var(--pixel-step)) * var(--pixel-enabled)) calc(var(--pixel-r) - var(--pixel-step)),
+    calc((100% - 2 * var(--pixel-r)) * var(--pixel-enabled)) var(--pixel-step);
+  background-position: center top, center top var(--pixel-step), center, center bottom var(--pixel-step), center bottom;
+  background-repeat: no-repeat;
+  background-origin: border-box;
+}
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --frame-fill: var(--color-background); }
+:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre) {
+  --appearance-pixel: 0; --appearance-expressive: 0;
+  --appearance-band-content: none; --appearance-footer-clip: none;
+  border: 0; border-radius: 0; box-shadow: none;
+}
+:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
+:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input, .select, .textarea, .field-control) { border-radius: 4px; }
+:where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after { content: none; }
+/* Compact guides stay inside native controls, away from focus indicators. */
+:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control) {
+  --control-guide: color-mix(in srgb, var(--color-corner-mark) calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)) * 100%), transparent);
+  --control-mark-images: linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide));
+  --control-mark-sizes: var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px;
+  background-image: var(--select-arrow, linear-gradient(transparent, transparent)), var(--control-mark-images);
+  background-size: var(--size-icon-md) var(--size-icon-md), var(--control-mark-sizes);
+  --control-mark-positions: left 6px top 6px, right 6px top 6px, left 6px bottom 6px, right 6px bottom 6px;
+  background-position: right var(--spacing-md) center, var(--control-mark-positions);
+  background-repeat: no-repeat;
+}
+@media (forced-colors: active) {
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border: 1px solid CanvasText; background: Canvas; }
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before, :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after { display: none; }
+}
 
 /* ===========================================================================
    Hatch — "this region is not data"
@@ -1941,3 +2307,330 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 .filter-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* Canvas backgrounds belong to one shell, never to its cards or overlays. */
+[data-background-style] { --canvas-mask: none; --canvas-mask-color: transparent; --canvas-pattern: none; --canvas-size: auto; --canvas-repeat: repeat; --canvas-position: left top; }
+[data-background-strength="quiet"] { --canvas-opacity: .14; }
+[data-background-strength="visible"] { --canvas-opacity: .22; }
+[data-background-style="dots"] {
+  --canvas-pattern: radial-gradient(circle, var(--color-foreground) 1px, transparent 1px);
+  --canvas-size: var(--spacing-xl) var(--spacing-xl);
+}
+[data-background-style="grid"] {
+  --canvas-pattern: linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px);
+  --canvas-size: var(--spacing-xl) var(--spacing-xl);
+}
+[data-background-style="crosses"] {
+  --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M13 16h6m-3-3v6' stroke='black'/%3E%3C/svg%3E");
+  --canvas-size: var(--spacing-2xl) var(--spacing-2xl);
+  --canvas-mask-color: var(--color-foreground);
+}
+[data-background-style="construction"] {
+  --canvas-pattern: linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px), linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  --canvas-size: calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl)), calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl)), var(--spacing-xl) var(--spacing-xl), var(--spacing-xl) var(--spacing-xl);
+}
+[data-background-style="guides"] {
+  --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='.7'%3E%3Cpath d='M24 0V600M776 0V600M0 24H800M0 576H800' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M400 0V600M0 300H800' stroke-dasharray='12 5 2 5' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E");
+  --canvas-size: 100% 100%;
+  --canvas-repeat: no-repeat;
+  --canvas-mask-color: var(--color-foreground);
+}
+/* Paper tone uses the existing accent palette, scoped to the main canvas. */
+[data-paper-tone="accent"] .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) {
+  background-color: var(--color-accent-surface);
+}
+[data-paper-tone="accent"] .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  --color-background: var(--color-accent-surface);
+  --color-card: var(--color-accent-surface);
+  --color-muted: var(--color-accent-surface-hover);
+  --color-border: var(--color-border-strong);
+  --color-input: var(--color-border-strong);
+  --color-muted-foreground: var(--color-foreground);
+  --color-subtle-foreground: var(--color-foreground);
+}
+[data-background-style="fibers"] {
+  --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='80'%3E%3Cpath d='m8 12 5 1m54 8 4-2M30 64l6 1m48-17 3 2' stroke='black' stroke-width='.7'/%3E%3C/svg%3E");
+  --canvas-size: 100px 80px;
+  --canvas-mask-color: var(--color-foreground);
+}
+[data-background-style="momoi"] {
+  --canvas-pattern: url("./assets/momoi-symbol.svg");
+  --canvas-size: min(calc(5 * var(--spacing-2xl)), calc(100% - 2 * var(--spacing-lg))) auto;
+  --canvas-position: right var(--spacing-lg) bottom var(--spacing-lg);
+  --canvas-repeat: no-repeat;
+}
+[data-background-style="momoi-repeat"] {
+  --canvas-pattern: url("./assets/momoi-repeat.svg");
+  --canvas-size: calc(3 * var(--spacing-2xl)) calc(3 * var(--spacing-2xl));
+}
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)),
+.app-shell[data-background-canvas] {
+  position: relative;
+  isolation: isolate;
+  --canvas-column: 1;
+  --canvas-row: 1;
+}
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]),
+.app-shell[data-background-canvas] > :is(main, [data-slot="app-shell-main"]) {
+  grid-area: var(--canvas-row) / var(--canvas-column);
+  position: relative;
+  z-index: 1;
+}
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell))::before,
+.app-shell[data-background-canvas]::before {
+  content: "";
+  grid-area: var(--canvas-row) / var(--canvas-column);
+  min-width: 0;
+  pointer-events: none;
+  background-color: var(--canvas-mask-color, transparent);
+  mask-image: var(--canvas-mask, none);
+  mask-size: var(--canvas-size);
+  background-image: var(--canvas-pattern);
+  background-size: var(--canvas-size);
+  background-position: var(--canvas-position);
+  background-repeat: var(--canvas-repeat);
+  opacity: var(--canvas-opacity, .14);
+  z-index: 0;
+}
+@media (min-width: 1024px) {
+  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:has(> .sidebar:not([hidden])),
+  .app-shell[data-background-canvas]:has(> .sidebar:not([hidden])) { --canvas-column: 2; }
+}
+@media (max-width: 1023px) {
+  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:has(> .sidebar:not([hidden])),
+  .app-shell[data-background-canvas]:has(> .sidebar:not([hidden])) { --canvas-row: 2; }
+}
+:where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  --frame-fill: transparent;
+  background-color: transparent;
+  --color-muted-foreground: var(--color-foreground);
+  --color-subtle-foreground: var(--color-foreground);
+}
+:where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) :is(.card, .topbar) {
+  --frame-fill: color-mix(in srgb, var(--color-card) 65%, transparent);
+  background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--pixel-enabled, 0)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
+}
+:where([data-panel-fill="translucent"]) .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar {
+  background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--pixel-enabled, 0)) * 100%), transparent);
+}
+@media (forced-colors: active) {
+  .app-shell::before { display: none; }
+}
+
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-outline, .btn-primary, .btn-secondary, .btn-danger) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
+:where([data-background-style]:not([data-background-style="solid"]):not([data-background-style="momoi"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  --frame-fill: transparent;
+  background-color: transparent;
+}
+
+/* Native inputs cannot own decorative pseudo-elements. Paint their pixel border
+   in background layers, retaining the native hit area and focus outline. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) {
+  --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  --pixel-step: calc(var(--pixel-r) / 3);
+  --pixel-line: var(--color-input);
+  --pixel-fill: var(--color-card);
+  border-color: transparent;
+  background-color: transparent;
+  background-origin: border-box;
+  background-clip: border-box;
+  background-repeat: no-repeat;
+  background-image: var(--select-arrow, linear-gradient(transparent, transparent)), var(--control-mark-images, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
+    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
+    linear-gradient(var(--pixel-fill), var(--pixel-fill));
+  background-size: var(--size-icon-md) var(--size-icon-md), var(--control-mark-sizes, 0px 0px),
+    calc(100% - 2 * var(--pixel-r)) 1px,
+    calc(100% - 2 * var(--pixel-r)) 1px,
+    1px calc(100% - 2 * var(--pixel-r)),
+    1px calc(100% - 2 * var(--pixel-r)),
+    var(--pixel-step) 1px,
+    1px calc(var(--pixel-r) - var(--pixel-step)),
+    calc(var(--pixel-r) - var(--pixel-step)) 1px,
+    1px var(--pixel-step),
+    var(--pixel-step) 1px,
+    1px calc(var(--pixel-r) - var(--pixel-step)),
+    calc(var(--pixel-r) - var(--pixel-step)) 1px,
+    1px var(--pixel-step),
+    var(--pixel-step) 1px,
+    1px calc(var(--pixel-r) - var(--pixel-step)),
+    calc(var(--pixel-r) - var(--pixel-step)) 1px,
+    1px var(--pixel-step),
+    var(--pixel-step) 1px,
+    1px calc(var(--pixel-r) - var(--pixel-step)),
+    calc(var(--pixel-r) - var(--pixel-step)) 1px,
+    1px var(--pixel-step),
+    100% calc(100% - 2 * var(--pixel-r)),
+    calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)),
+    calc(100% - 2 * var(--pixel-r)) 100%;
+  background-position: right var(--spacing-md) center, var(--control-mark-positions, center),
+    center top 0,
+    center bottom 0,
+    left 0 center,
+    right 0 center,
+    left 0 top var(--pixel-r),
+    left var(--pixel-step) top var(--pixel-step),
+    left var(--pixel-step) top var(--pixel-step),
+    left var(--pixel-r) top 0,
+    left 0 bottom var(--pixel-r),
+    left var(--pixel-step) bottom var(--pixel-step),
+    left var(--pixel-step) bottom var(--pixel-step),
+    left var(--pixel-r) bottom 0,
+    right 0 top var(--pixel-r),
+    right var(--pixel-step) top var(--pixel-step),
+    right var(--pixel-step) top var(--pixel-step),
+    right var(--pixel-r) top 0,
+    right 0 bottom var(--pixel-r),
+    right var(--pixel-step) bottom var(--pixel-step),
+    right var(--pixel-step) bottom var(--pixel-step),
+    right var(--pixel-r) bottom 0,
+    center,
+    center,
+    center;
+}
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary { --pixel-fill: var(--color-primary); --pixel-line: var(--color-primary); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary:hover { --pixel-fill: var(--color-primary-hover); --pixel-line: var(--color-primary-hover); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-secondary { --pixel-fill: var(--color-secondary); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-secondary:hover { --pixel-fill: var(--color-secondary-hover); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-danger { --pixel-fill: var(--color-danger); --pixel-line: var(--color-danger); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-outline:hover { --pixel-fill: var(--color-accent-surface); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"], .field-control:has([aria-invalid="true"])) { --pixel-line: var(--color-danger); }
+@media (forced-colors: active) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) { background: Canvas; border-color: ButtonText; }
+}
+
+/* Patterns can pass behind page labels. Keep secondary text fully legible. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  --color-muted-foreground: var(--color-foreground);
+  --color-subtle-foreground: var(--color-foreground);
+}
+
+/* Solid footer and header bands must not fill the pixel cutouts. */
+:where([data-corner-style="pixel"]) :is(.card-footer, .dialog-footer) {
+  background-color: color-mix(in srgb, var(--color-muted) calc((1 - var(--pixel-enabled, 0)) * 100%), transparent);
+}
+:where([data-corner-style="pixel"], [data-outer-corner-style="pixel"]) .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar {
+  background-color: color-mix(in srgb, var(--color-background) calc((1 - var(--pixel-enabled, 0)) * 100%), transparent);
+}
+
+:where([data-corner-style="pixel"]) .table-wrap > .table-scroll {
+  margin: var(--pixel-r, 0px);
+  max-width: calc(100% - 2 * var(--pixel-r, 0px));
+}
+
+/* Pattern placement uses a single layer, including the Momoi signature. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  --canvas-frame-inset: var(--spacing-lg);
+}
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  margin: var(--canvas-frame-inset, 0px);
+}
+:where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before {
+  margin: var(--canvas-frame-inset, 0px);
+}
+:where([data-background-placement="outside"]:not([data-background-style="momoi"][data-panel-fill="translucent"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
+  --frame-fill: var(--color-background);
+  background-color: var(--frame-fill);
+}
+
+/* Keep application chrome on the same paper as the selected canvas. */
+[data-paper-tone="accent"] .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(.sidebar, .app-shell-panel) {
+  --color-sidebar: var(--color-accent-surface);
+  --color-card: var(--color-accent-surface);
+  --color-background: var(--color-accent-surface);
+  --color-muted: var(--color-accent-surface-hover);
+  --color-border: var(--color-border-strong);
+  --color-sidebar-border: var(--color-border-strong);
+  --color-muted-foreground: var(--color-foreground);
+  --color-subtle-foreground: var(--color-foreground);
+  background-color: var(--color-accent-surface);
+}
+
+/* Expressive surfaces fill the space up to their ink, without clipping content. */
+:where([data-border-style="manga"], [data-border-style="brush"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:where([data-outer-border-style="manga"], [data-outer-border-style="brush"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  isolation: isolate;
+  background-color: color-mix(in srgb, var(--frame-fill, var(--color-card)) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+}
+
+/* Paint footer bands against the panel's full contour. The footer clips only
+   the band above its own row; its padding keeps control focus rings clear. */
+:is(.card, .dialog, .marked) > :is(.card-footer, .dialog-footer) {
+  clip-path: var(--appearance-footer-clip, none);
+  background-color: color-mix(in srgb, var(--color-muted) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+}
+:is(.card, .dialog, .marked) > :is(.card-footer, .dialog-footer)::before {
+  content: var(--appearance-band-content, none);
+  position: absolute;
+  inset: var(--appearance-overlay-inset);
+  clip-path: var(--appearance-ink-clip);
+  background-color: var(--color-muted);
+  background-image: var(--appearance-ink-images);
+  background-size: var(--appearance-ink-image-size);
+  background-position: var(--appearance-ink-image-position);
+  background-repeat: no-repeat;
+  box-shadow: var(--appearance-ink-shadow);
+  pointer-events: none;
+  z-index: -1;
+}
+@media (min-width: 1024px) {
+  /* The page below this header owns scrolling, so it stays fixed without a
+     sticky containing block. Its paint can then use the main frame's contour. */
+  .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
+    --shell-band-content: var(--appearance-band-content, none);
+    --shell-header-position: var(--appearance-header-position, sticky);
+    --shell-header-clip: var(--appearance-header-clip, none);
+    --shell-ink-inset: var(--appearance-overlay-inset);
+    --shell-ink-clip: var(--appearance-ink-clip);
+    --shell-ink-images: var(--appearance-ink-images);
+    --shell-ink-size: var(--appearance-ink-image-size);
+    --shell-ink-position: var(--appearance-ink-image-position);
+    --shell-ink-shadow: var(--appearance-ink-shadow);
+    --shell-expressive: var(--appearance-expressive, 0);
+  }
+  .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar {
+    --header-fill: var(--color-background);
+    position: var(--shell-header-position);
+    clip-path: var(--shell-header-clip);
+    background-color: color-mix(in srgb, var(--header-fill) calc((1 - var(--shell-expressive)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+  }
+  :where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar { --header-fill: color-mix(in srgb, var(--color-card) 65%, transparent); }
+  .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar::before {
+    content: var(--shell-band-content);
+    position: absolute;
+    inset: var(--shell-ink-inset);
+    clip-path: var(--shell-ink-clip);
+    background-color: var(--header-fill);
+    background-image: var(--shell-ink-images);
+    background-size: var(--shell-ink-size);
+    background-position: var(--shell-ink-position);
+    background-repeat: no-repeat;
+    box-shadow: var(--shell-ink-shadow);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+@media (forced-colors: active) {
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { background: Canvas; }
+  :is(.card-footer, .dialog-footer, .app-shell .topbar)::before { display: none; }
+}

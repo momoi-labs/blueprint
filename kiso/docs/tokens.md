@@ -319,10 +319,10 @@ No gallery CSS or JavaScript is required.
 
 | Attribute | Values | Default when omitted |
 | --- | --- | --- |
-| `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset` | Solid outline |
-| `data-corner-style` | `square`, `rounded`, `asym` | Square panels and existing control radii, or the legacy border style's radii |
+| `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset`, `manga`, `brush` | Solid outline |
+| `data-corner-style` | `square`, `rounded`, `asym`, `pixel` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
-| `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `dots` | `ticks` |
+| `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `diagonal`, `dots` | `ticks` |
 | `data-mark-size` | `small`, `medium`, `large` | `medium` |
 | `data-visual-style` | `default`, `editorial` | `default` |
 | `data-app-shell` | `default`, `inset` | `default` |
@@ -368,6 +368,112 @@ The generated token defaults remain unchanged.
 
 Keep scrolling on `.log-scroll`, `.table-scroll`, dialog bodies, and
 `pre > code`. The outer frame owns the marks, which extend outside it.
+
+### Frames, scopes, and backgrounds
+
+Pixel classic (`data-corner-style="pixel"`) paints two steps at each corner.
+Manga (`data-border-style="manga"`) and Brush (`"brush"`) own their contour
+and ink stroke. They retain the saved corner choice but do not combine it with
+another shape. Pixel uses a crisp outline; choose a standard corner to use
+Dashed, Double, Side rail, Weighted base, or Offset.
+
+| Attribute | Values | Default when omitted |
+| --- | --- | --- |
+| `data-frame-scope` | `outer`, `panels`, `all` | Existing panel and control styling |
+| `data-mark-scope` | `outer`, `panels`, `all` | `panels` |
+| `data-outer-border-style` | `inherit` or a border value | `inherit` |
+| `data-outer-corner-style` | `inherit` or a corner value | `inherit` |
+| `data-outer-corner-marks` | `inherit` or a mark value | `inherit` |
+| `data-mark-clearance` | `normal`, `sheet` | `normal` |
+| `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat` | `solid` |
+| `data-background-strength` | `quiet`, `visible` | `quiet` |
+| `data-background-placement` | `inside`, `outside`, `both` | `both` |
+| `data-paper-tone` | `theme`, `accent` | `theme` |
+| `data-frame-detail` | `small`, `medium`, `large` | `medium` |
+| `data-panel-fill` | `solid`, `translucent` | `solid` |
+
+Set these on `html`, alongside theme and accent. The outer choices apply to
+inset AppShell main frames. Their children and portals retain the inner
+choices from `data-border-style`, `data-corner-style`, and `data-corner-marks`.
+A nested attribute can override its inherited inner choice.
+
+Frame scope `outer` removes inner panel decoration and uses standard control
+corners. `panels` styles the outer frame and inner panels, with standard
+controls. `all` also styles controls. Native controls retain their rectangular
+hit area and focus outline. Pixel controls use smaller steps; Manga and Brush
+use a compact, heavy outline. Menus and tooltips keep their standard outlines.
+
+Mark scope is independent. `outer` limits marks to inset shell frames;
+`panels` includes inner panel frames; `all` adds compact internal guides to
+fields and framed buttons. These internal guides avoid projecting into adjacent fields.
+`none` hides marks, and Border None suppresses them without discarding the saved
+selection. Incompatible curved marks on Pixel, Manga or Brush, and brackets on Brush,
+stay saved but are hidden until the frame supports them.
+`sheet` adds clearance; Offset and expressive borders also reserve
+space for their stroke. Curved brackets follow the selected radius, including
+Asymmetric's smaller corners.
+
+The gallery keeps Inset edge (`bevel`) and Corner dots (`dots`) readable as
+legacy selections. CSS consumers can continue using them. Replacing a legacy
+selection removes it from the gallery's normal picker.
+
+Backgrounds belong to the outermost AppShell content canvas, excluding its
+navigation and settings rails. Add `data-background-canvas` to an embedded
+shell only when it should own a separate background. Cards and portals never
+receive their own watermark. All patterns work with the current theme and
+accent; they do not select a theme.
+
+Construction lines (`construction`) is a repeating major/minor grid. Drawing
+guides (`guides`) restores the study's margin lines and central drafting axes.
+`inside` aligns the pattern to the inset frame. `outside` places it around an
+opaque main surface. `both` continues the pattern behind the content and its
+margin. The Momoi signature remains one symbol; translucent fill can reveal
+the part that extends behind the frame.
+
+Accent paper uses the existing accent surface color on the canvas and cards.
+Navigation and settings share that paper; portals keep their regular surfaces. Cobalt, dark
+theme, accent paper, drawing guides inside, square panels, an outer Double
+outline and Original ticks reproduce the Blueprint study. The gallery's
+composition buttons apply ordinary settings and remain editable.
+
+New gallery visits and Reset appearance use Pixel everywhere: small Pixel
+corners, Original ticks on panels, paper fibers, solid fill, Editorial style and
+an inset shell.
+The Default preset preserves the previous square, solid-background appearance.
+Both presets follow the system theme. Saved preferences still take priority.
+These gallery defaults do not change the CSS defaults for package consumers.
+Random chooses compatible appearance settings while keeping the selected theme.
+
+Frame detail scales Manga's stroke and slant, and Brush's stroke width.
+Corner size controls Rounded, Asymmetric and Pixel. The gallery groups these
+controls under Main style. Outer frame overrides live in a collapsed
+Customize outer frame disclosure and share the size settings.
+
+Momoi uses the symbol without its badge, at a preferred width of 160px and
+16px from the canvas's right and bottom edges. It scales down when the canvas
+cannot fit it. It uses the same frame margin as other patterns, so changing to
+the watermark does not shrink the frame. Quiet and Visible use 14% and 22%
+opacity on the background layer only.
+`momoi-repeat` is a separate tiled option.
+
+Patterned canvases use foreground color for secondary text so labels remain
+legible over the pattern. Solid keeps the existing theme typography.
+
+Translucent paints cards at 65% opacity for every background. It clears the
+outer fill for inside/both placement and for the Momoi signature.
+Text stays opaque and secondary text uses the foreground color. Fields, code,
+tables, and overlays retain solid backing. Forced colors suppress decorative
+backgrounds and retain native outlines.
+
+```html
+<html lang="en" data-theme="dark" data-accent="violet"
+  data-app-shell="inset" data-border-style="solid"
+  data-corner-style="square" data-corner-marks="none"
+  data-outer-border-style="brush" data-outer-corner-marks="none"
+  data-frame-scope="panels" data-mark-scope="outer"
+  data-background-style="momoi" data-background-strength="quiet"
+  data-panel-fill="translucent">
+```
 
 ### Visual styles
 

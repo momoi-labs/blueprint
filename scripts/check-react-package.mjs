@@ -19,7 +19,7 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/docs/components/button.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
       : ['dist/index.js', 'dist/index.d.ts', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
@@ -46,7 +46,7 @@ try {
   assert.equal(css, await readFile(path.join(root, 'kiso/ui.css'), 'utf8'));
   const tokens = await readFile(path.join(fixture, 'node_modules/@momoi-labs/kiso/tokens/build/tokens.css'), 'utf8');
   const { html: appearanceHTML } = appearanceCode({ theme: 'dark', accent: 'terracotta',
-    borderStyle: 'soft', cornerMarks: 'arcs', cornerSize: 'small', markSize: 'medium', visualStyle: 'editorial', appShell: 'inset' });
+    borderStyle: 'solid', cornerStyle: 'pixel', cornerMarks: 'diagonal', cornerSize: 'small', markSize: 'medium', visualStyle: 'editorial', appShell: 'inset', outerBorderStyle: 'brush', outerCornerStyle: 'inherit', outerCornerMarks: 'none', frameScope: 'panels', markScope: 'outer', markClearance: 'sheet', backgroundStyle: 'momoi', backgroundStrength: 'quiet', panelFill: 'translucent' });
   for (const [, attribute] of appearanceHTML.matchAll(/(data-[\w-]+)="[^"]+"/g)) {
     assert((tokens + css).includes(`[${attribute}`), `Package CSS ignores ${attribute}`);
   }
