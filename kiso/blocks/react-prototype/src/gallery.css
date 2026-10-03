@@ -280,7 +280,7 @@
   }
 }
 @media (max-width: 400px) {
-  :where([data-background-style="momoi"]) .catalog-main { padding: var(--spacing-sm); }
+  .catalog-main { padding: var(--spacing-sm); }
 }
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */
