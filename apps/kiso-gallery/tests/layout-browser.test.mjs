@@ -86,7 +86,10 @@ async function assertSettingsToggle(page) {
   const minimum = await page.evaluate(() => matchMedia("(pointer: coarse)").matches ? 44 : 24);
   assert(toggle.width >= minimum && toggle.height >= minimum, "The settings gear keeps its pointer target");
   const panel = page.locator(".component-gallery > .app-shell-panel");
-  if (await panel.isVisible()) assert.equal(main.x + main.width, (await panel.boundingBox()).x, "No unused column between preview and settings");
+  if (await panel.isVisible()) {
+    const frameMargin = await page.locator('.component-gallery > [data-slot="app-shell-main"]').evaluate(el => parseFloat(getComputedStyle(el).marginRight));
+    assert.equal(main.x + main.width + frameMargin, (await panel.boundingBox()).x, "Only the frame's reserved margin separates preview and settings");
+  }
 }
 
 const widths = [320, 390, 768, 1024, 1199, 1200, 1440, 1920];
@@ -181,7 +184,7 @@ for (const width of [320, 1200, 1920]) test(`Settings choices and code remain re
     await settings(page, true);
     const panel = page.locator("#gallery-settings");
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
-    assert.equal(await panel.locator("details").count(), 0, "All settings categories stay expanded");
+    assert.equal(await panel.locator("details:not([open])").count(), 1, "Only outer overrides are collapsed");
     if (width === 320) {
       for (const button of await panel.getByRole("group", { name: "Accent", exact: true }).getByRole("button").all()) {
         assert((await button.boundingBox()).height >= 44, "Compact accent options retain their touch targets");
@@ -197,7 +200,8 @@ for (const width of [320, 1200, 1920]) test(`Settings choices and code remain re
           if (await radio.isDisabled()) continue;
           await radio.check();
           assert(await radio.isChecked());
-          assert.deepEqual(await layoutIssues(page, ".appearance-controls-scroll"), []);
+          const issues = await layoutIssues(page, ".appearance-controls-scroll");
+          assert.deepEqual(issues, [], `${style}/${groupName}/${await radio.inputValue()}`);
         }
       }
       const region = panel.getByRole("region", { name: "Settings options" });
@@ -210,7 +214,7 @@ for (const width of [320, 1200, 1920]) test(`Settings choices and code remain re
       await copy.click();
       assert((await page.evaluate(() => window.copiedText)).includes("Object.assign(root.dataset, attributes)"));
       await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
-      assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "default");
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "editorial");
     }
   } finally { await page.close(); }
 });

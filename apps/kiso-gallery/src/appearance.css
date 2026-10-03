@@ -1,4 +1,5 @@
 /* Settings controls. Component appearance comes from Kiso. */
+:root, [data-accent] { --preview-theme-background: var(--color-background); --preview-theme-card: var(--color-card); }
 .appearance-section { display: grid; gap: var(--spacing-md); padding-block: var(--spacing-lg); border-top: 1px solid var(--color-sidebar-border); }
 .appearance-section > .t-caps, .appearance-usage > .t-caps { color: var(--color-muted-foreground); }
 .appearance-colors { display: grid; gap: var(--spacing-md); }
@@ -20,7 +21,7 @@
 .appearance-sample { display: grid; align-content: center; gap: var(--spacing-xs); padding: var(--spacing-xs); height: var(--spacing-xl); }
 .appearance-sample i { display: block; background: var(--color-border-strong); height: 3px; width: 75%; }
 .appearance-sample i + i { width: 45%; background: var(--color-border); }
-.appearance-heading-sample { height: var(--spacing-xl); padding: 0; justify-items: center; }
+.appearance-heading-sample { height: var(--spacing-xl); padding: 0; justify-items: center; background: var(--color-card); }
 .appearance-heading-sample i { display: none; }
 .appearance-heading-title { font-family: var(--font-heading); font-size: var(--type-size-label); font-weight: var(--type-weight-semibold); line-height: var(--type-line-height-tight); letter-spacing: var(--type-letter-spacing-heading); }
 .appearance-heading-sample[data-heading-style="editorial"] .appearance-heading-title { font-size: var(--type-size-h3); }
@@ -31,7 +32,8 @@
 .appearance-size:disabled { opacity: .5; }
 .appearance-segments { display: flex; flex-wrap: wrap; gap: var(--spacing-2xs); padding: var(--spacing-2xs); border: 1px solid var(--color-sidebar-border); border-radius: var(--radius-md); }
 .appearance-segments label { position: relative; cursor: pointer; flex: 1; text-align: center; }
-.appearance-segments span { display: grid; place-items: center; min-height: var(--size-control-sm); padding: var(--spacing-xs); font-size: var(--type-size-label); border-radius: var(--radius-sm); }
+.appearance-segment-body { display: grid; place-items: center; min-height: var(--size-control-sm); padding: var(--spacing-xs); font-size: var(--type-size-label); border-radius: var(--radius-sm); }
+.appearance-segment-body .appearance-panel-preview { width: var(--spacing-3xl); }
 .appearance-segments input:checked + span { background: var(--color-card); box-shadow: var(--shadow-xs); }
 .appearance-size:disabled label, .appearance-segments label:has(input:disabled) { cursor: default; }
 .appearance-size:not(:disabled) input:disabled + span { opacity: .5; }
@@ -42,7 +44,7 @@
 .appearance-usage { display: grid; gap: var(--spacing-md); padding-block: var(--spacing-lg); border-top: 1px solid var(--color-sidebar-border); }
 .appearance-usage > section { display: grid; gap: var(--spacing-md); min-width: 0; }
 .appearance-code-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-md); }
-.appearance-usage pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.appearance-usage pre { margin: max(0px, calc(var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px) - var(--spacing-lg))); white-space: pre-wrap; overflow-wrap: anywhere; }
 .appearance-usage code { font-size: var(--type-size-label); }
 .appearance-usage :is(.syntax-keyword, .syntax-function) { color: var(--color-link); }
 .appearance-usage :is(.syntax-tag, .syntax-attribute, .syntax-property) { color: var(--color-info); }
@@ -74,3 +76,79 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .kiso-react-palette)::before {
   box-shadow: 3px 3px 0 0 var(--color-foreground);
 }
+
+.appearance-panel-preview, .appearance-scope-preview { display: block; width: 100%; color: var(--color-muted-foreground); }
+.appearance-preview-paper { fill: var(--color-card); }
+.appearance-preview-shadow { fill: var(--color-border-strong); stroke: var(--color-border-strong); }
+.appearance-preview-text { stroke: var(--color-muted-foreground); }
+.appearance-scope-panel { fill: var(--color-muted); }
+.appearance-scope-accent { stroke: var(--color-link); stroke-width: 2; }
+.appearance-options-wide .appearance-option-body, .appearance-options-scope .appearance-option-body {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  text-align: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-color: var(--color-sidebar-border);
+}
+.appearance-options-scope { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.appearance-options-wide .appearance-background-sample { height: calc(2 * var(--spacing-2xl)); }
+.appearance-composition.btn { display: grid; grid-template-columns: var(--spacing-3xl) minmax(0, 1fr); height: auto; min-height: var(--size-touch-min); gap: var(--spacing-xs); padding: var(--spacing-xs); white-space: normal; text-align: start; font-weight: var(--type-weight-regular); border: 1px solid transparent; }
+.appearance-composition[aria-pressed="true"] { border-color: var(--color-focus); background: var(--color-accent-surface); }
+.appearance-composition-preview { position: relative; width: 100%; height: var(--spacing-3xl); }
+.appearance-composition-preview .appearance-panel-preview { position: absolute; inset: 0; height: 100%; }
+.appearance-background-sample {
+  --color-background: var(--preview-theme-background);
+  --color-card: var(--preview-theme-card);
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--spacing-3xl);
+  background: var(--color-background);
+}
+.appearance-background-sample[data-preview-tone="accent"] { --color-background: var(--color-accent-surface); --color-card: var(--color-accent-surface); }
+.appearance-composition-preview[data-preview-tone="accent"] { --color-card: var(--color-accent-surface); }
+.appearance-background-sample::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--canvas-mask-color, transparent);
+  mask-image: var(--canvas-mask, none);
+  mask-size: var(--canvas-size);
+  background-image: var(--canvas-pattern);
+  background-size: var(--canvas-size);
+  background-position: var(--canvas-position);
+  background-repeat: var(--canvas-repeat);
+  opacity: var(--canvas-opacity, .22);
+}
+.appearance-background-sample[data-background-style="momoi"] { --canvas-size: 35px auto; --canvas-position: right var(--spacing-sm) bottom var(--spacing-sm); }
+.appearance-background-sample[data-background-style="momoi-repeat"] { --canvas-size: 48px 48px; }
+.appearance-options-wide .appearance-background-sample[data-background-style="momoi"] { --canvas-size: 64px auto; }
+.appearance-fill-panel {
+  position: absolute;
+  inset: var(--spacing-xs) var(--spacing-lg) var(--spacing-lg) var(--spacing-xs);
+  display: grid;
+  align-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-strong);
+}
+[data-preview-fill="translucent"] .appearance-fill-panel { background: color-mix(in srgb, var(--color-card) 65%, transparent); }
+.appearance-fill-title { height: 3px; width: 65%; background: var(--color-foreground); }
+.appearance-fill-field { height: var(--spacing-sm); width: 100%; background: var(--color-background); border: 1px solid var(--color-border-strong); }
+.appearance-option:has(input:disabled) { opacity: .5; cursor: default; }
+
+/* The mobile settings drawer belongs to the gallery's selected paper. */
+[data-paper-tone="accent"] .kiso-react-drawer.appearance-controls {
+  --color-sidebar: var(--color-accent-surface);
+  --color-card: var(--color-accent-surface);
+  --color-background: var(--color-accent-surface);
+  --color-muted: var(--color-accent-surface-hover);
+  --color-border: var(--color-border-strong);
+  --color-sidebar-border: var(--color-border-strong);
+  --color-muted-foreground: var(--color-foreground);
+  background-color: var(--color-accent-surface);
+}
+
+.appearance-outer-customization > .disclosure-content { display: grid; gap: var(--spacing-md); }

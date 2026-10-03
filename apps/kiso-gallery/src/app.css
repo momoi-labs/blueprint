@@ -307,11 +307,12 @@
 
 .catalog-intro {
   width: 100%;
-  max-width: 1200px;
-  margin-inline: auto;
+  max-width: none;
 }
 .intro-page {
-  padding-block: var(--spacing-3xl);
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-block: var(--spacing-xl);
 }
 .intro-hero {
   display: grid;
@@ -372,7 +373,7 @@
   align-content: start;
   gap: var(--spacing-md);
 }
-@media (max-width: 800px) {
+@container catalog (max-width: 800px) {
   .intro-page {
     padding-block: var(--spacing-xl);
   }

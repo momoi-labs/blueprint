@@ -1978,7 +1978,7 @@ export function ComponentGallery({
   settingsToggle?: ReactNode;
 }) {
   const demoSettings = useContext(DemoSettingsContext);
-  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(() => route === "intro");
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1024px)").matches);
   useEffect(() => {
     const media = matchMedia("(min-width: 1024px)");
@@ -2049,9 +2049,8 @@ export function ComponentGallery({
   return (
     <AppShell
       className="component-gallery"
-      data-layout={showingIntro ? "topbar" : undefined}
     >
-      {!showingIntro && <Sidebar
+      <Sidebar
         id="component-navigation"
         hidden={desktop && navigationCollapsed}
         className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
@@ -2108,15 +2107,15 @@ export function ComponentGallery({
         {!settingsEnabled && <SidebarFooter>
           <ThemeSelector theme={theme} onChange={onThemeChange} />
         </SidebarFooter>}
-      </Sidebar>}
+      </Sidebar>
       <AppShellMain>
         <Header className="catalog-header">
-          {!showingIntro && <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
+          <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
             <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="1" /><path d="M5 2v12" /></svg>
-          </Button>}
+          </Button>
           {!showingIntro && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
               <BrandMark><TerminalIcon /></BrandMark>
@@ -2159,17 +2158,15 @@ export function ComponentGallery({
             />
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
-            {!showingIntro && (
-              <Button
-                className="catalog-menu"
-                size="sm"
-                aria-controls="component-navigation"
-                aria-expanded={menuOpen}
-                onClick={() => setMenuOpen(!menuOpen)}
-              >
-                {menuOpen ? "Hide navigation" : "Show navigation"}
-              </Button>
-            )}
+            <Button
+              className="catalog-menu"
+              size="sm"
+              aria-controls="component-navigation"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {menuOpen ? "Hide navigation" : "Show navigation"}
+            </Button>
             {settingsToggle}
           </div>
         </Header>

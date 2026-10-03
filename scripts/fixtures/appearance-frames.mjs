@@ -1,10 +1,13 @@
 import { createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Button, TableFrame, Table, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, Drawer, DrawerTrigger, DrawerContent } from '../../packages/kiso-react/dist/index.js';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Button, TableFrame, Table, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
-Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: 'arcs' });
+Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
 if (params.has('corners')) document.documentElement.dataset.cornerStyle = params.get('corners');
+for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail']) {
+  if (params.has(key)) document.documentElement.dataset[key] = params.get(key);
+}
 function Sample({ id = 'sample', title = 'Environment' }) {
   return h(Card, { id },
     h(CardHeader, null, h(CardTitle, null, title)),
@@ -16,10 +19,21 @@ function Sample({ id = 'sample', title = 'Environment' }) {
       ))),
       h(Alert, { appearance: 'rail', variant: 'info', role: 'note' }, h(AlertContent, null, h(AlertTitle, null, 'Per-session tuning'))),
     ),
-    h(CardFooter, null, h(Button, null, 'Apply')),
+    h(CardFooter, null, h(Button, { variant: 'primary' }, 'Apply')),
   );
 }
 function Fixture() {
+  if (params.has('canvas')) return h(AppShell, { variant: 'inset', id: 'canvas' },
+    h('aside', { className: 'sidebar', id: 'rail' }, 'Navigation'),
+    h(AppShellMain, { id: 'outer' }, h(Header, null, 'Document tools', h(Button, null, 'Header action')), h('div', { className: 'page' },
+      h('h1', null, 'Canvas composition'), h(Sample),
+      h('div', { id: 'nested', 'data-border-style': 'solid', 'data-corner-style': 'rounded' }, h(Card, null, h(CardContent, null, 'Local override'))),
+      h(Input, { 'aria-label': 'Native field', defaultValue: 'Editable', 'aria-invalid': 'true' }),
+      h(Dialog, null, h(DialogTrigger, { asChild: true }, h(Button, null, 'Open dialog')),
+        h(DialogContent, null, h(DialogHeader, null, h(DialogTitle, null, 'Dialog frame')), h(DialogBody, null, h(Input, { 'aria-label': 'Dialog field', defaultValue: 'Retained' })), h(DialogFooter, null, h(Button, null, 'Save dialog')))),
+    )),
+    h(AppShellPanel, { id: 'settings', hidden: params.has('hidePanel') }, 'Settings'),
+  );
   if (params.has('matrix')) return h('main', { className: 'page' },
     h('h1', null, 'Border style and corner shape'),
     h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 17rem), 1fr))', gap: 'var(--spacing-xl)' } },
