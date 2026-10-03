@@ -520,7 +520,8 @@ test('Editorial Intro does not scroll only to reveal bottom padding', async () =
     const navigation = page.getByRole('button', { name: 'Collapse navigation', exact: true });
     if (await navigation.count()) await navigation.click();
     const content = page.locator('.catalog-intro');
-    assert(await content.evaluate(el => el.scrollHeight <= el.clientHeight), 'The complete Intro fits without a padding-only scrollbar');
+    const geometry = await content.evaluate(el => ({ content: el.scrollHeight, viewport: el.clientHeight }));
+    assert(geometry.content <= geometry.viewport, `The complete Intro fits without a padding-only scrollbar: ${JSON.stringify(geometry)}`);
     await page.setViewportSize({ width: 1587, height: 600 });
     assert(await content.evaluate(el => el.scrollHeight > el.clientHeight), 'Short viewports still allow genuine content scrolling');
     await content.evaluate(el => el.scrollTop = el.scrollHeight);

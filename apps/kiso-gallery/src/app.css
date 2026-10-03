@@ -312,7 +312,6 @@
 .intro-page {
   max-width: 1200px;
   margin-inline: auto;
-  padding-block: var(--spacing-xl);
 }
 .intro-hero {
   display: grid;
