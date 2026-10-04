@@ -51,24 +51,6 @@
 .appearance-usage .syntax-string { color: var(--color-success); }
 .appearance-usage .syntax-comment { color: var(--color-muted-foreground); }
 
-/* A shadow follows the field's radius consistently, including square corners. */
-:is(.input, .select, .textarea):focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 0;
-  box-shadow: 0 0 0 2px var(--color-ring);
-}
-:is(.input, .select, .textarea)[aria-invalid="true"]:focus-visible {
-  outline-color: transparent;
-  box-shadow: 0 0 0 2px var(--color-danger);
-}
-@media (forced-colors: active) {
-  :is(.input, .select, .textarea):focus-visible,
-  :is(.input, .select, .textarea)[aria-invalid="true"]:focus-visible {
-    outline-color: Highlight;
-    box-shadow: none;
-  }
-}
-
 /* Offset outlines need contrast against the modal scrim, not the page canvas. */
 html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .kiso-react-palette) {
   box-shadow: none;
