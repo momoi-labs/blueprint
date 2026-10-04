@@ -178,6 +178,7 @@ for (const corners of ['rounded', 'square', 'pixel-small', 'pixel-large']) for (
       ['Notes', page.getByRole('textbox', { name: 'Notes', exact: true }), self, true],
       ['Standalone select', page.getByRole('combobox', { name: 'Standalone select', exact: true }), self],
       ['RAM', page.getByRole('spinbutton', { name: 'RAM', exact: true }), frame],
+      ['Tags', page.getByRole('combobox', { name: 'Tags', exact: true }).or(page.getByRole('textbox', { name: 'Tags', exact: true })), el => el.closest('.chip-input-box')],
     ];
     const check = async (name, control, frameOf, grip, ring) => {
       const result = await focusRing(page, control, frameOf, { pixel, grip });
@@ -192,7 +193,7 @@ for (const corners of ['rounded', 'square', 'pixel-small', 'pixel-large']) for (
     };
     for (const [name, control, frameOf, grip] of fields) await check(name, control, frameOf, grip, 'focus');
     await page.getByRole('button', { name: 'Toggle error' }).click();
-    for (const [name, control, frameOf, grip] of fields.filter(([name]) => name === 'Notes' || name === 'RAM')) await check(`${name} (invalid)`, control, frameOf, grip, 'danger');
+    for (const [name, control, frameOf, grip] of fields.filter(([name]) => ['Notes', 'RAM', 'Tags'].includes(name))) await check(`${name} (invalid)`, control, frameOf, grip, 'danger');
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/field-focus-${corners}-${theme}.png`, fullPage: true });
   } finally { await page.close(); }
 });

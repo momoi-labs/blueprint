@@ -1,6 +1,6 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FormField, Input, Select, SelectTrigger, SelectContent, SelectItem, SelectValue, Button, Textarea } from '../../packages/kiso-react/dist/index.js';
+import { FormField, Input, Select, SelectTrigger, SelectContent, SelectItem, SelectValue, Button, Textarea, ChipInput, ChipInputBox, ChipInputField } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'round' });
@@ -27,6 +27,7 @@ function Fixture() {
       h(FormField, { label: params.has('long') ? 'Available memory across every configured server' : 'Stacked field', controlSize, suffix: 'GB', leading: icon, defaultValue: '128' }),
       h(FormField, { label: 'Standalone input', controlSize, defaultValue: 'server' }),
       h(FormField, { label: 'Notes', error: error ? 'Add a note.' : undefined }, h(Textarea, { rows: 3 })),
+      h(ChipInput, null, h(ChipInputBox, { 'aria-invalid': error ? 'true' : undefined }, h(ChipInputField, { 'aria-label': 'Tags' }))),
       h(Select, { defaultValue: 'linux' },
         h(FormField, { label: 'Standalone select' }, h(SelectTrigger, { controlSize }, h(SelectValue))),
         h(SelectContent, null, h(SelectItem, { value: 'linux' }, 'GNU/Linux')),

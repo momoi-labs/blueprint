@@ -399,8 +399,10 @@ A nested attribute can override its inherited inner choice.
 
 Frame scope `outer` removes inner panel decoration and uses standard control
 corners. `panels` styles the outer frame and inner panels, with standard
-controls. `all` also styles controls. Native controls retain their rectangular
-hit area. Pixel controls use smaller steps, and a focused Pixel field thickens
+controls. `all` also styles controls: fields, including ChipInput and
+FilterInput boxes, and framed buttons. Native controls retain their rectangular
+hit area. Pixel controls use smaller steps and drop their shadow, and
+checkboxes and switches follow the steps too. A focused Pixel field thickens
 its own stepped edge instead of drawing a separate ring. Manga and Brush use a
 compact, heavy outline. Menus and tooltips keep their standard outlines.
 

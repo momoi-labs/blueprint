@@ -503,7 +503,7 @@ select.select option:disabled { color: var(--color-disabled); }
   min-height: var(--size-control-md);
   padding: var(--spacing-xs);
   border: 1px solid var(--color-input);
-  border-radius: var(--radius-md);
+  border-radius: var(--appearance-control-corners, var(--radius-md));
   background: var(--color-card);
   box-shadow: var(--shadow-xs);
   cursor: text;
@@ -2053,10 +2053,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border: 0; border-radius: 0; box-shadow: none;
 }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
-:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input, .select, .textarea, .field-control) { border-radius: 4px; }
+:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input, .select, .textarea, .field-control, .chip-input-box) { border-radius: 4px; }
 :where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after { content: none; }
 /* Compact guides stay inside native controls, away from focus indicators. */
-:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control) {
+:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box) {
   --control-guide: color-mix(in srgb, var(--color-corner-mark) calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)) * 100%), transparent);
   --control-mark-images: linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide));
   --control-mark-sizes: var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px;
@@ -2419,7 +2419,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell::before { display: none; }
 }
 
-:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-outline, .btn-primary, .btn-secondary, .btn-danger) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
 :where([data-background-style]:not([data-background-style="solid"]):not([data-background-style="momoi"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;
   background-color: transparent;
@@ -2427,7 +2427,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 
 /* Native inputs cannot own decorative pseudo-elements. Paint their pixel border
    in background layers, retaining the native hit area. */
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) {
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) {
   --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-step: calc(var(--pixel-r) / 3);
   --pixel-line: var(--color-input);
@@ -2438,6 +2438,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --pixel-join: calc(2 * (var(--pixel-line-width) - 1px));
   border-color: transparent;
   background-color: transparent;
+  /* A drop shadow follows the rectangular box, not the steps. */
+  box-shadow: none;
   background-origin: border-box;
   background-clip: border-box;
   background-repeat: no-repeat;
@@ -2520,18 +2522,96 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-secondary:hover { --pixel-fill: var(--color-secondary-hover); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-danger { --pixel-fill: var(--color-danger); --pixel-line: var(--color-danger); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-outline:hover { --pixel-fill: var(--color-accent-surface); }
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"], .field-control:has([aria-invalid="true"])) { --pixel-line: var(--color-danger); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"], .field-control:has([aria-invalid="true"]), .chip-input-box[aria-invalid="true"]) { --pixel-line: var(--color-danger); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:disabled, .select:disabled, .textarea:disabled, .field-control:has(> :disabled), .chip-input-box[data-disabled="true"]) { --pixel-fill: var(--color-disabled-surface); }
 /* A focused field thickens its own contour. A square outline would cut the steps. */
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .field-control:focus-within { --pixel-line: var(--color-focus); --pixel-line-width: 2px; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.field-control, .chip-input-box):focus-within { --pixel-line: var(--color-focus); --pixel-line-width: 2px; }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"]):focus-visible,
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .field-control:has([aria-invalid="true"]):focus-within { --pixel-line: var(--color-danger); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.field-control:has([aria-invalid="true"]), .chip-input-box[aria-invalid="true"]):focus-within { --pixel-line: var(--color-danger); }
 @media (forced-colors: none) {
   :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
-  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.field-control, .field-control:has([aria-invalid="true"])):focus-within { outline-color: transparent; }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.field-control, .field-control:has([aria-invalid="true"]), .chip-input-box, .chip-input-box[aria-invalid="true"]):focus-within { outline-color: transparent; }
+}
+/* Checkboxes cut one step from each corner. Switch tracks use the control
+   steps, capped at 6px. The thumb takes the largest steps that keep it inside
+   the track: up to 4px, with a 1px first step. Forced colors keep the standard
+   shapes. */
+@media (forced-colors: none) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.check input[type="checkbox"], button[data-slot="checkbox"][data-state]) {
+    --pixel-s: calc(round(calc(2px * var(--appearance-scale, 1)), 1px) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+    --pixel-line: var(--color-input);
+    --pixel-fill: var(--color-card);
+    border-color: transparent;
+    background-color: transparent;
+    background-origin: border-box;
+    background-clip: border-box;
+    background-repeat: no-repeat;
+    box-shadow: none;
+    background-image: linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-line), var(--pixel-line)),
+      linear-gradient(var(--pixel-fill), var(--pixel-fill)),
+      linear-gradient(var(--pixel-fill), var(--pixel-fill));
+    background-size:
+      calc(100% - 2 * var(--pixel-s)) 1px,
+      calc(100% - 2 * var(--pixel-s)) 1px,
+      1px calc(100% - 2 * var(--pixel-s)),
+      1px calc(100% - 2 * var(--pixel-s)),
+      var(--pixel-s) 1px, 1px var(--pixel-s),
+      var(--pixel-s) 1px, 1px var(--pixel-s),
+      var(--pixel-s) 1px, 1px var(--pixel-s),
+      var(--pixel-s) 1px, 1px var(--pixel-s),
+      100% calc(100% - 2 * var(--pixel-s)),
+      calc(100% - 2 * var(--pixel-s)) 100%;
+    background-position:
+      center top 0, center bottom 0, left 0 center, right 0 center,
+      left 0 top var(--pixel-s), left var(--pixel-s) top 0,
+      right 0 top var(--pixel-s), right var(--pixel-s) top 0,
+      left 0 bottom var(--pixel-s), left var(--pixel-s) bottom 0,
+      right 0 bottom var(--pixel-s), right var(--pixel-s) bottom 0,
+      center, center;
+  }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.check input[type="checkbox"]:checked, button[data-slot="checkbox"]:is([data-state="checked"], [data-state="indeterminate"])) { --pixel-line: var(--color-primary); --pixel-fill: var(--color-primary); }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .check input[type="checkbox"]:disabled { --pixel-line: var(--color-border); --pixel-fill: var(--color-disabled-surface); }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.switch input, button[data-slot="switch"][data-state]) {
+    --pixel-r: calc(min(calc(6px * var(--appearance-scale, 1)), 6px) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+    --pixel-step: calc(var(--pixel-r) / 3);
+    --pixel-fill: var(--color-border-strong);
+    border-radius: calc(var(--radius-full) * (1 - var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0))));
+    background-color: transparent;
+    background-origin: border-box;
+    background-clip: border-box;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill));
+    background-size: 100% calc(100% - 2 * var(--pixel-r)), calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), calc(100% - 2 * var(--pixel-r)) 100%;
+    background-position: center;
+  }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.switch input:checked, button[data-slot="switch"][data-state="checked"]) { --pixel-fill: var(--color-primary); }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .switch input::after,
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) span[data-slot="switch-thumb"] {
+    --thumb-r: min(var(--pixel-r), 4px);
+    --thumb-step: min(var(--pixel-r), 1px);
+    border-radius: calc(var(--radius-full) * (1 - var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0))));
+    box-shadow: none;
+    /* Bands like the track's fill, as a mask that snaps to whole pixels. */
+    mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000), linear-gradient(#000, #000);
+    mask-size: 100% calc(100% - 2 * var(--thumb-r)), calc(100% - 2 * var(--thumb-step)) calc(100% - 2 * var(--thumb-step)), calc(100% - 2 * var(--thumb-r)) 100%;
+    mask-position: center;
+    mask-repeat: no-repeat;
+  }
 }
 @media (forced-colors: active) {
-  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) { background: Canvas; border-color: ButtonText; }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) { background: Canvas; border-color: ButtonText; }
 }
 
 /* Patterns can pass behind page labels. Keep secondary text fully legible. */
