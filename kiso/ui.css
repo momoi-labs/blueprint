@@ -417,7 +417,9 @@ fieldset.form-body { border: 0; margin: 0; }
   cursor: not-allowed;
 }
 .input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--color-danger); }
-.input[aria-invalid="true"]:focus-visible { outline-color: var(--color-danger); }
+/* A field's ring covers its own edge, so it never reads as a second box. */
+:is(.input, .select, .textarea):focus-visible { outline-offset: -2px; }
+:is(.input, .select, .textarea)[aria-invalid="true"]:focus-visible { outline-color: var(--color-danger); }
 .input-sm, :is(.input, .select)[data-control-size="sm"] { height: var(--size-control-sm); padding-inline-start: var(--spacing-sm); font-size: var(--type-size-label); }
 :is(.input, .select)[data-control-size="lg"] { height: var(--size-control-lg); padding-inline-start: var(--spacing-lg); }
 .input-sm, .input[data-control-size="sm"] { padding-inline-end: var(--spacing-sm); }
@@ -473,7 +475,7 @@ select.select option:disabled { color: var(--color-disabled); }
 .field[data-control-size="sm"] > .field-control { --field-control-height: var(--size-control-sm); padding-inline: var(--spacing-sm); font-size: var(--type-size-label); }
 .field[data-control-size="lg"] > .field-control { --field-control-height: var(--size-control-lg); padding-inline: var(--spacing-lg); }
 .field-control:hover { border-color: var(--color-border-strong); }
-.field-control:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.field-control:focus-within { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 .field-control > :is(.input, .select) {
   flex: 1; min-width: 0; width: 0; height: auto; min-height: calc(var(--field-control-height) - 2px);
   border: 0; border-radius: 0; padding-inline-start: 0;
@@ -508,7 +510,7 @@ select.select option:disabled { color: var(--color-disabled); }
   transition: border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 .chip-input-box:hover { border-color: var(--color-border-strong); }
-.chip-input-box:focus-within { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+.chip-input-box:focus-within { outline: 2px solid var(--color-ring); outline-offset: -2px; }
 .chip-input-box[aria-invalid="true"] { border-color: var(--color-danger); }
 .chip-input-box[aria-invalid="true"]:focus-within { outline-color: var(--color-danger); }
 .chip-input-box[data-disabled="true"] {
@@ -2424,12 +2426,16 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 /* Native inputs cannot own decorative pseudo-elements. Paint their pixel border
-   in background layers, retaining the native hit area and focus outline. */
+   in background layers, retaining the native hit area. */
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) {
   --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-step: calc(var(--pixel-r) / 3);
   --pixel-line: var(--color-input);
   --pixel-fill: var(--color-card);
+  /* A wider line grows inward. Its corner segments overlap by twice the extra
+     width so the steps stay solid; at 1px they keep their diagonal joints. */
+  --pixel-line-width: 1px;
+  --pixel-join: calc(2 * (var(--pixel-line-width) - 1px));
   border-color: transparent;
   background-color: transparent;
   background-origin: border-box;
@@ -2460,26 +2466,26 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     linear-gradient(var(--pixel-fill), var(--pixel-fill)),
     linear-gradient(var(--pixel-fill), var(--pixel-fill));
   background-size: var(--size-icon-md) var(--size-icon-md), var(--control-mark-sizes, 0px 0px),
-    calc(100% - 2 * var(--pixel-r)) 1px,
-    calc(100% - 2 * var(--pixel-r)) 1px,
-    1px calc(100% - 2 * var(--pixel-r)),
-    1px calc(100% - 2 * var(--pixel-r)),
-    var(--pixel-step) 1px,
-    1px calc(var(--pixel-r) - var(--pixel-step)),
-    calc(var(--pixel-r) - var(--pixel-step)) 1px,
-    1px var(--pixel-step),
-    var(--pixel-step) 1px,
-    1px calc(var(--pixel-r) - var(--pixel-step)),
-    calc(var(--pixel-r) - var(--pixel-step)) 1px,
-    1px var(--pixel-step),
-    var(--pixel-step) 1px,
-    1px calc(var(--pixel-r) - var(--pixel-step)),
-    calc(var(--pixel-r) - var(--pixel-step)) 1px,
-    1px var(--pixel-step),
-    var(--pixel-step) 1px,
-    1px calc(var(--pixel-r) - var(--pixel-step)),
-    calc(var(--pixel-r) - var(--pixel-step)) 1px,
-    1px var(--pixel-step),
+    calc(100% - 2 * var(--pixel-r)) var(--pixel-line-width),
+    calc(100% - 2 * var(--pixel-r)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(100% - 2 * var(--pixel-r)),
+    var(--pixel-line-width) calc(100% - 2 * var(--pixel-r)),
+    calc(var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
+    calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
+    var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
     100% calc(100% - 2 * var(--pixel-r)),
     calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)),
     calc(100% - 2 * var(--pixel-r)) 100%;
@@ -2515,6 +2521,15 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-danger { --pixel-fill: var(--color-danger); --pixel-line: var(--color-danger); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-outline:hover { --pixel-fill: var(--color-accent-surface); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"], .field-control:has([aria-invalid="true"])) { --pixel-line: var(--color-danger); }
+/* A focused field thickens its own contour. A square outline would cut the steps. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .field-control:focus-within { --pixel-line: var(--color-focus); --pixel-line-width: 2px; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"]):focus-visible,
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .field-control:has([aria-invalid="true"]):focus-within { --pixel-line: var(--color-danger); }
+@media (forced-colors: none) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.field-control, .field-control:has([aria-invalid="true"])):focus-within { outline-color: transparent; }
+}
 @media (forced-colors: active) {
   :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) { background: Canvas; border-color: ButtonText; }
 }

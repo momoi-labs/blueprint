@@ -1,9 +1,10 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FormField, Input, Select, SelectTrigger, SelectContent, SelectItem, SelectValue, Button } from '../../packages/kiso-react/dist/index.js';
+import { FormField, Input, Select, SelectTrigger, SelectContent, SelectItem, SelectValue, Button, Textarea } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'round' });
+for (const key of ['cornerStyle', 'cornerSize', 'frameScope']) if (params.has(key)) document.documentElement.dataset[key] = params.get(key);
 const controlSize = params.get('size') || 'md';
 const icon = h('svg', { className: 'icon', viewBox: '0 0 16 16' }, h('rect', { x: 2, y: 4, width: 12, height: 8 }));
 function Fixture() {
@@ -25,6 +26,7 @@ function Fixture() {
       h(FormField, { label: 'Native size', layout: 'inline', controlSize: 'lg', suffix: 'characters', hint: 'A supplied input keeps its attributes.', 'aria-describedby': 'legacy-hint' }, h(Input, { id: 'native-size', size: 6, controlSize: 'sm', defaultValue: 'server', 'aria-describedby': 'legacy-hint' })),
       h(FormField, { label: params.has('long') ? 'Available memory across every configured server' : 'Stacked field', controlSize, suffix: 'GB', leading: icon, defaultValue: '128' }),
       h(FormField, { label: 'Standalone input', controlSize, defaultValue: 'server' }),
+      h(FormField, { label: 'Notes', error: error ? 'Add a note.' : undefined }, h(Textarea, { rows: 3 })),
       h(Select, { defaultValue: 'linux' },
         h(FormField, { label: 'Standalone select' }, h(SelectTrigger, { controlSize }, h(SelectValue))),
         h(SelectContent, null, h(SelectItem, { value: 'linux' }, 'GNU/Linux')),
