@@ -1,6 +1,6 @@
 import { createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Button, TableFrame, Table, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input } from '../../packages/kiso-react/dist/index.js';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Button, TableFrame, Table, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input, Checkbox, Switch } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
@@ -23,6 +23,18 @@ function Sample({ id = 'sample', title = 'Environment' }) {
   );
 }
 function Fixture() {
+  if (params.has('controls')) return h('main', { id: 'controls', className: 'page', style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '24px' } },
+    h(Checkbox, { 'aria-label': 'Unchecked' }),
+    h(Checkbox, { 'aria-label': 'Checked', defaultChecked: true }),
+    h(Checkbox, { 'aria-label': 'Mixed', checked: 'indeterminate', onCheckedChange: () => {} }),
+    h('label', { className: 'check' }, h('input', { type: 'checkbox', 'aria-label': 'Native unchecked' })),
+    h('label', { className: 'check' }, h('input', { type: 'checkbox', 'aria-label': 'Native checked', defaultChecked: true })),
+    h('label', { className: 'check' }, h('input', { type: 'checkbox', 'aria-label': 'Native disabled', disabled: true })),
+    h(Switch, { 'aria-label': 'Switch off' }),
+    h(Switch, { 'aria-label': 'Switch on', defaultChecked: true }),
+    h('label', { className: 'switch' }, h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Native switch off' })),
+    h('label', { className: 'switch' }, h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Native switch on', defaultChecked: true })),
+  );
   if (params.has('canvas')) return h(AppShell, { variant: 'inset', id: 'canvas' },
     h('aside', { className: 'sidebar', id: 'rail' }, 'Navigation'),
     h(AppShellMain, { id: 'outer' }, h(Header, null, 'Document tools', h(Button, null, 'Header action')), h('div', { className: 'page' },

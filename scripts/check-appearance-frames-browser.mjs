@@ -494,3 +494,79 @@ for (const theme of ['light', 'dark']) test(`New frames retain the opaque log ba
     }
   } finally { await page.close(); }
 });
+
+// Pixel checkboxes cut one step from each corner; switch tracks use the control
+// steps and keep the notched thumb inside. Nothing paints a rectangular shadow.
+for (const size of ['off', 'small', 'medium', 'large']) for (const theme of ['light', 'dark']) test(`Pixel checkboxes and switches step their corners at ${size} size in ${theme}`, async () => {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 400 } });
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.goto(`${url}?controls&corners=pixel&frameScope=all&size=${size}&theme=${theme}`); await page.locator('#controls').waitFor();
+  const notch = { off: 0, small: 1, medium: 2, large: 3 }[size], radius = { off: 0, small: 3, medium: 6, large: 6 }[size];
+  const shape = async (name, role, kind, line, fill) => {
+    const control = page.getByRole(role, { name, exact: true });
+    const box = await control.boundingBox();
+    const clip = { x: Math.round(box.x) - 4, y: Math.round(box.y) - 4, width: Math.round(box.width) + 8, height: Math.round(box.height) + 8 };
+    const png = await page.screenshot({ clip });
+    return page.evaluate(async ({ source, kind, line, fill, notch, radius }) => {
+      const image = new Image(); image.src = source; await image.decode();
+      const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+      const { data, width: w, height: h } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const probe = document.createElement('span'); document.body.append(probe);
+      const token = name => { probe.style.color = `var(${name})`; return getComputedStyle(probe).color.match(/\d+/g).slice(0, 3).map(Number); };
+      const colors = { line: token(line), fill: token(fill), thumb: token(kind === 'on' ? '--color-primary-foreground' : '--color-white') }; probe.remove();
+      const at = (x, y) => [...data.slice((y * w + x) * 4, (y * w + x) * 4 + 3)];
+      const near = (c, t) => Math.abs(c[0] - t[0]) + Math.abs(c[1] - t[1]) + Math.abs(c[2] - t[2]) <= 24;
+      const bg = at(0, 0), x0 = 4, y0 = 4, x1 = w - 5, y1 = h - 5;
+      // Mirror a point from the top-left corner into all four corners.
+      const corners = (x, y) => [[x0 + x, y0 + y], [x1 - x, y0 + y], [x0 + x, y1 - y], [x1 - x, y1 - y]];
+      const failures = [];
+      const expect = (label, points, color) => { for (const [x, y] of points) if (!near(at(x, y), color)) failures.push(`${label} at ${x},${y}: ${at(x, y)}`); };
+      if (kind === 'box') {
+        for (let y = 0; y < notch; y++) for (let x = 0; x < notch; x++) expect('notch', corners(x, y), bg);
+        expect('edge start', [...corners(notch, 0), ...corners(0, notch)], colors.line);
+        expect('edge middle', [[(x0 + x1) >> 1, y0], [x0, (y0 + y1) >> 1]], colors.line);
+        expect('fill', [[x0 + notch + 1, y0 + notch + 1]], colors.fill);
+      } else {
+        const step = radius / 3;
+        expect('outer step', [...corners(radius - 1, 0), ...corners(0, radius - 1)], bg);
+        expect('inner step', corners(step - 1, step - 1), bg);
+        expect('track', [...corners(radius, 0), ...corners(0, radius), ...corners(step, step)], colors.fill);
+        // The thumb never touches the background: the track surrounds it.
+        let thumb = 0;
+        for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+          if (!near(at(x, y), colors.thumb)) continue;
+          thumb++;
+          if ([[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].some(([nx, ny]) => near(at(nx, ny), bg))) failures.push(`thumb outside the track at ${x},${y}`);
+        }
+        if (thumb < 150) failures.push(`thumb has ${thumb} pixels`);
+      }
+      return failures.slice(0, 6);
+    }, { source: `data:image/png;base64,${png.toString('base64')}`, kind, line, fill, notch, radius });
+  };
+  try {
+    for (const [name, line, fill] of [['Unchecked', '--color-input', '--color-card'], ['Checked', '--color-primary', '--color-primary'], ['Mixed', '--color-primary', '--color-primary'], ['Native unchecked', '--color-input', '--color-card'], ['Native checked', '--color-primary', '--color-primary'], ['Native disabled', '--color-border', '--color-disabled-surface']]) {
+      assert.deepEqual(await shape(name, 'checkbox', 'box', line, fill), [], `${name}: one step per corner`);
+    }
+    for (const [name, kind, fill] of [['Switch off', 'off', '--color-border-strong'], ['Switch on', 'on', '--color-primary'], ['Native switch off', 'off', '--color-border-strong'], ['Native switch on', 'on', '--color-primary']]) {
+      assert.deepEqual(await shape(name, 'switch', kind, fill, fill), [], `${name}: stepped track around the thumb`);
+    }
+    const shadows = await page.locator('#controls').evaluate(root => [...root.querySelectorAll('[data-slot="checkbox"], [data-slot="switch-thumb"], .check input')].map(el => getComputedStyle(el).boxShadow));
+    assert(shadows.every(shadow => shadow === 'none'), `No rectangular shadow: ${shadows}`);
+    const checkbox = page.getByRole('checkbox', { name: 'Unchecked', exact: true });
+    await checkbox.focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+    assert.deepEqual(await checkbox.evaluate(el => { const s = getComputedStyle(el); return [el.matches(':focus-visible'), s.outlineStyle, s.outlineWidth, s.outlineOffset]; }), [true, 'solid', '2px', '2px'], 'Keyboard focus keeps the offset ring');
+  } finally { await page.close(); }
+});
+
+test('Forced colors keep the standard checkbox and switch shapes', async () => {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 400 }, forcedColors: 'active' });
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  try {
+    await page.goto(`${url}?controls&corners=pixel&frameScope=all&size=large`); await page.locator('#controls').waitFor();
+    const paint = await page.locator('#controls').evaluate(root => [...root.querySelectorAll('[data-slot="checkbox"], [data-slot="switch"], .check input, .switch input')].map(el => getComputedStyle(el).backgroundImage));
+    assert(paint.every(image => image === 'none'), `No Pixel layers in forced colors: ${paint}`);
+    const pills = await page.locator('#controls').evaluate(root => [...root.querySelectorAll('[data-slot="switch"], [data-slot="switch-thumb"], .switch input')].map(el => [getComputedStyle(el).borderTopLeftRadius, getComputedStyle(el).maskImage]));
+    assert(pills.every(([radius, mask]) => parseFloat(radius) > 9 && mask === 'none'), `Switches keep their pill shape in forced colors: ${pills}`);
+  } finally { await page.close(); }
+});
