@@ -19,7 +19,7 @@ const expressiveBorders: typeof borders = [
 ];
 borders.push(...expressiveBorders);
 const corners: { value: CornerStyle; label: string; description: string }[] = [
-  { value: "square", label: "Square", description: "Straight panels, small control corners" },
+  { value: "square", label: "Square", description: "Straight panels, and controls when frames include them" },
   { value: "rounded", label: "Rounded", description: "Even curves at every corner" },
   { value: "asym", label: "Asymmetric", description: "Two opposite, wider corners" },
   { value: "pixel", label: "Pixel classic", description: "Two crisp steps at each corner" },
@@ -46,7 +46,7 @@ const applicationFrames = [
 ] as const;
 
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
-  { label: "Default", settings: { theme: "system", appShell: "default", frameScope: "all" } },
+  { label: "Default", settings: { theme: "system", appShell: "default" } },
   { label: "Blueprint", settings: { accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
   { label: "Drawing plate", settings: { accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Drafting sheet", settings: { backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },

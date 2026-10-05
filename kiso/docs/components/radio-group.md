@@ -65,9 +65,10 @@ Radix RadioGroup dependency. ThemeSelector keeps its own preference API.
 
 ## Appearance
 
-With frame scope `all`, tiles use the same full border contour and corners
-as panels, including Pixel, Manga and Brush. Default and segmented options
-use compact control contours. Scopes `panels` and `outer` retain standard
+With frame scope `all`, tiles use the same full border contour, corners and
+corner marks as panels, including Pixel, Manga and Brush. Mark scope `outer`
+removes their marks, as it does for panels. Default and segmented options
+use the control contour, irregular under Manga and Brush. Scopes `panels` and `outer` retain standard
 control corners. Pixel focus thickens the edge. Selected, error and disabled
 states retain their semantic colors. Decoration does not clip content or
 change the hit area.

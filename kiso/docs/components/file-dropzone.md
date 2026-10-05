@@ -67,8 +67,9 @@ building a file browser inside the component.
 
 ## Appearance
 
-With frame scope `all`, the target uses the same full border contour and
-corners as panels, including Pixel, Manga and Brush. Scopes `panels` and
+With frame scope `all`, the target uses the same full border contour,
+corners and corner marks as panels, including Pixel, Manga and Brush. Mark
+scope `outer` removes its marks, as it does for panels. Scopes `panels` and
 `outer` retain its default dashed border and standard control corners.
 Pixel focus thickens the edge. Hover, error and disabled states retain their
 semantic colors. Decoration does not clip content or change the hit area.

@@ -346,3 +346,42 @@ for (const theme of ['light', 'dark']) test(`Steps keep state colors and uniform
   }
  } finally { await page.close(); }
 });
+
+for (const theme of ['light', 'dark']) test(`Square markers, panel marks on choice frames and marker guides in ${theme}`, async () => {
+ const page = await open(`theme=${theme}&corners=square`);
+ try {
+  const marker = '.steps-list [data-state="completed"] .steps-marker';
+  assert.deepEqual(await page.locator(marker).first().evaluate(e => { const s = getComputedStyle(e); return [s.borderTopLeftRadius, s.borderTopRightRadius]; }), ['0px', '0px'], 'Square markers have square corners');
+  for (const markScope of ['panels', 'all', 'outer']) for (const cornerMarks of ['ticks', 'brackets', 'none']) {
+   await page.evaluate(settings => Object.assign(document.documentElement.dataset, settings), { markScope, cornerMarks });
+   const marks = await page.evaluate(() => {
+    const read = selector => { const s = getComputedStyle(document.querySelector(selector), '::after'); return { content: s.content, inset: s.inset, opacity: s.opacity, image: s.backgroundImage, mask: s.maskImage }; };
+    return { panel: read('#frame-reference'), radio: read('.radio-group[data-variant="tiles"] > .radio-item'), file: read('.file-dropzone') };
+   });
+   for (const name of ['radio', 'file']) assert.deepEqual(marks[name], marks.panel, `${markScope}/${cornerMarks}/${name}: same marks as panels`);
+  }
+  await page.evaluate(() => Object.assign(document.documentElement.dataset, { markScope: 'all', cornerMarks: 'ticks' }));
+  const guides = await page.evaluate(marker => {
+   const guide = selector => getComputedStyle(document.querySelector(selector)).getPropertyValue('--control-guide').trim();
+   return { marker: guide(marker), button: guide('#choices > button'), radio: guide('.radio-group[data-variant="tiles"] > .radio-item'), file: guide('.file-dropzone'), image: getComputedStyle(document.querySelector(marker)).backgroundImage };
+  }, marker);
+  assert.equal(guides.marker, guides.button, 'Markers use the button guides');
+  assert(guides.image.includes('linear-gradient'), 'Marker guides are painted');
+  assert.equal(guides.radio, 'transparent', 'Tiles carry panel marks, not guides');
+  assert.equal(guides.file, 'transparent', 'The drop zone carries panel marks, not guides');
+  await page.evaluate(() => document.documentElement.dataset.frameScope = 'panels');
+  assert.equal(await page.locator(marker).first().evaluate(e => getComputedStyle(e).backgroundImage), 'none', 'Circular markers have no guides');
+ } finally { await page.close(); }
+});
+
+for (const border of ['manga', 'brush']) test(`${border} buttons, markers and switches use the irregular control contour with a visible focus ring`, async () => {
+ const page = await open(`border=${border}&corners=square`);
+ try {
+  const clip = selector => page.locator(selector).first().evaluate(e => getComputedStyle(e).clipPath);
+  for (const selector of ['#choices > button', '.steps-list [data-state="completed"] .steps-marker', 'button[data-slot="switch"]']) assert((await clip(selector)).startsWith('polygon('), `${selector}: irregular contour`);
+  assert.equal(await clip('.radio-group[data-variant="tiles"] > .radio-item'), 'none', 'Tiles keep the panel contour instead');
+  const button = page.locator('#choices > button').first();
+  await button.focus(); await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab');
+  assert.deepEqual(await button.evaluate(e => { const s = getComputedStyle(e); return [e.matches(':focus-visible'), s.clipPath, s.outlineStyle]; }), [true, 'none', 'solid'], 'A focused button shows the standard ring on its full box');
+ } finally { await page.close(); }
+});

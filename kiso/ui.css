@@ -1761,6 +1761,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --corner-rounded: 1; --corner-panel-opposite: 1; --corner-control-opposite: 1; }
 [data-corner-style="square"],
 :where([data-outer-corner-style="square"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
+/* When frames include controls, Square squares the controls too, switches included. */
+[data-corner-style="square"][data-frame-scope="all"] { --corner-control-base: 0px; }
+:where([data-corner-style="square"][data-frame-scope="all"]) :is(.switch input, button[data-slot="switch"][data-state], span[data-slot="switch-thumb"]),
+:where([data-corner-style="square"][data-frame-scope="all"]) .switch input::after { border-radius: 0; }
 [data-corner-style="soft"],
 :where([data-outer-corner-style="soft"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 8px; --corner-control-base: 4px; }
 [data-corner-style="rounded"], [data-corner-style="round"],
@@ -1832,7 +1836,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 [data-corner-marks="none"],
 :where([data-outer-corner-marks="none"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-mark: 0; }
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after {
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after,
+:where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::after {
   content: var(--appearance-mark-content, "");
   position: absolute;
   pointer-events: none;
@@ -2182,9 +2187,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
 :where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) { border-radius: 4px; }
-:where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after { content: none; }
+:where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .radio-item, .file-dropzone)::after { content: none; }
 /* Compact guides stay inside native controls, away from focus indicators. */
-:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) {
+:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone, :where([data-frame-scope="all"]) .steps-marker) {
   --control-guide: color-mix(in srgb, var(--color-corner-mark) calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)) * 100%), transparent);
   --control-mark-images: linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide));
   --control-mark-sizes: var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px;
@@ -2194,6 +2199,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   background-position: right var(--spacing-md) center, var(--control-mark-positions);
   background-repeat: no-repeat;
 }
+/* Tiles and drop zones with the panel contour carry panel marks instead. */
+:where([data-mark-scope="all"][data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) { --control-guide: transparent; }
 @media (forced-colors: active) {
   :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border: 1px solid CanvasText; background: Canvas; }
   :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before, :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after { display: none; }
@@ -2547,7 +2554,31 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell::before { display: none; }
 }
 
-:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .file-dropzone, .steps-marker) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
+/* Manga and Brush draw controls with the panels' irregular contour at control
+   scale. Fill and border share one clipped contour, so the border is the ink
+   and keeps its state colors. Clip offsets stay inside the ink. */
+[data-border-style="manga"] { --control-ink-clip: polygon(0 calc(2px * var(--frame-detail, 1)), calc(100% - .8px * var(--frame-detail, 1)) 0, 100% 100%, calc(.8px * var(--frame-detail, 1)) calc(100% - 1.2px * var(--frame-detail, 1))); }
+[data-border-style="brush"] { --control-ink-clip: polygon(0 calc(1.35px * var(--frame-detail, 1)), 18% calc(.68px * var(--frame-detail, 1)), 43% calc(.9px * var(--frame-detail, 1)), 70% calc(.68px * var(--frame-detail, 1)), 100% calc(.95px * var(--frame-detail, 1)), calc(100% - .9px * var(--frame-detail, 1)) 25%, calc(100% - 1.26px * var(--frame-detail, 1)) 50%, calc(100% - .68px * var(--frame-detail, 1)) 75%, calc(100% - 1.35px * var(--frame-detail, 1)) 100%, 70% calc(100% - .68px * var(--frame-detail, 1)), 43% calc(100% - .9px * var(--frame-detail, 1)), 18% calc(100% - .68px * var(--frame-detail, 1)), 0 calc(100% - .95px * var(--frame-detail, 1)), calc(.9px * var(--frame-detail, 1)) 75%, calc(1.26px * var(--frame-detail, 1)) 50%, calc(.68px * var(--frame-detail, 1)) 25%); }
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item:not(:where(.radio-group[data-variant="tiles"] > *)), .steps-marker, .switch input, button[data-slot="switch"][data-state]) {
+  border-radius: 0;
+  border-width: round(calc(3px * var(--frame-detail, 1)), 1px);
+  clip-path: var(--control-ink-clip);
+}
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) span[data-slot="switch-thumb"],
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) .switch input::after { border-radius: 0; }
+/* Focus never depends on a clipped ring. Fields turn their own ink to the
+   focus color, as Pixel fields do. Buttons, switches and options drop the
+   contour while focused, so the standard ring shows on the full box. */
+@media (forced-colors: none) {
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.field-control, .chip-input-box):focus-within { outline-color: transparent; border-color: var(--color-focus); box-shadow: inset 0 0 0 1px var(--color-focus); }
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input, .select, .textarea)[aria-invalid="true"]:focus-visible,
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.field-control:has([aria-invalid="true"]), .chip-input-box[aria-invalid="true"]):focus-within { outline-color: transparent; border-color: var(--color-danger); box-shadow: inset 0 0 0 1px var(--color-danger); }
+}
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .switch input, button[data-slot="switch"]):focus-visible { clip-path: none; }
+@media (forced-colors: active) {
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .steps-marker, .switch input, button[data-slot="switch"]) { clip-path: none; }
+}
 :where([data-background-style]:not([data-background-style="solid"]):not([data-background-style="momoi"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;
   background-color: transparent;
@@ -3021,7 +3052,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 @media (forced-colors: active) {
   :where([data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) { border: 1px solid CanvasText; background: Canvas; }
-  :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before { display: none; }
+  :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before,
+  :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::after { display: none; }
 }
 
 /* Step markers keep their status cues while following the control contour. */

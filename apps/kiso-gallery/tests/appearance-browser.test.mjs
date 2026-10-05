@@ -61,7 +61,8 @@ test('Border choices update existing panels and guided controls without resettin
         return { selected: document.documentElement.dataset.borderStyle, saved: window.kisoAppearance.read().borderStyle,
           cards: [...document.querySelectorAll('.catalog-section.card')].map(el => frame(`[aria-labelledby="${el.getAttribute('aria-labelledby')}"]`)),
           file: frame('.file-dropzone'), radio: frame('.radio-group[data-variant="tiles"] > .radio-item'),
-          field: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).borderTopWidth };
+          field: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).borderTopWidth,
+          fieldContour: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).clipPath };
       });
       assert.equal(actual.selected, style);
       assert.equal(actual.saved, style);
@@ -74,7 +75,8 @@ test('Border choices update existing panels and guided controls without resettin
         assert.equal(control.border, style === 'dash' ? 'dashed' : 'solid', `${style}: large control border`);
         assert.equal(control.contour, actual.cards[0].contour, `${style}: shared decoration`);
       }
-      assert.equal(actual.field, ['manga', 'brush'].includes(style) ? '2px' : '1px', `${style}: existing fields follow their compact treatment`);
+      assert.equal(actual.field, ['manga', 'brush'].includes(style) ? '3px' : '1px', `${style}: existing fields follow the border style`);
+      assert.equal(actual.fieldContour.startsWith('polygon('), ['manga', 'brush'].includes(style), `${style}: fields take the irregular contour only with Manga and Brush`);
       assert.equal(await notes.inputValue(), 'Keep this text while changing appearance.');
       assert.equal(await radio.getByRole('radio', { name: 'Full', exact: true }).getAttribute('aria-checked'), 'true');
     }
@@ -94,7 +96,7 @@ for (const theme of ['light', 'dark']) test(`Fresh visits, reset and Pixel every
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light dark');
     await panel.getByRole('button', { name: 'Default', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), {
-      ...initial, cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default',
+      ...initial, cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default', frameScope: 'panels',
     }, 'Default preserves the previous appearance as a separate preset');
     await page.reload();
     assert.equal(await page.evaluate(() => window.kisoAppearance.read().cornerStyle), 'square', 'Saved appearance is not overwritten by the new default');

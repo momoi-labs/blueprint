@@ -80,7 +80,8 @@ native list, link and button semantics.
 ## Appearance
 
 With frame scope `all`, markers follow the shared control corners and sizes,
-including Pixel, Rounded and Asymmetric. Manga and Brush use the compact
-control outline. Pending Pixel edges remain dashed; check, error and lock
+including Square, Pixel, Rounded and Asymmetric, and mark scope `all` adds
+the compact control guides, as it does for buttons. Manga and Brush use the
+irregular control contour. Pending Pixel edges remain dashed; check, error and lock
 symbols retain their state colors. Scopes `panels` and `outer` keep the default
 circular markers. Appearance does not change navigation or completion.

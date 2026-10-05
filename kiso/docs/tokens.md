@@ -336,14 +336,15 @@ Menus and tooltips keep their own outlines and elevation.
 
 | Corner shape | Panel radius | Control radius |
 | --- | --- | --- |
-| `square` | 0px | 4px |
+| `square` | 0px | 4px, or 0px with frame scope `all` |
 | `rounded` | 16px | 8px |
 | `asym` | 12px / 3px | 6px / 2px |
 
 `data-corner-size` scales the radii selected by `data-corner-style`: `off`
 sets them to zero; `small`, `medium`, and `large` use 0.5, 1, and 1.5 times
-that style's radii. Square panels stay square and their control radii stay
-unchanged unless the size is `off`. Size does not hide marks; use
+that style's radii. Square panels stay square at every size. With frame scope
+`all`, Square controls are square too, switches included; otherwise they keep
+4px unless the size is `off`. Size does not hide marks; use
 `data-corner-marks="none"` for that. Border style `none` also suppresses marks
 without changing the saved mark choice.
 
@@ -403,14 +404,17 @@ controls. `all` also styles controls: fields, including ChipInput and
 FilterInput boxes, and framed buttons. Native controls retain their rectangular
 hit area. Pixel controls use smaller steps and drop their shadow, and
 checkboxes and switches follow the steps too. A focused Pixel field thickens
-its own stepped edge instead of drawing a separate ring. Manga and Brush use a
-compact, heavy outline on fields and framed buttons. RadioGroup tiles and
-FileDropzone use the full panel contour, with their own selection and error
-colors. Menus and tooltips keep their standard outlines.
+its own stepped edge instead of drawing a separate ring. Manga and Brush draw
+fields, framed buttons, Steps markers and switches with the panels' irregular
+contour at control scale. The control's border is the ink, so state colors
+still apply. A focused field turns its ink to the focus color; a focused
+button or switch drops the contour and shows the standard ring. RadioGroup tiles and
+FileDropzone use the full panel contour and panel marks, with their own
+selection and error colors. Menus and tooltips keep their standard outlines.
 
 Mark scope is independent. `outer` limits marks to inset shell frames;
 `panels` includes inner panel frames; `all` adds compact internal guides to
-fields and framed buttons. These internal guides avoid projecting into adjacent fields.
+fields, framed buttons and, with frame scope `all`, Steps markers. These internal guides avoid projecting into adjacent fields.
 `none` hides marks, and Border None suppresses them without discarding the saved
 selection. Incompatible curved marks on Pixel, Manga or Brush, and brackets on Brush,
 stay saved but are hidden until the frame supports them.
