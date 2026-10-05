@@ -161,8 +161,8 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 ## Accents
 
 The accent is a second axis over the same custom properties, orthogonal to the
-theme. Five accents ship: `violet` (the default), `terracotta`, `teal`,
-`cobalt`, and `nocturne`. The first four are hue turns: each is a primitive
+theme. Six accents ship: `violet` (the default), `terracotta`, `teal`,
+`cobalt`, `nocturne`, and `tangerine`. The first four are hue turns: each is a primitive
 ramp (`color.violet.*`, `color.terracotta.*`, and so on) with the same
 lightness per step, so every role keeps the contrast it was gated at.
 `color.accent.*` is the *active* ramp: an alias layer that points at violet by
@@ -201,8 +201,8 @@ the hue was tried and rejected; at any visible strength it reads as a filter
 over the screen rather than as a colour choice.
 
 Values inside the block still use `light-dark()`, so accent and theme compose
-without a cross product: five accents and two themes are five blocks, not
-ten. Nesting resets cleanly: a `data-accent="violet"` container inside a
+without a cross product: six accents and two themes are six blocks, not
+twelve. Nesting resets cleanly: a `data-accent="violet"` container inside a
 teal page is violet again.
 
 Chart series do not follow the accent. `chart-1` is pinned to the violet ink
@@ -404,7 +404,9 @@ FilterInput boxes, and framed buttons. Native controls retain their rectangular
 hit area. Pixel controls use smaller steps and drop their shadow, and
 checkboxes and switches follow the steps too. A focused Pixel field thickens
 its own stepped edge instead of drawing a separate ring. Manga and Brush use a
-compact, heavy outline. Menus and tooltips keep their standard outlines.
+compact, heavy outline on fields and framed buttons. RadioGroup tiles and
+FileDropzone use the full panel contour, with their own selection and error
+colors. Menus and tooltips keep their standard outlines.
 
 Mark scope is independent. `outer` limits marks to inset shell frames;
 `panels` includes inner panel frames; `all` adds compact internal guides to
@@ -607,3 +609,20 @@ The calculation uses [Oklab](https://bottosson.github.io/posts/oklab/) and
 [Machado's simulation model](https://pubmed.ncbi.nlm.nih.gov/19834201/).
 Run `node scripts/check-chart-palette.mjs` for both themes and every accent. Numbered labels,
 highlighting, and tables remain required even when these checks pass.
+
+## Guided input additions
+
+`--size-control-xl` is 56px. Button, Input, Select and grouped fields opt in
+per component. It is distinct from the coarse-pointer minimum, which never
+shrinks XL controls. `--type-size-body-large` and the `body-large` typography
+role provide 18px reading text through `.t-body-large`. Default body is 14px.
+
+Tangerine adds an OKLCH hue-55 ramp with violet's lightness at each step and
+chroma reduced to fit sRGB. The bright primary fill is independent of ink.
+Primary foreground is dark in both themes. This explicitly accepted accent
+addition is adjacent to the warning hue: retain status labels/icons and review
+actions beside Warning. Status colors and neutral palettes do not change.
+
+Products may override `--font-heading` and `--font-body` at their root. They
+own loading and fallbacks. Verify clipping, wrapping and focus with that font;
+do not change Kiso's defaults or use heading sizes as body roles.

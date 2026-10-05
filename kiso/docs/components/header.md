@@ -32,9 +32,9 @@ uses `aria-current="page"` and `--color-primary`.
 
 ## Variants
 
-No visual variants. Header has one structural treatment; its child Navigation
-and actions determine the composition, while narrow-viewport collapse is a
-state rather than a separate variant.
+`default` keeps the surface fill and separator. `variant="plain"` removes
+the fill and separator while preserving layout, landmarks and focus.
+ApplicationShell exposes this choice through `headerVariant`, in both layouts.
 
 ## Sizes
 
@@ -77,3 +77,6 @@ IconButton trigger.
 No Radix Header primitive. Use native `<header>` + `<nav>`, Kiso Link and
 IconButton, and shadcn Dropdown Menu / Radix Dropdown Menu when overflow is
 needed. shadcn Navigation Menu is not required for a simple set of Links.
+
+The `plain` variant stays in normal document flow. It does not stick over
+scrolling content because its background is transparent.

@@ -144,3 +144,18 @@ test('Markers stay within their own group', async () => {
     assertBox(await markerOf(page, views), await expectedOf(page, views), 'A Sidebar landmark laid out as a row keeps the row marker');
   } finally { await page.close(); }
 });
+
+test('Tangerine draws the sliding tab underline in its ink', async () => {
+  const page = await open();
+  try {
+    await page.evaluate(() => { document.documentElement.dataset.accent = 'tangerine'; });
+    const [marker, ink] = await page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement('i'));
+      probe.style.color = 'var(--color-link)';
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return [getComputedStyle(document.querySelector('#tabs [role="tablist"]'), '::after').backgroundColor, color];
+    });
+    assert.equal(marker, ink, 'The bright Tangerine fill is too faint for a 2px underline');
+  } finally { await page.close(); }
+});

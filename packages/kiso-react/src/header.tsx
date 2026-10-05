@@ -3,9 +3,9 @@ import { clsx as cn } from "clsx";
 
 // Shared product chrome: brand, Navigation, and global status or actions.
 // Location within the product is Breadcrumb, not Header.
-function Header({ className, ...props }: React.ComponentProps<"header">) {
+function Header({ className, variant, ...props }: React.ComponentProps<"header"> & { variant?: "default" | "plain" }) {
   return (
-    <header data-slot="header" className={cn("topbar", className)} {...props} />
+    <header data-slot="header" data-variant={variant} className={cn("topbar", className)} {...props} />
   );
 }
 

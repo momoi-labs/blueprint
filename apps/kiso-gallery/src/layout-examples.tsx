@@ -1,3 +1,4 @@
+import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
 import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
 import { useId, useState, type ReactNode } from "react";
 import {
@@ -79,6 +80,7 @@ export const layouts = [
     description:
       "A focused sign-in screen with credentials and an alternative sign-in option.",
   },
+  { id: "guided-flow", label: "Guided flow", description: "A generic input flow with explicit steps, choices and file selection." },
 ] as const;
 
 const projects = [
@@ -837,6 +839,7 @@ export function LayoutExamples({ route }: { route: string }) {
   const [, requested, scene] = route.split("/");
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
+  if (selected.id === "guided-flow") return <GuidedFlowDemo />;
   if (selected.id === "list-detail") return <ListDetailExamples key={scene} description={selected.description} initialScene={scene} />;
   return (
     <section aria-label={selected.label}>

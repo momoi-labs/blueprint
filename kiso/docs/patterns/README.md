@@ -38,3 +38,5 @@ the patterns below instead.
 ## Data-heavy interfaces
 
 - [Data interfaces](../data-interfaces.md) — Prescribes alignment, units, missing values, warnings, dangerous values, code, truncation, copying, comparisons, and responsive tables.
+
+- [Guided flow](guided-flow.md): Bounded input with explicit progress, responsive navigation and preserved values.

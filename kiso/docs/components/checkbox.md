@@ -72,7 +72,7 @@ actual value with a recovery action.
 
 - Do not use for an immediate single on/off setting; use Switch.
 - Do not use for exactly one mutually exclusive choice from many; use Select
-  (or a future RadioGroup).
+  or [RadioGroup](radio-group.md).
 - Do not make the check mark the only indication of a consequential choice;
   provide a clear Label and context.
 

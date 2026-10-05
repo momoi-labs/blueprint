@@ -100,7 +100,7 @@ Long SelectValue text truncates within the control, clear of its chevron.
 - **Medium** — default.
 - **Large** — inherits the large control size where that control supports it.
 
-`controlSize="sm" | "md" | "lg"` aligns the frame and control. When omitted,
+`controlSize="sm" | "md" | "lg" | "xl"` aligns the frame and control. When omitted,
 a supplied child's controlSize is used; otherwise the medium size remains.
 An explicit FormField size overrides the child's visual size without changing
 its native `size` attribute. Custom controls must forward `data-control-size`
@@ -174,3 +174,9 @@ and the relevant Radix control when one exists. It maps behaviorally to the
 the form patterns documented by shadcn, while Kiso's explicit contract remains
 Label + Input + HelperText + ValidationMessage with deterministic IDs and ARIA
 wiring.
+
+## Extra-large input
+
+`controlSize="xl"` uses `--size-control-xl` (56px) and
+`--type-role-body-large-font-size` (18px). Grouped labels, icons and suffixes
+share the same frame. Coarse-pointer minimums never reduce this size.

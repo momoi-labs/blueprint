@@ -86,6 +86,17 @@
   --color-status-warning: light-dark(#7a5000, #efc05b);
   --color-status-danger: light-dark(#ad2f29, #f5807f);
   --color-status-info: light-dark(#15559e, #75c4fa);
+  --color-tangerine-50: #fef4ed;
+  --color-tangerine-200: #fce7da;
+  --color-tangerine-300: #f8d3bb;
+  --color-tangerine-400: #eeb086;
+  --color-tangerine-500: #df894b;
+  --color-tangerine-600: #bc6000;
+  --color-tangerine-700: #9b4e00;
+  --color-tangerine-800: #713700;
+  --color-tangerine-900: #502500;
+  --color-tangerine-950: #351700;
+  --color-tangerine-base: light-dark(#8e3900, #ffab64);
   --color-background: light-dark(var(--color-neutral-200), var(--color-dark-900));
   --color-surface: light-dark(var(--color-neutral-100), var(--color-dark-800));
   --color-elevated-surface: light-dark(var(--color-white), var(--color-dark-700));
@@ -156,6 +167,7 @@
   --type-size-h1: 22px;
   --type-size-display: 30px;
   --type-size-editorial: 48px;
+  --type-size-body-large: 18px;
   --type-weight-regular: 400;
   --type-weight-medium: 500;
   --type-weight-semibold: 600;
@@ -204,6 +216,11 @@
   --type-role-numeric-font-weight: var(--type-weight-regular);
   --type-role-numeric-letter-spacing: var(--type-letter-spacing-normal);
   --type-role-numeric-line-height: var(--type-line-height-normal);
+  --type-role-body-large-font-family: var(--font-body);
+  --type-role-body-large-font-size: var(--type-size-body-large);
+  --type-role-body-large-font-weight: var(--type-weight-regular);
+  --type-role-body-large-letter-spacing: var(--type-letter-spacing-normal);
+  --type-role-body-large-line-height: var(--type-line-height-normal);
   --spacing-2xs: 2px;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -234,6 +251,7 @@
   --size-control-sm: 32px;
   --size-control-md: 36px;
   --size-control-lg: 40px;
+  --size-control-xl: 56px;
   --size-touch-min: 44px;
   --size-icon-sm: 14px;
   --size-icon-md: 16px;
@@ -384,6 +402,26 @@
   --color-disabled-surface: light-dark(#f1f2f8, #292b35);
   --color-skeleton: light-dark(#dadce5, #363743);
   --color-hatch: light-dark(#dadce5, #363743);
+}
+
+[data-accent="tangerine"] {
+  --color-accent-50: var(--color-tangerine-50);
+  --color-accent-200: var(--color-tangerine-200);
+  --color-accent-300: var(--color-tangerine-300);
+  --color-accent-400: var(--color-tangerine-400);
+  --color-accent-500: var(--color-tangerine-500);
+  --color-accent-600: var(--color-tangerine-600);
+  --color-accent-700: var(--color-tangerine-700);
+  --color-accent-800: var(--color-tangerine-800);
+  --color-accent-900: var(--color-tangerine-900);
+  --color-accent-950: var(--color-tangerine-950);
+  --color-accent-base: var(--color-tangerine-base);
+  --color-primary: #ff8a1f;
+  --color-primary-hover: light-dark(#ff9d42, #ffa34d);
+  --color-primary-foreground: var(--color-neutral-900);
+  --color-accent-surface: light-dark(var(--color-tangerine-50), #362718);
+  --color-accent-surface-hover: light-dark(var(--color-tangerine-200), #47311c);
+  --color-selected: light-dark(var(--color-tangerine-300), #563a1e);
 }
 
 @media (prefers-reduced-motion: reduce) {

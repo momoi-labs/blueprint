@@ -40,7 +40,7 @@ Size changes internal padding from `--spacing-xs` / `--spacing-sm` for small,
 to `--spacing-sm` / `--spacing-md` for medium, to `--spacing-md` / `--spacing-lg`
 for large. It does not reduce text or target size below accessible product norms.
 
-In React, use `controlSize="sm" | "md" | "lg"` on Input.
+In React, use `controlSize="sm" | "md" | "lg" | "xl"` on Input.
 The CSS equivalent is `data-control-size` on the control. Omitted or `md`
 keeps the current default. Heights use `--size-control-sm`,
 `--size-control-md`, and `--size-control-lg`; coarse pointers retain the
@@ -104,3 +104,9 @@ use palette primitives or raw values.
 Maps to [shadcn/ui Input](https://ui.shadcn.com/docs/components/input), which
 styles the native HTML `input`. Radix has no Input primitive; retain native HTML
 semantics rather than introducing a custom interaction model.
+
+## Extra-large input
+
+`controlSize="xl"` uses `--size-control-xl` (56px) and
+`--type-role-body-large-font-size` (18px). Grouped labels, icons and suffixes
+share the same frame. Coarse-pointer minimums never reduce this size.

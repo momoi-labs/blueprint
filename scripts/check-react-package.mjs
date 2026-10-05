@@ -19,8 +19,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -281,13 +281,19 @@ try {
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
     import { ApplicationShell, AppShellPanel, AppShellPanelToggle, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
-      Toasts, useToast } from '@momoi-labs/kiso-react';
+      Toasts, useToast, Steps, RadioGroup, RadioGroupItem, FileDropzone } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
       const notify = useToast();
       return <Button onClick={() => notify('success', 'Saved')}>Save</Button>;
     }
     createRoot(document.getElementById('root')!).render(<>
+      <Steps label="Progress" current="first" items={[{ id: 'first', label: 'Start' }]} />
+      <RadioGroup label="Format" defaultValue="compact" variant="tiles" controlSize="xl"><RadioGroupItem value="compact" label="Compact" /></RadioGroup>
+      <FileDropzone label="Choose file" accept=".txt" onFilesSelected={() => {}} />
+      <Button presentation="tile" size="xl" description="Immediate action">Choose</Button>
+      <FormField label="Large value" controlSize="xl" />
+      <ApplicationShell layout="topbar" headerVariant="plain" brand="Sample"><Textarea controlSize="xl" /></ApplicationShell>
       <FormField label="RAM" layout="inline" suffix="GB" controlSize="lg"><Input size={6} /></FormField>
       <Select defaultValue="linux"><FormField label="OS" layout="inline"><SelectTrigger controlSize="sm"><SelectValue /></SelectTrigger></FormField></Select>
       <Alert appearance="rail" variant="warning" role="note" />

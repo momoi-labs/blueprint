@@ -85,6 +85,17 @@ $color-status-success: #5bd295; // Success status primitive.
 $color-status-warning: #efc05b; // Warning status primitive.
 $color-status-danger: #f5807f; // Danger status primitive. The dark step sits at 4.6:1 on elevated-surface; a darker red missed AA there.
 $color-status-info: #75c4fa; // Info status primitive.
+$color-tangerine-50: #fef4ed;
+$color-tangerine-200: #fce7da;
+$color-tangerine-300: #f8d3bb;
+$color-tangerine-400: #eeb086;
+$color-tangerine-500: #df894b;
+$color-tangerine-600: #bc6000;
+$color-tangerine-700: #9b4e00;
+$color-tangerine-800: #713700;
+$color-tangerine-900: #502500;
+$color-tangerine-950: #351700;
+$color-tangerine-base: #ffab64; // Text and focus ink, independent of the bright primary fill.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -248,6 +259,23 @@ $accent-nocturne-disabled: #454752;
 $accent-nocturne-disabled-surface: #292b35;
 $accent-nocturne-skeleton: #363743;
 $accent-nocturne-hatch: #363743;
+$accent-tangerine-accent-50: #fef4ed;
+$accent-tangerine-accent-200: #fce7da;
+$accent-tangerine-accent-300: #f8d3bb;
+$accent-tangerine-accent-400: #eeb086;
+$accent-tangerine-accent-500: #df894b;
+$accent-tangerine-accent-600: #bc6000;
+$accent-tangerine-accent-700: #9b4e00;
+$accent-tangerine-accent-800: #713700;
+$accent-tangerine-accent-900: #502500;
+$accent-tangerine-accent-950: #351700;
+$accent-tangerine-accent-base: #ffab64;
+$accent-tangerine-primary: #ff8a1f; // Bright action fill with dark text in both themes.
+$accent-tangerine-primary-hover: #ffa34d;
+$accent-tangerine-primary-foreground: #1b1a1e;
+$accent-tangerine-accent-surface: #362718;
+$accent-tangerine-accent-surface-hover: #47311c;
+$accent-tangerine-selected: #563a1e;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.
@@ -259,6 +287,7 @@ $type-size-h2: 18px; // Section headings.
 $type-size-h1: 22px; // Page headings.
 $type-size-display: 30px; // Display headings and stat values.
 $type-size-editorial: 48px; // Upper size for editorial page headers. Dense pages keep the existing heading scale.
+$type-size-body-large: 18px; // Optional reading text and XL controls. Default body stays 14px.
 $type-weight-regular: 400; // Regular - body, metadata, code.
 $type-weight-medium: 500; // Medium - labels, display headings.
 $type-weight-semibold: 600; // Semibold - headings.
@@ -279,6 +308,7 @@ $type-role-label: 500 12px/1.5 Inter, system-ui, sans-serif; // Labels, buttons,
 $type-role-metadata: 400 11px/1.5 Inter, system-ui, sans-serif; // Captions, timestamps, footnotes.
 $type-role-code: 400 12px/1.5 'JetBrains Mono', ui-monospace, monospace; // Code and data values (monospace).
 $type-role-numeric: 400 14px/1.5 Inter, system-ui, sans-serif; // Numeric and tabular data. Carries the namespaced com.momoi-labs.kiso.fontVariantNumeric extension (tabular-nums), emitted by the formatter as the global --font-variant-numeric feature token.
+$type-role-body-large: 400 18px/1.5 Inter, system-ui, sans-serif; // Optional larger reading text.
 $spacing-2xs: 2px; // Hairline gaps: segmented-control padding, stacked label/value pairs.
 $spacing-xs: 4px; // Tight internal padding, icon gaps.
 $spacing-sm: 8px; // Component padding, small gaps.
@@ -309,6 +339,7 @@ $size-control-xs: 24px; // Inline table-row actions, dense toolbars.
 $size-control-sm: 32px; // Toolbars, segmented controls, compact forms.
 $size-control-md: 36px; // The default. Buttons, inputs, selects.
 $size-control-lg: 40px; // Primary calls to action, table row height.
+$size-control-xl: 56px; // Optional large controls for guided forms and prominent input.
 $size-touch-min: 44px; // WCAG 2.2 target-size minimum. Apply only inside @media (pointer: coarse) — as a min-height on top of a control size, never as the control size itself.
 $size-icon-sm: 14px; // Icons inside labels, badges and xs controls.
 $size-icon-md: 16px; // The default. Icons in buttons, inputs, navigation.

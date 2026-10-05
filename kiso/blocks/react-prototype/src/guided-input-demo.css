@@ -1,0 +1,19 @@
+/* Example composition only. Components get all their styling from ui.css. */
+.guided-demo { container: guided-demo / inline-size; min-width: 0; }
+.guided-demo .app-shell { min-height: 0; }
+.guided-layout { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: var(--spacing-xl); padding: var(--spacing-xl); }
+.guided-stage { display: grid; align-content: start; gap: var(--spacing-lg); min-width: 0; }
+.guided-stage > :is(h2, p) { margin: 0; }
+.guided-stage h2 { font-size: var(--type-size-display); }
+.guided-stage h2:focus { outline: none; }
+.guided-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--spacing-md); }
+.guided-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--spacing-md); }
+.guided-review { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--spacing-md); margin: 0; }
+.guided-review dt { font-weight: var(--type-weight-semibold); }
+.guided-review dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.guided-narrow { display: none; }
+@container guided-demo (max-width: 48rem) {
+  .guided-layout { grid-template-columns: minmax(0, 1fr); padding: var(--spacing-lg); }
+  .guided-wide { display: none; }
+  .guided-narrow { display: block; }
+}

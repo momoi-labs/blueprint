@@ -6,9 +6,9 @@ import { DemoSettings } from "./demo-settings";
 export function InlineFieldsDemo() {
   const [ram, setRam] = useState("4");
   const [os, setOs] = useState("linux");
-  const [controlSize, setControlSize] = useState<"sm" | "md" | "lg">("md");
+  const [controlSize, setControlSize] = useState<"sm" | "md" | "lg" | "xl">("md");
   return <div className="stack">
-    <DemoSettings title="Inline fields"><label className="field">Control size<select className="select" value={controlSize} onChange={event => setControlSize(event.target.value as typeof controlSize)}><option value="sm">Small</option><option value="md">Medium</option><option value="lg">Large</option></select></label></DemoSettings>
+    <DemoSettings title="Inline fields"><label className="field">Control size<select className="select" value={controlSize} onChange={event => setControlSize(event.target.value as typeof controlSize)}><option value="sm">Small</option><option value="md">Medium</option><option value="lg">Large</option><option value="xl">Extra large</option></select></label></DemoSettings>
     <div className="demo-grid">
       <Select value={os} onValueChange={setOs}>
         <FormField label="OS" layout="inline" controlSize={controlSize}>

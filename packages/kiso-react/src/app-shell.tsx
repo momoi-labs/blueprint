@@ -89,6 +89,7 @@ type ApplicationShellSharedProps = Omit<
   brand: React.ReactNode
   primaryAction?: React.ReactNode
   header?: React.ReactNode
+  headerVariant?: React.ComponentProps<typeof Header>["variant"]
   panel?: React.ReactNode
   children: React.ReactNode
 }
@@ -173,12 +174,12 @@ function ApplicationShellNavigation({
 
 function ApplicationShell(props: ApplicationShellProps) {
   if (props.layout === "topbar") {
-    const { brand, primaryAction, header, panel, children, layout: _layout, ...shellProps } =
+    const { brand, primaryAction, header, headerVariant, panel, children, layout: _layout, ...shellProps } =
       props
     return (
       <AppShell {...shellProps} data-layout="topbar">
         <AppShellMain>
-          <Header>
+          <Header variant={headerVariant}>
             {brand}
             {primaryAction}
             {header}
@@ -200,6 +201,7 @@ function ApplicationShellSidebar({
   navigationLabel = "Primary",
   footer,
   header,
+  headerVariant,
   panel,
   children,
   layout: _layout,
@@ -272,7 +274,7 @@ function ApplicationShellSidebar({
         {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
-        {(header || (collapsible && togglePlacement === "header")) && <Header>
+        {(header || (collapsible && togglePlacement === "header")) && <Header variant={headerVariant}>
           {togglePlacement === "header" && toggle}
           {header}
         </Header>}
