@@ -1,5 +1,12 @@
 # @momoi-labs/kiso
 
+## 0.15.2
+
+### Patch Changes
+
+- 6e7f47d: Fill table and form frames to their contours, retain Pixel panel bands and
+  overlays, and respect control frame scopes.
+
 ## 0.15.1
 
 ### Patch Changes
