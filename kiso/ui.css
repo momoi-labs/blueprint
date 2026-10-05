@@ -310,6 +310,30 @@ a:hover, .link:hover { text-decoration: underline; }
   color: var(--color-foreground);
   box-shadow: var(--shadow-xs);
 }
+/* With anchor positioning the track draws one raised chip that follows the
+   selected option, so a change slides it along the track instead of
+   repainting two buttons. The chip keeps the selected button's box, and
+   exists only while an option is selected. Browsers without support keep the
+   per-button chip above, and so do right-to-left tracks, for the reason the
+   Tabs underline gives. */
+@supports (anchor-name: --segmented-selected) {
+  .segmented:dir(ltr) { position: relative; isolation: isolate; }
+  .segmented:dir(ltr) button[aria-selected="true"] {
+    anchor-name: --segmented-selected;
+    background: transparent;
+    box-shadow: none;
+  }
+  .segmented:dir(ltr):has(button[aria-selected="true"])::before {
+    content: ""; position: absolute; z-index: -1;
+    position-anchor: --segmented-selected;
+    inset: anchor(inside);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+    box-shadow: var(--shadow-xs);
+    pointer-events: none;
+    transition: inset var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+}
 
 /* ===========================================================================
    Badge / pill / status
@@ -833,6 +857,28 @@ table.table {
   background: var(--color-primary);
   border-radius: var(--radius-full);
 }
+/* With anchor positioning the strip draws one underline that follows the
+   selected tab, so a change of tab slides it across instead of redrawing it.
+   It keeps the per-tab underline's box. Each strip is the containing block of
+   its own underline, so two strips on a page never share one. Browsers
+   without support keep the per-tab underline above, and so do right-to-left
+   strips: Firefox draws an anchored box in a right-to-left scroller away
+   from its anchor. */
+@supports (anchor-name: --tabs-selected) {
+  .tabs:dir(ltr) { position: relative; }
+  .tabs:dir(ltr) button[aria-selected="true"] { anchor-name: --tabs-selected; }
+  .tabs:dir(ltr) button[aria-selected="true"]::after { content: none; }
+  .tabs:dir(ltr)::after {
+    content: ""; position: absolute;
+    position-anchor: --tabs-selected;
+    left: anchor(left); right: anchor(right); bottom: anchor(bottom);
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    pointer-events: none;
+    transition: inset var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+}
 
 /* ===========================================================================
    Alert / callout
@@ -1206,6 +1252,28 @@ table.table {
 }
 .nav-item[aria-current="page"] .icon, .nav-item.active .icon { color: currentColor; }
 .nav-item .badge { margin-inline-start: auto; }
+/* With anchor positioning each navigation landmark in a Sidebar draws one
+   rail that follows its current item, so a change of destination without a
+   page load slides the rail along the gutter, across groups too. It keeps the
+   per-item rail's box. A landmark laid out as a row keeps the row's marker
+   below. Browsers without support keep the per-item rail above, and so do
+   right-to-left sidebars, for the reason the Tabs underline gives. */
+@supports (anchor-name: --sidebar-current) {
+  .sidebar nav:not(.nav-row, :has(.nav-row)):dir(ltr) { position: relative; }
+  .sidebar nav:not(.nav-row, :has(.nav-row)):dir(ltr) .nav-item:is([aria-current="page"], .active) { anchor-name: --sidebar-current; }
+  .sidebar nav:not(.nav-row, :has(.nav-row)):dir(ltr) .nav-item:is([aria-current="page"], .active)::before { content: none; }
+  .sidebar nav:not(.nav-row, :has(.nav-row)):dir(ltr)::before {
+    content: ""; position: absolute;
+    position-anchor: --sidebar-current;
+    left: calc(anchor(left) - var(--spacing-sm));
+    top: calc(anchor(top) + 2px); bottom: calc(anchor(bottom) + 2px);
+    width: 2px;
+    border-radius: var(--radius-full);
+    background: var(--color-link);
+    pointer-events: none;
+    transition: inset var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+}
 
 /* Navigation laid out in a row. The shared edge is now the bottom, so the same
    marker moves there and the row grows a baseline for it to sit on — the
@@ -1229,6 +1297,26 @@ table.table {
   bottom: -1px;
   width: auto;
   height: 2px;
+}
+/* With anchor positioning the row draws one marker that follows its current
+   item, so a change of destination without a page load slides the marker
+   along the shared edge. It keeps the per-item marker's box. Browsers without
+   support keep the per-item marker above, and so do right-to-left rows, for
+   the reason the Tabs underline gives. */
+@supports (anchor-name: --nav-row-current) {
+  .nav-row:dir(ltr) { position: relative; }
+  .nav-row:dir(ltr) .nav-item:is([aria-current="page"], .active) { anchor-name: --nav-row-current; }
+  .nav-row:dir(ltr) .nav-item:is([aria-current="page"], .active)::before { content: none; }
+  .nav-row:dir(ltr)::after {
+    content: ""; position: absolute;
+    position-anchor: --nav-row-current;
+    left: anchor(left); right: anchor(right); bottom: calc(anchor(bottom) - 1px);
+    height: 2px;
+    border-radius: var(--radius-full);
+    background: var(--color-link);
+    pointer-events: none;
+    transition: inset var(--motion-duration-fast) var(--motion-easing-standard);
+  }
 }
 
 .brand { display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0; }

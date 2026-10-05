@@ -28,7 +28,8 @@ Sidebar
 Surface uses `--color-surface`, divider `--color-border`, primary text
 `--color-foreground`, and current items `--color-primary`. Layout uses
 `--spacing-sm` between items, `--spacing-md` section gaps, and the five
-property-qualified label typography tokens.
+property-qualified label typography tokens. The current marker moves on
+`--motion-duration-fast` and `--motion-easing-standard`.
 
 ## Variants
 
@@ -56,6 +57,11 @@ their labels remain accessible to assistive technology. Plain-text labels also
 provide native titles. Destinations without icons keep visible, wrapping text.
 The current destination keeps its active marker. Brand, primary action, group
 headings, trailing badges, and footer return when the user expands the sidebar.
+
+When the current destination changes without a page load, its marker slides
+along the gutter to the new Link, across sections too. Each navigation landmark
+keeps its own marker. The marker moves without the slide in browsers without
+CSS anchor positioning, in right-to-left layouts, and under reduced motion.
 
 Collapse applies to desktop widths of 1024px and above. At narrower widths,
 navigation stacks above the page with labels visible and the toggle hidden.

@@ -20,7 +20,8 @@ Navigation
 Presentation inherits its host. Links use `--color-foreground`,
 `--color-primary`, and `--color-focus`. Items use `--spacing-sm` block and
 `--spacing-md` inline spacing plus the five property-qualified label typography
-tokens.
+tokens. In a row, the current marker moves on `--motion-duration-fast` and
+`--motion-easing-standard`.
 
 ## Variants
 
@@ -41,6 +42,11 @@ defined by their component guidance.
 | focus | Focused Link shows `--color-focus`. |
 | active | Current destination uses `aria-current="page"`. |
 | disabled | Navigation is never disabled; omit unavailable destinations or follow Link guidance. |
+
+In a row, when the current destination changes without a page load, its
+marker slides along the row's shared edge to the new Link. It moves without
+the slide in browsers without CSS anchor positioning, in right-to-left rows,
+and under reduced motion. [Sidebar](sidebar.md) describes the column marker.
 
 ## Accessibility
 
