@@ -1,3 +1,4 @@
+import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
@@ -163,6 +164,9 @@ import {
 } from "@momoi-labs/kiso-react";
 
 const catalog = [
+  ["steps", "Steps", "Navigation", "Explicit progress in a guided flow."],
+  ["radio-group", "RadioGroup", "Forms", "Visible options with one selected value."],
+  ["file-dropzone", "FileDropzone", "Forms", "Pick or drop local files."],
   ["button", "Button", "Controls", "Variants, sizes, disabled and loading."],
   [
     "icon-button",
@@ -281,7 +285,7 @@ const catalog = [
     "accent-selector",
     "AccentSelector",
     "Navigation",
-    "Violet, terracotta, teal, cobalt and nocturne.",
+    "Violet, terracotta, teal, cobalt, nocturne and tangerine.",
   ],
   ["alert", "Alert", "Feedback", "Persistent information, success and errors."],
   ["spinner", "Spinner", "Feedback", "An operation in progress."],
@@ -321,6 +325,9 @@ type CatalogId = (typeof catalog)[number][0];
 // "wide" takes two columns, "full" takes the whole row.
 const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   textarea: "wide",
+  steps: "full",
+  "radio-group": "wide",
+  "file-dropzone": "wide",
   select: "wide",
   "chip-input": "wide",
   "filter-input": "wide",
@@ -348,6 +355,10 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
 };
 
 const snippets: Record<string, string> = {
+  steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
+  "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
+  "file-dropzone": '<FileDropzone label="Choose a file" accept=".txt" onFilesSelected={setFiles} />',
+
   "filter-input": `const fields: FilterField[] = [
   { key: "status", type: "text", values: ["active", "paused"] },
   { key: "region", type: "text", values: ["eu", "us"] },
@@ -1065,6 +1076,9 @@ const Demo = memo(function Demo({
   );
 
   switch (id) {
+    case "steps": return <StepsDemo />;
+    case "radio-group": return <RadioGroupDemo />;
+    case "file-dropzone": return <FileDropzoneDemo />;
     case "button":
       return (
         <div className="stack">
@@ -1082,7 +1096,7 @@ const Demo = memo(function Demo({
             )}
           </div>
           <div className="demo-row">
-            {(["xs", "sm", "md", "lg"] as const).map((size) => (
+            {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
               <Button
                 key={size}
                 size={size}
@@ -1093,6 +1107,7 @@ const Demo = memo(function Demo({
             ))}
           </div>
           <div className="demo-row">
+            <Button presentation="tile" size="xl" description="Run an immediate action." onClick={() => setMessage("Tile activated.")}>Choose this option</Button>
             <Button disabled>Disabled</Button>
             <Button
               variant="primary"
@@ -1142,6 +1157,7 @@ const Demo = memo(function Demo({
       return (
         <div className="demo-grid">
           <FormField label="Project name" placeholder="my-project" />
+          <FormField label="Large input" placeholder="Sample value" controlSize="xl" />
           <FormField
             label="Disabled input"
             defaultValue="Inherited from workspace"
@@ -1168,6 +1184,7 @@ const Demo = memo(function Demo({
           <Textarea
             id={uid}
             rows={4}
+            controlSize="xl"
             value={value}
             onChange={(event) => setValue(event.target.value)}
             placeholder="Optional context for this Project..."
@@ -1185,7 +1202,7 @@ const Demo = memo(function Demo({
           <Label htmlFor={uid}>Language</Label>
           <div className="demo-row">
             <Select defaultValue="English" onValueChange={setValue}>
-              <SelectTrigger id={uid} className="gallery-select-trigger">
+              <SelectTrigger id={uid} controlSize="xl" className="gallery-select-trigger">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1395,7 +1412,9 @@ const Demo = memo(function Demo({
       return <PageHeaderDemo onAction={() => setMessage("Deploy application activated.")} />;
     case "header":
       return (
-        <Header className="gallery-header-preview">
+        <div className="stack">
+        <label className="check"><input type="checkbox" checked={checked} onChange={event => setChecked(event.target.checked)} />Plain header</label>
+        <Header variant={checked ? "plain" : "default"} className="gallery-header-preview">
           <Breadcrumb aria-label="Example header breadcrumb">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -1412,6 +1431,7 @@ const Demo = memo(function Demo({
           <span className="grow" />
           <Badge variant="success">Healthy</Badge>
         </Header>
+        </div>
       );
     case "brand-mark":
       return (

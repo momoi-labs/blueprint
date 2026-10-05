@@ -40,7 +40,7 @@ boolean or membership in a multi-select set.
 Trigger sizes align with Input sizes. Content width is at least sufficient for
 its items and may match the trigger. Use spacing and size tokens, not raw values.
 
-In React, use `controlSize="sm" | "md" | "lg"` on SelectTrigger.
+In React, use `controlSize="sm" | "md" | "lg" | "xl"` on SelectTrigger.
 The CSS equivalent is `data-control-size` on the control. Omitted or `md`
 keeps the current default. Heights use `--size-control-sm`,
 `--size-control-md`, and `--size-control-lg`; coarse pointers retain the
@@ -110,3 +110,9 @@ Maps to [Radix Select](https://www.radix-ui.com/primitives/docs/components/selec
 and [shadcn/ui Select](https://ui.shadcn.com/docs/components/select). Keep the
 Radix parts and behavior as the reference contract; shadcn supplies the common
 composition and styling baseline.
+
+## Extra-large input
+
+`controlSize="xl"` uses `--size-control-xl` (56px) and
+`--type-role-body-large-font-size` (18px). Grouped labels, icons and suffixes
+share the same frame. Coarse-pointer minimums never reduce this size.

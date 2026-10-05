@@ -3,11 +3,11 @@
 ## Purpose
 
 AccentSelector chooses which accent the interface uses: violet, terracotta,
-teal, cobalt, or nocturne. It is the only sanctioned control for that choice. The theme
+teal, cobalt, nocturne, or tangerine. It is the only sanctioned control for that choice. The theme
 (light, dark, system) is a separate axis with its own control,
 [ThemeSelector](theme-selector.md); the two compose.
 
-## The five values
+## The six values
 
 | Value | Meaning | `data-accent` on `<html>` |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ teal, cobalt, or nocturne. It is the only sanctioned control for that choice. Th
 | `terracotta` | Same roles, hue turned to terracotta. Neutrals unchanged. | `data-accent="terracotta"` |
 | `teal` | Same roles, hue turned to teal. Neutrals unchanged. | `data-accent="teal"` |
 | `cobalt` | Same roles, hue turned to cobalt. Neutrals unchanged. | `data-accent="cobalt"` |
+| `tangerine` | Bright orange fill and dark text, with separate ink. | `data-accent="tangerine"` |
 | `nocturne` | The marketing site's palette: cool slate neutrals under the violet ink. | `data-accent="nocturne"` |
 
 The attribute may also sit on a container, in which case only that subtree
@@ -22,12 +23,12 @@ takes the accent. A nested `data-accent="violet"` resets to the default. See
 [Accents](../tokens.md#accents) for what the accent does and does not change.
 
 An application that offers fewer accents passes the subset it supports; the
-control does not have to show all five.
+control does not have to show all six.
 
 ## Persistence
 
 - An explicit choice persists under the key `kiso-accent`, with the value
-  `violet`, `terracotta`, `teal`, `cobalt`, or `nocturne`.
+  `violet`, `terracotta`, `teal`, `cobalt`, `nocturne`, or `tangerine`.
 - Read the stored value in a blocking inline script in `<head>`, before first
   paint, and apply it as `data-accent`. Anything later flashes.
 - Storage may be unavailable. Wrap reads and writes so a failure degrades to
@@ -50,6 +51,7 @@ control does not have to show all five.
 | `terracotta` | terracotta dot, "Terracotta" | "Terracotta" |
 | `teal` | teal dot, "Teal" | "Teal" |
 | `cobalt` | cobalt dot, "Cobalt" | "Cobalt" |
+| `tangerine` | tangerine dot, "Tangerine" | "Tangerine" |
 | `nocturne` | nocturne dot, "Nocturne" | "Nocturne" |
 
 The pill names the accent, so no hover is needed to tell which is which. The
@@ -122,7 +124,7 @@ server round-trip to repaint, and do not show a Toast for it.
 
 ## When NOT to use
 
-- A free colour picker. Kiso has five accents; a product colour that is not
+- A free colour picker. Kiso has six accents; a product colour that is not
   one of them is a token proposal, not an option.
 - A way to mark status or severity. Red, amber, and green are not accents for
   that reason: a primary button in the danger hue reads as destructive.
@@ -134,3 +136,5 @@ server round-trip to repaint, and do not show a Toast for it.
 - [tokens](../tokens.md#accents): what an accent changes and how it is built.
 - [ThemeSelector](theme-selector.md): the other appearance row.
 - [Settings](../patterns/settings.md#theme): where the row lives.
+
+Tangerine uses a bright orange primary fill with dark text in both themes.

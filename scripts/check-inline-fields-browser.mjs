@@ -14,7 +14,7 @@ async function open(query = '', options = {}) {
   await page.goto(`${url}?${query}`); await page.getByRole('spinbutton', { name: 'RAM', exact: true }).waitFor();
   return page;
 }
-for (const theme of ['light', 'dark']) for (const [size, height] of [['sm', 32], ['md', 36], ['lg', 40]]) test(`Inline frame sizing and descriptions for ${size}/${theme}`, async () => {
+for (const theme of ['light', 'dark']) for (const [size, height] of [['sm', 32], ['md', 36], ['lg', 40], ['xl', 56]]) test(`Inline frame sizing and descriptions for ${size}/${theme}`, async () => {
   const page = await open(`theme=${theme}&size=${size}`);
   try {
     const ram = page.getByRole('spinbutton', { name: 'RAM', exact: true });

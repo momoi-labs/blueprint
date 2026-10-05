@@ -46,7 +46,7 @@ Button
 
 ## Variants
 
-Four variants. Do not add a "link" variant; navigation is [Link](link.md).
+Four color variants. Do not add a "link" variant; navigation is [Link](link.md).
 
 | Variant | When | Tokens |
 | --- | --- | --- |
@@ -82,9 +82,20 @@ measure only.
 `min-height: var(--size-touch-min)` inside `@media (pointer: coarse)` and leave
 the desktop height alone. See [Accessibility](../accessibility.md#target-size).
 
-Do not invent a fifth size. Page-level calls to action still use `md` or
-`lg`. PageHeader (navigation slice) composes Buttons; it is not a Button
-size.
+`xl` adds a 56px control using `--size-control-xl`, 18px text using
+`--type-role-body-large-font-size`, and `--spacing-xl` inline padding.
+It is opt-in and keeps its height on coarse pointers.
+
+## Tile presentation
+
+`presentation="tile"` keeps the selected color variant and native button
+behavior. Supply the label as children, with optional `icon` and `description`.
+The tile grows with content, wraps labels and associates the description.
+Use it for immediate actions. Use RadioGroup for values confirmed later.
+
+With `asChild`, provide the child's content directly; `icon` and `description`
+are only composed for a native Button. `buttonVariants` also accepts the tile
+presentation so native links can use the same visual classes.
 
 ## States
 
@@ -140,7 +151,7 @@ must still meet contrast.
   or be copyable as a link — use [Link](link.md), even if it is styled to look
   like a Button.
 - **Icon with no text.** Use [IconButton](icon-button.md).
-- **A row of mutually exclusive choices.** That is Tabs or a Select, not a
+- **A row of mutually exclusive choices.** Use RadioGroup, Tabs or Select, not a
   Button group pretending to be navigation.
 - **Toggling a boolean.** Use Switch or Checkbox (form primitives), not a
   Button whose label flips.

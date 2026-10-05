@@ -321,3 +321,9 @@ surface. `data-background-placement` selects `inside`, `outside` or `both`.
 Translucent panel fill works with every background; text and native fields
 remain opaque. Outside patterns keep an opaque main backing, except for the
 Momoi signature that can extend behind translucent content.
+
+## Plain header
+
+`headerVariant="plain"` forwards to Header in sidebar and topbar layouts.
+It removes only the header fill and separator, including in inset frames.
+Omission keeps the existing header treatment.

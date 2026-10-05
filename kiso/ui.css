@@ -515,8 +515,8 @@ select.select option:disabled { color: var(--color-disabled); }
 .field-control:has(> [aria-invalid="true"]) { border-color: var(--color-danger); }
 .field-control:has(> [aria-invalid="true"]):focus-within { outline-color: var(--color-danger); }
 @media (pointer: coarse) {
-  .field > .field-control, .field[data-control-size] > .field-control { --field-control-height: calc(var(--size-touch-min) + 2px); }
-  .field-control > :is(.input, .select) { min-width: var(--size-touch-min); }
+  .field > .field-control, .field[data-control-size] > .field-control { min-height: max(var(--field-control-height), calc(var(--size-touch-min) + 2px)); }
+  .field-control > :is(.input, .select) { min-width: var(--size-touch-min); min-height: max(calc(var(--field-control-height) - 2px), var(--size-touch-min)); }
 }
 
 /* chip input: several structured values in one field */
@@ -1629,6 +1629,36 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 
 
+/* Choice controls participate in the shared control appearance rules below. */
+.radio-group { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.radio-group[data-control-size="xl"] { --choice-font-size: var(--type-role-body-large-font-size); --choice-height: var(--size-control-xl); }
+.radio-item { display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0; min-height: var(--choice-height, var(--size-control-md)); padding: var(--spacing-sm); --choice-fill: transparent; --choice-border: transparent; border: 1px solid var(--choice-border); border-radius: var(--appearance-control-corners, var(--radius-md)); background-color: var(--choice-fill); color: var(--color-foreground); font: inherit; font-size: var(--choice-font-size, var(--type-size-body)); text-align: start; cursor: pointer; }
+.radio-item:not(:disabled):hover { --choice-fill: var(--color-accent-surface); }
+.radio-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.radio-item:disabled { color: var(--color-disabled); cursor: not-allowed; }
+.radio-item:disabled .choice-description, .radio-item:disabled .choice-icon { color: inherit; }
+.radio-indicator { display: grid; place-items: center; flex: none; width: var(--size-icon-md); height: var(--size-icon-md); border: 1px solid var(--color-border-strong); border-radius: var(--radius-full); background: var(--color-card); }
+.radio-indicator > span { width: var(--spacing-sm); height: var(--spacing-sm); border-radius: var(--radius-full); background: var(--color-primary-foreground); }
+.radio-item[data-state="checked"] .radio-indicator { background: var(--color-primary); border-color: var(--color-link); }
+.radio-group[data-variant="tiles"] { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--spacing-md); }
+:where(.radio-group[data-variant="tiles"]) > .radio-item { padding: var(--spacing-lg); align-items: flex-start; --choice-border: var(--color-border-strong); --choice-fill: var(--color-card); }
+:where(.radio-group[data-variant="tiles"]) > .radio-item[data-state="checked"] { --choice-border: var(--color-link); --choice-fill: var(--color-accent-surface); }
+.radio-group[data-variant="segmented"] { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); padding: var(--spacing-xs); background: var(--color-muted); border-radius: var(--radius-lg); }
+:where(.radio-group[data-variant="segmented"]) > .radio-item { flex: 1 1 auto; justify-content: center; }
+:where(.radio-group[data-variant="segmented"]) > .radio-item[data-state="checked"] { --choice-fill: var(--color-card); --choice-border: var(--color-border-strong); box-shadow: var(--shadow-xs); }
+.radio-group[aria-invalid="true"] > .radio-item { --choice-border: var(--color-danger); }
+
+.file-dropzone-field { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.file-dropzone { position: relative; display: grid; justify-items: center; gap: var(--spacing-sm); padding: var(--spacing-xl); min-width: 0; --choice-fill: var(--color-card); --choice-border: var(--color-border-strong); border: 2px dashed var(--choice-border); border-radius: var(--appearance-control-corners, var(--radius-md)); background-color: var(--choice-fill); color: var(--color-foreground); text-align: center; }
+.file-dropzone .choice-label { font-size: var(--type-role-body-large-font-size); }
+.file-dropzone-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.file-dropzone:has(:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.file-dropzone:not([data-disabled="true"]):hover, .file-dropzone[data-dragging="true"] { --choice-border: var(--color-link); --choice-fill: var(--color-accent-surface); }
+.file-dropzone[data-invalid="true"] { --choice-border: var(--color-danger); }
+.file-dropzone[data-disabled="true"] { color: var(--color-disabled); --choice-fill: var(--color-disabled-surface); }
+.file-dropzone[data-disabled="true"] :is(.choice-description, .choice-icon) { color: inherit; }
+.file-dropzone-input:disabled { cursor: not-allowed; }
+
 /* Appearance attributes. Set these on html to include portalled content. */
 :root {
   --appearance-scale: 1;
@@ -1755,7 +1785,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border-style: var(--appearance-panel-border);
 }
 /* Paint decorative edges above table headers and panel footers. */
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before {
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
+:where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
   content: var(--appearance-mark-content, var(--corner-overlay-content, var(--appearance-overlay-content, none)));
   position: absolute;
   inset: var(--corner-overlay-inset, var(--appearance-overlay-inset));
@@ -1781,7 +1812,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border-end-start-radius: var(--appearance-footer-start);
   border-end-end-radius: var(--radius-surface);
 }
-:where([data-border-style], [data-corner-style], [data-corner-size]) :is(.btn:not(.btn-xs), .input, .select, .textarea, .nav-item, .menu-item) {
+:where([data-border-style], [data-corner-style], [data-corner-size]) :is(.btn:not(.btn-xs), .input, .select, .textarea, .nav-item, .menu-item, .radio-item, .file-dropzone) {
   border-radius: var(--appearance-control-corners);
 }
 
@@ -2150,10 +2181,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border: 0; border-radius: 0; box-shadow: none;
 }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
-:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box) { border-radius: 4px; }
+:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) { border-radius: 4px; }
 :where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after { content: none; }
 /* Compact guides stay inside native controls, away from focus indicators. */
-:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box) {
+:where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) {
   --control-guide: color-mix(in srgb, var(--color-corner-mark) calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)) * 100%), transparent);
   --control-mark-images: linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide)), linear-gradient(var(--control-guide), var(--control-guide));
   --control-mark-sizes: var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px, var(--corner-mark-tick) 1px;
@@ -2516,7 +2547,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell::before { display: none; }
 }
 
-:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .file-dropzone, .steps-marker) { border-radius: calc(var(--radius-md) * (1 - var(--appearance-expressive, 0))); border-width: calc(1px + var(--appearance-expressive, 0) * 1px); }
 :where([data-background-style]:not([data-background-style="solid"]):not([data-background-style="momoi"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;
   background-color: transparent;
@@ -2524,7 +2555,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 
 /* Native inputs cannot own decorative pseudo-elements. Paint their pixel border
    in background layers, retaining the native hit area. */
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) {
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs), .radio-item, .file-dropzone, .steps-marker) {
   --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-step: calc(var(--pixel-r) / 3);
   --pixel-line: var(--color-input);
@@ -2541,6 +2572,10 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   background-clip: border-box;
   background-repeat: no-repeat;
   background-image: var(--select-arrow, linear-gradient(transparent, transparent)), var(--control-mark-images, linear-gradient(transparent, transparent)),
+    var(--pixel-line-image-x, linear-gradient(var(--pixel-line), var(--pixel-line))),
+    var(--pixel-line-image-x, linear-gradient(var(--pixel-line), var(--pixel-line))),
+    var(--pixel-line-image-y, linear-gradient(var(--pixel-line), var(--pixel-line))),
+    var(--pixel-line-image-y, linear-gradient(var(--pixel-line), var(--pixel-line))),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
@@ -2557,10 +2592,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
-    linear-gradient(var(--pixel-line), var(--pixel-line)),
-    linear-gradient(var(--pixel-line), var(--pixel-line)),
-    linear-gradient(var(--pixel-line), var(--pixel-line)),
-    linear-gradient(var(--pixel-line), var(--pixel-line)),
+    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
+    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
     linear-gradient(var(--pixel-fill), var(--pixel-fill)),
     linear-gradient(var(--pixel-fill), var(--pixel-fill)),
     linear-gradient(var(--pixel-fill), var(--pixel-fill));
@@ -2585,9 +2618,11 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
     calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
     var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
+    calc(100% - 2 * var(--pixel-r)) var(--pixel-step),
+    calc(100% - 2 * var(--pixel-step)) calc(var(--pixel-r) - var(--pixel-step)),
     100% calc(100% - 2 * var(--pixel-r)),
-    calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)),
-    calc(100% - 2 * var(--pixel-r)) 100%;
+    calc(100% - 2 * var(--pixel-step)) calc(var(--pixel-r) - var(--pixel-step)),
+    calc(100% - 2 * var(--pixel-r)) var(--pixel-step);
   background-position: right var(--spacing-md) center, var(--control-mark-positions, center),
     center top 0,
     center bottom 0,
@@ -2609,9 +2644,11 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     right var(--pixel-step) bottom var(--pixel-step),
     right var(--pixel-step) bottom var(--pixel-step),
     right var(--pixel-r) bottom 0,
+    center top,
+    center top var(--pixel-step),
     center,
-    center,
-    center;
+    center bottom var(--pixel-step),
+    center bottom;
 }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary { --pixel-fill: var(--color-primary); --pixel-line: var(--color-primary); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary:hover { --pixel-fill: var(--color-primary-hover); --pixel-line: var(--color-primary-hover); }
@@ -2708,7 +2745,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   }
 }
 @media (forced-colors: active) {
-  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs)) { background: Canvas; border-color: ButtonText; }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs), .radio-item, .file-dropzone, .steps-marker) { background: Canvas; border-color: ButtonText; }
 }
 
 /* Patterns can pass behind page labels. Keep secondary text fully legible. */
@@ -2859,4 +2896,143 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 @media (forced-colors: active) {
   :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { background: Canvas; }
   :is(.card-footer, .dialog-footer, .app-shell .topbar)::before { display: none; }
+}
+
+/* Guided input: larger controls are opt-in, including on a coarse pointer. */
+.t-body-large { font-family: var(--font-body); font-size: var(--type-role-body-large-font-size); font-weight: var(--type-role-body-large-font-weight); line-height: var(--type-role-body-large-line-height); letter-spacing: var(--type-role-body-large-letter-spacing); }
+.btn-xl { --btn-height: var(--size-control-xl); --btn-padding-x: var(--spacing-xl); font-size: var(--type-role-body-large-font-size); }
+:is(.input, .select)[data-control-size="xl"] { height: var(--size-control-xl); padding-inline-start: var(--spacing-lg); font-size: var(--type-role-body-large-font-size); }
+.input[data-control-size="xl"] { padding-inline-end: var(--spacing-lg); }
+.textarea[data-control-size="xl"] { padding: var(--spacing-lg); font-size: var(--type-role-body-large-font-size); min-height: var(--size-control-xl); }
+.field[data-control-size="xl"] > .field-control { --field-control-height: var(--size-control-xl); padding-inline: var(--spacing-lg); font-size: var(--type-role-body-large-font-size); }
+
+/* Action tiles and radio choices share content styling, not semantics. */
+.choice-copy { display: grid; gap: var(--spacing-xs); min-width: 0; }
+.choice-label { font-weight: var(--type-weight-semibold); overflow-wrap: anywhere; }
+.choice-description { color: var(--color-muted-foreground); font-size: var(--type-size-body); font-weight: var(--type-weight-regular); line-height: var(--type-line-height-normal); overflow-wrap: anywhere; }
+.choice-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--color-link); }
+.choice-icon > svg { width: var(--size-icon-lg); height: var(--size-icon-lg); }
+.btn.choice-tile { height: auto; min-height: var(--btn-height); display: flex; align-items: flex-start; justify-content: flex-start; padding: var(--spacing-lg); gap: var(--spacing-md); white-space: normal; text-align: start; line-height: var(--type-line-height-normal); }
+.btn.choice-tile:is(.btn-primary, .btn-danger) :is(.choice-icon, .choice-description) { color: inherit; }
+/* One labelled list is shared by the full and compact progress layouts. */
+.steps { container: kiso-steps / inline-size; width: 100%; min-width: 0; }
+.steps-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--spacing-lg); list-style: none; margin: 0; padding: 0; }
+.steps-list > li { position: relative; min-width: 0; }
+.steps-list > li:not(:last-child)::before { content: ""; position: absolute; inset-block-start: calc(var(--size-control-md) / 2 - 1px); inset-inline-start: calc(50% + var(--size-control-md) / 2 + var(--spacing-xs)); width: max(0px, calc(100% + var(--spacing-lg) - var(--size-control-md) - 2 * var(--spacing-xs))); height: 2px; pointer-events: none; background: var(--color-border); }
+.steps-list > li[data-state="completed"]::before { background: var(--color-foreground); }
+.steps-item { position: relative; display: grid; justify-items: center; gap: var(--spacing-sm); width: 100%; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-foreground); text-align: center; font: inherit; text-decoration: none; }
+:is(button, a).steps-item { cursor: pointer; }
+:is(button, a).steps-item:hover .steps-label { text-decoration: underline; text-underline-offset: 3px; }
+.steps-marker { display: grid; place-items: center; width: var(--size-control-md); height: var(--size-control-md); --step-border: var(--color-border-strong); --step-fill: var(--color-card); border: 2px solid var(--step-border); border-radius: var(--radius-full); background-color: var(--step-fill); color: var(--color-muted-foreground); font-weight: var(--type-weight-semibold); }
+.steps-marker svg { width: var(--size-icon-md); height: var(--size-icon-md); }
+.steps-list > li[data-state="completed"] .steps-marker { --step-fill: var(--color-foreground); --step-border: var(--color-foreground); color: var(--color-background); }
+.steps-list > li[data-current="true"] .steps-marker { --step-fill: var(--color-primary); --step-border: var(--color-link); color: var(--color-primary-foreground); }
+.steps-list > li[data-state="error"] .steps-marker { --step-fill: var(--color-danger-surface); --step-border: var(--color-danger); color: var(--color-danger); }
+.steps-copy { display: grid; gap: var(--spacing-2xs); min-width: 0; overflow-wrap: anywhere; }
+.steps-label { font-weight: var(--type-weight-semibold); }
+.steps-state, .steps-description { color: var(--color-muted-foreground); font-size: var(--type-size-body); }
+.steps-list > li:is([data-state="upcoming"], [data-state="disabled"]):not([data-current="true"]) .steps-label { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
+.steps-list > li[data-state="upcoming"]:not([data-current="true"]) .steps-marker { border-style: dashed; }
+.steps-list > li[data-state="disabled"] .steps-marker { --step-border: var(--color-border); --step-fill: var(--color-muted); }
+.steps-list > li[data-state="error"] .steps-state { color: var(--color-danger); }
+.steps[data-orientation="vertical"] .steps-list { grid-auto-flow: row; grid-auto-columns: auto; }
+.steps[data-orientation="vertical"] .steps-item { grid-template-columns: var(--size-control-md) minmax(0, 1fr); align-items: start; justify-items: start; text-align: start; gap: var(--spacing-md); }
+.steps[data-orientation="vertical"] .steps-list > li:not(:last-child)::before { inset-inline-start: calc(var(--size-control-md) / 2 - 1px); inset-block-start: calc(var(--size-control-md) + var(--spacing-xs)); width: 2px; height: max(0px, calc(100% + var(--spacing-lg) - var(--size-control-md) - 2 * var(--spacing-xs))); }
+.steps-compact { display: none; }
+.steps-summary { display: grid; gap: var(--spacing-xs); margin: 0 0 var(--spacing-sm); overflow-wrap: anywhere; }
+.steps-summary > span { color: var(--color-muted-foreground); font-size: var(--type-size-body); }
+.steps-segments { display: flex; gap: var(--spacing-xs); }
+.steps-segments > span { flex: 1; height: var(--spacing-xs); background: var(--color-border); border-radius: var(--radius-full); }
+.steps-segments > [data-state="completed"] { background: var(--color-foreground); }
+.steps-segments > [data-current="true"] { background: var(--color-link); }
+.steps-segments > [data-state="error"] { background: var(--color-danger); }
+.steps-toggle { border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-link); padding: var(--spacing-xs) 0; min-height: var(--size-control-sm); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+@container kiso-steps (max-width: 36rem) {
+  .steps[data-responsive="true"] .steps-compact { display: block; }
+  .steps[data-responsive="true"] .steps-list { display: none; }
+  .steps[data-responsive="true"][data-expanded="true"] .steps-list { display: grid; grid-auto-flow: row; grid-auto-columns: auto; margin-block-start: var(--spacing-md); }
+  .steps[data-responsive="true"] .steps-item { grid-template-columns: var(--size-control-md) minmax(0, 1fr); align-items: start; justify-items: start; text-align: start; gap: var(--spacing-md); }
+  .steps[data-responsive="true"] .steps-list > li:not(:last-child)::before { inset-inline-start: calc(var(--size-control-md) / 2 - 1px); inset-block-start: calc(var(--size-control-md) + var(--spacing-xs)); width: 2px; height: max(0px, calc(100% + var(--spacing-lg) - var(--size-control-md) - 2 * var(--spacing-xs))); }
+}
+@media (pointer: coarse) {
+  .radio-item, .steps-toggle, :is(a, button).steps-item { min-height: var(--size-touch-min); min-width: var(--size-touch-min); }
+  .radio-group[data-control-size="xl"] > .radio-item { min-height: var(--size-control-xl); }
+}
+.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="plain"], .topbar[data-variant="plain"] { position: static; background: transparent; border-block-end: 0; box-shadow: none; backdrop-filter: none; --header-fill: transparent; }
+.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="plain"]::before, .topbar[data-variant="plain"]::before { content: none; }
+
+/* A grouped control gets its height from the shared frame. */
+.field-control > :is(.input, .select)[data-control-size="xl"] { height: auto; padding-inline-start: 0; font-size: inherit; }
+
+/* Tangerine uses bright fills. Thin selection marks need the accent ink. */
+[data-accent="tangerine"] .tabs button[aria-selected="true"]::after,
+[data-accent="tangerine"] .tabs::after,
+[data-accent="tangerine"] .progress > span,
+[data-accent="tangerine"] .bars i.on,
+[data-accent="tangerine"] .check input[type="radio"]:checked { background: var(--color-link); }
+[data-accent="tangerine"] :is(.chart, .sparkline.primary) { color: var(--color-link); }
+
+/* Large choice surfaces use the panel contour, with their own state colors. */
+:where([data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) {
+  --frame-fill: var(--choice-fill);
+  --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  position: relative;
+  isolation: isolate;
+  margin: var(--appearance-effect-clearance, 0px);
+  border-width: 1px;
+  border-style: var(--appearance-panel-border);
+  border-color: var(--appearance-border-color, var(--corner-border-color, var(--choice-border)));
+  border-radius: var(--appearance-corners, var(--radius-surface));
+  box-shadow: none;
+  background-color: color-mix(in srgb, var(--choice-fill) calc((1 - var(--pixel-enabled)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
+}
+:where([data-frame-scope="all"][data-border-style="manga"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
+  /* Retain the shared contour geometry and replace only its ink color. */
+  color: var(--choice-border);
+  background-image:
+    linear-gradient(currentColor, currentColor),
+    linear-gradient(to bottom right, currentColor 50%, transparent 50%),
+    linear-gradient(currentColor, currentColor),
+    linear-gradient(to top right, transparent 50%, currentColor 50%),
+    linear-gradient(currentColor, currentColor),
+    linear-gradient(to bottom left, transparent 50%, currentColor 50%),
+    linear-gradient(currentColor, currentColor),
+    linear-gradient(to top right, currentColor 50%, transparent 50%);
+}
+:where([data-frame-scope="all"][data-border-style="brush"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
+  box-shadow: inset 0 0 0 calc(5px * var(--frame-detail, 1)) var(--choice-border);
+}
+:where([data-frame-scope="all"][data-border-style="none"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) { border-style: solid; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) {
+  --pixel-r: round(calc(12px * var(--appearance-scale, 1)), 1px);
+  --pixel-step: round(calc(4px * var(--appearance-scale, 1)), 1px);
+  background-color: transparent;
+}
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before { content: none; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.radio-group > .radio-item, .file-dropzone-field > .file-dropzone) {
+  --pixel-line: var(--choice-border);
+  --pixel-fill: var(--choice-fill);
+}
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .radio-item:focus-visible,
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .file-dropzone:has(:focus-visible) { --pixel-line: var(--color-focus); --pixel-line-width: 2px; }
+@media (forced-colors: none) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .radio-item:focus-visible,
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .file-dropzone:has(:focus-visible) { outline-color: transparent; }
+}
+@media (forced-colors: active) {
+  :where([data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) { border: 1px solid CanvasText; background: Canvas; }
+  :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before { display: none; }
+}
+
+/* Step markers keep their status cues while following the control contour. */
+:where([data-frame-scope="all"]) .steps-marker { border-radius: var(--appearance-control-corners, var(--radius-md)); }
+:where([data-frame-scope="all"]) .steps-segments > span { border-radius: var(--radius-xs); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .steps .steps-marker {
+  --pixel-line: var(--step-border);
+  --pixel-fill: var(--step-fill);
+  --pixel-line-width: 2px;
+}
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .steps-list > li[data-state="upcoming"]:not([data-current="true"]) .steps-marker {
+  --pixel-line-image-x: repeating-linear-gradient(to right, var(--pixel-line) 0 var(--spacing-xs), transparent var(--spacing-xs) calc(2 * var(--spacing-xs)));
+  --pixel-line-image-y: repeating-linear-gradient(to bottom, var(--pixel-line) 0 var(--spacing-xs), transparent var(--spacing-xs) calc(2 * var(--spacing-xs)));
 }

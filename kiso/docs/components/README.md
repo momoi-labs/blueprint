@@ -6,6 +6,9 @@ behavioral reference where one exists.
 
 ## Nucleus
 
+- [RadioGroup](radio-group.md): Selects one value from visible standard, tile or segmented options.
+- [FileDropzone](file-dropzone.md): Selects local files through a native picker or drop target.
+
 - [Alert](alert.md): Communicates persistent in-page information, success, warnings, or errors.
 - [Badge](badge.md): Labels status or compact metadata without becoming an action.
 - [Button](button.md): Triggers a visible, text-labeled action without changing the URL.
@@ -26,7 +29,7 @@ behavioral reference where one exists.
 - [Switch](switch.md): Changes one immediately applied boolean setting.
 - [Textarea](textarea.md): Collects multi-line free-form text.
 - [ThemeSelector](theme-selector.md): Chooses between following the system colour scheme, forcing light, or forcing dark.
-- [AccentSelector](accent-selector.md): Chooses which accent the interface uses: violet, terracotta, teal, cobalt, or nocturne.
+- [AccentSelector](accent-selector.md): Chooses which accent the interface uses: violet, terracotta, teal, cobalt, nocturne, or tangerine.
 - [Tooltip](tooltip.md): Adds nonessential pointer or keyboard context as progressive enhancement.
 - [ValidationMessage](validation-message.md): Explains a field-level validation error and how to fix it.
 
@@ -53,6 +56,8 @@ behavioral reference where one exists.
 - [Table / DataTable](table.md): Presents structured records with optional sorting, selection, filtering, and pagination.
 
 ## Navigation and structure
+
+- [Steps](steps.md): Shows explicit progress and available navigation in a guided flow.
 
 - [Disclosure](disclosure.md): Native collapsible sections.
 - [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.

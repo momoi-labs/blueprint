@@ -41,6 +41,48 @@ async function close(page) {
   await page.locator("#gallery-settings").waitFor({ state: "hidden" });
 }
 
+test('Border choices update existing panels and guided controls without resetting entered data', async () => {
+  const page = await open('components');
+  try {
+    const panel = await settings(page);
+    await panel.getByRole('group', { name: 'Corner type', exact: true }).locator('input[value="square"]').check();
+    const borders = panel.getByRole('group', { name: 'Border style', exact: true });
+    const notes = page.locator('[aria-labelledby="catalog-textarea"] textarea');
+    await notes.fill('Keep this text while changing appearance.');
+    const radio = page.locator('[aria-labelledby="catalog-radio-group"]');
+    await radio.getByRole('radio', { name: 'Full', exact: true }).check();
+    for (const style of ['dash', 'double', 'rail', 'base', 'offset', 'none', 'manga', 'brush', 'solid']) {
+      await borders.locator(`input[value="${style}"]`).check();
+      const actual = await page.evaluate(() => {
+        const frame = selector => {
+          const el = document.querySelector(selector), s = getComputedStyle(el), ink = getComputedStyle(el, '::before');
+          return { border: s.borderTopStyle, contour: ink.clipPath, layer: ink.content, shadow: ink.boxShadow };
+        };
+        return { selected: document.documentElement.dataset.borderStyle, saved: window.kisoAppearance.read().borderStyle,
+          cards: [...document.querySelectorAll('.catalog-section.card')].map(el => frame(`[aria-labelledby="${el.getAttribute('aria-labelledby')}"]`)),
+          file: frame('.file-dropzone'), radio: frame('.radio-group[data-variant="tiles"] > .radio-item'),
+          field: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).borderTopWidth };
+      });
+      assert.equal(actual.selected, style);
+      assert.equal(actual.saved, style);
+      assert(actual.cards.length > 10, 'The check includes existing catalog components');
+      for (const card of actual.cards) {
+        assert.equal(card.border, style === 'none' ? 'none' : style === 'dash' ? 'dashed' : 'solid', `${style}: catalog panels change`);
+        if (['manga', 'brush'].includes(style)) assert(card.contour.startsWith('polygon('), `${style}: full panel contour`);
+      }
+      for (const control of [actual.file, actual.radio]) {
+        assert.equal(control.border, style === 'dash' ? 'dashed' : 'solid', `${style}: large control border`);
+        assert.equal(control.contour, actual.cards[0].contour, `${style}: shared decoration`);
+      }
+      assert.equal(actual.field, ['manga', 'brush'].includes(style) ? '2px' : '1px', `${style}: existing fields follow their compact treatment`);
+      assert.equal(await notes.inputValue(), 'Keep this text while changing appearance.');
+      assert.equal(await radio.getByRole('radio', { name: 'Full', exact: true }).getAttribute('aria-checked'), 'true');
+    }
+    await page.reload();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.borderStyle), 'solid');
+  } finally { await page.close(); }
+});
+
 for (const theme of ['light', 'dark']) test(`Fresh visits, reset and Pixel everywhere share the approved default in ${theme}`, async () => {
   const page = await open('intro', 1440, theme);
   try {
@@ -608,7 +650,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1200, 'dark'], [16
       return { id: section.querySelector('h2').id, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
     }));
     const initial = await inspect();
-    assert.equal(initial.length, 60, 'The sweep covers every current catalog sample');
+    assert.equal(initial.length, 63, 'The sweep covers every current catalog sample');
     const baseline = Object.fromEntries(initial.map(item => [item.id, item.overflow]));
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);

@@ -115,6 +115,18 @@ export const colorStatusWarning: string;
 export const colorStatusDanger: string;
 /** Info status primitive. */
 export const colorStatusInfo: string;
+export const colorTangerine50: string;
+export const colorTangerine200: string;
+export const colorTangerine300: string;
+export const colorTangerine400: string;
+export const colorTangerine500: string;
+export const colorTangerine600: string;
+export const colorTangerine700: string;
+export const colorTangerine800: string;
+export const colorTangerine900: string;
+export const colorTangerine950: string;
+/** Text and focus ink, independent of the bright primary fill. */
+export const colorTangerineBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -343,6 +355,24 @@ export const accentNocturneDisabled: string;
 export const accentNocturneDisabledSurface: string;
 export const accentNocturneSkeleton: string;
 export const accentNocturneHatch: string;
+export const accentTangerineAccent50: string;
+export const accentTangerineAccent200: string;
+export const accentTangerineAccent300: string;
+export const accentTangerineAccent400: string;
+export const accentTangerineAccent500: string;
+export const accentTangerineAccent600: string;
+export const accentTangerineAccent700: string;
+export const accentTangerineAccent800: string;
+export const accentTangerineAccent900: string;
+export const accentTangerineAccent950: string;
+export const accentTangerineAccentBase: string;
+/** Bright action fill with dark text in both themes. */
+export const accentTangerinePrimary: string;
+export const accentTangerinePrimaryHover: string;
+export const accentTangerinePrimaryForeground: string;
+export const accentTangerineAccentSurface: string;
+export const accentTangerineAccentSurfaceHover: string;
+export const accentTangerineSelected: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */
@@ -365,6 +395,8 @@ export const typeSizeH1: string;
 export const typeSizeDisplay: string;
 /** Upper size for editorial page headers. Dense pages keep the existing heading scale. */
 export const typeSizeEditorial: string;
+/** Optional reading text and XL controls. Default body stays 14px. */
+export const typeSizeBodyLarge: string;
 /** Regular - body, metadata, code. */
 export const typeWeightRegular: number;
 /** Medium - labels, display headings. */
@@ -405,6 +437,8 @@ export const typeRoleMetadata: string;
 export const typeRoleCode: string;
 /** Numeric and tabular data. Carries the namespaced com.momoi-labs.kiso.fontVariantNumeric extension (tabular-nums), emitted by the formatter as the global --font-variant-numeric feature token. */
 export const typeRoleNumeric: string;
+/** Optional larger reading text. */
+export const typeRoleBodyLarge: string;
 /** Hairline gaps: segmented-control padding, stacked label/value pairs. */
 export const spacing2xs: string;
 /** Tight internal padding, icon gaps. */
@@ -465,6 +499,8 @@ export const sizeControlSm: string;
 export const sizeControlMd: string;
 /** Primary calls to action, table row height. */
 export const sizeControlLg: string;
+/** Optional large controls for guided forms and prominent input. */
+export const sizeControlXl: string;
 /** WCAG 2.2 target-size minimum. Apply only inside @media (pointer: coarse) — as a min-height on top of a control size, never as the control size itself. */
 export const sizeTouchMin: string;
 /** Icons inside labels, badges and xs controls. */

@@ -18,9 +18,8 @@ carousel, or substitute for clear everyday UI.
   [ValidationMessage](../components/validation-message.md) handle failures at
   their proper scope. Skeleton or a loading Button handles pending work.
 
-The issue calls the progress composition “Steps”, but Kiso has no Steps
-component. Represent progress as a semantic ordered list with current and
-completed text states; do not invent a new component in this pattern.
+Use [Steps](../components/steps.md) for progress and the
+[guided-flow pattern](guided-flow.md) for responsive navigation and focus.
 
 Cards use `--color-card`, `--color-border`, `--radius-surface`, and semantic
 spacing. Current-step emphasis uses `--color-primary`; completed status may use

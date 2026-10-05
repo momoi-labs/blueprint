@@ -89,3 +89,9 @@ or raw values.
 Maps to [shadcn/ui Textarea](https://ui.shadcn.com/docs/components/textarea),
 which styles native `textarea`. Radix has no Textarea primitive; Kiso preserves
 the native element's interaction and accessibility model.
+
+## Extra-large input
+
+`controlSize="xl"` opts into 18px text and `--spacing-lg` padding.
+The textarea retains its multiline height, native `rows` and resize behavior.
+The minimum is `--size-control-xl`; it is not a fixed single-line height.

@@ -2,7 +2,7 @@
 import * as React from "react"
 import { clsx as cn } from "clsx"
 
-type InputProps = React.ComponentProps<"input"> & { controlSize?: "sm" | "md" | "lg" }
+type InputProps = React.ComponentProps<"input"> & { controlSize?: "sm" | "md" | "lg" | "xl" }
 
 function Input({ className, type, controlSize, ...props }: InputProps) {
   return (
