@@ -1,5 +1,25 @@
 # @momoi-labs/kiso-react
 
+## 0.12.0
+
+### Minor Changes
+
+- 843c554: Add generic guided-input controls, 56px sizes, plain headers, and the Tangerine accent in both themes.
+  
+  With `data-frame-scope="all"`, Square corners now also square controls,
+  switches included, and Manga and Brush draw controls with the panels' irregular
+  contour instead of a compact outline.
+- b98c6b8: Slide the selection marker of Tabs, Segmented tracks, ThemeSelector buttons,
+  Sidebar navigation and Navigation rows to the newly selected item where CSS
+  anchor positioning is supported. The resting look is unchanged. Other
+  browsers, right-to-left layouts and reduced motion keep the instant change.
+
+### Patch Changes
+
+- Updated dependencies [843c554]
+- Updated dependencies [b98c6b8]
+  - @momoi-labs/kiso@0.16.0
+
 ## 0.11.1
 
 ### Patch Changes
