@@ -30,11 +30,14 @@ jobs:
       - run: npm run check
       - run: npm run check:react
       - name: Open the version PR or publish merged versions
-        uses: changesets/action@v1
+        # v2 reads the tag events Changesets 3 writes; v1 parsed the old CLI log.
+        uses: changesets/action@v2.1.2
         with:
-          version: npm run version:packages
-          publish: npm run release
-          title: "chore: release kiso"
-          commit: "chore: release kiso"
+          version-script: npm run version:packages
+          publish-script: npm run release
+          pr-title: "chore: release kiso"
+          commit-message: "chore: release kiso"
+      - name: Require a tag and release for every published version
+        run: node scripts/check-release-tags.mjs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
