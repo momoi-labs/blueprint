@@ -12,9 +12,12 @@ type TableProps = React.ComponentProps<"table"> & {
 function TableFrame({
   className,
   frame = "default",
+  children,
   ...props
 }: React.ComponentProps<"div"> & { frame?: "default" | "none" }) {
-  return <div data-slot="table-frame" data-frame={frame} className={cn("table-wrap", className)} {...props} />
+  return <div data-slot="table-frame" data-frame={frame} className={cn("table-wrap", className)} {...props}>
+    <div className="table-surface">{children}</div>
+  </div>
 }
 
 function Table({ className, density, header, ...props }: TableProps) {

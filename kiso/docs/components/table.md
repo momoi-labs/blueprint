@@ -119,6 +119,27 @@ consumers that own `.table-wrap` do not gain a second frame. Replace that
 wrapper with TableFrame when a React prop is useful. Keep the scroll container
 inside the frame so rounding clips cell backgrounds without clipping marks.
 
+TableFrame groups its children in `.table-surface`. This layer fills the frame
+and clips the header, rows, toolbar, and pagination to the same contour.
+`.table-scroll` still owns row scrolling. Put layout classes and refs on
+TableFrame as before; target `.table-scroll` for row scrolling.
+
+CSS consumers with toolbar or footer siblings use the same grouping:
+
+```html
+<div class="table-wrap">
+  <div class="table-surface">
+    <div class="table-toolbar"><!-- Filters --></div>
+    <div class="table-scroll"><table class="table"><!-- Rows --></table></div>
+    <div class="table-footer"><!-- Pagination --></div>
+  </div>
+</div>
+```
+
+A standalone `.table-scroll` directly inside `.table-wrap` remains supported.
+Keep padding on cells and controls so their backgrounds and separators reach
+the frame edges. Do not inset the scroller to make room for decorative corners.
+
 ### Grouped comparisons and inline details
 
 Give each section its own heading and labelled table. Keep column widths

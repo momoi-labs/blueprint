@@ -156,10 +156,10 @@
   transform: translate(-50%, -50%);
   width: min(32rem, calc(100vw - 2 * var(--spacing-lg)));
   --frame-fill: var(--color-elevated-surface);
-  background: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * 100%), transparent);
-  border: 1px var(--appearance-panel-border, solid) var(--color-border);
+  background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
   border-radius: var(--appearance-corners, var(--radius-surface));
-  box-shadow: var(--appearance-frame-shadow, var(--shadow-md));
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md)));
 }
 .dialog-scroll {
   max-height: calc(100dvh - 2 * var(--spacing-xl));
@@ -344,9 +344,9 @@
   display: flex;
   flex-direction: column;
   --frame-fill: var(--color-elevated-surface);
-  background: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * 100%), transparent);
-  border: 1px var(--appearance-panel-border, solid) var(--color-border);
-  box-shadow: var(--appearance-frame-shadow, var(--shadow-md));
+  background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md)));
 }
 .kiso-react-drawer[data-placement="side"] {
   inset-block: 0;
@@ -366,6 +366,13 @@
 .kiso-react-drawer [data-slot="dialog-body"] {
   flex: 1 1 auto;
   overflow-y: auto;
+}
+
+@media (forced-colors: active) {
+  .kiso-react-dialog, .kiso-react-drawer {
+    background: Canvas;
+    border-color: CanvasText;
+  }
 }
 
 .kiso-react-palette {

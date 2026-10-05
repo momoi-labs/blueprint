@@ -46,6 +46,7 @@ import {
   Input,
   Label,
   Table,
+  TableFrame,
   TableBody,
   TableCell,
   TableHead,
@@ -261,7 +262,7 @@ function WorkspacePreview({
 
 function ProjectTable({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="table-wrap">
+    <TableFrame>
       <Table aria-label="Sample projects">
         <TableHeader>
           <TableRow>
@@ -322,7 +323,7 @@ function ProjectTable({ compact = false }: { compact?: boolean }) {
           ))}
         </TableBody>
       </Table>
-      <div className="layout-table-footer">
+      <div className="table-footer layout-table-footer">
         <span>Showing 5 of 24 projects</span>
         <div className="layout-inline">
           <Button size="xs" disabled>
@@ -332,7 +333,7 @@ function ProjectTable({ compact = false }: { compact?: boolean }) {
           <Button size="xs">Next</Button>
         </div>
       </div>
-    </div>
+    </TableFrame>
   );
 }
 
