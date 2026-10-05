@@ -1,5 +1,14 @@
 # @momoi-labs/kiso-react
 
+## 0.11.1
+
+### Patch Changes
+
+- 6e7f47d: Fill table and form frames to their contours, retain Pixel panel bands and
+  overlays, and respect control frame scopes.
+- Updated dependencies [6e7f47d]
+  - @momoi-labs/kiso@0.15.2
+
 ## 0.11.0
 
 ### Minor Changes
