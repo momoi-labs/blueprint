@@ -42,6 +42,11 @@ large scales. The host layout controls available panel width.
 | active | Selected Tab has `aria-selected="true"` and controls the visible panel. |
 | disabled | Tab remains identifiable with `aria-disabled="true"` and `--color-disabled`, but cannot be selected. |
 
+When the selection changes, the underline slides to the newly selected Tab on
+`--motion-duration-fast` and `--motion-easing-standard`. It moves without the
+slide in browsers without CSS anchor positioning, in right-to-left strips, and
+under reduced motion.
+
 ## Accessibility
 
 Use `tablist`, `tab`, and `tabpanel` roles with `aria-controls` /

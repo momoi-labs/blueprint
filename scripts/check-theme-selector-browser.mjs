@@ -44,7 +44,11 @@ for (const variant of ['compact', 'cards']) for (const width of [320, 390, 1280]
         assert.equal(await group.getByRole('radio', { checked: true }).getAttribute('aria-label'), name);
         assert.equal(await radios.evaluateAll(elements => elements.filter(element => element.tabIndex === 0).length), 1);
         assert.equal(await group.locator('[tabindex="0"]').getAttribute('aria-label'), name);
-        if (variant === 'compact') assert(await group.getByRole('radio', { checked: true }).evaluate(element => getComputedStyle(element).boxShadow !== 'none'), 'The selected option retains its raised chip style');
+        // With anchor positioning the track draws the chip; otherwise the selected option does.
+        if (variant === 'compact') assert(await group.evaluate(element => {
+          const chip = getComputedStyle(element, '::before');
+          return (chip.content === 'none' ? getComputedStyle(element.querySelector('[aria-checked="true"]')) : chip).boxShadow !== 'none';
+        }), 'The selected option retains its raised chip style');
         else {
           await group.evaluate(element => Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished)));
           assert.notEqual(await group.getByRole('radio', { checked: true }).evaluate(element => getComputedStyle(element).backgroundColor), await group.getByRole('radio', { checked: false }).first().evaluate(element => getComputedStyle(element).backgroundColor), 'The selected card has a distinct surface');

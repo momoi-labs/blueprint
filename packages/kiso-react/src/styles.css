@@ -21,6 +21,26 @@
   color: var(--color-foreground);
   box-shadow: var(--shadow-xs);
 }
+/* The same sliding chip as the Segmented track in ui.css. Its corners follow
+   the control corners, which the appearance settings can make asymmetric. */
+@supports (anchor-name: --theme-selected) {
+  .theme-buttons:dir(ltr) { position: relative; isolation: isolate; }
+  .theme-buttons:dir(ltr) .btn[aria-checked="true"] {
+    anchor-name: --theme-selected;
+    background: transparent;
+    box-shadow: none;
+  }
+  .theme-buttons:dir(ltr):has(.btn[aria-checked="true"])::before {
+    content: ""; position: absolute; z-index: -1;
+    position-anchor: --theme-selected;
+    inset: anchor(inside);
+    border-radius: var(--appearance-control-corners, var(--radius-md));
+    background: var(--color-card);
+    box-shadow: var(--shadow-xs);
+    pointer-events: none;
+    transition: inset var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+}
 .theme-selector-cards { display: grid; gap: var(--spacing-md); min-width: 0; }
 .theme-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: var(--spacing-md); }
 .theme-cards .theme-card {

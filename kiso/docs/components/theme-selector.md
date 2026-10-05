@@ -80,8 +80,10 @@ Track `--color-muted`, border `--color-border`, radius `--radius-lg`, padding
 radius `--radius-md`, text `--color-muted-foreground`, icon `--size-icon-sm`.
 
 The selected option takes `--color-card`, `--color-foreground`, and
-`--shadow-xs` — a raised chip inside a recessed track. Transition on
-`--motion-duration-fast` / `--motion-easing-standard`.
+`--shadow-xs` — a raised chip inside a recessed track. When the value
+changes, the chip slides along the track on `--motion-duration-fast` /
+`--motion-easing-standard`. It moves without the slide in browsers without CSS
+anchor positioning, in right-to-left layouts, and under reduced motion.
 
 Cards use `--spacing-sm` for padding and internal gaps, `--spacing-md` between
 options, `--radius-md` for corners, and `--color-border` for outlines. The
