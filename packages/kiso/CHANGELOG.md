@@ -1,5 +1,18 @@
 # @momoi-labs/kiso
 
+## 0.15.1
+
+### Patch Changes
+
+- d7e68b5: Apply the appearance settings to ChipInput and FilterInput boxes as to other
+  fields. With Pixel corners, checkboxes and switches use stepped shapes, Pixel
+  controls drop the rectangular drop shadow, and disabled fields keep their
+  disabled surface.
+- 1dc2f02: Draw the focus ring of Input, Select, Textarea, inline FormField frames and
+  ChipInput boxes on the field's own edge instead of 2px outside it. With Pixel
+  corners the ring follows the stepped contour. Invalid fields keep the danger
+  color while focused.
+
 ## 0.15.0
 
 ### Minor Changes
