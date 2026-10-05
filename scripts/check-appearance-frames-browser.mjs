@@ -110,7 +110,9 @@ test('Fields, structured inputs and grouped actions retain their frame scope and
       ]) {
         await field.fill('Retained'); await field.focus();
         const style = await page.locator(frame).evaluate(el => {
-          const s = getComputedStyle(el); return { radius: s.borderRadius, border: s.borderColor, width: s.borderTopWidth, image: s.backgroundImage, outline: s.outlineColor };
+          const s = getComputedStyle(el), probe = document.body.appendChild(document.createElement('i'));
+          probe.style.color = 'var(--color-focus)'; const focus = getComputedStyle(probe).color; probe.remove();
+          return { radius: s.borderRadius, border: s.borderColor, width: s.borderTopWidth, image: s.backgroundImage, outline: s.outlineColor, clip: s.clipPath, focus };
         });
         assert.equal(await field.inputValue(), 'Retained');
         if (scope !== 'all') {
@@ -120,7 +122,14 @@ test('Fields, structured inputs and grouped actions retain their frame scope and
           assert(style.image.includes('linear-gradient'));
           assert.equal(style.border, 'rgba(0, 0, 0, 0)', `${frame}: Pixel has no rectangular border`);
           assert.equal(style.outline, 'rgba(0, 0, 0, 0)', `${frame}: focus follows the stepped edge`);
-        } else assert.equal(style.width, '2px', `${border}: fields use the compact heavy outline`);
+        } else {
+          assert.equal(style.width, '3px', `${frame}/${border}: the field border is the ink`);
+          assert(style.clip.startsWith('polygon('), `${frame}/${border}: fields use the irregular control contour`);
+          // Border colors transition, so wait for the focused ink to settle.
+          await page.waitForFunction(({ frame, focus }) => getComputedStyle(document.querySelector(frame)).borderTopColor === focus, { frame, focus: style.focus }, { timeout: 2000 })
+            .catch(() => assert.fail(`${frame}/${border}: focus turns the ink to the focus color`));
+          assert.equal(style.outline, 'rgba(0, 0, 0, 0)', `${frame}/${border}: no ring is clipped by the contour`);
+        }
       }
       await filters.fill('');
     }
@@ -213,6 +222,33 @@ for (const [shape, panel, control] of [['square', [0, 0], [4, 4]], ['soft', [8, 
     }
     await page.evaluate(() => { document.documentElement.dataset.cornerSize = 'off'; document.querySelector('#nested').dataset.cornerSize = 'medium'; });
     assert.deepEqual(await page.locator('#nested .card').evaluate(radii), panel, 'A nested corner size can restore rounding');
+  } finally { await page.close(); }
+});
+
+test('Square controls are square only when frames include controls', async () => {
+  const page = await open('corners=square');
+  try {
+    for (const [scope, expected] of [['all', [0, 0]], ['panels', [4, 4]], ['outer', [4, 4]]]) for (const size of ['small', 'medium', 'large']) {
+      await page.evaluate(({ scope, size }) => Object.assign(document.documentElement.dataset, { frameScope: scope, cornerSize: size }), { scope, size });
+      for (const selector of ['#sample .field-control', '#sample button']) assert.deepEqual(await page.locator(selector).evaluate(radii), expected, `${scope}/${size}: ${selector}`);
+    }
+  } finally { await page.close(); }
+});
+
+test('Square switches are square only when frames include controls', async () => {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 400 } });
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.goto(`${url}?controls&corners=square`); await page.locator('#controls').waitFor();
+  try {
+    for (const [scope, expected] of [['all', '0px'], ['panels', '9999px']]) {
+      await page.evaluate(scope => document.documentElement.dataset.frameScope = scope, scope);
+      const shapes = await page.evaluate(() => {
+        const radius = (el, pseudo) => getComputedStyle(el, pseudo).borderTopLeftRadius;
+        const react = document.querySelector('button[data-slot="switch"]'), native = document.querySelector('.switch input');
+        return [radius(react), radius(react.querySelector('[data-slot="switch-thumb"]')), radius(native), radius(native, '::after')];
+      });
+      assert.deepEqual(shapes, Array(4).fill(expected), `${scope}: switch tracks and thumbs`);
+    }
   } finally { await page.close(); }
 });
 
