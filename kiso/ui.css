@@ -753,6 +753,9 @@ select.select option:disabled { color: var(--color-disabled); }
 /* Scrolling moves to the inner element so the corner marks, which sit just
    outside the frame, are not clipped away. */
 .table-wrap > .table-scroll { overflow: auto; border-radius: inherit; }
+.table-surface { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; border-radius: inherit; overflow: hidden; }
+.table-surface > .table-scroll { flex: 1; min-height: 0; overflow: auto; }
+.table-surface > :is(.table-toolbar, .table-footer) { flex: none; }
 table.table {
   --table-cell-block: var(--spacing-sm);
   --table-cell-inline: var(--spacing-md);
@@ -792,7 +795,7 @@ table.table {
   height: var(--table-row-height);
 }
 .table > tbody > .table-detail > td { padding: var(--spacing-lg); height: auto; white-space: normal; }
-.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:nth-last-child(1 of :not([hidden])) td { border-bottom: 0; }
 .table tbody tr:hover { background: var(--color-accent-surface); }
 .table tbody tr[aria-selected="true"] { background: var(--color-selected); }
 .table .num { text-align: end; font-variant-numeric: tabular-nums; }
@@ -1580,8 +1583,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-expressive: 0;
   --appearance-brush: 0;
   --appearance-band-content: none;
-  --appearance-footer-clip: none;
-  --appearance-header-clip: none;
+  --appearance-footer-clip: initial;
+  --appearance-header-clip: initial;
   --appearance-header-position: sticky;
 }
 [data-border-style="square"], [data-border-style="solid"], [data-border-style="none"],
@@ -2031,6 +2034,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
   --pixel-step: round(calc(4px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  --pixel-inner-r: max(0px, calc(var(--pixel-r) - 1px));
+  --pixel-inner-step: max(0px, calc(var(--pixel-step) - 1px));
+  --pixel-header-clip: polygon(var(--pixel-inner-r) 0, calc(100% - var(--pixel-inner-r)) 0, calc(100% - var(--pixel-inner-r)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-r), 100% var(--pixel-inner-r), 100% 100%, 0 100%, 0 var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-step), var(--pixel-inner-r) var(--pixel-inner-step));
+  --pixel-footer-clip: polygon(0 0, 100% 0, 100% calc(100% - var(--pixel-inner-r)), calc(100% - var(--pixel-inner-step)) calc(100% - var(--pixel-inner-r)), calc(100% - var(--pixel-inner-step)) calc(100% - var(--pixel-inner-step)), calc(100% - var(--pixel-inner-r)) calc(100% - var(--pixel-inner-step)), calc(100% - var(--pixel-inner-r)) 100%, var(--pixel-inner-r) 100%, var(--pixel-inner-r) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-r)), 0 calc(100% - var(--pixel-inner-r)));
   --frame-line: var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
   border-color: color-mix(in srgb, var(--frame-line) calc((1 - var(--pixel-enabled)) * 100%), transparent);
   background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--pixel-enabled)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
@@ -2049,11 +2056,13 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --frame-fill: var(--color-background); }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre) {
   --appearance-pixel: 0; --appearance-expressive: 0;
-  --appearance-band-content: none; --appearance-footer-clip: none;
+  --appearance-panel-border: none;
+  --appearance-frame-shadow: none;
+  --appearance-band-content: none; --appearance-footer-clip: none; --appearance-ink-clip: none;
   border: 0; border-radius: 0; box-shadow: none;
 }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
-:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input, .select, .textarea, .field-control, .chip-input-box) { border-radius: 4px; }
+:where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box) { border-radius: 4px; }
 :where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::after { content: none; }
 /* Compact guides stay inside native controls, away from focus indicators. */
 :where([data-mark-scope="all"]) :is(.btn-outline:not(.btn-xs), .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box) {
@@ -2620,18 +2629,52 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --color-subtle-foreground: var(--color-foreground);
 }
 
-/* Solid footer and header bands must not fill the pixel cutouts. */
-:where([data-corner-style="pixel"]) :is(.card-footer, .dialog-footer) {
-  background-color: color-mix(in srgb, var(--color-muted) calc((1 - var(--pixel-enabled, 0)) * 100%), transparent);
+/* The scroller fills the frame. Clip its paint at the stepped corners instead
+   of insetting every header, row and separator by the corner size. */
+:where([data-corner-style="pixel"]) .table-wrap > :is(.table-scroll, .table-surface) {
+  --table-top-r: max(0px, calc(var(--pixel-r, 0px) - 1px));
+  --table-top-step: max(0px, calc(var(--pixel-step, 0px) - 1px));
+  --table-bottom-r: var(--table-top-r);
+  --table-bottom-step: var(--table-top-step);
+  clip-path: polygon(
+    var(--table-top-r) 0, calc(100% - var(--table-top-r)) 0,
+    calc(100% - var(--table-top-r)) var(--table-top-step), calc(100% - var(--table-top-step)) var(--table-top-step),
+    calc(100% - var(--table-top-step)) var(--table-top-r), 100% var(--table-top-r),
+    100% calc(100% - var(--table-bottom-r)), calc(100% - var(--table-bottom-step)) calc(100% - var(--table-bottom-r)),
+    calc(100% - var(--table-bottom-step)) calc(100% - var(--table-bottom-step)), calc(100% - var(--table-bottom-r)) calc(100% - var(--table-bottom-step)),
+    calc(100% - var(--table-bottom-r)) 100%, var(--table-bottom-r) 100%,
+    var(--table-bottom-r) calc(100% - var(--table-bottom-step)), var(--table-bottom-step) calc(100% - var(--table-bottom-step)),
+    var(--table-bottom-step) calc(100% - var(--table-bottom-r)), 0 calc(100% - var(--table-bottom-r)),
+    0 var(--table-top-r), var(--table-top-step) var(--table-top-r),
+    var(--table-top-step) var(--table-top-step), var(--table-top-r) var(--table-top-step)
+  );
+}
+/* Forms own their scroller; their action bar reaches the panel's bottom edge. */
+:where([data-corner-style="pixel"]) :is(.card, .dialog, .marked) > .form:last-child,
+:where([data-corner-style="pixel"]) .detail-tabs [role="tabpanel"] {
+  clip-path: var(--appearance-footer-clip, var(--pixel-footer-clip, none));
 }
 :where([data-corner-style="pixel"], [data-outer-corner-style="pixel"]) .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar {
-  background-color: color-mix(in srgb, var(--color-background) calc((1 - var(--pixel-enabled, 0)) * 100%), transparent);
+  clip-path: var(--pixel-header-clip, none);
 }
+.table-wrap > .table-scroll:not(:first-child) { --table-top-r: 0px; --table-top-step: 0px; }
+.table-wrap > .table-scroll:not(:last-child) { --table-bottom-r: 0px; --table-bottom-step: 0px; }
+.table-wrap[data-frame="none"] { --pixel-enabled: 0; --pixel-r: 0px; --pixel-step: 0px; --appearance-expressive: 0; background: transparent; }
 
-:where([data-corner-style="pixel"]) .table-wrap > .table-scroll {
-  margin: var(--pixel-r, 0px);
-  max-width: calc(100% - 2 * var(--pixel-r, 0px));
+/* Content and ink use the same rectangle and contour. Keep the ink above the
+   cells, and the marks on the outer frame, outside the clipped content. */
+:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap > :is(.table-surface, .table-scroll:only-child),
+:where([data-border-style="manga"], [data-border-style="brush"]) .card > .form:only-child {
+  margin: calc(var(--appearance-expressive, 0) * var(--appearance-overlay-inset, 0px));
+  background: var(--frame-fill);
+  clip-path: var(--appearance-ink-clip, none);
 }
+:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap:has(> :is(.table-surface, .table-scroll:only-child))::before,
+:where([data-border-style="manga"], [data-border-style="brush"]) .card:has(> .form:only-child)::before {
+  background-color: transparent;
+  z-index: 3;
+}
+.table-wrap[data-frame="none"] > :is(.table-surface, .table-scroll) { margin: 0; background: transparent; clip-path: none; }
 
 /* Pattern placement uses a single layer, including the Momoi signature. */
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
@@ -2671,8 +2714,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 /* Paint footer bands against the panel's full contour. The footer clips only
    the band above its own row; its padding keeps control focus rings clear. */
 :is(.card, .dialog, .marked) > :is(.card-footer, .dialog-footer) {
-  clip-path: var(--appearance-footer-clip, none);
-  background-color: color-mix(in srgb, var(--color-muted) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+  clip-path: var(--appearance-footer-clip, var(--pixel-footer-clip, none));
+  background-color: color-mix(in srgb, var(--color-muted) calc((1 - var(--appearance-expressive, 0)) * 100%), transparent);
 }
 :is(.card, .dialog, .marked) > :is(.card-footer, .dialog-footer)::before {
   content: var(--appearance-band-content, none);
@@ -2694,7 +2737,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
     --shell-band-content: var(--appearance-band-content, none);
     --shell-header-position: var(--appearance-header-position, sticky);
-    --shell-header-clip: var(--appearance-header-clip, none);
+    --shell-header-clip: var(--appearance-header-clip, var(--pixel-header-clip, none));
     --shell-ink-inset: var(--appearance-overlay-inset);
     --shell-ink-clip: var(--appearance-ink-clip);
     --shell-ink-images: var(--appearance-ink-images);
@@ -2707,7 +2750,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     --header-fill: var(--color-background);
     position: var(--shell-header-position);
     clip-path: var(--shell-header-clip);
-    background-color: color-mix(in srgb, var(--header-fill) calc((1 - var(--shell-expressive)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
+    background-color: color-mix(in srgb, var(--header-fill) calc((1 - var(--shell-expressive)) * 100%), transparent);
   }
   :where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar { --header-fill: color-mix(in srgb, var(--color-card) 65%, transparent); }
   .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar::before {

@@ -15,6 +15,188 @@ async function open(query) {
   return page;
 }
 const radii = el => { const s = getComputedStyle(el); return [s.borderTopLeftRadius, s.borderTopRightRadius].map(parseFloat); };
+
+for (const theme of ['light', 'dark']) test(`Table bands and separators fill every contour in ${theme}`, async () => {
+  const page = await open(`contents&theme=${theme}&corners=pixel&frameScope=all&marks=ticks`);
+  try {
+    await page.evaluate(() => {
+      document.documentElement.style.cssText = '--color-card:rgb(16,16,16);--color-muted:rgb(80,80,80);--color-border:rgb(240,0,240);--color-foreground:rgb(240,0,240)';
+    });
+    for (const border of ['solid', 'manga', 'brush', 'double', 'dash', 'rail', 'base', 'offset', 'none']) {
+      for (const size of ['small', 'medium', 'large']) {
+        await page.evaluate(({ border, size }) => {
+          Object.assign(document.documentElement.dataset, { borderStyle: border, cornerStyle: ['solid', 'manga', 'brush'].includes(border) ? 'pixel' : 'rounded', cornerSize: size, frameDetail: size });
+        }, { border, size });
+        for (const id of ['plain-table', 'chrome-table']) {
+          const geometry = await page.locator(`#${id}`).evaluate(el => {
+            const content = el.querySelector('.table-surface') || el.querySelector('.table-scroll');
+            const frame = el.getBoundingClientRect(), box = content.getBoundingClientRect(), s = getComputedStyle(el);
+            const ink = getComputedStyle(el, '::before');
+            return { left: box.left - frame.left, right: frame.right - box.right, border: parseFloat(s.borderLeftWidth), ink: parseFloat(ink.left) || 0 };
+          });
+          const expected = geometry.border + (['manga', 'brush'].includes(border) ? geometry.ink : 0);
+          assert(Math.abs(geometry.left - expected) < 1 && Math.abs(geometry.right - expected) < 1, `${id}/${border}/${size}: content reaches both frame edges: ${JSON.stringify(geometry)}`);
+        }
+        const table = page.locator('#plain-table');
+        await table.scrollIntoViewIfNeeded();
+        if (['solid', 'manga', 'brush'].includes(border)) {
+          // Distinguish header, body, and ink so a body-colored rim cannot pass.
+          const box = await table.boundingBox(), head = await table.locator('thead').boundingBox();
+          const clip = { x: Math.floor(box.x - 16), y: Math.floor(box.y - 16), width: Math.ceil(box.width + 32), height: Math.ceil(box.height + 32) };
+          const png = await page.screenshot({ clip });
+          const pixels = await page.evaluate(async ({ source, y, line }) => {
+            const image = new Image(); image.src = source; await image.decode();
+            const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+            const at = (x, row) => [...ctx.getImageData(x, row, 1, 1).data].slice(0, 3);
+            const ink = rgb => rgb[0] > 150 && rgb[1] < 80 && rgb[2] > 150;
+            const hits = Array.from({ length: canvas.width }, (_, x) => x).filter(x => ink(at(x, y)));
+            const left = hits[0], right = hits.at(-1);
+            const leftInkEnd = Array.from({ length: 16 }, (_, n) => left + n).find(x => !ink(at(x, y)));
+            const rightInkEnd = Array.from({ length: 16 }, (_, n) => right - n).find(x => !ink(at(x, y)));
+            const separator = Math.max(...[-1, 0, 1].map(dy => Array.from({ length: right - left - 8 }, (_, n) => left + n + 4).filter(x => ink(at(x, line + dy))).length));
+            return { left: at(leftInkEnd + 1, y), right: at(rightInkEnd - 1, y), separator, span: right - left - 8 };
+          }, { source: `data:image/png;base64,${png.toString('base64')}`, y: Math.floor(head.y + head.height / 2 - clip.y), line: Math.round(head.y + head.height - clip.y) });
+          for (const edge of [pixels.left, pixels.right]) assert(edge.every(value => Math.abs(value - 80) <= 3), `${border}/${size}: header has no rim, got ${JSON.stringify(pixels)}`);
+          assert(pixels.separator >= pixels.span - 2, `${border}/${size}: separator reaches the ink, got ${JSON.stringify(pixels)}`);
+        }
+      }
+    }
+    const toggle = page.locator('#plain-table').getByRole('button', { name: 'work_mem' });
+    await toggle.focus(); await page.keyboard.press('Enter');
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    assert(await page.locator('#plain-table').getByRole('link', { name: 'Memory details' }).isVisible());
+    await page.keyboard.press('Space');
+    assert.equal(await page.locator('#plain-table tbody tr:nth-child(2) td').first().evaluate(el => getComputedStyle(el).borderBottomWidth), '0px', 'A hidden detail row does not leave a second bottom border');
+  } finally { await page.close(); }
+});
+
+test('Frameless tables and frame scopes remove content decoration without losing scroll or controls', async () => {
+  const page = await open('contents&frameless&corners=pixel&frameScope=all');
+  try {
+    for (const border of ['solid', 'manga', 'brush']) for (const scope of ['all', 'panels', 'outer']) {
+      await page.evaluate(({ border, scope }) => Object.assign(document.documentElement.dataset, { borderStyle: border, frameScope: scope }), { border, scope });
+      const surface = await page.locator('#plain-table .table-surface').evaluate(el => {
+        const s = getComputedStyle(el); return [s.margin, s.clipPath, s.backgroundColor];
+      });
+      assert.deepEqual(surface, ['0px', 'none', 'rgba(0, 0, 0, 0)']);
+      if (scope === 'outer') assert.equal(await page.locator('#chrome-table .table-surface').evaluate(el => getComputedStyle(el).margin), '0px');
+    }
+    for (const width of [320, 390, 1200]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.locator('#chrome-table table').evaluate(el => { el.style.minWidth = '120rem'; });
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      const scroller = page.locator('#chrome-table .table-scroll');
+      await scroller.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+      assert(await scroller.evaluate(el => el.scrollLeft > 0), `${width}: wide rows scroll inside the frame`);
+      await page.getByRole('button', { name: 'Next page' }).click();
+    }
+  } finally { await page.close(); }
+});
+
+test('Fields, structured inputs and grouped actions retain their frame scope and keyboard operation', async () => {
+  const page = await open('contents&corners=pixel&frameScope=all&marks=none');
+  try {
+    const dependencies = page.getByRole('combobox', { name: 'Dependencies', exact: true });
+    const filters = page.getByRole('combobox', { name: 'Filters', exact: true });
+    for (const border of ['solid', 'manga', 'brush']) for (const scope of ['all', 'panels', 'outer']) {
+      await page.evaluate(({ border, scope }) => Object.assign(document.documentElement.dataset, { borderStyle: border, frameScope: scope }), { border, scope });
+      for (const [field, frame] of [
+        [page.getByRole('textbox', { name: 'Name', exact: true }), '#fields > .input'],
+        [page.getByRole('textbox', { name: 'Notes', exact: true }), '#fields > .textarea'],
+        [page.getByRole('textbox', { name: 'RAM', exact: true }), '#fields .field-control'],
+        [dependencies, '#fields > .chip-input .chip-input-box'],
+        [filters, '#fields .filter-box'],
+      ]) {
+        await field.fill('Retained'); await field.focus();
+        const style = await page.locator(frame).evaluate(el => {
+          const s = getComputedStyle(el); return { radius: s.borderRadius, border: s.borderColor, width: s.borderTopWidth, image: s.backgroundImage, outline: s.outlineColor };
+        });
+        assert.equal(await field.inputValue(), 'Retained');
+        if (scope !== 'all') {
+          assert.equal(style.radius, '4px', `${frame}/${border}/${scope}: controls keep standard corners`);
+          assert.equal(style.width, '1px');
+        } else if (border === 'solid') {
+          assert(style.image.includes('linear-gradient'));
+          assert.equal(style.border, 'rgba(0, 0, 0, 0)', `${frame}: Pixel has no rectangular border`);
+          assert.equal(style.outline, 'rgba(0, 0, 0, 0)', `${frame}: focus follows the stepped edge`);
+        } else assert.equal(style.width, '2px', `${border}: fields use the compact heavy outline`);
+      }
+      await filters.fill('');
+    }
+    await page.getByRole('button', { name: 'Edit version', exact: true }).click();
+    const editor = page.getByRole('textbox', { name: 'Edit version', exact: true });
+    await editor.fill('22'); await editor.press('Enter');
+    assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).textContent(), '22');
+    await page.getByRole('button', { name: 'Remove node', exact: true }).click();
+    assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).count(), 0);
+    await filters.fill('status=active'); await filters.press('Enter');
+    assert.equal(await filters.inputValue(), '');
+    assert(await page.locator('.filter-chip').count() > 0);
+    for (const name of ['Previous', 'Following', 'Stop']) {
+      const button = page.getByRole('button', { name, exact: true }); await button.focus(); await button.press('Enter');
+      assert(await button.evaluate(el => el === document.activeElement));
+    }
+  } finally { await page.close(); }
+});
+
+test('Pixel footer bands retain their fill and leave the corner cutouts clear', async () => {
+  const page = await open('contents&corners=pixel&frameScope=all&marks=none');
+  try {
+    await page.locator('#band-card').evaluate(el => {
+      el.style.cssText = '--color-muted:rgb(80,80,80);--color-card:rgb(16,16,16);--color-border:rgb(240,0,240)';
+    });
+    await page.evaluate(() => {
+      document.body.style.background = 'rgb(200,200,200)';
+      document.querySelector('#form-card').style.cssText = '--color-warning-surface:rgb(80,80,80);--color-card:rgb(16,16,16)';
+    });
+    for (const size of ['small', 'medium', 'large']) {
+      await page.evaluate(size => document.documentElement.dataset.cornerSize = size, size);
+      for (const selector of ['#band-card .card-footer', '#form-card .form-actions']) {
+        const footer = page.locator(selector);
+        await footer.scrollIntoViewIfNeeded();
+        const box = await footer.boundingBox(), png = await footer.screenshot();
+        const pixel = await page.evaluate(async source => {
+          const image = new Image(); image.src = source; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+          return [Math.floor(canvas.width / 2), 0].map(x => [...ctx.getImageData(x, canvas.height - 2, 1, 1).data].slice(0, 3));
+        }, `data:image/png;base64,${png.toString('base64')}`);
+        assert.deepEqual(pixel[0], [80, 80, 80], `${selector}/${size}: the footer retains its band color`);
+        assert.deepEqual(pixel[1], [200, 200, 200], `${selector}/${size}: fill does not cover the corner cutout`);
+        assert(box.height > 36);
+        const button = footer.getByRole('button'); await button.focus(); await page.keyboard.press('Enter');
+        assert(await button.evaluate(el => { const b = el.getBoundingClientRect(); return el.contains(document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)); }));
+      }
+    }
+  } finally { await page.close(); }
+});
+
+test('React dialogs and drawers retain Pixel paint and obey outer-only scope', async () => {
+  const page = await open('corners=pixel&frameScope=all&size=large');
+  try {
+    for (const kind of ['dialog', 'drawer']) {
+      await page.getByRole('button', { name: `Open ${kind}`, exact: true }).click();
+      const modal = page.getByRole('dialog'); await modal.waitFor();
+      const paint = await modal.evaluate(el => { const s = getComputedStyle(el); return { fill: s.backgroundColor, image: s.backgroundImage, border: s.borderColor, shadow: s.boxShadow }; });
+      assert.match(paint.fill, /(?:\/ 0|, 0\))/);
+      assert(paint.image.includes('linear-gradient'), `${kind}: the React stylesheet retains Pixel fill layers`);
+      assert.match(paint.border, /(?:\/ 0|, 0\))/);
+      assert.equal(paint.shadow, 'none', `${kind}: a rectangular shadow cannot fill the Pixel cutouts`);
+      await page.evaluate(() => document.documentElement.dataset.frameScope = 'outer');
+      assert.equal(await modal.evaluate(el => getComputedStyle(el).borderTopWidth), '0px');
+      assert.equal(await modal.evaluate(el => getComputedStyle(el).boxShadow), 'none');
+      await page.evaluate(() => document.documentElement.dataset.frameScope = 'all');
+      await page.emulateMedia({ forcedColors: 'active' });
+      assert.equal(await modal.evaluate(el => getComputedStyle(el).backgroundImage), 'none');
+      assert.equal(await modal.evaluate(el => getComputedStyle(el).borderTopWidth), '1px');
+      await page.emulateMedia({ forcedColors: 'none' });
+      await page.keyboard.press('Escape'); await modal.waitFor({ state: 'hidden' });
+      await page.waitForFunction(name => document.activeElement?.textContent === name, `Open ${kind}`);
+      await page.evaluate(() => document.documentElement.dataset.frameScope = 'all');
+    }
+  } finally { await page.close(); }
+});
 for (const [shape, panel, control] of [['square', [0, 0], [4, 4]], ['soft', [8, 8], [4, 4]], ['round', [16, 16], [8, 8]], ['rounded', [16, 16], [8, 8]], ['asym', [12, 3], [6, 2]]]) test(`${shape} corners survive independent borders, sizes and nested scopes`, async () => {
   const page = await open(`corners=${shape}`);
   try {

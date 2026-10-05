@@ -3,7 +3,7 @@ import { CreateProjectForm } from "./forms-demo";
 import {
   Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, Form, FormActions, FormField, Lifecycle, LogView, LogViewLevel, LogViewLine,
   LogViewTime, PageHeader, PageHeaderDescription, PageHeaderTitle, Search, Select, SelectContent,
-  SelectItem, SelectTrigger, SelectValue, StatusBadge, Table, TableBody, TableCell, TableHead,
+  SelectItem, SelectTrigger, SelectValue, StatusBadge, Table, TableFrame, TableBody, TableCell, TableHead,
   TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, type StatusTone,
 } from "@momoi-labs/kiso-react";
 
@@ -74,7 +74,7 @@ export function ListScreen({ createFails = false }: { createFails?: boolean }) {
       </Select>
       {filtering ? <Button size="sm" variant="ghost" onClick={() => { setQuery(""); setStatus("all"); }}>Clear filters</Button> : null}
     </div>
-    <div className="table-wrap">
+    <TableFrame>
       <Table>
         <TableHeader><TableRow><TableHead>Project</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
         <TableBody>
@@ -86,7 +86,7 @@ export function ListScreen({ createFails = false }: { createFails?: boolean }) {
         </TableBody>
       </Table>
       <div className="table-footer"><span>{visible.length} of {projects.length} projects</span></div>
-    </div>
+    </TableFrame>
   </>;
 }
 
