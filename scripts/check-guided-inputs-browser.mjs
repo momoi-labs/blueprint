@@ -140,8 +140,8 @@ function luminance(rgb) {
  return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
 }
 function contrast(a, b) { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
-for (const theme of ['light', 'dark']) test(`Tangerine ${theme}: filled text, hover and selected marker contrast`, async () => {
- const page = await open(`theme=${theme}`, { viewport: { width: 390, height: 960 } });
+for (const accent of ['tangerine', 'gold', 'lime']) for (const theme of ['light', 'dark']) test(`${accent} ${theme}: filled text, hover and selected marker contrast`, async () => {
+ const page = await open(`theme=${theme}&accent=${accent}`, { viewport: { width: 390, height: 960 } });
  try {
   const primary = page.locator('#primary');
   for (const hover of [false, true]) {

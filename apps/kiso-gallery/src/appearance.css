@@ -97,6 +97,8 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
   background-color: var(--canvas-mask-color, transparent);
   mask-image: var(--canvas-mask, none);
   mask-size: var(--canvas-size);
+  mask-position: var(--canvas-position);
+  mask-repeat: var(--canvas-repeat);
   background-image: var(--canvas-pattern);
   background-size: var(--canvas-size);
   background-position: var(--canvas-position);

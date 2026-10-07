@@ -97,6 +97,39 @@
   --color-tangerine-900: #502500;
   --color-tangerine-950: #351700;
   --color-tangerine-base: light-dark(#8e3900, #ffab64);
+  --color-red-50: #fdf2f1;
+  --color-red-200: #fbdcda;
+  --color-red-300: #f6bfbc;
+  --color-red-400: #ee9490;
+  --color-red-500: #e0605b;
+  --color-red-600: #c13530;
+  --color-red-700: #a12924;
+  --color-red-800: #7d1c19;
+  --color-red-900: #5a1210;
+  --color-red-950: #3d0908;
+  --color-red-base: light-dark(#a62621, #f08482);
+  --color-gold-50: #fff9e6;
+  --color-gold-200: #fae9b1;
+  --color-gold-300: #f4dfa0;
+  --color-gold-400: #f2c438;
+  --color-gold-500: #d9ad23;
+  --color-gold-600: #a97d08;
+  --color-gold-700: #896100;
+  --color-gold-800: #654700;
+  --color-gold-900: #473100;
+  --color-gold-950: #2f2000;
+  --color-gold-base: light-dark(#745200, #ffd45c);
+  --color-lime-50: #f4fbdc;
+  --color-lime-200: #e5f5bc;
+  --color-lime-300: #cee999;
+  --color-lime-400: #b8f536;
+  --color-lime-500: #94c726;
+  --color-lime-600: #709918;
+  --color-lime-700: #526f00;
+  --color-lime-800: #3f5300;
+  --color-lime-900: #2b3900;
+  --color-lime-950: #1c2600;
+  --color-lime-base: light-dark(#466000, #ceff76);
   --color-background: light-dark(var(--color-neutral-200), var(--color-dark-900));
   --color-surface: light-dark(var(--color-neutral-100), var(--color-dark-800));
   --color-elevated-surface: light-dark(var(--color-white), var(--color-dark-700));
@@ -422,6 +455,66 @@
   --color-accent-surface: light-dark(var(--color-tangerine-50), #362718);
   --color-accent-surface-hover: light-dark(var(--color-tangerine-200), #47311c);
   --color-selected: light-dark(var(--color-tangerine-300), #563a1e);
+}
+
+[data-accent="red"] {
+  --color-accent-50: var(--color-red-50);
+  --color-accent-200: var(--color-red-200);
+  --color-accent-300: var(--color-red-300);
+  --color-accent-400: var(--color-red-400);
+  --color-accent-500: var(--color-red-500);
+  --color-accent-600: var(--color-red-600);
+  --color-accent-700: var(--color-red-700);
+  --color-accent-800: var(--color-red-800);
+  --color-accent-900: var(--color-red-900);
+  --color-accent-950: var(--color-red-950);
+  --color-accent-base: var(--color-red-base);
+  --color-primary: light-dark(var(--color-red-base), #a9272a);
+  --color-primary-hover: light-dark(var(--color-red-800), #c2302f);
+  --color-primary-foreground: light-dark(var(--color-white), #fdf2f1);
+  --color-accent-surface: light-dark(var(--color-red-50), #401716);
+  --color-accent-surface-hover: light-dark(var(--color-red-200), #531d1c);
+  --color-selected: light-dark(var(--color-red-300), #682322);
+}
+
+[data-accent="gold"] {
+  --color-accent-50: var(--color-gold-50);
+  --color-accent-200: var(--color-gold-200);
+  --color-accent-300: var(--color-gold-300);
+  --color-accent-400: var(--color-gold-400);
+  --color-accent-500: var(--color-gold-500);
+  --color-accent-600: var(--color-gold-600);
+  --color-accent-700: var(--color-gold-700);
+  --color-accent-800: var(--color-gold-800);
+  --color-accent-900: var(--color-gold-900);
+  --color-accent-950: var(--color-gold-950);
+  --color-accent-base: var(--color-gold-base);
+  --color-primary: #f2c438;
+  --color-primary-hover: #ffda66;
+  --color-primary-foreground: var(--color-neutral-900);
+  --color-accent-surface: light-dark(var(--color-gold-50), #382e17);
+  --color-accent-surface-hover: light-dark(var(--color-gold-200), #4a3c1c);
+  --color-selected: light-dark(var(--color-gold-300), #382e17);
+}
+
+[data-accent="lime"] {
+  --color-accent-50: var(--color-lime-50);
+  --color-accent-200: var(--color-lime-200);
+  --color-accent-300: var(--color-lime-300);
+  --color-accent-400: var(--color-lime-400);
+  --color-accent-500: var(--color-lime-500);
+  --color-accent-600: var(--color-lime-600);
+  --color-accent-700: var(--color-lime-700);
+  --color-accent-800: var(--color-lime-800);
+  --color-accent-900: var(--color-lime-900);
+  --color-accent-950: var(--color-lime-950);
+  --color-accent-base: var(--color-lime-base);
+  --color-primary: #b8f536;
+  --color-primary-hover: #ceff70;
+  --color-primary-foreground: var(--color-neutral-900);
+  --color-accent-surface: light-dark(var(--color-lime-50), #2b3418);
+  --color-accent-surface-hover: light-dark(var(--color-lime-200), #37441e);
+  --color-selected: light-dark(var(--color-lime-300), #2b3418);
 }
 
 @media (prefers-reduced-motion: reduce) {

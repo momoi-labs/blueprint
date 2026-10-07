@@ -161,10 +161,11 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 ## Accents
 
 The accent is a second axis over the same custom properties, orthogonal to the
-theme. Six accents ship: `violet` (the default), `terracotta`, `teal`,
-`cobalt`, `nocturne`, and `tangerine`. The first four are hue turns: each is a primitive
-ramp (`color.violet.*`, `color.terracotta.*`, and so on) with the same
-lightness per step, so every role keeps the contrast it was gated at.
+theme. Nine accents ship: `violet` (the default), `terracotta`, `teal`,
+`cobalt`, `nocturne`, `tangerine`, `red`, `gold`, and `lime`. The first four are
+hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
+and so on) with the same lightness per step, so every role keeps the contrast
+it was gated at.
 `color.accent.*` is the *active* ramp: an alias layer that points at violet by
 default.
 
@@ -201,16 +202,23 @@ the hue was tried and rejected; at any visible strength it reads as a filter
 over the screen rather than as a colour choice.
 
 Values inside the block still use `light-dark()`, so accent and theme compose
-without a cross product: six accents and two themes are six blocks, not
-twelve. Nesting resets cleanly: a `data-accent="violet"` container inside a
-teal page is violet again.
+without a cross product. Nine accents and two themes need nine blocks.
+Nesting resets cleanly: a `data-accent="violet"` container inside a teal page
+is violet again.
 
 Chart series do not follow the accent. `chart-1` is pinned to the violet ink
 because a terracotta, teal, or cobalt series collapses into the warning, success,
 or info series; see [Categorical chart colors](#categorical-chart-colors).
-Status roles do not follow it either. Red, amber, and green were rejected as
-accents for the same reason: a primary button in the danger hue reads as
-destructive.
+Status roles do not follow it either. The `red` accent keeps the palette used
+by Ficou Combinado. Its primary fill is close to danger in both themes. Use
+explicit action labels to distinguish primary and destructive actions; color
+alone cannot convey their intent.
+
+`gold` uses a golden yellow primary fill (`#f2c438`); `lime` uses a neon lime
+fill (`#b8f536`). Both keep dark button text in both themes. Links, focus rings,
+charts and thin selection marks use separate accent ink to remain readable.
+Their hues sit near Warning and Success. Keep status labels and icons so
+color alone does not carry meaning.
 
 Applications own the choice and its persistence, exactly as with the theme.
 Use [AccentSelector](components/accent-selector.md) for the control.
@@ -463,7 +471,8 @@ Momoi uses the symbol without its badge, at a preferred width of 160px and
 cannot fit it. It uses the same frame margin as other patterns, so changing to
 the watermark does not shrink the frame. Quiet and Visible use 14% and 22%
 opacity on the background layer only.
-`momoi-repeat` is a separate tiled option.
+`momoi-repeat` is a separate tiled option. Both use the SVG as an alpha mask
+painted with `--color-accent-400`, so the motif follows the selected accent.
 
 Patterned canvases use foreground color for secondary text so labels remain
 legible over the pattern. Solid keeps the existing theme typography.

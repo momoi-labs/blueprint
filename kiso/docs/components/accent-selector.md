@@ -3,11 +3,11 @@
 ## Purpose
 
 AccentSelector chooses which accent the interface uses: violet, terracotta,
-teal, cobalt, nocturne, or tangerine. It is the only sanctioned control for that choice. The theme
-(light, dark, system) is a separate axis with its own control,
-[ThemeSelector](theme-selector.md); the two compose.
+teal, cobalt, nocturne, tangerine, red, gold, or lime. It is the only
+sanctioned control for that choice. The theme (light, dark, system) has its
+own control, [ThemeSelector](theme-selector.md); the two compose.
 
-## The six values
+## The nine values
 
 | Value | Meaning | `data-accent` on `<html>` |
 | --- | --- | --- |
@@ -15,6 +15,9 @@ teal, cobalt, nocturne, or tangerine. It is the only sanctioned control for that
 | `terracotta` | Same roles, hue turned to terracotta. Neutrals unchanged. | `data-accent="terracotta"` |
 | `teal` | Same roles, hue turned to teal. Neutrals unchanged. | `data-accent="teal"` |
 | `cobalt` | Same roles, hue turned to cobalt. Neutrals unchanged. | `data-accent="cobalt"` |
+| `gold` | Golden yellow fill and dark text, with separate ink. | `data-accent="gold"` |
+| `lime` | Neon lime fill and dark text, with separate ink. | `data-accent="lime"` |
+| `red` | Red ink and fill, close to the danger color. | `data-accent="red"` |
 | `tangerine` | Bright orange fill and dark text, with separate ink. | `data-accent="tangerine"` |
 | `nocturne` | The marketing site's palette: cool slate neutrals under the violet ink. | `data-accent="nocturne"` |
 
@@ -23,12 +26,12 @@ takes the accent. A nested `data-accent="violet"` resets to the default. See
 [Accents](../tokens.md#accents) for what the accent does and does not change.
 
 An application that offers fewer accents passes the subset it supports; the
-control does not have to show all six.
+control does not have to show all nine.
 
 ## Persistence
 
 - An explicit choice persists under the key `kiso-accent`, with the value
-  `violet`, `terracotta`, `teal`, `cobalt`, `nocturne`, or `tangerine`.
+  `violet`, `terracotta`, `teal`, `cobalt`, `nocturne`, `tangerine`, `red`, `gold`, or `lime`.
 - Read the stored value in a blocking inline script in `<head>`, before first
   paint, and apply it as `data-accent`. Anything later flashes.
 - Storage may be unavailable. Wrap reads and writes so a failure degrades to
@@ -51,6 +54,9 @@ control does not have to show all six.
 | `terracotta` | terracotta dot, "Terracotta" | "Terracotta" |
 | `teal` | teal dot, "Teal" | "Teal" |
 | `cobalt` | cobalt dot, "Cobalt" | "Cobalt" |
+| `gold` | gold dot, "Gold" | "Gold" |
+| `lime` | lime dot, "Lime" | "Lime" |
+| `red` | red dot, "Red" | "Red" |
 | `tangerine` | tangerine dot, "Tangerine" | "Tangerine" |
 | `nocturne` | nocturne dot, "Nocturne" | "Nocturne" |
 
@@ -89,7 +95,7 @@ Pill: height `--size-control-xs`, radius `--radius-full`, border
 `--color-border`, fill `--color-card`, text `--color-muted-foreground` at
 `--type-size-label`, dot `--spacing-md` square in `--color-primary`.
 
-Selected pill: border `--color-primary`, fill `--color-accent-surface`, text
+Selected pill: border `--color-primary` (`--color-link` for Gold and Lime), fill `--color-accent-surface`, text
 `--color-foreground` at `--type-weight-medium`. The pill is outlined and
 tinted, not filled with `--color-primary`: the fill is already on the dot,
 and a solid pill would compete with the page's actual primary action.
@@ -124,10 +130,10 @@ server round-trip to repaint, and do not show a Toast for it.
 
 ## When NOT to use
 
-- A free colour picker. Kiso has six accents; a product colour that is not
+- A free colour picker. Kiso has nine accents; a product colour that is not
   one of them is a token proposal, not an option.
-- A way to mark status or severity. Red, amber, and green are not accents for
-  that reason: a primary button in the danger hue reads as destructive.
+- A way to mark status or severity. Status colors keep their own semantic
+  roles. Under `red`, primary and destructive actions need explicit labels.
 - Per-user branding inside a single product. One accent per product, or per
   product area, chosen by the product.
 

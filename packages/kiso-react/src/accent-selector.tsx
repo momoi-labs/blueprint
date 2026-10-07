@@ -7,6 +7,9 @@ export const accents = [
   "cobalt",
   "nocturne",
   "tangerine",
+  "red",
+  "gold",
+  "lime",
 ] as const;
 
 export type Accent = (typeof accents)[number];

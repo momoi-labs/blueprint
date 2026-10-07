@@ -285,7 +285,7 @@ const catalog = [
     "accent-selector",
     "AccentSelector",
     "Navigation",
-    "Violet, terracotta, teal, cobalt, nocturne and tangerine.",
+    "Violet, terracotta, teal, cobalt, nocturne, tangerine, red, gold and lime.",
   ],
   ["alert", "Alert", "Feedback", "Persistent information, success and errors."],
   ["spinner", "Spinner", "Feedback", "An operation in progress."],

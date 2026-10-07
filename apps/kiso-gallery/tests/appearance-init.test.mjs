@@ -195,11 +195,11 @@ test("Pixel migrates its old detail size once and keeps later corner and ink cha
   }
 });
 
-test("restores Tangerine in both themes before React starts", () => {
-  for (const theme of ["light", "dark"]) {
-    const { api, dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ theme, accent: "tangerine" }) });
-    assert.equal(dataset.accent, "tangerine");
+test("restores bright and red accents in both themes before React starts", () => {
+  for (const theme of ["light", "dark"]) for (const accent of ["tangerine", "red", "gold", "lime"]) {
+    const { api, dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ theme, accent }) });
+    assert.equal(dataset.accent, accent);
     assert.equal(dataset.theme, theme);
-    assert.equal(api.read().accent, "tangerine");
+    assert.equal(api.read().accent, accent);
   }
 });
