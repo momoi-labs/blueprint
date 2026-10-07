@@ -1,5 +1,22 @@
 # @momoi-labs/kiso-react
 
+## 0.13.0
+
+### Minor Changes
+
+- 9d84a7b: Add red, gold, and lime accents and make Momoi backgrounds follow the active accent.
+- 8f92e5a: Let products virtualize LogView. `LogViewHandle` adds `getScrollElement()`,
+  which returns the internal scroller to hand to a virtualizer such as TanStack
+  Virtual. Follow-tail no longer pulls back a reader who leaves the end in small
+  steps while a virtualized body re-renders its rows. The LogView contract
+  explains how to compose a virtualized body.
+
+### Patch Changes
+
+- Updated dependencies [9d84a7b]
+- Updated dependencies [8f92e5a]
+  - @momoi-labs/kiso@0.17.0
+
 ## 0.12.0
 
 ### Minor Changes

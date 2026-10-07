@@ -1,5 +1,16 @@
 # @momoi-labs/kiso
 
+## 0.17.0
+
+### Minor Changes
+
+- 9d84a7b: Add red, gold, and lime accents and make Momoi backgrounds follow the active accent.
+- 8f92e5a: Let products virtualize LogView. `LogViewHandle` adds `getScrollElement()`,
+  which returns the internal scroller to hand to a virtualizer such as TanStack
+  Virtual. Follow-tail no longer pulls back a reader who leaves the end in small
+  steps while a virtualized body re-renders its rows. The LogView contract
+  explains how to compose a virtualized body.
+
 ## 0.16.0
 
 ### Minor Changes
