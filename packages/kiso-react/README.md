@@ -225,6 +225,36 @@ const log = useRef<LogViewHandle>(null);
 <Button onClick={() => log.current?.scrollToBottom()}>Jump to end</Button>
 ```
 
+LogView mounts every line it gets. For a log that grows without bound, hand
+the handle's `getScrollElement()` to a virtualizer and let LogView keep
+following the tail. The
+[LogView contract](../../kiso/docs/components/log-view.md#virtualization) has
+the rules. With TanStack Virtual:
+
+```tsx
+const log = useRef<LogViewHandle>(null);
+const rows = useVirtualizer({
+  count: lines.length,
+  getScrollElement: () => log.current?.getScrollElement() ?? null,
+  estimateSize: () => 20,
+});
+
+<LogView ref={log}>
+  <div style={{ position: "relative", height: rows.getTotalSize() }}>
+    {rows.getVirtualItems().map((row) => (
+      <LogViewLine
+        key={row.key}
+        ref={rows.measureElement}
+        data-index={row.index}
+        style={{ position: "absolute", top: 0, insetInline: 0, transform: `translateY(${row.start}px)` }}
+      >
+        {lines[row.index]}
+      </LogViewLine>
+    ))}
+  </div>
+</LogView>
+```
+
 Compose confirmations with AlertDialogTitle and AlertDialogDescription inside
 AlertDialogContent, plus AlertDialogCancel and AlertDialogAction. For asynchronous
 actions, control `open` and prevent the Action's default click behavior until the

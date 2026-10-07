@@ -11,8 +11,13 @@ import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
    written to rarely lands on an exact scroll position. */
 const BOTTOM_THRESHOLD = 8
 
+function isAtBottom(el: HTMLElement) {
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_THRESHOLD
+}
+
 type LogViewHandle = {
   scrollToBottom: (behavior?: ScrollBehavior) => void
+  getScrollElement: () => HTMLDivElement | null
 }
 
 /* The frame is `.logview` and the scroller is `.log-scroll` inside it, so the
@@ -33,6 +38,8 @@ function LogView({
   ref?: React.Ref<LogViewHandle>
 }) {
   const scroller = React.useRef<HTMLDivElement>(null)
+  /* The scroll height at the last pin, or null while not following. */
+  const pinned = React.useRef<number | null>(null)
   const [atBottom, setAtBottom] = React.useState(true)
   const following = follow ?? atBottom
 
@@ -41,12 +48,24 @@ function LogView({
       const el = scroller.current
       if (el) el.scrollTo({ top: el.scrollHeight, behavior })
     },
+    getScrollElement() {
+      return scroller.current
+    },
   }), [])
 
-  /* Before paint, so a new line never shows up above the fold first. */
+  /* Before paint, so a new line never shows up above the fold first. Skip the
+     pin when the height is unchanged and the view is still at the bottom: a
+     virtualized body re-renders its rows on every scroll, and pinning then
+     pulls back a reader who leaves the end in small steps. */
   useIsomorphicLayoutEffect(() => {
     const el = scroller.current
-    if (el && following) el.scrollTop = el.scrollHeight
+    if (!el || !following) {
+      pinned.current = null
+      return
+    }
+    if (el.scrollHeight === pinned.current && isAtBottom(el)) return
+    el.scrollTop = el.scrollHeight
+    pinned.current = el.scrollHeight
   }, [children, following])
 
   return (
@@ -61,9 +80,7 @@ function LogView({
         data-slot="log-view-scroll"
         className="log-scroll"
         onScroll={(event) => {
-          const el = event.currentTarget
-          const bottom =
-            el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_THRESHOLD
+          const bottom = isAtBottom(event.currentTarget)
           setAtBottom(bottom)
           if (bottom !== following) onFollowChange?.(bottom)
         }}
