@@ -13,6 +13,7 @@ source of truth that everything else generates from — never a copy.
 | Pillar | What it defines | Status |
 | --- | --- | --- |
 | **Design system** — *Kiso* | brand, tokens, component contracts, product patterns, accessibility | ✅ v1 complete (#1–#5) |
+| **Architecture patterns** | default stack, API contracts, rendering | ✅ web applications |
 | **Log format** | one structured JSON shape, levels, privacy rules | 🚧 epic planned |
 | **Code standards** | commits, branches, per-language lint/format | 🔜 later |
 | **Governance** | issue/PR templates, CONTRIBUTING, code of conduct | 🔜 later |
@@ -32,6 +33,13 @@ product patterns, data-interface guidance, and cross-layer accessibility rules.
 - Dark theme by default, light ("slate") as the alternate
 - Neutrals carry the interface; one accent carries attention
 - Inter for interface text, JetBrains Mono for code
+
+## Architecture patterns
+
+Default architecture choices, recorded once so projects do not make them
+again. The first covers [web applications](docs/patterns/web-application.md):
+React, Kiso, and TanStack in the browser, Rust and PostgreSQL on the server,
+API contracts owned by Rust, and client-side rendering by default.
 
 ## Log format
 
