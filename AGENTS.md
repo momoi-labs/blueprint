@@ -2,6 +2,9 @@
 
 For design-system consumption rules, read [`kiso/AGENTS.md`](kiso/AGENTS.md).
 
+For the default architecture of Momoi Labs web applications, read
+[`docs/patterns/web-application.md`](docs/patterns/web-application.md).
+
 ### Component validation
 
 For deep component audits, release-readiness reviews, or catalog-wide validation,
