@@ -19,8 +19,9 @@ LogView (frame)
 
 Set height on LogView. Its internal scroller takes the available space and
 owns overflow. Do not add a second scrolling wrapper around the lines. Root
-props target the frame; the ref exposes a handle, not its DOM element.
-Time and level slots accept text supplied by the product.
+props target the frame. The ref exposes a handle, not a DOM element; the
+handle's `getScrollElement()` returns the internal scroller. Time and level
+slots accept text supplied by the product.
 
 ## Variants
 
@@ -53,10 +54,34 @@ or leaves the bottom; the product must apply that value in controlled mode.
 
 The `LogViewHandle` ref exposes `scrollToBottom(behavior?: ScrollBehavior)`
 for a "Jump to end" action. This scrolls the internal element; it does not set
-a controlled `follow` value. Turning `follow` on also moves to the end.
+a controlled `follow` value. Turning `follow` on also moves to the end. The
+handle also exposes `getScrollElement()`, which returns the internal scroller
+for a virtualizer.
 
 The product supplies empty, loading, disconnected, and failed-source states.
 A line at `level="error"` describes log content, not a failure of LogView.
+
+## Virtualization
+
+LogView mounts every child it receives. For output that can grow without
+bound, keep LogView as the frame and scroller, and let a virtualizer such as
+TanStack Virtual mount only the visible lines:
+
+- Give the virtualizer `getScrollElement()` from the handle as its scroll
+  element.
+- Pass one child: a spacer as tall as the virtualizer's total size, with the
+  visible LogViewLines positioned inside it. Let the virtualizer measure lines
+  that can wrap.
+- Leave following to LogView. Do not scroll to the last line on each update,
+  and leave the virtualizer's own end anchoring or follow-on-append option off.
+
+Following then works as with plain children. A render that leaves the content
+height unchanged does not move a view already within 8px of the end, so the
+re-render a virtualizer does on every scroll does not pull back a reader who
+is leaving the end.
+
+Find in page and assistive technology reach only the mounted lines. When
+readers need to search the whole log, the product provides that search.
 
 ## Accessibility
 
@@ -74,13 +99,14 @@ Follow and Jump to end use their Switch and Button keyboard contracts.
 
 ## When to use
 
-- A bounded stream of operational output beside configuration or resource details.
+- A stream of operational output beside configuration or resource details.
 - Log history where readers can pause following by scrolling back.
 
 ## When NOT to use
 
-- Unbounded datasets requiring virtualization. LogView renders every supplied
-  child; the product must bound retention or choose a virtualized viewer.
+- Unbounded output passed as plain children. LogView mounts every child; bound
+  retention or virtualize the body as described in
+  [Virtualization](#virtualization).
 - An editable terminal or command input. LogView does not emulate a terminal.
 - Search, filtering, parsing, or fetching log data. Those belong to the product.
 
