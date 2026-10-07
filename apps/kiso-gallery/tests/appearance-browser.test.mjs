@@ -41,6 +41,21 @@ async function close(page) {
   await page.locator("#gallery-settings").waitFor({ state: "hidden" });
 }
 
+for (const accent of ['red', 'gold', 'lime']) for (const theme of ['light', 'dark']) test(`${accent} accent can be selected and restored in ${theme}`, async () => {
+  const page = await open('intro', 1440, theme);
+  try {
+    const panel = await settings(page);
+    const choice = panel.getByRole('button', { name: accent[0].toUpperCase() + accent.slice(1), exact: true });
+    await choice.click();
+    assert.equal(await choice.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), accent);
+    await page.reload();
+    assert.equal(await page.evaluate(() => window.kisoAppearance.read().accent), accent);
+    assert.equal(await (await settings(page)).getByRole('button', { name: accent[0].toUpperCase() + accent.slice(1), exact: true }).getAttribute('aria-pressed'), 'true');
+    if (screenshots) await page.screenshot({ path: `${screenshots}/${accent}-accent-${theme}.png` });
+  } finally { await page.close(); }
+});
+
 test('Border choices update existing panels and guided controls without resetting entered data', async () => {
   const page = await open('components');
   try {

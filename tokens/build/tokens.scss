@@ -96,6 +96,39 @@ $color-tangerine-800: #713700;
 $color-tangerine-900: #502500;
 $color-tangerine-950: #351700;
 $color-tangerine-base: #ffab64; // Text and focus ink, independent of the bright primary fill.
+$color-red-50: #fdf2f1;
+$color-red-200: #fbdcda;
+$color-red-300: #f6bfbc;
+$color-red-400: #ee9490;
+$color-red-500: #e0605b;
+$color-red-600: #c13530;
+$color-red-700: #a12924;
+$color-red-800: #7d1c19;
+$color-red-900: #5a1210;
+$color-red-950: #3d0908;
+$color-red-base: #f08482; // Red ink for text and focus in both themes.
+$color-gold-50: #fff9e6;
+$color-gold-200: #fae9b1;
+$color-gold-300: #f4dfa0;
+$color-gold-400: #f2c438;
+$color-gold-500: #d9ad23;
+$color-gold-600: #a97d08;
+$color-gold-700: #896100;
+$color-gold-800: #654700;
+$color-gold-900: #473100;
+$color-gold-950: #2f2000;
+$color-gold-base: #ffd45c; // Text and focus ink, independent of the bright primary fill.
+$color-lime-50: #f4fbdc;
+$color-lime-200: #e5f5bc;
+$color-lime-300: #cee999;
+$color-lime-400: #b8f536;
+$color-lime-500: #94c726;
+$color-lime-600: #709918;
+$color-lime-700: #526f00;
+$color-lime-800: #3f5300;
+$color-lime-900: #2b3900;
+$color-lime-950: #1c2600;
+$color-lime-base: #ceff76; // Text and focus ink, independent of the bright primary fill.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -276,6 +309,57 @@ $accent-tangerine-primary-foreground: #1b1a1e;
 $accent-tangerine-accent-surface: #362718;
 $accent-tangerine-accent-surface-hover: #47311c;
 $accent-tangerine-selected: #563a1e;
+$accent-red-accent-50: #fdf2f1;
+$accent-red-accent-200: #fbdcda;
+$accent-red-accent-300: #f6bfbc;
+$accent-red-accent-400: #ee9490;
+$accent-red-accent-500: #e0605b;
+$accent-red-accent-600: #c13530;
+$accent-red-accent-700: #a12924;
+$accent-red-accent-800: #7d1c19;
+$accent-red-accent-900: #5a1210;
+$accent-red-accent-950: #3d0908;
+$accent-red-accent-base: #f08482;
+$accent-red-primary: #a9272a;
+$accent-red-primary-hover: #c2302f;
+$accent-red-primary-foreground: #fdf2f1;
+$accent-red-accent-surface: #401716;
+$accent-red-accent-surface-hover: #531d1c;
+$accent-red-selected: #682322;
+$accent-gold-accent-50: #fff9e6;
+$accent-gold-accent-200: #fae9b1;
+$accent-gold-accent-300: #f4dfa0;
+$accent-gold-accent-400: #f2c438;
+$accent-gold-accent-500: #d9ad23;
+$accent-gold-accent-600: #a97d08;
+$accent-gold-accent-700: #896100;
+$accent-gold-accent-800: #654700;
+$accent-gold-accent-900: #473100;
+$accent-gold-accent-950: #2f2000;
+$accent-gold-accent-base: #ffd45c;
+$accent-gold-primary: #f2c438; // Bright action fill with dark text in both themes.
+$accent-gold-primary-hover: #ffda66;
+$accent-gold-primary-foreground: #1b1a1e;
+$accent-gold-accent-surface: #382e17;
+$accent-gold-accent-surface-hover: #4a3c1c;
+$accent-gold-selected: #382e17;
+$accent-lime-accent-50: #f4fbdc;
+$accent-lime-accent-200: #e5f5bc;
+$accent-lime-accent-300: #cee999;
+$accent-lime-accent-400: #b8f536;
+$accent-lime-accent-500: #94c726;
+$accent-lime-accent-600: #709918;
+$accent-lime-accent-700: #526f00;
+$accent-lime-accent-800: #3f5300;
+$accent-lime-accent-900: #2b3900;
+$accent-lime-accent-950: #1c2600;
+$accent-lime-accent-base: #ceff76;
+$accent-lime-primary: #b8f536; // Bright action fill with dark text in both themes.
+$accent-lime-primary-hover: #ceff70;
+$accent-lime-primary-foreground: #1b1a1e;
+$accent-lime-accent-surface: #2b3418;
+$accent-lime-accent-surface-hover: #37441e;
+$accent-lime-selected: #2b3418;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

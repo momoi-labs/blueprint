@@ -64,7 +64,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
   const outer = random() < .5 ? null : frame();
   return {
     ...current,
-    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine"]),
+    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime"]),
     borderStyle: inner.border, cornerStyle: inner.corner, cornerMarks: inner.marks,
     cornerSize: pick(["small", "medium", "large"]), markSize: pick(["small", "medium", "large"]),
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),

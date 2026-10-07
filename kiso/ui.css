@@ -2491,13 +2491,15 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --canvas-mask-color: var(--color-foreground);
 }
 [data-background-style="momoi"] {
-  --canvas-pattern: url("./assets/momoi-symbol.svg");
+  --canvas-mask: url("./assets/momoi-symbol.svg");
+  --canvas-mask-color: var(--color-accent-400);
   --canvas-size: min(calc(5 * var(--spacing-2xl)), calc(100% - 2 * var(--spacing-lg))) auto;
   --canvas-position: right var(--spacing-lg) bottom var(--spacing-lg);
   --canvas-repeat: no-repeat;
 }
 [data-background-style="momoi-repeat"] {
-  --canvas-pattern: url("./assets/momoi-repeat.svg");
+  --canvas-mask: url("./assets/momoi-repeat.svg");
+  --canvas-mask-color: var(--color-accent-400);
   --canvas-size: calc(3 * var(--spacing-2xl)) calc(3 * var(--spacing-2xl));
 }
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)),
@@ -2522,6 +2524,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   background-color: var(--canvas-mask-color, transparent);
   mask-image: var(--canvas-mask, none);
   mask-size: var(--canvas-size);
+  mask-position: var(--canvas-position);
+  mask-repeat: var(--canvas-repeat);
   background-image: var(--canvas-pattern);
   background-size: var(--canvas-size);
   background-position: var(--canvas-position);
@@ -2995,13 +2999,13 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 /* A grouped control gets its height from the shared frame. */
 .field-control > :is(.input, .select)[data-control-size="xl"] { height: auto; padding-inline-start: 0; font-size: inherit; }
 
-/* Tangerine uses bright fills. Thin selection marks need the accent ink. */
-[data-accent="tangerine"] .tabs button[aria-selected="true"]::after,
-[data-accent="tangerine"] .tabs::after,
-[data-accent="tangerine"] .progress > span,
-[data-accent="tangerine"] .bars i.on,
-[data-accent="tangerine"] .check input[type="radio"]:checked { background: var(--color-link); }
-[data-accent="tangerine"] :is(.chart, .sparkline.primary) { color: var(--color-link); }
+/* Bright fills use the accent ink for thin selection marks. */
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) .tabs button[aria-selected="true"]::after,
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) .tabs::after,
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) .progress > span,
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) .bars i.on,
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) .check input[type="radio"]:checked { background: var(--color-link); }
+:is([data-accent="tangerine"], [data-accent="gold"], [data-accent="lime"]) :is(.chart, .sparkline.primary) { color: var(--color-link); }
 
 /* Large choice surfaces use the panel contour, with their own state colors. */
 :where([data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) {

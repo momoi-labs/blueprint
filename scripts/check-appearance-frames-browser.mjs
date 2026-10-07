@@ -302,7 +302,8 @@ for (const theme of ['light', 'dark']) test(`Canvas watermark, scope boundaries 
   try {
     const style = (el, pseudo) => { const s = getComputedStyle(el, pseudo); return { content: s.content, background: s.backgroundImage, color: s.backgroundColor, mask: s.maskImage, clip: s.clipPath, pointer: s.pointerEvents, opacity: s.opacity }; };
     const canvas = await page.locator('#canvas').evaluate(style, '::before');
-    assert(canvas.background.includes('svg'));
+    assert(canvas.mask.includes('svg'));
+    assert.equal(canvas.background, 'none');
     assert.equal(canvas.pointer, 'none');
     assert.equal(canvas.opacity, '0.14');
     assert.equal((await page.locator('#outer').evaluate(style)).color, 'rgba(0, 0, 0, 0)');
@@ -380,11 +381,33 @@ test('New border contours, clearance, patterns and frameless suppression compose
   } finally { await page.close(); }
 });
 
+for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accent in ${theme}`, async () => {
+  const page = await open(`canvas&theme=${theme}&backgroundStyle=momoi&panelFill=translucent`);
+  try {
+    for (const accent of ['violet', 'tangerine', 'red', 'gold', 'lime']) for (const background of ['momoi', 'momoi-repeat']) {
+      await page.evaluate(({ accent, background }) => Object.assign(document.documentElement.dataset, { accent, backgroundStyle: background }), { accent, background });
+      const paint = await page.locator('#canvas').evaluate(el => {
+        const style = getComputedStyle(el, '::before');
+        const probe = document.createElement('span'); probe.style.color = 'var(--color-accent-400)'; el.append(probe);
+        const accent = getComputedStyle(probe).color; probe.remove();
+        return { color: style.backgroundColor, accent, image: style.backgroundImage, mask: style.maskImage, position: style.maskPosition, repeat: style.maskRepeat };
+      });
+      assert.equal(paint.color, paint.accent);
+      assert.equal(paint.image, 'none');
+      assert(paint.mask.includes('svg'));
+      assert.equal(paint.repeat, background === 'momoi' ? 'no-repeat' : 'repeat');
+      if (background === 'momoi') assert(paint.position.includes('16px'));
+    }
+    await page.evaluate(() => document.documentElement.dataset.backgroundStyle = 'solid');
+    assert.equal(await page.locator('#canvas').evaluate(el => getComputedStyle(el, '::before').maskImage), 'none');
+  } finally { await page.close(); }
+});
+
 test('Panel translucency retains contrast across every background, paper tone, theme and accent', async () => {
   const page = await open('canvas&backgroundStyle=momoi&panelFill=translucent&corners=square');
   try {
     let minimumText = Infinity, minimumFocus = Infinity;
-    for (const background of ['solid', 'dots', 'grid', 'crosses', 'construction', 'guides', 'fibers', 'momoi', 'momoi-repeat']) for (const tone of ['theme', 'accent']) for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne']) for (const strength of ['quiet', 'visible']) for (const fill of ['solid', 'translucent']) {
+    for (const background of ['solid', 'dots', 'grid', 'crosses', 'construction', 'guides', 'fibers', 'momoi', 'momoi-repeat']) for (const tone of ['theme', 'accent']) for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime']) for (const strength of ['quiet', 'visible']) for (const fill of ['solid', 'translucent']) {
       const ratios = await page.evaluate(({ background, tone, theme, accent, strength, fill }) => {
         Object.assign(document.documentElement.dataset, { theme, accent, backgroundStyle: background, paperTone: tone, backgroundStrength: strength, panelFill: fill });
         const outer = document.querySelector('#outer'), card = document.querySelector('#sample');
@@ -396,7 +419,7 @@ test('Panel translucency retains contrast across every background, paper tone, t
         const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
         const paper = token(outer, tone === 'accent' ? '--color-accent-surface' : '--color-sidebar');
         const alpha = strength === 'quiet' ? .14 : .22;
-        const pattern = background === 'solid' ? paper : blend(background.startsWith('momoi') ? [145, 132, 217] : token(outer, '--color-foreground'), paper, alpha);
+        const pattern = background === 'solid' ? paper : blend(background.startsWith('momoi') ? token(outer, '--color-accent-400') : token(outer, '--color-foreground'), paper, alpha);
         const solidCard = token(card, '--color-card');
         const backing = fill === 'solid' ? solidCard : blend(solidCard, pattern, .65);
         const canvasText = background === 'solid' && fill === 'solid' ? token(outer, '--color-background') : pattern;
@@ -474,7 +497,7 @@ test('Manga ink forms one continuous outline at wide and tall aspect ratios', as
 test('Accent paper and drawing guides retain placement, theme contrast and matching rails', async () => {
   const page = await open('canvas&paperTone=accent&backgroundStyle=guides&backgroundPlacement=inside&corners=square');
   try {
-    for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne']) {
+    for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime']) {
       const colors = await page.evaluate(({ theme, accent }) => {
         Object.assign(document.documentElement.dataset, { theme, accent });
         const main = document.querySelector('#outer'), card = document.querySelector('#sample'), shell = document.querySelector('#canvas');

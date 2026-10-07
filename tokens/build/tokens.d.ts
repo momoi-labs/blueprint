@@ -127,6 +127,42 @@ export const colorTangerine900: string;
 export const colorTangerine950: string;
 /** Text and focus ink, independent of the bright primary fill. */
 export const colorTangerineBase: string;
+export const colorRed50: string;
+export const colorRed200: string;
+export const colorRed300: string;
+export const colorRed400: string;
+export const colorRed500: string;
+export const colorRed600: string;
+export const colorRed700: string;
+export const colorRed800: string;
+export const colorRed900: string;
+export const colorRed950: string;
+/** Red ink for text and focus in both themes. */
+export const colorRedBase: string;
+export const colorGold50: string;
+export const colorGold200: string;
+export const colorGold300: string;
+export const colorGold400: string;
+export const colorGold500: string;
+export const colorGold600: string;
+export const colorGold700: string;
+export const colorGold800: string;
+export const colorGold900: string;
+export const colorGold950: string;
+/** Text and focus ink, independent of the bright primary fill. */
+export const colorGoldBase: string;
+export const colorLime50: string;
+export const colorLime200: string;
+export const colorLime300: string;
+export const colorLime400: string;
+export const colorLime500: string;
+export const colorLime600: string;
+export const colorLime700: string;
+export const colorLime800: string;
+export const colorLime900: string;
+export const colorLime950: string;
+/** Text and focus ink, independent of the bright primary fill. */
+export const colorLimeBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -373,6 +409,59 @@ export const accentTangerinePrimaryForeground: string;
 export const accentTangerineAccentSurface: string;
 export const accentTangerineAccentSurfaceHover: string;
 export const accentTangerineSelected: string;
+export const accentRedAccent50: string;
+export const accentRedAccent200: string;
+export const accentRedAccent300: string;
+export const accentRedAccent400: string;
+export const accentRedAccent500: string;
+export const accentRedAccent600: string;
+export const accentRedAccent700: string;
+export const accentRedAccent800: string;
+export const accentRedAccent900: string;
+export const accentRedAccent950: string;
+export const accentRedAccentBase: string;
+export const accentRedPrimary: string;
+export const accentRedPrimaryHover: string;
+export const accentRedPrimaryForeground: string;
+export const accentRedAccentSurface: string;
+export const accentRedAccentSurfaceHover: string;
+export const accentRedSelected: string;
+export const accentGoldAccent50: string;
+export const accentGoldAccent200: string;
+export const accentGoldAccent300: string;
+export const accentGoldAccent400: string;
+export const accentGoldAccent500: string;
+export const accentGoldAccent600: string;
+export const accentGoldAccent700: string;
+export const accentGoldAccent800: string;
+export const accentGoldAccent900: string;
+export const accentGoldAccent950: string;
+export const accentGoldAccentBase: string;
+/** Bright action fill with dark text in both themes. */
+export const accentGoldPrimary: string;
+export const accentGoldPrimaryHover: string;
+export const accentGoldPrimaryForeground: string;
+export const accentGoldAccentSurface: string;
+export const accentGoldAccentSurfaceHover: string;
+export const accentGoldSelected: string;
+export const accentLimeAccent50: string;
+export const accentLimeAccent200: string;
+export const accentLimeAccent300: string;
+export const accentLimeAccent400: string;
+export const accentLimeAccent500: string;
+export const accentLimeAccent600: string;
+export const accentLimeAccent700: string;
+export const accentLimeAccent800: string;
+export const accentLimeAccent900: string;
+export const accentLimeAccent950: string;
+export const accentLimeAccentBase: string;
+/** Bright action fill with dark text in both themes. */
+export const accentLimePrimary: string;
+export const accentLimePrimaryHover: string;
+export const accentLimePrimaryForeground: string;
+export const accentLimeAccentSurface: string;
+export const accentLimeAccentSurfaceHover: string;
+export const accentLimeSelected: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */
