@@ -71,11 +71,33 @@ to. An id in the layout without a pane is ignored. A size below the pane's
 
 | Prop | Default | Contract |
 | --- | --- | --- |
+| `flow` | `rows` | `rows` aligns pane heights on each line. `masonry` keeps each pane's natural height and places it in the shortest contiguous column space within its row. |
 | `overflow` | `wrap` | `wrap` breaks a row wider than twelve columns onto more lines. `scroll` keeps it on one line that scrolls horizontally, up to `scrollPages` screens wide; a resize or a drop beyond that is refused. |
 | `scrollPages` | `2` | How many screens a scrolling row may span. |
 | `fill` | `false` | Hand each line's leftover columns to its panes, on screen only. Sizes do not change. |
 | `pack` | `false` | Order each row's panes by size, largest first, so lines fill up. Ignored with `overflow="scroll"`. The DOM keeps the row order. |
 | `debug` | `false` | Label every row with its columns, draw each line's free columns, and show each pane's size, minimum and maximum in its head. A development aid; not for readers. |
+
+### Masonry flow
+
+Use `flow="masonry"` for a gallery whose cards have different content heights.
+Widths still use the twelve-column scale. Each row remains a separate group;
+the next row begins below every pane in the previous row. Content, font, and
+container size changes trigger a new measurement. Heights are not saved.
+
+With `pack`, wider panes are placed first. Without it, placement follows row
+order. Panes occupy the shortest available contiguous column space, choosing
+the leftmost space on a tie. Visual order can differ from DOM and keyboard
+order. DOM order follows the row's pane order even with `pack`. This
+placement does not promise to eliminate every possible hole.
+
+Masonry ignores `fill`, since there are no aligned lines to fill. With
+`overflow="scroll"`, the grid uses the existing rows flow instead. On a single
+column, panes stack at their natural heights. Resizing in masonry may use up
+to twelve columns and repositions neighboring panes. Moving preserves widths;
+with `pack`, size ordering still takes priority within the destination row.
+Debug shows row boundaries and pane bounds; line-level free-column overlays
+apply only to rows flow.
 
 A scrolling row uses the grid's own column tracks, so its columns stay
 aligned with the rows above and below it.
