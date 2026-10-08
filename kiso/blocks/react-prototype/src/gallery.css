@@ -71,6 +71,7 @@
   gap: var(--spacing-lg);
 }
 .catalog-pane > .grid-pane-body { min-width: 0; }
+.catalog-open { display: inline-flex; align-items: center; gap: var(--spacing-xs); }
 .catalog-section-heading {
   display: flex;
   justify-content: space-between;

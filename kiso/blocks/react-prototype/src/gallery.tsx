@@ -1,4 +1,5 @@
 import { usePaneLayout } from "./use-pane-layout";
+import { SquareArrowOutUpRight } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
@@ -2276,7 +2277,9 @@ export function ComponentGallery({
               {...(browsing ? {
                 size: catalogSize[id] === "full" ? 12 : catalogSize[id] === "wide" ? 6 : 3,
                 min: catalogSize[id] ? 4 : 3,
-                actions: <a className="link t-label" href={`#components/${id}`} aria-label={`Open ${name}`}>Open</a>,
+                actions: <a className="link t-label catalog-open" href={`#components/${id}`} target="_blank" rel="noopener noreferrer" aria-label={`Open ${name} in a new tab`}>
+                  Open<SquareArrowOutUpRight className="icon icon-sm" aria-hidden="true" />
+                </a>,
               } : {})}
               className={browsing ? "catalog-pane" : "catalog-section"}
               key={id}
