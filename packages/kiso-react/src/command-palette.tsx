@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
+import { Search } from "lucide-react";
 import { Dialog as DialogPrimitive, VisuallyHidden } from "radix-ui";
 
 import { DialogOverlay, DialogPortal } from "./dialog.js";
@@ -115,16 +116,7 @@ function CommandPaletteInput({
 
   return (
     <div className="palette-input" data-slot="command-palette-input">
-      <svg
-        className="icon muted"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <circle cx="7" cy="7" r="4.5" />
-        <path d="m10.5 10.5 3 3" />
-      </svg>
+      <Search className="icon muted" aria-hidden="true" />
       <input
         role="combobox"
         aria-expanded="true"

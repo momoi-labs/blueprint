@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
+import { ChevronDown } from "lucide-react"
 import { Button } from "./button.js"
 import { Form, FormActions } from "./form.js"
 import { Input } from "./input.js"
@@ -47,7 +48,7 @@ export function TimeRangeControl({ value, bounds, onValueChange, label = "Time r
   return <Popover open={open} onOpenChange={next => { setOpen(next); setCustom(false) }}>
     <PopoverTrigger asChild><Button disabled={disabled} className={cn("time-range-trigger", className)}
       aria-label={`${label}: ${dateInput(value.from).replace("T", " ")} to ${dateInput(value.to).replace("T", " ")} UTC`}>
-      {shortRange(value)} <span aria-hidden="true">⌄</span>
+      {shortRange(value)} <ChevronDown className="icon icon-sm" aria-hidden="true" />
     </Button></PopoverTrigger>
     <PopoverContent className="time-range-content" aria-label={label}>
       {custom ? <div className="stack-sm">

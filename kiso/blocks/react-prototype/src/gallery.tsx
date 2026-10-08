@@ -1,5 +1,5 @@
 import { usePaneLayout } from "./use-pane-layout";
-import { SquareArrowOutUpRight } from "lucide-react";
+import { ChevronDown, PanelLeft, Plus, SquareArrowOutUpRight } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
@@ -470,20 +470,6 @@ function ToastDemoButton() {
     >
       Show notification
     </Button>
-  );
-}
-
-function Plus() {
-  return (
-    <svg
-      className="icon icon-sm"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M8 2v12M2 8h12" />
-    </svg>
   );
 }
 
@@ -1150,7 +1136,7 @@ const Demo = memo(function Demo({
               aria-label="Add project"
               onClick={() => setMessage("Add project activated.")}
             >
-              <Plus />
+              <Plus className="icon icon-sm" aria-hidden="true" />
             </Button>
             <Button
               className="btn-icon"
@@ -1158,14 +1144,14 @@ const Demo = memo(function Demo({
               aria-label="Add another project"
               onClick={() => setMessage("Ghost action activated.")}
             >
-              <Plus />
+              <Plus className="icon icon-sm" aria-hidden="true" />
             </Button>
             <Button
               className="btn-icon"
               disabled
               aria-label="Add project unavailable"
             >
-              <Plus />
+              <Plus className="icon icon-sm" aria-hidden="true" />
             </Button>
           </div>
           {feedback}
@@ -1750,7 +1736,7 @@ const Demo = memo(function Demo({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>
-                Project actions <span aria-hidden="true">⌄</span>
+                Project actions <ChevronDown className="icon icon-sm" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -2152,7 +2138,7 @@ export function ComponentGallery({
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
-            <svg className="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="1" /><path d="M5 2v12" /></svg>
+            <PanelLeft className="icon" aria-hidden="true" />
           </Button>
           {!showingIntro && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>

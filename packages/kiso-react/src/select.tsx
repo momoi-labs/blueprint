@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
+import { Check } from "lucide-react";
 import { Select as SelectPrimitive } from "radix-ui";
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
@@ -89,14 +90,7 @@ function SelectItem({
         data-slot="select-item-indicator"
         aria-hidden="true"
       >
-        <svg
-          className="icon icon-sm"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-        >
-          <path d="m3 8 3.5 3.5L13 5" />
-        </svg>
+        <Check className="icon icon-sm" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );

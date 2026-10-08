@@ -2,6 +2,7 @@ import { usePaneLayout } from "../../../kiso/blocks/react-prototype/src/use-pane
 import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
 import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { ChevronDown, FileText, Folder, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 import {
   Alert,
   AlertContent,
@@ -152,35 +153,15 @@ function Status({ value }: { value: string }) {
 }
 
 function LayoutIcon({ name }: { name: string }) {
-  const paths: Record<string, ReactNode> = {
-    dashboard: <path d="M2 2h5v5H2zM10 2h4v5h-4zM2 10h5v4H2zM10 10h4v4h-4z" />,
-    projects: <path d="M2 4h5l2 2h5v7H2zM2 4V2h5l2 2" />,
-    team: (
-      <>
-        <circle cx="6" cy="5" r="2" />
-        <path d="M2 14v-2a4 4 0 0 1 8 0v2M11 3a2 2 0 0 1 0 4m1 3a3 3 0 0 1 2 3v1" />
-      </>
-    ),
-    reports: <path d="M3 2h10v12H3zM5 5h6M5 8h6M5 11h3" />,
-    settings: (
-      <>
-        <circle cx="8" cy="8" r="3" />
-        <path d="M8 1v2m0 10v2M1 8h2m10 0h2M3 3l1.5 1.5m7 7L13 13M3 13l1.5-1.5m7-7L13 3" />
-      </>
-    ),
+  const icons: Record<string, LucideIcon> = {
+    dashboard: LayoutDashboard,
+    projects: Folder,
+    team: Users,
+    reports: FileText,
+    settings: Settings,
   };
-  return (
-    <svg
-      className="icon icon-sm"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.3"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
+  const Icon = icons[name];
+  return <Icon className="icon icon-sm" aria-hidden="true" />;
 }
 
 function WorkspacePreview({
@@ -416,7 +397,7 @@ function DashboardLayout() {
           <h2 className="t-h1">Overview</h2>
         </PageHeader>
         <Button size="sm">
-          September 2026 <span aria-hidden="true">⌄</span>
+          September 2026 <ChevronDown className="icon icon-sm" aria-hidden="true" />
         </Button>
       </div>
       <Card className="layout-stats">
@@ -445,7 +426,7 @@ function DashboardLayout() {
           </div>
           <div className="layout-inline">
             <Button size="sm">
-              Filter <span aria-hidden="true">⌄</span>
+              Filter <ChevronDown className="icon icon-sm" aria-hidden="true" />
             </Button>
             <Button variant="primary" size="sm">
               ＋ New project
@@ -483,7 +464,7 @@ function ListDetailLayout({ createFails = false }: { createFails?: boolean }) {
               readOnly
             />
             <Button size="sm">
-              All statuses <span aria-hidden="true">⌄</span>
+              All statuses <ChevronDown className="icon icon-sm" aria-hidden="true" />
             </Button>
           </div>
           <ProjectTable compact />

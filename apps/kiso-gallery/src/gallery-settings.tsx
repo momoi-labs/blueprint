@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Settings } from "lucide-react";
 import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
 import { DemoSettingsContext, type DemoChoiceProps } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
@@ -105,10 +106,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(value => !value));
       else setOpen(value => !value);
     }}>
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m9.5 3-.5 2-2 1-2-.5-2 3.5 1.5 1.5v3L3 15l2 3.5 2-.5 2 1 .5 2h5l.5-2 2-1 2 .5 2-3.5-1.5-1.5v-3L21 9l-2-3.5-2 .5-2-1-.5-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
+    <Settings className="icon" aria-hidden="true" />
   </AppShellPanelToggle>;
 
   const panel = desktop ? <AppShellPanel id="gallery-settings" className="gallery-settings-panel appearance-controls" hidden={!open}
