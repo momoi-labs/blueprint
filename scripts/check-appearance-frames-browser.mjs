@@ -96,6 +96,9 @@ test('Frameless tables and frame scopes remove content decoration without losing
 
 test('Fields, structured inputs and grouped actions retain their frame scope and keyboard operation', async () => {
   const page = await open('contents&corners=pixel&frameScope=all&marks=none');
+  // A reload resets the fixture's state; record it so a failure says why.
+  let loads = 0; const errors = [];
+  page.on('load', () => loads++); page.on('pageerror', error => errors.push(error.message));
   try {
     const dependencies = page.getByRole('combobox', { name: 'Dependencies', exact: true });
     const filters = page.getByRole('combobox', { name: 'Filters', exact: true });
@@ -139,9 +142,12 @@ test('Fields, structured inputs and grouped actions retain their frame scope and
     assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).textContent(), '22');
     await page.getByRole('button', { name: 'Remove node', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).count(), 0);
-    await filters.fill('status=active'); await filters.press('Enter');
+    await filters.fill('status=active');
+    const typed = await filters.inputValue();
+    await filters.press('Enter');
+    await page.locator('.filter-chip').first().waitFor({ timeout: 3000 }).catch(async () => assert.fail(
+      `No filter chip after Enter: typed=${JSON.stringify(typed)}, now=${JSON.stringify(await filters.inputValue())}, reloads=${loads}, errors=${JSON.stringify(errors)}`));
     assert.equal(await filters.inputValue(), '');
-    assert(await page.locator('.filter-chip').count() > 0);
     for (const name of ['Previous', 'Following', 'Stop']) {
       const button = page.getByRole('button', { name, exact: true }); await button.focus(); await button.press('Enter');
       assert(await button.evaluate(el => el === document.activeElement));
