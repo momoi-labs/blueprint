@@ -599,9 +599,6 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
           event.preventDefault()
         }}
       >
-        <svg className="icon icon-sm grid-pane-grip" viewBox="0 0 16 16" aria-hidden="true">
-          {[4, 8, 12].map((y) => [6, 10].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1" fill="currentColor" stroke="none" />))}
-        </svg>
         <h3 data-slot="grid-pane-title" className="grid-pane-title t-h3">{title}</h3>
         {placement.debug && <span className="grid-pane-meta">size={placement.size} · min={placement.min} · max={placement.max}</span>}
         {actions != null && <div data-slot="grid-pane-actions" className="grid-pane-actions">{actions}</div>}

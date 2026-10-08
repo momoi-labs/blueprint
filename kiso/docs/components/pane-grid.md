@@ -18,7 +18,7 @@ PaneGrid
 ├── Title (optional)
 ├── Row
 │   ├── GridPane
-│   │   ├── Head: grip, Title, Actions (optional)
+│   │   ├── Head: Title, Actions (optional)
 │   │   ├── Body
 │   │   └── Resizer
 │   └── GridPane …

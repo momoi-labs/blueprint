@@ -2424,7 +2424,6 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   cursor: grab; user-select: none; touch-action: none;
 }
 .grid-pane-head:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
-.grid-pane-grip { color: var(--color-muted-foreground); flex: none; }
 .grid-pane-title { margin: 0; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .grid-pane-actions { display: flex; align-items: center; gap: var(--spacing-xs); flex: none; cursor: auto; }
 .grid-pane-body { padding: var(--presentation-panel-padding); min-width: 0; overflow: auto; display: grid; gap: var(--presentation-panel-gap); align-content: start; }
