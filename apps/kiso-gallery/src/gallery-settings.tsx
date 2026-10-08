@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
-import { DemoSettingsContext } from "../../../kiso/blocks/react-prototype/src/demo-settings";
+import { DemoSettingsContext, type DemoChoiceProps } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
-import { AppearanceControls } from "./appearance";
+import { AppearanceControls, VisualSelector } from "./appearance";
+import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 import { AppearanceUsage } from "./appearance-usage";
-import type { AppearanceSettings } from "./appearance-settings";
+import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
 export function GallerySettings({ children, route, settings, onChange, onReset }: {
   children: (panel: ReactNode, toggle: ReactNode) => ReactNode;
@@ -24,7 +25,41 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   const register = useCallback((title: string | null) => {
     if (title) setOpen(true);
   }, []);
-  const context = useMemo(() => ({ target, register, open }), [target, register, open]);
+  const [revision, setRevision] = useState(0);
+  const show = useCallback(() => {
+    setOpen(true);
+    setRevision(value => value + 1);
+  }, []);
+  // Demo choices draw with the same previews as the sections above. "Pane
+  // defaults" previews the current global choice, so inherit reads as a value.
+  const choice = useCallback(({ label, kind, value, options, onChange, inherit, with: other }: DemoChoiceProps) => {
+    const preview = (key: string) => {
+      const pick = key === "inherit" ? undefined : key;
+      if (kind === "background" || kind === "strength") {
+        const background = (kind === "background" ? pick : other?.background) as AppearanceSettings["backgroundStyle"] | undefined;
+        const strength = (kind === "strength" ? pick : other?.strength) as AppearanceSettings["backgroundStrength"] | undefined;
+        return <BackgroundPreview background={background ?? settings.backgroundStyle} strength={strength ?? settings.backgroundStrength} tone={settings.paperTone} />;
+      }
+      return <PanelPreview
+        border={kind === "border" ? (pick as BorderStyle | undefined) ?? settings.borderStyle : settings.borderStyle}
+        corner={kind === "corner" ? (pick as CornerStyle | undefined) ?? settings.cornerStyle : settings.cornerStyle}
+        size={kind === "cornerSize" ? (pick as Size | undefined) ?? settings.cornerSize : settings.cornerSize}
+        marks={kind === "marks" ? (pick as CornerMarks | undefined) ?? settings.cornerMarks : settings.cornerMarks} />;
+    };
+    // The same pairing rules as the Main style section, against the values the
+    // nodes will take: the demo's own choice, or the page's when inherited.
+    const border = other?.border ?? settings.borderStyle;
+    const corner = other?.corner ?? settings.cornerStyle;
+    const pixelBorder = (value: string) => ["solid", "none", "manga", "brush"].includes(value);
+    const disabledOptions = options.map(([key]) => key).filter(key =>
+      (kind === "marks" && ((key === "arcs" && (["manga", "brush"].includes(border) || corner === "pixel")) || (key === "brackets" && border === "brush")))
+      || (kind === "corner" && key === "pixel" && !pixelBorder(border))
+      || (kind === "border" && corner === "pixel" && !pixelBorder(key)));
+    return <VisualSelector label={label} value={value ?? "inherit"} options={inherit ? [["inherit", "Pane defaults"], ...options] : options}
+      onChange={next => onChange(next === "inherit" ? undefined : next)} preview={preview} disabledOptions={disabledOptions}
+      layout={kind === "strength" ? "wide" : "compact"} />;
+  }, [settings]);
+  const context = useMemo(() => ({ target, register, open, show, revision, choice }), [target, register, open, show, revision, choice]);
 
   useEffect(() => {
     const media = matchMedia("(min-width: 1200px)");

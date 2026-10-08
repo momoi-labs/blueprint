@@ -74,7 +74,7 @@ function ChoiceSelector<T extends string>({ label, value, onChange, options, dis
   </fieldset>;
 }
 
-function VisualSelector<T extends string>({ label, value, options, onChange, preview, disabled = false, disabledOptions = [], layout = "compact" }: {
+export function VisualSelector<T extends string>({ label, value, options, onChange, preview, disabled = false, disabledOptions = [], layout = "compact" }: {
   label: string; value: T; options: readonly (readonly [T, string])[]; onChange: (value: T) => void;
   preview: (value: T) => ReactNode; disabled?: boolean; disabledOptions?: readonly T[]; layout?: "compact" | "wide" | "scope";
 }) {
