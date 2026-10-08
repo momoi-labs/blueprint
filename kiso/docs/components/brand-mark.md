@@ -37,6 +37,10 @@ corners. The background uses `--color-primary` and the foreground uses
 `--color-primary-foreground`. Letter typography uses `--type-weight-bold` and
 `--type-size-label`; icon dimensions use `--size-icon-sm`.
 
+With frame scope `all`, the mark follows the selected corners like a control:
+Asymmetric, Pixel steps, or the Manga and Brush contour. See
+[Frames, scopes, and backgrounds](../tokens.md#frames-scopes-and-backgrounds).
+
 ## Radix/shadcn mapping
 
 There is no dedicated behavioral primitive. The React implementation uses
