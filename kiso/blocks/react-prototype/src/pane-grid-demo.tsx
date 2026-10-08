@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
-import { Badge, Button, GridPane, PaneGrid, type PaneGridLayout, type PaneGridOverflow } from "@momoi-labs/kiso-react";
+import { Badge, Button, GridPane, Label, PaneGrid, Switch, type PaneGridLayout, type PaneGridOverflow } from "@momoi-labs/kiso-react";
 
 import { DemoSettings } from "./demo-settings";
 
@@ -42,6 +42,7 @@ export function PaneGridDemo() {
   const [pack, setPack] = useState<"off" | "on">("off");
   const [debug, setDebug] = useState(false);
   const [layout, setLayout] = useState<PaneGridLayout>();
+  const debugId = useId();
   return <div className="stack">
     <DemoSettings title="PaneGrid">
       <Tiles label="Row wider than twelve columns" value={overflow} onChange={setOverflow} options={[["wrap", "Wrap onto lines"], ["scroll", "Scroll the row"]]}
@@ -57,7 +58,7 @@ export function PaneGridDemo() {
           ? <GridPreview panes={[[0, 0, 24], [24, 0, 48], [0, 28, 48], [48, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24], [24, 28, 24]]} />} />
     </DemoSettings>
-    <label className="check"><input type="checkbox" checked={debug} onChange={event => setDebug(event.target.checked)} /><span className="check-text"><span>Debug</span><span className="field-hint">Row columns, free columns and each pane's size bounds.</span></span></label>
+    <div className="row"><Switch id={debugId} checked={debug} onCheckedChange={setDebug} /><Label htmlFor={debugId}>Debug: row columns, free columns and each pane's size bounds</Label></div>
     <PaneGrid title="Summary" aria-label="Application summary" overflow={overflow} fill={fill === "on"} pack={pack === "on"} debug={debug} onLayoutChange={setLayout}>
       <GridPane id="url" title="Public URL" min={3} size={6}>
         <dl className="kv"><dt>URL</dt><dd><a className="link t-mono" href="#components/pane-grid">https://laya.example.internal</a></dd><dt>TLS</dt><dd><Badge>auto</Badge></dd></dl>
