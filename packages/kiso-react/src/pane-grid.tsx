@@ -22,16 +22,10 @@ export type PaneGridOverflow = "wrap" | "scroll"
 const COLUMNS = 12
 /* A drag ends on release, on cancellation, or when capture is lost. */
 const RELEASE = ["pointerup", "pointercancel", "lostpointercapture"] as const
-/* DashboardGrid's breakpoints, on the viewport like its media queries: above
-   1024px twelve columns, above 640px six, then one. */
-const BREAKPOINTS = [
-  { query: "(max-width: 640px)", columns: 1 },
-  { query: "(max-width: 1024px)", columns: 6 },
-] as const
-const pickColumns = () => {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return COLUMNS
-  return BREAKPOINTS.find(({ query }) => window.matchMedia(query).matches)?.columns ?? COLUMNS
-}
+/* DashboardGrid's breakpoints, measured on the grid's own width so a grid
+   beside a sidebar or panel gets the columns its space allows: above 1024px
+   twelve columns, above 640px six, then one. Unmeasured grids use twelve. */
+const pickColumns = (width: number) => !width ? COLUMNS : width <= 640 ? 1 : width <= 1024 ? 6 : COLUMNS
 
 type Spec = { id: string; min: number; size: number; newRow: boolean }
 type Item = { id: string; size: number; min: number; col: number; span: number }
@@ -187,7 +181,6 @@ export function PaneGrid({
   const bodyRef = React.useRef<HTMLDivElement>(null)
   const dropRef = React.useRef<HTMLDivElement>(null)
   const [width, setWidth] = React.useState(0)
-  const [columns, setColumns] = React.useState(COLUMNS)
   useIsomorphicLayoutEffect(() => {
     const body = bodyRef.current
     if (!body || typeof ResizeObserver === "undefined") return
@@ -197,14 +190,7 @@ export function PaneGrid({
     observer.observe(body)
     return () => observer.disconnect()
   }, [])
-  useIsomorphicLayoutEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return
-    const update = () => setColumns(pickColumns())
-    update()
-    const lists = BREAKPOINTS.map(({ query }) => window.matchMedia(query))
-    lists.forEach((list) => list.addEventListener("change", update))
-    return () => lists.forEach((list) => list.removeEventListener("change", update))
-  }, [])
+  const columns = pickColumns(width)
   const compact = columns !== COLUMNS
   const stacked = columns === 1
   const scrolling = overflow === "scroll" && !stacked
