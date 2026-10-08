@@ -116,9 +116,9 @@ test('Border choices update existing panels and guided controls without resettin
     const panel = await settings(page);
     await panel.getByRole('group', { name: 'Corner type', exact: true }).locator('input[value="square"]').check();
     const borders = panel.getByRole('group', { name: 'Border style', exact: true });
-    const notes = page.locator('[aria-labelledby="catalog-textarea"] textarea');
+    const notes = page.locator('[data-pane-id="textarea"] textarea');
     await notes.fill('Keep this text while changing appearance.');
-    const radio = page.locator('[aria-labelledby="catalog-radio-group"]');
+    const radio = page.locator('[data-pane-id="radio-group"]');
     await radio.getByRole('radio', { name: 'Full', exact: true }).check();
     for (const style of ['dash', 'double', 'rail', 'base', 'offset', 'none', 'manga', 'brush', 'solid']) {
       await borders.locator(`input[value="${style}"]`).check();
@@ -128,10 +128,10 @@ test('Border choices update existing panels and guided controls without resettin
           return { border: s.borderTopStyle, contour: ink.clipPath, layer: ink.content, shadow: ink.boxShadow };
         };
         return { selected: document.documentElement.dataset.borderStyle, saved: window.kisoAppearance.read().borderStyle,
-          cards: [...document.querySelectorAll('.catalog-section.card')].map(el => frame(`[aria-labelledby="${el.getAttribute('aria-labelledby')}"]`)),
+          cards: [...document.querySelectorAll('.catalog-pane')].map(el => frame(`[data-pane-id="${el.dataset.paneId}"]`)),
           file: frame('.file-dropzone'), radio: frame('.radio-group[data-variant="tiles"] > .radio-item'),
-          field: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).borderTopWidth,
-          fieldContour: getComputedStyle(document.querySelector('[aria-labelledby="catalog-textarea"] textarea')).clipPath };
+          field: getComputedStyle(document.querySelector('[data-pane-id="textarea"] textarea')).borderTopWidth,
+          fieldContour: getComputedStyle(document.querySelector('[data-pane-id="textarea"] textarea')).clipPath };
       });
       assert.equal(actual.selected, style);
       assert.equal(actual.saved, style);
@@ -712,16 +712,16 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1200, 'dark'], [16
   const failures = [], errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    const inspect = () => page.locator('.catalog-masonry > .catalog-section').evaluateAll(sections => sections.map(section => {
+    const inspect = () => page.locator('.catalog-pane-grid > .pane-grid-body > .catalog-pane').evaluateAll(sections => sections.map(section => {
       const preview = section.querySelector('.catalog-preview');
       const box = section.getBoundingClientRect();
       // Ink and marks may extend into the card's padding. They must stay within
       // their allocated sample, not enter the neighboring masonry column.
       const paintRight = preview.getBoundingClientRect().right + preview.scrollWidth - preview.clientWidth;
-      return { id: section.querySelector('h2').id, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
+      return { id: section.dataset.paneId, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
     }));
     const initial = await inspect();
-    assert.equal(initial.length, 65, 'The sweep covers every current catalog sample');
+    assert.equal(initial.length, 67, 'The sweep covers every current catalog sample');
     const baseline = Object.fromEntries(initial.map(item => [item.id, item.overflow]));
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);
