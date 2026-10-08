@@ -21,9 +21,15 @@ current test suite passing does not establish that a component works.
 3. Locate consumer usages when available. Include imported subcomponents and
    hooks, custom labels, disabled states, controlled values, and surrounding
    forms. Distinguish a library defect from a caller omitting a required prop.
+   For gallery integration, trace the browse card, component detail, Appearance
+   provider, and applicable layout examples. A dedicated demo does not prove
+   that the gallery or examples consume the component.
 4. Read [the scenario matrix](references/scenario-matrix.md). Create a case list
    with an expected observable result before running probes. Mark each matrix
-   category applicable or not applicable, with a reason.
+   category applicable or not applicable, with a reason. For existing and new
+   gallery demos, use the matrix's control-role table to decide which controls
+   belong in Appearance and which remain in the example. Record that decision;
+   do not infer it from the component name.
 
 For a catalog-wide request, first reconcile the component catalog, contract
 files, and package entry points. Group related exports for testing, but account
@@ -57,6 +63,11 @@ For interactive components, include both an isolated fixture and a realistic
 consumer composition when one is available. A controlled parent must rerender
 as the real application does. Mock external effects and record those limits;
 opening a local form and executing a backend deployment are different outcomes.
+
+For gallery changes, run the matrix's gallery and Appearance checks in
+`apps/kiso-gallery`. Also check the standalone prototype when shared demo code
+changes. Record both the component behavior and its integration result; a
+working isolated PaneGrid cannot establish that the gallery uses it.
 
 Use the matrix to cover meaningful boundaries and state transitions, not an
 arbitrary test count. Seed generated inputs and retain failing inputs. For a
