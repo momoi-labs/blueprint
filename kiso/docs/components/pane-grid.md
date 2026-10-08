@@ -25,10 +25,9 @@ PaneGrid
 └── Row …
 ```
 
-A row is a group of panes. Its panes sit in reading order on one line. A row
-whose panes add up to more than twelve columns scrolls sideways by default,
-or wraps onto a second line with `overflow="wrap"`; either way it stays one
-row. A pane may start a row with `newRow`.
+A row is a group of panes. Its panes flow in reading order onto as many lines
+as they need, so a row whose panes add up to more than twelve columns wraps
+onto a second line and stays one row. A pane may start a row with `newRow`.
 Rows and columns share one gap. While a pane is dragged, a dashed rule
 appears in the gap above each row: dropping on it starts a row.
 
@@ -72,7 +71,7 @@ to. An id in the layout without a pane is ignored. A size below the pane's
 
 | Prop | Default | Contract |
 | --- | --- | --- |
-| `overflow` | `scroll` | `scroll` keeps a row wider than twelve columns on one line that scrolls horizontally, up to `scrollPages` screens wide; a resize or a drop beyond that is refused. `wrap` breaks the row onto more lines instead. |
+| `overflow` | `wrap` | `wrap` breaks a row wider than twelve columns onto more lines. `scroll` keeps it on one line that scrolls horizontally, up to `scrollPages` screens wide; a resize or a drop beyond that is refused. |
 | `scrollPages` | `2` | How many screens a scrolling row may span. |
 | `fill` | `false` | Hand each line's leftover columns to its panes, on screen only. Sizes do not change. |
 | `pack` | `false` | Order each row's panes by size, largest first, so lines fill up. Ignored with `overflow="scroll"`. The DOM keeps the row order. |
