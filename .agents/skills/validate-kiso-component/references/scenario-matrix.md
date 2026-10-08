@@ -93,3 +93,52 @@ versions, pointer emulation, font availability, and consumer styling in evidence
 - For presentational parts, verify semantics, documented variants, and content
   boundaries. Record keyboard and callback categories as not applicable when
   the part has no interactive behavior.
+
+## Gallery and Appearance integration
+
+Apply these checks to existing and new gallery components. Classify each
+control by its role, not by component name or control type. Record this
+classification in the case ledger before testing.
+
+| Control role | Location | Examples |
+| --- | --- | --- |
+| Configures the demonstration or simulates a state | Component options in Appearance | Size, variant, orientation, disabled/loading toggles, PaneGrid wrap/fill/pack |
+| Inspects implementation details | Component demonstration, outside Appearance | Debug overlays, row/column diagnostics, size bounds |
+| Performs the interaction being demonstrated | Inside the example | Select an item, enter text, submit a form, dismiss an alert, move or resize a pane |
+| Changes the gallery's shared presentation | Global Appearance controls | Theme, accent, borders, typography |
+
+A Switch that simulates a disabled state belongs in Appearance. A Switch that
+is itself the component under inspection stays in the example. ThemeSelector
+and AccentSelector demonstrations also stay in the example, even though global
+Appearance uses those same components. Classify by purpose in that composition.
+
+For every new or changed demo, record whether it needs component options in
+Appearance and why. A demo with no configuration controls needs no options
+section or link. Keep component options scoped to their intended demo; putting
+them in Appearance does not make them global preferences. This classification
+is a gallery convention, not a change to the published component API.
+
+- Open the browse gallery and the component's direct detail URL. Verify both
+  render the shared component. For layout components, inspect the actual layout
+  owner, not only the demo nested inside a card. PaneGrid must own the gallery
+  cards and the groups in `#example/settings`.
+- For demos with configuration controls, confirm those controls live in
+  Appearance. The card and detail view expose a link that opens their options;
+  they must not render the controls inline or open Appearance on mount. Keep
+  the component's own interactions in the example. Preserve the standalone
+  prototype's inline fallback when no provider exists. PaneGrid's illustrated
+  layout options belong in Appearance; its debug switch stays with the demo.
+- Open the link with Appearance closed and already open. Test the desktop panel
+  and narrow-screen drawer. Verify the options are visible and reachable, change
+  an option, and assert its effect on the intended demo. Close and reopen the
+  panel to verify retained state and keyboard focus behavior.
+- Navigate between browse, detail, and a layout example. Check for duplicate or
+  stale option sections, controls affecting another demo, and lost state during
+  portal or drawer remounts. Exercise search and category filters as well.
+- In each real PaneGrid consumer, move and resize panes. Assert order, size,
+  saved layout, and restoration after reload. Filtering must not discard hidden
+  panes. Check compact widths stack or scale panes without rewriting saved sizes.
+  Interacting with links, fields, or actions inside a pane must not move it.
+- Test with navigation and Appearance open together. Check content overflow,
+  clipped labels, scroll ownership, and reachable controls at the available
+  content width. Capture browse, detail, and layout evidence separately.
