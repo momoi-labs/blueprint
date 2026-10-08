@@ -49,6 +49,7 @@ type Placement = {
   max: number
   compact: boolean
   stacked: boolean
+  debug: boolean
 }
 type Api = {
   resize: (id: string, next: number) => void
@@ -144,6 +145,9 @@ export type PaneGridProps = Omit<React.ComponentProps<"section">, "title"> & {
   pack?: boolean
   /* With `overflow="scroll"`, how many screens a row may span. */
   scrollPages?: number
+  /* Show each row's columns, the free columns and each pane's size bounds.
+     A development aid for products tuning their panes. */
+  debug?: boolean
 }
 
 export function PaneGrid({
@@ -155,6 +159,7 @@ export function PaneGrid({
   fill = false,
   pack = false,
   scrollPages = 2,
+  debug = false,
   className,
   children,
   ...props
@@ -204,7 +209,7 @@ export function PaneGrid({
 
   let gridRow = 0
   const rows: Row[] = layout.rows.map((ids, index) => {
-    if (index > 0) gridRow++
+    if (index > 0 || debug) gridRow++
     const lines = layRow(ids, specMap, layout.sizes, columns, { fill, pack, scroll: scrolling }).map((line) => ({ ...line, row: ++gridRow }))
     return { ids, lines }
   })
@@ -370,6 +375,7 @@ export function PaneGrid({
           if (Math.hypot(moved.clientX - start.x, moved.clientY - start.y) < 6) return
           active = true
           pane.classList.add("dragging")
+          if (bodyRef.current) bodyRef.current.dataset.dragging = "true"
         }
         target = hitTest(moved.clientX, moved.clientY, id)
         if (target) target.invalid = exceeds(id, target)
@@ -379,6 +385,7 @@ export function PaneGrid({
         handle.removeEventListener("pointermove", move)
         for (const type of RELEASE) handle.removeEventListener(type, stop)
         pane.classList.remove("dragging")
+        delete bodyRef.current?.dataset.dragging
         paint(null)
         if (!active || !target || target.invalid) return
         const rows = plan(id, target)
@@ -421,7 +428,7 @@ export function PaneGrid({
     for (const line of row.lines) {
       for (const item of line.items) {
         const max = scrolling ? Math.min(columns, item.size + scrollMax - line.used) : item.size + line.free
-        placements.set(item.id, { id: item.id, row: line.scroll ? 1 : line.row, col: item.col, span: item.span, size: item.size, min: item.min, max, compact, stacked })
+        placements.set(item.id, { id: item.id, row: line.scroll ? 1 : line.row, col: item.col, span: item.span, size: item.size, min: item.min, max, compact, stacked, debug })
       }
     }
   }
@@ -446,12 +453,17 @@ export function PaneGrid({
         data-columns={columns}
         data-compact={compact ? "true" : undefined}
         data-overflow={overflow}
+        data-debug={debug ? "true" : undefined}
         style={{ "--pane-cols": columns, "--pane-grid-width": `${width}px` } as React.CSSProperties}
       >
         {/* One flat list keyed by pane id, so a pane that changes row keeps
             its DOM node and its focus. */}
         {rows.flatMap((row, index) => [
-          index > 0 && <div key={`rule-${index}`} className="pane-grid-rule" aria-hidden="true" style={{ "--r": row.lines[0]!.row - 1 } as React.CSSProperties} />,
+          (index > 0 || debug) && (
+            <div key={`rule-${index}`} className="pane-grid-rule" aria-hidden="true" style={{ "--r": row.lines[0]!.row - 1 } as React.CSSProperties}>
+              {debug && `row ${index + 1} · ${row.lines.map((line) => `${line.used}/${columns}${line.scroll ? " ⇆ scroll" : ""}`).join(" + ")}`}
+            </div>
+          ),
           ...row.lines.flatMap((line) =>
             line.scroll
               ? [
@@ -459,7 +471,14 @@ export function PaneGrid({
                     {line.items.map((item) => renderPane(item.id))}
                   </div>,
                 ]
-              : line.items.map((item) => renderPane(item.id)),
+              : [
+                  ...line.items.map((item) => renderPane(item.id)),
+                  debug && line.free > 0 && !fill && (
+                    <div key={`free-${line.row}`} className="pane-grid-free" aria-hidden="true" style={{ "--r": line.row, "--c": line.used + 1, "--s": line.free } as React.CSSProperties}>
+                      free {line.free}
+                    </div>
+                  ),
+                ],
           ),
         ])}
         <div ref={dropRef} className="pane-grid-drop" aria-hidden="true" hidden />
@@ -515,6 +534,7 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
           {[4, 8, 12].map((y) => [6, 10].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1" fill="currentColor" stroke="none" />))}
         </svg>
         <h3 data-slot="grid-pane-title" className="grid-pane-title t-h3">{title}</h3>
+        {placement.debug && <span className="grid-pane-meta">size={placement.size} · min={placement.min} · max={placement.max}</span>}
         {actions != null && <div data-slot="grid-pane-actions" className="grid-pane-actions">{actions}</div>}
       </div>
       <div data-slot="grid-pane-body" className="grid-pane-body">{children}</div>

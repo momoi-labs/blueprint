@@ -2280,8 +2280,24 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   gap: var(--presentation-grid-gap);
   min-width: 0;
 }
-/* The boundary between two rows, and the drop target for "start a row". */
-.pane-grid-rule { grid-row: var(--r); grid-column: 1 / -1; height: 0; border-top: 1px dashed var(--color-border-strong); }
+/* The boundary between two rows, and the drop target for "start a row". It
+   keeps its track so rows read as groups, and shows its rule while a pane is
+   dragged or in debug. */
+.pane-grid-rule {
+  grid-row: var(--r); grid-column: 1 / -1; min-width: 0;
+  display: flex; align-items: center; gap: var(--spacing-sm);
+  font-family: var(--font-mono); font-size: var(--type-size-metadata); color: var(--color-muted-foreground); white-space: nowrap;
+}
+.pane-grid-rule::after { content: ""; flex: 1; border-top: 1px dashed var(--color-border-strong); }
+.pane-grid-body:not([data-dragging], [data-debug]) .pane-grid-rule::after { border-color: transparent; }
+/* Debug: the free columns of a line, and each pane's size bounds. */
+.pane-grid-free {
+  grid-area: var(--r) / var(--c) / auto / span var(--s);
+  display: grid; place-items: center; min-height: 10rem;
+  border: 1px dashed var(--color-border); border-radius: var(--radius-surface); opacity: .7;
+  font-family: var(--font-mono); font-size: var(--type-size-metadata); color: var(--color-muted-foreground);
+}
+.grid-pane-meta { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--type-size-metadata); color: var(--color-muted-foreground); }
 /* A row wider than the grid keeps one line and scrolls. Its tracks are the
    grid's own, so columns stay aligned across rows. The bleed leaves room for
    a pane's corner marks, which sit outside its box. */

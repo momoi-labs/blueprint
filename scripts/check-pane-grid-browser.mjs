@@ -119,6 +119,24 @@ test('Pack puts the big panes first and fill spends the free columns', async () 
   } finally { await page.close(); }
 });
 
+test('Rules stay quiet until a drag, and debug labels rows, free columns and bounds', async () => {
+  const page = await open();
+  try {
+    const rule = page.locator('.pane-grid-rule').first();
+    assert.equal(await rule.evaluate(el => getComputedStyle(el, '::after').borderTopColor), 'rgba(0, 0, 0, 0)');
+    const head = await page.getByRole('button', { name: 'Move Health' }).boundingBox();
+    await page.mouse.move(head.x + 20, head.y + 20); await page.mouse.down(); await page.mouse.move(head.x + 60, head.y + 20, { steps: 3 });
+    assert.notEqual(await rule.evaluate(el => getComputedStyle(el, '::after').borderTopColor), 'rgba(0, 0, 0, 0)');
+    await page.mouse.up();
+    assert.equal(await page.locator('.grid-pane-meta').count(), 0);
+    await page.goto(`${url}?debug`);
+    await page.locator('.grid-pane-meta').first().waitFor();
+    assert.equal(await page.locator('.grid-pane-meta').first().textContent(), 'size=6 · min=3 · max=8');
+    assert.deepEqual(await page.locator('.pane-grid-rule').evaluateAll(els => els.map(el => el.textContent)), ['row 1 · 10/12', 'row 2 · 12/12', 'row 3 · 12/12', 'row 4 · 6/12']);
+    assert.deepEqual(await page.locator('.pane-grid-free').evaluateAll(els => els.map(el => el.textContent)), ['free 2', 'free 6']);
+  } finally { await page.close(); }
+});
+
 for (const [width, columns] of [[900, 6], [390, 1]]) test(`At ${width}px the grid shows ${columns} columns and does not edit`, async () => {
   const page = await open('', { viewport: { width, height: 900 }, hasTouch: true });
   try {
