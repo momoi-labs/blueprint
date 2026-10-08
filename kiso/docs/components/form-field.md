@@ -86,7 +86,8 @@ unit. Both also work with the stacked layout. The suffix has an ID and joins
 
 Use a single Input or SelectTrigger in a framed group. Keep hints and errors
 below its frame. Leading icons are decorative, never a substitute for the
-visible Label. Do not place actions inside leading or suffix slots. Put
+visible Label. Do not place actions inside leading or suffix slots. For a
+password reveal, pass [PasswordInput](password-input.md) as the child. Put
 `disabled` and `required` on a supplied child or its Select root as usual.
 
 The group owns its border and focus ring; the native or Radix control retains

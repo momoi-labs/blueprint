@@ -21,6 +21,7 @@ behavioral reference where one exists.
 - [HelperText](helper-text.md): Provides persistent, non-error context for a form control.
 - [IconButton](icon-button.md): Triggers a compact icon-only action with a required accessible name.
 - [Input](input.md): Collects a single-line text-like value.
+- [PasswordInput](password-input.md): Collects a secret, masked by default, with a Show/Hide action.
 - [Label](label.md): Gives a form control its visible, programmatically associated name.
 - [Link](link.md): Navigates to a URL while preserving native link behavior.
 - [Select](select.md): Chooses one value from a predefined set of options.

@@ -22,6 +22,7 @@ export * from "./form-field.js";
 export * from "./form.js";
 export * from "./header.js";
 export * from "./input.js";
+export * from "./password-input.js";
 export * from "./kv.js";
 export * from "./label.js";
 export * from "./link.js";

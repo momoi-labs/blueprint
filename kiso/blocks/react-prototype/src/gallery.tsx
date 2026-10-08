@@ -160,6 +160,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  PasswordInput,
   ValidationMessage,
   useToast,
 } from "@momoi-labs/kiso-react";
@@ -176,6 +177,7 @@ const catalog = [
     "Compact actions with accessible names.",
   ],
   ["input", "Input", "Controls", "Default, disabled and invalid fields."],
+  ["password-input", "PasswordInput", "Controls", "A masked secret with a Show/Hide action."],
   ["textarea", "Textarea", "Controls", "Multi-line text and configuration."],
   [
     "select",
@@ -360,6 +362,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
 const snippets: Record<string, string> = {
   steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
   "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
+  "password-input": '<FormField label="Password">\n  <PasswordInput name="password" />\n</FormField>',
   "file-dropzone": '<FileDropzone label="Choose a file" accept=".txt" onFilesSelected={setFiles} />',
 
   "filter-input": `const fields: FilterField[] = [
@@ -1179,6 +1182,21 @@ const Demo = memo(function Demo({
               Use lowercase letters, numbers and hyphens.
             </ValidationMessage>
           </div>
+        </div>
+      );
+    case "password-input":
+      return (
+        <div className="demo-grid">
+          <FormField label="Password" hint="At least 12 characters.">
+            <PasswordInput name="password" defaultValue="correct-horse-battery" />
+          </FormField>
+          <FormField label="API key" error="This key was not accepted.">
+            <PasswordInput name="api_key" defaultValue="sk-l1Il0O-example"
+              labels={{ showName: "Show API key", hideName: "Hide API key", shown: "Your API key is visible", hidden: "Your API key is hidden" }} />
+          </FormField>
+          <FormField label="Disabled password">
+            <PasswordInput defaultValue="unavailable" disabled />
+          </FormField>
         </div>
       );
     case "textarea":
