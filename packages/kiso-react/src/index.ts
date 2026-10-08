@@ -41,6 +41,7 @@ export * from "./skeleton.js";
 export * from "./sparkline.js";
 export * from "./spinner.js";
 export * from "./split.js";
+export * from "./pane-grid.js";
 export * from "./stat.js";
 export * from "./switch.js";
 export * from "./table.js";

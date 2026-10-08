@@ -40,7 +40,9 @@ table cells; it composes like any other widget payload. Use
 [Chart](../components/chart.md) with its legend and exact-values table for
 exploratory metrics. Share a timestamp grid, time range, and syncId across
 related panels. Compose [DashboardGrid](../components/dashboard-grid.md) and
-[Disclosure](../components/disclosure.md) for responsive panel groups.
+[Disclosure](../components/disclosure.md) for responsive panel groups. When
+the reader should decide how much room each summary pane gets, compose
+[PaneGrid](../components/pane-grid.md) and persist its layout.
 
 ## Flow
 

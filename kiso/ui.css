@@ -2262,6 +2262,85 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   .splitter::after { inset-inline: calc((1px - var(--size-touch-min)) / 2); }
 }
 
+/* ===========================================================================
+   Pane grid (summary panes on twelve columns: resize, move, rows)
+   ---------------------------------------------------------------------------
+   A row is a group of panes. Its panes flow onto as many visual lines as
+   they need, or onto one scrolling line with data-overflow="scroll". The
+   component writes each pane's line (--r), start column (--c) and span (--s).
+   =========================================================================== */
+.pane-grid { display: grid; gap: var(--presentation-grid-gap); min-width: 0; }
+.pane-grid-title { margin: 0; }
+.pane-grid-body {
+  --pane-cols: 12;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--pane-cols), minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: var(--presentation-grid-gap);
+  min-width: 0;
+}
+/* The boundary between two rows, and the drop target for "start a row". */
+.pane-grid-rule { grid-row: var(--r); grid-column: 1 / -1; height: 0; border-top: 1px dashed var(--color-border-strong); }
+/* A row wider than the grid keeps one line and scrolls. Its tracks are the
+   grid's own, so columns stay aligned across rows. The bleed leaves room for
+   a pane's corner marks, which sit outside its box. */
+.pane-grid-scroll {
+  grid-row: var(--r); grid-column: 1 / -1; min-width: 0;
+  --pane-bleed: var(--spacing-sm);
+  --pane-track: calc((var(--pane-grid-width) - var(--presentation-grid-gap) * (var(--pane-cols) - 1)) / var(--pane-cols));
+  display: grid; grid-template-columns: repeat(var(--n), var(--pane-track)); gap: var(--presentation-grid-gap);
+  overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  padding: var(--pane-bleed) var(--pane-bleed) var(--spacing-sm);
+  margin: calc(-1 * var(--pane-bleed)) calc(-1 * var(--pane-bleed)) calc(-1 * var(--spacing-sm));
+  scroll-padding-inline: var(--pane-bleed);
+}
+.pane-grid-scroll > .grid-pane { scroll-snap-align: start; }
+.grid-pane {
+  grid-area: var(--r) / var(--c) / auto / span var(--s);
+  position: relative;
+  min-width: 0; min-height: 10rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* content may not widen the pane */
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.grid-pane-head {
+  display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0;
+  padding: var(--spacing-md) var(--presentation-panel-padding);
+  border-bottom: 1px solid var(--color-border);
+  cursor: grab; user-select: none; touch-action: none;
+}
+.grid-pane-head:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.grid-pane-grip { color: var(--color-muted-foreground); flex: none; }
+.grid-pane-title { margin: 0; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grid-pane-actions { display: flex; align-items: center; gap: var(--spacing-xs); flex: none; cursor: auto; }
+.grid-pane-body { padding: var(--presentation-panel-padding); min-width: 0; overflow: auto; display: grid; gap: var(--presentation-panel-gap); align-content: start; }
+/* The end edge resizes the pane. Same language as .splitter: a hairline that
+   lights up, with a wider pointer area. */
+.grid-pane-resizer {
+  position: absolute; inset-block: 0; inset-inline-end: -1px; width: 1px;
+  background: transparent; cursor: col-resize; touch-action: none; z-index: 2;
+}
+.grid-pane-resizer::after { content: ""; position: absolute; inset-block: 0; inset-inline: -5px; }
+.grid-pane-resizer:hover, .grid-pane-resizer.dragging, .grid-pane-resizer:focus-visible { background: var(--color-ring); outline: none; }
+.grid-pane-resizer[aria-disabled="true"] { cursor: default; }
+.grid-pane.dragging { opacity: .55; }
+.grid-pane.resizing { box-shadow: 0 0 0 1px var(--color-ring); }
+/* Where a dragged pane will land: a bar between panes or across the grid. */
+.pane-grid-drop { position: absolute; pointer-events: none; background: var(--color-ring); border-radius: 2px; z-index: 3; }
+.pane-grid-drop[hidden] { display: none; }
+.pane-grid-drop[data-axis="x"] { width: 3px; }
+.pane-grid-drop[data-axis="y"] { height: 3px; }
+.pane-grid-drop[data-invalid="true"] { background: var(--color-danger); }
+/* Below 1024px the saved twelve-column layout is shown on six columns, and
+   below 640px every pane stacks. Neither is editable: a product edits the
+   layout on the wide screen it was designed for. */
+.pane-grid-body[data-compact="true"] .grid-pane-resizer { display: none; }
+@media (pointer: coarse) {
+  .grid-pane-resizer::after { inset-inline: calc((1px - var(--size-touch-min)) / 2); }
+  .grid-pane-head { min-height: var(--size-touch-min); }
+}
+
 /* Legacy single-series SVG helpers. Interactive metrics use .framed-chart
    below; these selectors remain compatible with existing consumers. */
 .chart { width: 100%; height: 200px; display: block; overflow: visible; color: var(--color-primary); }

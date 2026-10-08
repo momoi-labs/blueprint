@@ -19,8 +19,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));

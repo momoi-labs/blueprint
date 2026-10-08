@@ -4,6 +4,7 @@ import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
 import { InlineFieldsDemo } from "./inline-fields-demo";
 import { TableDemo } from "./table-demo";
+import { PaneGridDemo } from "./pane-grid-demo";
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { FilterInputDemo } from "./filter-input-demo";
@@ -234,6 +235,7 @@ const catalog = [
   ["disclosure", "Disclosure", "Structure", "Native collapsible sections."],
   ["time-range-control", "TimeRangeControl", "Controls", "Presets and exact collection windows."],
   ["dashboard-grid", "DashboardGrid", "Structure", "Responsive panels on twelve columns."],
+  ["pane-grid", "PaneGrid", "Structure", "Summary panes the reader resizes and moves."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["status-badge", "StatusBadge", "Data", "A status in one of three tones, pulsing while work goes."],
@@ -347,6 +349,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   lifecycle: "wide",
   alert: "wide",
   "dashboard-grid": "wide",
+  "pane-grid": "full",
   "page-header": "wide",
   header: "wide",
   "app-shell": "wide",
@@ -439,6 +442,7 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<Sparkline values={cpu} height={28} tone="primary" fill\n  label="CPU trend with a collection gap and a measured zero" />\n<Sparkline values={memory} height={18} />',
   kv: "<KV>\n  <KVKey>Owner</KVKey>\n  <KVValue>Alex Morgan</KVValue>\n</KV>",
   separator: '<Separator />\n<Separator orientation="vertical" />',
+  "pane-grid": '<PaneGrid title="Summary" onLayoutChange={save}>\n  <GridPane id="url" title="Public URL" min={3} size={6}>{url}</GridPane>\n  <GridPane id="start" title="Start command" min={4} size={12} newRow>{command}</GridPane>\n</PaneGrid>',
   split: "<Split>\n  <Pane>{list}</Pane>\n  <Splitter defaultSize={42} aria-label=\"Resize the panes\" />\n  <Pane className=\"grow\">{detail}</Pane>\n</Split>",
   "step-list": '<Split>\n  <Pane>\n    <StepList label="Create run steps" steps={steps} selected={picked} onSelect={setPicked} />\n  </Pane>\n  <Splitter defaultSize={36} aria-label="Resize the steps and output panes" />\n  <Pane className="grow"><LogView follow>{lines}</LogView></Pane>\n</Split>',
   lifecycle: '<Lifecycle\n  status={<StatusBadge tone="success">Running</StatusBadge>}\n  actions={<><Button size="sm">Stop</Button><Button size="sm">Restart</Button></>}\n  destructive={<Button size="sm" variant="ghost" className="btn-danger-ghost">Remove</Button>}\n/>',
@@ -1950,6 +1954,8 @@ const Demo = memo(function Demo({
     case "time-range-control":
     case "dashboard-grid":
       return <MetricsDemo component={id} />;
+    case "pane-grid":
+      return <PaneGridDemo />;
     case "log-view":
       return <LogViewDemo />;
     case "step-list":
