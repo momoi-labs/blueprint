@@ -27,3 +27,6 @@ keep values aligned. Color does not encode the identity of a row.
 Use Meter's track and fill tokens, `--spacing-md` between rows, and
 `--spacing-sm` within each row. No separate charting or Radix primitive is
 required. The old `.bars` vertical mini-bars are unrelated and stay compatible.
+
+Rows inherit the four `data-chart-style` treatments from Meter. A treatment
+changes the fill and ends, while measured widths and values stay the same.

@@ -1,5 +1,9 @@
 # ChartLegend
 
+Line swatches inherit `data-chart-style`. Rounded has round line ends; the
+other treatments keep square ends. Series colors and numbered labels do not
+change with chart appearance.
+
 ## Purpose and anatomy
 
 A native summary table for a [Chart](chart.md), available without hovering.

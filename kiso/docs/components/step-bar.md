@@ -45,6 +45,10 @@ decorative. Nothing depends on colour alone.
 Segments use `--radius-xs` and a `--spacing-2xs` gap. The hatch for a skipped
 segment reuses the existing hatch tokens. No Radix primitive.
 
+`data-chart-style` changes segment appearance: Solid keeps the current shape,
+Pixel has square ends, Halftone uses a dot screen, and Rounded has round ends.
+Segment order, state colors, and running progress stay the same.
+
 ## When to use
 
 - A machine's summary tab or card while an action runs or after it fails.

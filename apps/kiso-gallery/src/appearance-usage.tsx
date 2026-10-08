@@ -56,7 +56,7 @@ export function AppearanceUsage({ settings }: { settings: AppearanceSettings }) 
         <Button size="sm" onClick={() => copy("JavaScript", code.javascript)}>Copy JavaScript</Button>
       </div>
       <HighlightedCode language="javascript" source={code.javascript} />
-      <p className="muted t-label">This updates the current page. In your app, save and restore preferences if they should survive reloads. The gallery uses <code>appearance-init.js</code> to restore its saved settings before first paint.</p>
+      <p className="muted t-label">This updates the current page, including chart styles. In your app, save and restore preferences if they should survive reloads. The gallery uses <code>appearance-init.js</code> to restore its saved settings before first paint.</p>
     </section>
     <p role="status" className="muted t-label">{copyStatus}</p>
   </section>;

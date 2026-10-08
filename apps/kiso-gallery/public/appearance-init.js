@@ -3,6 +3,7 @@
   const options = {
     theme: ["system", "light", "dark"],
     accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime"],
+    chartStyle: ["solid", "pixel", "halftone", "rounded"],
     borderStyle: ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset", "manga", "brush"],
     cornerStyle: ["square", "rounded", "asym", "pixel"],
     cornerMarks: ["ticks", "none", "brackets", "arcs", "dots", "diagonal"],

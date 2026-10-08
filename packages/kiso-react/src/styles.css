@@ -319,6 +319,49 @@
   box-shadow: var(--shadow-md);
   max-width: min(24rem, calc(100vw - 2 * var(--spacing-lg)));
 }
+
+.detail-select { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.detail-select-trigger { display: flex; align-items: center; gap: var(--spacing-sm); width: 100%; text-align: start; }
+.detail-select-trigger > :last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.detail-select-icon { display: inline-flex; flex: none; }
+.detail-select-content {
+  gap: 0;
+  width: min(40rem, calc(100vw - 2 * var(--spacing-lg)));
+  max-width: min(40rem, calc(100vw - 2 * var(--spacing-lg)));
+  max-height: min(32rem, var(--radix-popover-content-available-height));
+  overflow-y: auto; overscroll-behavior: contain; padding: 0;
+}
+.detail-select-option { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--spacing-lg); padding: var(--spacing-md); border-bottom: 1px solid var(--color-border); }
+.detail-select-option:last-child { border-bottom: 0; }
+.detail-select-option:not([data-disabled]) { cursor: pointer; }
+@media (hover: hover) {
+  .detail-select-option:where(:not([data-disabled]):hover) { background-color: var(--color-accent-surface-hover); }
+}
+.detail-select-option[data-selected="true"], .detail-select-option:has(.detail-select-choice:focus-visible) { background-color: var(--color-selected); color: var(--color-selected-foreground); }
+.detail-select-option:is([data-selected="true"], :has(.detail-select-choice:focus-visible)) :is(.detail-select-choice, .detail-select-description) { color: inherit; }
+@media (forced-colors: active) {
+  .detail-select-option:has(.detail-select-choice:focus-visible) { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+.detail-select-illustration { min-width: 0; align-self: start; padding-top: var(--spacing-sm); }
+.detail-select-illustration :is(img, svg, video) { max-width: 100%; }
+.detail-select-body { min-width: 0; overflow-wrap: anywhere; }
+.detail-select-heading { margin: 0; }
+.detail-select-choice { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); width: 100%; min-height: var(--size-control-sm); padding: 0; border: 0; background: transparent; color: var(--color-foreground); font: inherit; font-size: var(--type-size-body); font-weight: var(--type-weight-medium); text-align: start; cursor: pointer; }
+.detail-select-choice:focus-visible { outline: none; }
+.detail-select-choice:disabled { color: var(--color-disabled); cursor: default; }
+.detail-select-choice .icon { flex: none; }
+.detail-select-description { color: var(--color-muted-foreground); font-size: var(--type-size-label); overflow-x: auto; }
+.detail-select-description > * { margin-block: 0 var(--spacing-sm); }
+.detail-select-description > :last-child { margin-bottom: 0; }
+.detail-select-description a { color: var(--color-link); text-decoration: underline; text-underline-offset: var(--spacing-2xs); }
+.detail-select-empty { padding: var(--spacing-md); margin: 0; color: var(--color-muted-foreground); }
+@media (max-width: 480px) {
+  .detail-select-option { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); gap: var(--spacing-sm); padding: var(--spacing-sm); }
+}
+@media (pointer: coarse) {
+  .detail-select-choice { min-height: var(--size-touch-min); }
+  .detail-select-description a { display: inline-block; min-height: var(--size-touch-min); align-content: center; }
+}
 /* When frames include controls, these surfaces take the control shape, as
    the control-sized surfaces in ui.css do. */
 :where([data-frame-scope="all"]) :is(.kiso-react-popover, .theme-buttons, .accent-preview) {

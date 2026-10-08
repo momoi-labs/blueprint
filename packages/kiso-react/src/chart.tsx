@@ -4,6 +4,7 @@ import * as React from "react"
 import { clsx as cn } from "clsx"
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { ChartLegend, ChartSeriesLabel } from "./chart-legend.js"
+import { ChartDot, ChartPattern, pixelCurve, useChartStyle, type ChartStyle } from "./chart-style.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries } from "./chart-data.js"
 
@@ -25,13 +26,16 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   formatValue?: (value: number) => string
   min?: number
   max?: number
+  chartStyle?: ChartStyle
 }
 
 export function Chart({ data, series, label, variant = "line", layout = "standard", legend = "table",
   highlightSeries, onHighlightSeriesChange, height = layout === "compact" ? 165 : layout === "split" ? 90 : 200, syncId,
   formatTime = formatChartTime, formatValue = formatChartValue, min, max,
-  className, ...props }: ChartProps) {
+  chartStyle, ref, className, ...props }: ChartProps) {
   const id = React.useId()
+  const frame = React.useRef<HTMLElement>(null)
+  const treatment = useChartStyle(frame, chartStyle)
   const [localHighlight, setLocalHighlight] = React.useState<string | null>(null)
   const [activeTimestamp, setActiveTimestamp] = React.useState<number | null>(null)
   const requestedHighlight = highlightSeries === undefined ? localHighlight : highlightSeries
@@ -72,6 +76,8 @@ export function Chart({ data, series, label, variant = "line", layout = "standar
       <ComposedChart data={plot} syncId={syncId ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
         margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+        <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-halftone-${index}`}
+          color={chartColor(chartSlot(series[index]!, index))} />)}</defs>
         <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />
         <XAxis dataKey="timestamp" type="number" domain={["dataMin", "dataMax"]} scale="time"
           axisLine={false} tickLine={false} tickFormatter={formatTime} minTickGap={48}
@@ -91,18 +97,24 @@ export function Chart({ data, series, label, variant = "line", layout = "standar
           const slot = chartSlot(item, index)
           const dimmed = highlighted !== null && item.key !== highlighted
           const common = { dataKey: `values.${index}`, name: item.label, stroke: chartColor(slot),
-            strokeWidth: item.key === highlighted ? 2.2 : 1.5, strokeOpacity: dimmed ? 0.3 : 1,
+            strokeWidth: item.key === highlighted ? (treatment === "pixel" || treatment === "rounded" ? 2.7 : 2.2) : treatment === "pixel" || treatment === "rounded" ? 2 : 1.5,
+            strokeOpacity: dimmed ? 0.3 : 1, strokeLinecap: treatment === "rounded" ? "round" as const : "butt" as const,
+            strokeLinejoin: treatment === "rounded" ? "round" as const : "miter" as const,
             connectNulls: false, isAnimationActive: false,
             dot: (dotProps: { cx?: number; cy?: number; index?: number }) => {
               const at = dotProps.index ?? -1
               const isolated = measured(plot[at]?.values[index])
                 && !measured(plot[at - 1]?.values[index]) && !measured(plot[at + 1]?.values[index])
-              return <circle key={at} cx={dotProps.cx} cy={dotProps.cy} r={isolated ? 3 : 0}
-                fill={chartColor(slot)} opacity={dimmed ? 0.3 : 1} />
-            }, activeDot: { r: 4 } }
-          return variant === "stacked-area"
-            ? <Area key={item.key} {...common} type="linear" stackId="total" fill={chartColor(slot)} fillOpacity={dimmed ? 0.06 : 0.2} />
-            : <Line key={item.key} {...common} type="linear" />
+              return <ChartDot key={at} cx={dotProps.cx} cy={dotProps.cy} r={isolated ? 3 : 0}
+                chartStyle={treatment} fill={chartColor(slot)} opacity={dimmed ? 0.3 : 1} />
+            }, activeDot: (dotProps: { cx?: number; cy?: number }) => <ChartDot {...dotProps}
+              chartStyle={treatment} fill={chartColor(slot)} opacity={dimmed ? 0.3 : 1} /> }
+          const curve = treatment === "pixel" ? pixelCurve : treatment === "rounded" && variant === "line" ? "monotone" : "linear"
+          return variant === "stacked-area" || treatment === "halftone"
+            ? <Area key={item.key} {...common} type={curve} stackId={variant === "stacked-area" ? "total" : undefined}
+                fill={treatment === "halftone" ? `url(#${id}-halftone-${index})` : chartColor(slot)}
+                fillOpacity={dimmed ? 0.06 : 0.2} />
+            : <Line key={item.key} {...common} type={curve} />
         })}
       </ComposedChart>
     </ResponsiveContainer>
@@ -111,7 +123,11 @@ export function Chart({ data, series, label, variant = "line", layout = "standar
     variant={legend} formatValue={formatValue} formatTime={formatTime}
     activeTimestamp={legend === "sidebar" && hasData ? activeTimestamp : null}
     highlightSeries={highlighted} onHighlightSeriesChange={highlight} />
-  return <figure {...props} data-slot="chart" data-layout={layout} data-legend={legend}
+  return <figure {...props} ref={element => {
+    frame.current = element
+    if (typeof ref === "function") return ref(element)
+    if (ref) ref.current = element
+  }} data-slot="chart" data-layout={layout} data-legend={legend} data-chart-treatment={treatment}
     className={cn("framed-chart", className)} aria-labelledby={`${id}-title`}>
     <figcaption id={`${id}-title`} className="t-h3">{label}</figcaption>
     <p id={`${id}-help`} className="chart-help">Focus the chart and use Left and Right to inspect samples. Select a series in the legend to highlight it. Exact values are available below.</p>

@@ -91,6 +91,7 @@ uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 | `variant` | `line`, `stacked-area` | `line` |
 | `layout` | `standard`, `compact`, `split` | `standard` |
 | `legend` | `table`, `inline`, `sidebar` | `table` |
+| `chartStyle` | `solid`, `pixel`, `halftone`, `rounded` | Inherited `data-chart-style`, otherwise `solid` |
 | `highlightSeries` | A series key or null | Local selection |
 
 Standard uses a 200-pixel plot; compact uses 165 pixels and tighter spacing.
@@ -112,6 +113,19 @@ it never removes contributions or changes the stack's total or scale.
 
 Keyboard instructions remain available through the plot's accessible
 description instead of taking permanent space above every plot.
+
+## Chart appearance
+
+Solid keeps thin, straight segments. Pixel draws small horizontal and vertical
+stairs between the same sample positions, with square inspection and isolated
+sample markers. Halftone keeps continuous lines and adds a dotted area in each
+series' own color. Rounded uses monotone curves between neighboring samples
+and round line ends and markers. Stacked boundaries stay linear in Rounded
+so their contributions retain the same geometry.
+
+Every treatment preserves gaps, the palette, highlight behavior, scales,
+and exact values. Chart treatment is independent of panel borders. Floating
+readouts follow the existing control corner and frame settings.
 
 The React component composes Recharts `ComposedChart`, `Line`, `Area`, axes,
 and Tooltip, with animation disabled and `connectNulls={false}`. Synchronization

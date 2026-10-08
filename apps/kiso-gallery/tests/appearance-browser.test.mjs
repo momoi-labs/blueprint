@@ -41,6 +41,60 @@ async function close(page) {
   await page.locator("#gallery-settings").waitFor({ state: "hidden" });
 }
 
+for (const width of [390, 1440]) test(`DetailSelect selects the last option by click and keyboard at ${width}px`, async () => {
+  const page = await open('components/detail-select', width);
+  try {
+    await page.getByRole('button', { name: 'Definition Container image', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Definition: options' });
+    const last = panel.getByRole('button', { name: 'Virtual machine', exact: true });
+    assert(await last.isEnabled());
+    await last.click();
+    const trigger = page.getByRole('button', { name: 'Definition Virtual machine', exact: true });
+    await trigger.waitFor();
+    assert.equal(await panel.count(), 0);
+    await trigger.click();
+    await page.waitForFunction(e => e === document.activeElement, await last.elementHandle());
+    await page.keyboard.press('Home');
+    await page.getByRole('button', { name: 'Definition Container image', exact: true }).waitFor();
+    await page.keyboard.press('ArrowDown');
+    await page.getByRole('button', { name: 'Definition Source repository', exact: true }).waitFor();
+    await page.keyboard.press('ArrowDown');
+    await trigger.waitFor();
+    assert.equal(await last.getAttribute('aria-pressed'), 'true');
+    assert(await panel.isVisible(), 'Arrow selection keeps the panel open');
+    await page.keyboard.press('Home');
+    await page.keyboard.press('End');
+    await trigger.waitFor();
+    await page.keyboard.press('Escape');
+    assert.equal(await panel.count(), 0);
+    assert(await page.getByRole('status').getByText('Selected definition: vm', { exact: true }).isVisible());
+  } finally { await page.close(); }
+});
+
+for (const width of [390, 1440]) test(`Chart treatments select, persist and export without page growth at ${width}px`, async () => {
+  const page = await open('components/chart', width);
+  try {
+    for (const [label, chartStyle] of [['Solid', 'solid'], ['Pixel', 'pixel'], ['Halftone', 'halftone'], ['Rounded', 'rounded']]) {
+      const panel = await settings(page);
+      const trigger = panel.locator('.detail-select-trigger');
+      const baseline = await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]);
+      await trigger.click();
+      const options = page.getByRole('dialog', { name: 'Chart style: options' });
+      const bounds = await options.boundingBox();
+      assert(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 901);
+      assert.deepEqual(await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]), baseline);
+      await options.getByRole('button', { name: label, exact: true }).click();
+      await page.waitForFunction(style => document.documentElement.dataset.chartStyle === style, chartStyle);
+      assert.equal(await page.locator('[data-slot="chart"]').getAttribute('data-chart-treatment'), chartStyle);
+      await page.reload();
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.chartStyle), chartStyle);
+      const saved = await page.evaluate(() => window.kisoAppearance.read());
+      assert(appearanceCode(saved).html.includes(`data-chart-style="${chartStyle}"`));
+      assert.equal(saved.cornerStyle, 'pixel', 'Chart choice keeps the independent corner preference');
+    }
+  } finally { await page.close(); }
+});
+
 for (const accent of ['red', 'gold', 'lime']) for (const theme of ['light', 'dark']) test(`${accent} accent can be selected and restored in ${theme}`, async () => {
   const page = await open('intro', 1440, theme);
   try {
@@ -667,7 +721,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1200, 'dark'], [16
       return { id: section.querySelector('h2').id, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
     }));
     const initial = await inspect();
-    assert.equal(initial.length, 63, 'The sweep covers every current catalog sample');
+    assert.equal(initial.length, 64, 'The sweep covers every current catalog sample');
     const baseline = Object.fromEntries(initial.map(item => [item.id, item.overflow]));
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);
