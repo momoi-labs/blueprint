@@ -11,6 +11,7 @@ import { FilterInputDemo } from "./filter-input-demo";
 import { DetailSelectDemo } from "./detail-select-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
+import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
 import { memo, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
@@ -237,6 +238,7 @@ const catalog = [
   ["dashboard-grid", "DashboardGrid", "Structure", "Responsive panels on twelve columns."],
   ["pane-grid", "PaneGrid", "Structure", "Summary panes the reader resizes and moves."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
+  ["diagram", "Diagram", "Data", "How routes, services and stores connect."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["status-badge", "StatusBadge", "Data", "A status in one of three tones, pulsing while work goes."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
@@ -350,6 +352,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   alert: "wide",
   "dashboard-grid": "wide",
   "pane-grid": "full",
+  diagram: "full",
   "page-header": "wide",
   header: "wide",
   "app-shell": "wide",
@@ -363,6 +366,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
 };
 
 const snippets: Record<string, string> = {
+  diagram: '<Diagram label="honcho topology">\n  <DiagramColumn>\n    <DiagramNode id="host" kind="route" label="Hostname" title="honcho.momoi.internal">\n      https://honcho.momoi.internal\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="repo" kind="repository" title="honcho" accent>\n      {"github.com/momoi-labs/honcho\\nport: 8000"}\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="db" kind="database" title="honcho-db">postgres:17</DiagramNode>\n    <DiagramNode id="cache" icon={Zap} label="Cache" title="honcho-cache" status="failed" borderStyle="dash">redis:7</DiagramNode>\n  </DiagramColumn>\n  <DiagramEdge from="host" to="repo" label=":8000" />\n  <DiagramEdge from="repo" to="db" label="DATABASE_URL" />\n  <DiagramEdge from="repo" to="cache" label="REDIS_URL" line="dotted" tone="danger" />\n</Diagram>',
   steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
   "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
   "password-input": '<FormField label="Password">\n  <PasswordInput name="password" />\n</FormField>',
@@ -1956,6 +1960,8 @@ const Demo = memo(function Demo({
       return <MetricsDemo component={id} />;
     case "pane-grid":
       return <PaneGridDemo />;
+    case "diagram":
+      return <DiagramDemo />;
     case "log-view":
       return <LogViewDemo />;
     case "step-list":
