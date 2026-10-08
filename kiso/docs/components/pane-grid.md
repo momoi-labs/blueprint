@@ -28,8 +28,8 @@ PaneGrid
 A row is a group of panes. Its panes flow in reading order onto as many lines
 as they need, so a row whose panes add up to more than twelve columns wraps
 onto a second line and stays one row. A pane may start a row with `newRow`.
-Rows are separated by a wider gap. While a pane is dragged, a dashed rule
-appears in that gap: dropping on it starts a row.
+Rows and columns share one gap. While a pane is dragged, a dashed rule
+appears in the gap above each row: dropping on it starts a row.
 
 GridPane is a [Card](card.md). Its head is the drag handle and holds the h3
 title and optional compact actions ([Button](button.md) `sm`, `ghost`, or
