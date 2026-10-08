@@ -78,7 +78,7 @@ test('The header and catalog accept pointer input during rail animations', async
             animation.currentTime = 80;
           }
         });
-        for (const target of ['.gallery-settings-trigger', '.catalog-sidebar-toggle', '.catalog-section-heading a']) {
+        for (const target of ['.gallery-settings-trigger', '.catalog-sidebar-toggle', '.catalog-open']) {
           assert(await page.locator(target).first().evaluate(el => {
             const box = el.getBoundingClientRect();
             return el.contains(document.elementFromPoint(box.right - 4, box.top + box.height / 2));

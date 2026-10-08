@@ -11,8 +11,8 @@ before(async () => {
   browser = await chromium.launch();
   const page = await open(1440);
   await page.goto(`${url}#components`);
-  await page.locator(".catalog-section-heading a").first().waitFor();
-  titles = await page.locator(".catalog-section-heading a").evaluateAll(elements => Object.fromEntries(elements.map(el => [el.hash.slice(1), el.firstChild.textContent.trim()])));
+  await page.locator(".catalog-pane").first().waitFor();
+  titles = await page.locator(".catalog-pane").evaluateAll(elements => Object.fromEntries(elements.map(el => [`components/${el.dataset.paneId}`, el.querySelector(".grid-pane-title").textContent.trim()])));
   routes = Object.keys(titles);
   assert(routes.length > 0, "Discover the entire rendered catalog, not a fixed subset");
   await page.close();
@@ -129,10 +129,11 @@ for (const frame of ["default", "inset"]) test(`Catalog uses available space and
           }
           // ResizeObserver must finish the card heights before checking overlap.
           await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-          const grid = await page.locator(".catalog-masonry").evaluate(el => ({ width: el.clientWidth, columns: getComputedStyle(el).gridTemplateColumns.split(" ").length }));
-          assert.equal(grid.columns, grid.width >= 960 ? 4 : grid.width >= 560 ? 2 : 1);
-          const overlap = await page.locator(".catalog-masonry > section").evaluateAll(cards => {
-            const boxes = cards.map(el => ({ name: el.getAttribute("aria-labelledby"), box: el.getBoundingClientRect() }));
+          // PaneGrid picks its columns from its own width: 12, then 6 up to 1024px, then 1 up to 640px.
+          const grid = await page.locator(".catalog-pane-grid > .pane-grid-body").evaluate(el => ({ width: el.clientWidth, columns: Number(el.dataset.columns) }));
+          assert.equal(grid.columns, grid.width > 1024 ? 12 : grid.width > 640 ? 6 : 1);
+          const overlap = await page.locator(".catalog-pane-grid > .pane-grid-body > .catalog-pane").evaluateAll(cards => {
+            const boxes = cards.map(el => ({ name: el.dataset.paneId, box: el.getBoundingClientRect() }));
             return boxes.flatMap((a, i) => boxes.slice(i + 1).filter(b => a.box.left < b.box.right - 1 && a.box.right > b.box.left + 1 && a.box.top < b.box.bottom - 1 && a.box.bottom > b.box.top + 1).map(b => [a.name, b.name]));
           });
           assert.deepEqual(overlap, [], "Masonry cards must not overlap after rail changes");
@@ -142,7 +143,7 @@ for (const frame of ["default", "inset"]) test(`Catalog uses available space and
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await settings(page, true);
-    for (const link of await page.locator(".catalog-section-heading a").all()) {
+    for (const link of await page.locator(".catalog-open").all()) {
       await link.evaluate(el => el.scrollIntoView({ block: "center" }));
       assert(await link.evaluate(el => {
         const box = el.getBoundingClientRect();
