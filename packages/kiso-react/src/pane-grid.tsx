@@ -155,7 +155,7 @@ export function PaneGrid({
   layout: controlled,
   defaultLayout,
   onLayoutChange,
-  overflow = "wrap",
+  overflow = "scroll",
   fill = false,
   pack = false,
   scrollPages = 2,
