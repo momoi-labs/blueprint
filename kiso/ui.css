@@ -2444,8 +2444,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .pane-grid-drop[data-axis="x"] { width: 3px; }
 .pane-grid-drop[data-axis="y"] { height: 3px; }
 .pane-grid-drop[data-invalid="true"] { background: var(--color-danger); }
-/* Below 1024px the saved twelve-column layout is shown on six columns, and
-   below 640px every pane stacks. Neither is editable: a product edits the
+/* On a grid narrower than 1024px the saved twelve-column layout is shown on
+   six columns, and below 640px every pane stacks. Neither is editable: a product edits the
    layout on the wide screen it was designed for. */
 .pane-grid-body[data-compact="true"] .grid-pane-resizer { display: none; }
 @media (pointer: coarse) {

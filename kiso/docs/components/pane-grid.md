@@ -104,9 +104,11 @@ aligned with the rows above and below it.
 
 ## Responsive behavior
 
-PaneGrid follows the viewport, at DashboardGrid's breakpoints.
+PaneGrid follows its own width, at DashboardGrid's breakpoints. A grid beside
+a sidebar or an open panel gets the columns its space allows, not the ones the
+viewport would.
 
-| Width | Columns | Editing |
+| Grid width | Columns | Editing |
 | --- | --- | --- |
 | above 1024px | 12 | Resize and move. |
 | 641px to 1024px | 6 | Move only. Sizes and minimums are halved, rounding up. |
