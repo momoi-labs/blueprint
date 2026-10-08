@@ -2280,12 +2280,13 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   gap: var(--presentation-grid-gap);
   min-width: 0;
 }
-/* The boundary between two rows, and the drop target for "start a row". It
-   keeps its track so rows read as groups, and shows its rule while a pane is
-   dragged or in debug. */
+/* The boundary above a row, and the drop target for "start a row". It sits
+   in the grid gap, on no track of its own, so rows and columns keep the same
+   gap. The rule shows while a pane is dragged or in debug. */
 .pane-grid-rule {
-  grid-row: var(--r); grid-column: 1 / -1; min-width: 0;
-  display: flex; align-items: center; gap: var(--spacing-sm);
+  grid-row: var(--r); grid-column: 1 / -1; align-self: start; min-width: 0; height: 0; z-index: 1;
+  margin-block-start: calc(-1 * var(--presentation-grid-gap) / 2);
+  display: flex; align-items: center; gap: var(--spacing-sm); pointer-events: none;
   font-family: var(--font-mono); font-size: var(--type-size-metadata); color: var(--color-muted-foreground); white-space: nowrap;
 }
 .pane-grid-rule::after { content: ""; flex: 1; border-top: 1px dashed var(--color-border-strong); }

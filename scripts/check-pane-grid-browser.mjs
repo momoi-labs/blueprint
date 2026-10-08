@@ -54,6 +54,8 @@ test('Rows come from newRow and a pane grows into the free columns only', async 
     assert.equal(await page.evaluate(() => window.paneLayout.sizes.url), 7);
     assert.equal(await page.getByRole('separator', { name: 'Resize Start command' }).getAttribute('aria-disabled'), null);
     assert.equal(await page.getByRole('separator', { name: 'Resize Listener' }).getAttribute('aria-valuemax'), '5');
+    const [urlBox, listenerBox, startBox] = await Promise.all(['url', 'listener', 'start'].map(id => page.locator(`[data-pane-id="${id}"]`).boundingBox()));
+    assert.equal(Math.round(startBox.y - listenerBox.y - listenerBox.height), Math.round(listenerBox.x - urlBox.x - urlBox.width));
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/pane-grid.png`, fullPage: true });
   } finally { await page.close(); }
 });
@@ -70,7 +72,8 @@ test('Moving a pane into a row keeps every size and wraps the row onto a second 
     assert.deepEqual(order, ['url', 'listener', 'start', 'packages', 'variables', 'health', 'routes']);
     // The gap above a row starts a new row; a pane at a row's start rejoins the row above on Enter.
     const packages = await page.locator('[data-pane-id="packages"]').boundingBox();
-    await dragTo(page, page.getByRole('button', { name: 'Move Routes' }), packages.x + 40, packages.y - 14);
+    const start = await page.locator('[data-pane-id="start"]').boundingBox();
+    await dragTo(page, page.getByRole('button', { name: 'Move Routes' }), packages.x + 40, (packages.y + start.y + start.height) / 2);
     assert.deepEqual(await rows(page), [['url', 'listener'], ['start'], ['routes'], ['packages', 'variables', 'health']]);
     await page.getByRole('button', { name: 'Move Routes' }).focus();
     await page.keyboard.press('Enter');

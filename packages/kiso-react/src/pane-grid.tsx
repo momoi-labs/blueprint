@@ -208,8 +208,7 @@ export function PaneGrid({
   const scrollMax = columns * Math.max(1, scrollPages)
 
   let gridRow = 0
-  const rows: Row[] = layout.rows.map((ids, index) => {
-    if (index > 0 || debug) gridRow++
+  const rows: Row[] = layout.rows.map((ids) => {
     const lines = layRow(ids, specMap, layout.sizes, columns, { fill, pack, scroll: scrolling }).map((line) => ({ ...line, row: ++gridRow }))
     return { ids, lines }
   })
@@ -275,11 +274,10 @@ export function PaneGrid({
     }
 
     /* Where a dragged pane lands: before or after a pane on one of a row's
-       lines, in the gap above a row as a row of its own, or after the last
-       row. */
+       lines, in the whole gap above a row as a row of its own, or after the
+       last row. */
     const hitTest = (x: number, y: number, self: string): Target | null => {
       const { rows, stacked } = state.current
-      const gap = gaps().y
       const rect = (id: string) => paneElement(id)?.getBoundingClientRect()
       for (const row of rows) {
         const bands = row.lines.map((line) => {
@@ -289,8 +287,8 @@ export function PaneGrid({
         if (!bands.length) continue
         const top = bands[0]!.top
         const bottom = bands[bands.length - 1]!.bottom
-        if (y < top - gap / 3) return { ref: row.ids[0]!, where: "newrow-before" }
-        if (y > bottom + gap / 3) continue
+        if (y < top) return { ref: row.ids[0]!, where: "newrow-before" }
+        if (y > bottom) continue
         const band = bands.reduce((near, next) =>
           Math.abs((next.top + next.bottom) / 2 - y) < Math.abs((near.top + near.bottom) / 2 - y) ? next : near)
         const items = band.line.items.filter((item) => item.id !== self)
@@ -460,7 +458,7 @@ export function PaneGrid({
             its DOM node and its focus. */}
         {rows.flatMap((row, index) => [
           (index > 0 || debug) && (
-            <div key={`rule-${index}`} className="pane-grid-rule" aria-hidden="true" style={{ "--r": row.lines[0]!.row - 1 } as React.CSSProperties}>
+            <div key={`rule-${index}`} className="pane-grid-rule" aria-hidden="true" style={{ "--r": row.lines[0]!.row } as React.CSSProperties}>
               {debug && `row ${index + 1} · ${row.lines.map((line) => `${line.used}/${columns}${line.scroll ? " ⇆ scroll" : ""}`).join(" + ")}`}
             </div>
           ),
