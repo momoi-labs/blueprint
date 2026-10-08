@@ -56,8 +56,8 @@ export function PaneGridDemo() {
         preview={value => value === "off"
           ? <GridPreview panes={[[0, 0, 24], [24, 0, 48], [0, 28, 48], [48, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24], [24, 28, 24]]} />} />
-      <label className="check"><input type="checkbox" checked={debug} onChange={event => setDebug(event.target.checked)} /><span className="check-text"><span>Debug</span><span className="field-hint">Row columns, free columns and each pane's size bounds.</span></span></label>
     </DemoSettings>
+    <label className="check"><input type="checkbox" checked={debug} onChange={event => setDebug(event.target.checked)} /><span className="check-text"><span>Debug</span><span className="field-hint">Row columns, free columns and each pane's size bounds.</span></span></label>
     <PaneGrid title="Summary" aria-label="Application summary" overflow={overflow} fill={fill === "on"} pack={pack === "on"} debug={debug} onLayoutChange={setLayout}>
       <GridPane id="url" title="Public URL" min={3} size={6}>
         <dl className="kv"><dt>URL</dt><dd><a className="link t-mono" href="#components/pane-grid">https://laya.example.internal</a></dd><dt>TLS</dt><dd><Badge>auto</Badge></dd></dl>
