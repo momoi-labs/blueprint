@@ -319,6 +319,14 @@
   box-shadow: var(--shadow-md);
   max-width: min(24rem, calc(100vw - 2 * var(--spacing-lg)));
 }
+/* When frames include controls, these surfaces take the control shape, as
+   the control-sized surfaces in ui.css do. */
+:where([data-frame-scope="all"]) :is(.kiso-react-popover, .theme-buttons, .accent-preview) {
+  border-radius: var(--radius-lg) calc(var(--radius-lg) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
+}
+:where([data-frame-scope="all"]) .skeleton-text {
+  border-radius: var(--radius-sm) calc(var(--radius-sm) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
+}
 [data-slot="tooltip-content"] { max-width: 28ch; }
 
 .kiso-react-switch {

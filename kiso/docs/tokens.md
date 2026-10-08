@@ -418,7 +418,18 @@ contour at control scale. The control's border is the ink, so state colors
 still apply. A focused field turns its ink to the focus color; a focused
 button or switch drops the contour and shows the standard ring. RadioGroup tiles and
 FileDropzone use the full panel contour and panel marks, with their own
-selection and error colors. Menus and tooltips keep their standard outlines.
+selection and error colors.
+
+Control-sized surfaces take the control contour too: BrandMark, Badge, Alert,
+Lifecycle clusters, ChipInput chips, FilterInput groups, Skeleton, segmented
+tracks, menus, popovers, tooltips, toasts, and the ThemeSelector and
+AccentSelector frames. Each keeps its own radius token and colors. Asymmetric
+shortens their opposite corners. Pixel cuts their corners and draws the steps
+in the surface's own border color; Badge, extra-small buttons and Skeleton
+text cap the steps at the medium size, as switch tracks do. Manga and Brush
+draw them with the irregular control contour. Under Pixel, Manga and Brush,
+menus, popovers, tooltips and toasts drop their shadow, as dialogs do. A
+focused surface drops the contour and shows the standard ring.
 
 Mark scope is independent. `outer` limits marks to inset shell frames;
 `panels` includes inner panel frames; `all` adds compact internal guides to

@@ -1083,7 +1083,7 @@ table.table {
 .breadcrumb .sep { color: var(--color-border-strong); }
 
 .pagination { display: flex; align-items: center; gap: var(--spacing-xs); }
-.pagination .btn[aria-current="page"] { background: var(--color-secondary); }
+.pagination .btn[aria-current="page"] { background-color: var(--color-secondary); }
 
 .app-shell { --app-shell-sidebar-width: var(--size-sidebar); --app-shell-panel-offset: 0px; display: grid; grid-template-columns: var(--app-shell-sidebar-width) minmax(0, 1fr); min-height: 100vh; }
 .app-shell[data-layout="topbar"] { grid-template-columns: minmax(0, 1fr); }
@@ -2558,12 +2558,13 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell::before { display: none; }
 }
 
-/* Manga and Brush draw controls with the panels' irregular contour at control
-   scale. Fill and border share one clipped contour, so the border is the ink
-   and keeps its state colors. Clip offsets stay inside the ink. */
+/* Manga and Brush draw controls and other control-sized surfaces with the
+   panels' irregular contour at control scale. Fill and border share one
+   clipped contour, so the border is the ink and keeps its state colors. Clip
+   offsets stay inside the ink. */
 [data-border-style="manga"] { --control-ink-clip: polygon(0 calc(2px * var(--frame-detail, 1)), calc(100% - .8px * var(--frame-detail, 1)) 0, 100% 100%, calc(.8px * var(--frame-detail, 1)) calc(100% - 1.2px * var(--frame-detail, 1))); }
 [data-border-style="brush"] { --control-ink-clip: polygon(0 calc(1.35px * var(--frame-detail, 1)), 18% calc(.68px * var(--frame-detail, 1)), 43% calc(.9px * var(--frame-detail, 1)), 70% calc(.68px * var(--frame-detail, 1)), 100% calc(.95px * var(--frame-detail, 1)), calc(100% - .9px * var(--frame-detail, 1)) 25%, calc(100% - 1.26px * var(--frame-detail, 1)) 50%, calc(100% - .68px * var(--frame-detail, 1)) 75%, calc(100% - 1.35px * var(--frame-detail, 1)) 100%, 70% calc(100% - .68px * var(--frame-detail, 1)), 43% calc(100% - .9px * var(--frame-detail, 1)), 18% calc(100% - .68px * var(--frame-detail, 1)), 0 calc(100% - .95px * var(--frame-detail, 1)), calc(.9px * var(--frame-detail, 1)) 75%, calc(1.26px * var(--frame-detail, 1)) 50%, calc(.68px * var(--frame-detail, 1)) 25%); }
-:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item:not(:where(.radio-group[data-variant="tiles"] > *)), .steps-marker, .switch input, button[data-slot="switch"][data-state]) {
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item:not(:where(.radio-group[data-variant="tiles"] > *)), .steps-marker, .switch input, button[data-slot="switch"][data-state], .brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster > *)), .cluster, .alert:where(:not(.alert-rail)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .menu, .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview) {
   border-radius: 0;
   border-width: round(calc(3px * var(--frame-detail, 1)), 1px);
   clip-path: var(--control-ink-clip);
@@ -2571,17 +2572,17 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) span[data-slot="switch-thumb"],
 :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) .switch input::after { border-radius: 0; }
 /* Focus never depends on a clipped ring. Fields turn their own ink to the
-   focus color, as Pixel fields do. Buttons, switches and options drop the
-   contour while focused, so the standard ring shows on the full box. */
+   focus color, as Pixel fields do. Buttons, switches, options and focused
+   surfaces drop the contour, so the standard ring shows on the full box. */
 @media (forced-colors: none) {
   :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea):focus-visible,
   :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.field-control, .chip-input-box):focus-within { outline-color: transparent; border-color: var(--color-focus); box-shadow: inset 0 0 0 1px var(--color-focus); }
   :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input, .select, .textarea)[aria-invalid="true"]:focus-visible,
   :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.field-control:has([aria-invalid="true"]), .chip-input-box[aria-invalid="true"]):focus-within { outline-color: transparent; border-color: var(--color-danger); box-shadow: inset 0 0 0 1px var(--color-danger); }
 }
-:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .switch input, button[data-slot="switch"]):focus-visible { clip-path: none; }
+:where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(:is(.btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .switch input, button[data-slot="switch"], .menu, .badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible)) { clip-path: none; }
 @media (forced-colors: active) {
-  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .steps-marker, .switch input, button[data-slot="switch"]) { clip-path: none; }
+  :where([data-frame-scope="all"][data-border-style="manga"], [data-frame-scope="all"][data-border-style="brush"]) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-outline, .btn-primary, .btn-secondary, .btn-danger, .radio-item, .steps-marker, .switch input, button[data-slot="switch"], .brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster > *)), .cluster, .alert:where(:not(.alert-rail)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .menu, .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview) { clip-path: none; }
 }
 :where([data-background-style]:not([data-background-style="solid"]):not([data-background-style="momoi"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;
@@ -2589,8 +2590,10 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 /* Native inputs cannot own decorative pseudo-elements. Paint their pixel border
-   in background layers, retaining the native hit area. */
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs), .radio-item, .file-dropzone, .steps-marker) {
+   in background layers, retaining the native hit area. Menus use the same
+   layers: suggestion lists scroll, and background layers do not move with
+   their content. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary, .btn-secondary, .btn-danger, .btn-outline, .radio-item, .file-dropzone, .steps-marker, .menu) {
   --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-step: calc(var(--pixel-r) / 3);
   --pixel-line: var(--color-input);
@@ -2691,6 +2694,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-secondary:hover { --pixel-fill: var(--color-secondary-hover); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-danger { --pixel-fill: var(--color-danger); --pixel-line: var(--color-danger); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-outline:hover { --pixel-fill: var(--color-accent-surface); }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .pagination .btn[aria-current="page"] { --pixel-fill: var(--color-secondary); background-color: transparent; }
+/* `.menu` twice, so the popover fill beats the field fill set above. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .menu.menu { --pixel-fill: var(--color-popover); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"], .field-control:has([aria-invalid="true"]), .chip-input-box[aria-invalid="true"]) { --pixel-line: var(--color-danger); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:disabled, .select:disabled, .textarea:disabled, .field-control:has(> :disabled), .chip-input-box[data-disabled="true"]) { --pixel-fill: var(--color-disabled-surface); }
 /* A focused field thickens its own contour. A square outline would cut the steps. */
@@ -2780,7 +2786,58 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   }
 }
 @media (forced-colors: active) {
-  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary:not(.btn-xs), .btn-secondary:not(.btn-xs), .btn-danger:not(.btn-xs), .btn-outline:not(.btn-xs), .radio-item, .file-dropzone, .steps-marker) { background: Canvas; border-color: ButtonText; }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .btn-primary, .btn-secondary, .btn-danger, .btn-outline, .radio-item, .file-dropzone, .steps-marker, .menu) { background: Canvas; border-color: ButtonText; }
+}
+
+/* When frames include controls, control-sized surfaces take the control shape
+   too. Each keeps its own radius token, and Asymmetric shortens the opposite
+   corners as it does on controls. */
+:where([data-frame-scope="all"]) :is(.badge:where(:not(.badge-pill, .badge-count, .cluster > *)), .chip) {
+  border-radius: var(--radius-sm) calc(var(--radius-sm) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
+}
+:where([data-frame-scope="all"]) :is(.cluster, .filter-group, .skeleton:where(:not(.skeleton-circle)), .tooltip) {
+  border-radius: var(--radius-md) calc(var(--radius-md) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
+}
+:where([data-frame-scope="all"]) :is(.brand-mark, .alert:where(:not(.alert-rail)), .menu, .toast, .segmented, .radio-group:where([data-variant="segmented"])) {
+  border-radius: var(--radius-lg) calc(var(--radius-lg) * var(--corner-control-opposite, var(--appearance-control-opposite, 1)));
+}
+/* Badges, the brand mark, alerts, toasts and other control-sized surfaces keep
+   their own fill, border and contents. Pixel cuts their corners to the control
+   steps, and a pseudo-element draws the steps in the element's own border
+   color, so every variant and state keeps its colors. The steps lie inside
+   the padding box, where an overflow clip cannot hide them. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :where(.brand-mark, .badge, .cluster, .alert, .chip, .filter-group, .skeleton, .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group[data-variant="segmented"], .theme-buttons, .theme-card, .theme-card-preview, .accent-preview) { position: relative; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster > *)), .cluster, .alert:where(:not(.alert-rail)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview) {
+  --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  --pixel-step: calc(var(--pixel-r) / 3);
+  clip-path: polygon(var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step));
+}
+/* The steps are the ring between the border's contour, 1px outside this box,
+   and the pixels whose four neighbors all lie inside it, so the joints stay
+   diagonal as on Pixel controls. The ring's straight edges fall outside the
+   box, so only the steps paint. A borderless surface has no border style to
+   inherit. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster > *)), .cluster, .alert:where(:not(.alert-rail)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-width: var(--pixel-step);
+  border-style: inherit;
+  border-color: inherit;
+  pointer-events: none;
+  clip-path: polygon(evenodd, calc(var(--pixel-r) - 1px) -1px, calc(100% + 1px - var(--pixel-r)) -1px, calc(100% + 1px - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-r)), -1px calc(100% + 1px - var(--pixel-r)), -1px calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) -1px, var(--pixel-r) 0, var(--pixel-r) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) var(--pixel-step), var(--pixel-step) var(--pixel-step), var(--pixel-step) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) var(--pixel-r), 0 var(--pixel-r), 0 calc(100% - var(--pixel-r)), calc(var(--pixel-step) - 1px) calc(100% - var(--pixel-r)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-r)), var(--pixel-step) calc(100% + 1px - var(--pixel-r)), var(--pixel-step) calc(100% - var(--pixel-step)), calc(var(--pixel-r) - 1px) calc(100% - var(--pixel-step)), calc(var(--pixel-r) - 1px) calc(100% + 1px - var(--pixel-step)), var(--pixel-r) calc(100% + 1px - var(--pixel-step)), var(--pixel-r) 100%, calc(100% - var(--pixel-r)) 100%, calc(100% - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% - var(--pixel-r)), 100% calc(100% - var(--pixel-r)), 100% var(--pixel-r), calc(100% + 1px - var(--pixel-step)) var(--pixel-r), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% + 1px - var(--pixel-r)) var(--pixel-step), calc(100% + 1px - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% - var(--pixel-r)) 0, var(--pixel-r) 0, calc(var(--pixel-r) - 1px) -1px);
+}
+/* Focus never depends on a clipped ring. A focused surface, or a chip with a
+   focused segment, drops the contour so the standard ring shows on the full
+   box. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible)) { clip-path: none; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible))::after { content: none; }
+/* Short surfaces cap their steps at the medium size, as switch tracks do, so
+   each side keeps a straight run between its steps. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.btn.btn-xs, .badge, .skeleton-text) { --pixel-r: calc(min(calc(6px * var(--appearance-scale, 1)), 6px) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0))); }
+@media (forced-colors: active) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge, .cluster, .alert, .chip, .filter-group, .skeleton, .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group, .theme-buttons, .theme-card, .theme-card-preview, .accent-preview) { clip-path: none; }
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge, .cluster, .alert, .chip, .filter-group, .skeleton, .tooltip, .toast, [data-slot="popover-content"], .segmented, .radio-group, .theme-buttons, .theme-card, .theme-card-preview, .accent-preview)::after { content: none; }
 }
 
 /* Patterns can pass behind page labels. Keep secondary text fully legible. */

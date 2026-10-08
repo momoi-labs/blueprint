@@ -811,3 +811,84 @@ test('Forced colors keep the standard checkbox and switch shapes', async () => {
     assert(pills.every(([radius, mask]) => parseFloat(radius) > 9 && mask === 'none'), `Switches keep their pill shape in forced colors: ${pills}`);
   } finally { await page.close(); }
 });
+
+// Opaque test colors, so a corner pixel is unambiguously page, line or fill.
+const surfaceColors = '--color-background:rgb(200,200,200);--color-border:rgb(240,0,240);--color-success-border:rgb(240,0,240);--color-info-border:rgb(240,0,240);--color-success-surface:rgb(16,16,16);--color-info-surface:rgb(16,16,16);--color-popover:rgb(16,16,16);--color-card:rgb(16,16,16);--color-primary:rgb(16,16,16);--color-skeleton:rgb(16,16,16)';
+async function openSurfaces(query, options = {}) {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 600 }, ...options });
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.goto(`${url}?surfaces&${query}`); await page.locator('#surfaces').waitFor();
+  await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; }' });
+  await page.evaluate(colors => { document.documentElement.style.cssText = colors; }, surfaceColors);
+  return page;
+}
+const surfaceSelectors = ['#brand', '#badge', '#alert', '#lifecycle .cluster-status', '#lifecycle .cluster-verbs', '#skeleton', '#tooltip', '#menu', '#popover', '#toast'];
+
+for (const size of ['off', 'small', 'medium', 'large']) test(`Pixel steps every control-sized surface at ${size} size, in its own colors`, async () => {
+  const page = await openSurfaces(`corners=pixel&frameScope=all&size=${size}&theme=dark`);
+  try {
+    // Badges cap their steps at the medium size, as switch tracks do.
+    const radius = selector => ({ off: 0, small: 3, medium: 6, large: selector === '#badge' ? 6 : 9 })[size];
+    for (const [selector, bordered] of [['#brand', false], ['#badge', true], ['#alert', true], ['#lifecycle .cluster-verbs', true], ['#tooltip', false], ['#menu', true], ['#popover', true], ['#toast', true]]) {
+      const box = await page.locator(selector).boundingBox();
+      const clip = { x: Math.round(box.x) - 4, y: Math.round(box.y) - 4, width: Math.round(box.width) + 8, height: Math.round(box.height) + 8 };
+      const png = await page.screenshot({ clip });
+      const failures = await page.evaluate(async ({ source, r, bordered }) => {
+        const image = new Image(); image.src = source; await image.decode();
+        const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+        const { data, width: w, height: h } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const at = (x, y) => [...data.slice((y * w + x) * 4, (y * w + x) * 4 + 3)];
+        const near = (c, t) => Math.abs(c[0] - t[0]) + Math.abs(c[1] - t[1]) + Math.abs(c[2] - t[2]) <= 24;
+        const page = [200, 200, 200], line = bordered ? [240, 0, 240] : [16, 16, 16], fill = [16, 16, 16];
+        const x0 = 4, y0 = 4, x1 = w - 5, y1 = h - 5, s = r / 3;
+        const corners = (x, y) => [[x0 + x, y0 + y], [x1 - x, y0 + y], [x0 + x, y1 - y], [x1 - x, y1 - y]];
+        const failures = [];
+        const expect = (label, points, color) => { for (const [x, y] of points) if (!near(at(x, y), color)) failures.push(`${label} at ${x},${y}: ${at(x, y)}`); };
+        if (r === 0) {
+          expect('corner', corners(0, 0), line);
+        } else {
+          expect('cut corner', [...corners(0, 0), ...corners(r - 1, 0), ...corners(0, r - 1), ...corners(s - 1, s - 1)], page);
+          expect('steps', [...corners(r, 0), ...corners(r - 1, s), ...corners(s, s), ...corners(s, r - 1), ...corners(0, r)], line);
+          // Diagonal joints, as on Pixel buttons and fields.
+          expect('joint', [...corners(r, s), ...corners(s, r)], fill);
+        }
+        expect('fill', corners(r + 1, s + 1), fill);
+        return failures.slice(0, 6);
+      }, { source: `data:image/png;base64,${png.toString('base64')}`, r: radius(selector), bordered });
+      assert.deepEqual(failures, [], `${selector}/${size}: two steps per corner in the surface's colors`);
+    }
+  } finally { await page.close(); }
+});
+
+test('Control-sized surfaces follow Manga, Brush, Asymmetric and the frame scope, and focus drops the contour', async () => {
+  const page = await openSurfaces('corners=pixel&frameScope=all&size=medium&theme=light');
+  try {
+    const read = () => page.evaluate(selectors => selectors.map(selector => {
+      const el = document.querySelector(selector), s = getComputedStyle(el);
+      return { selector, clip: s.clipPath, border: s.borderTopWidth, radius: [s.borderTopLeftRadius, s.borderTopRightRadius], steps: getComputedStyle(el, '::after').content };
+    }), surfaceSelectors);
+    for (const border of ['manga', 'brush']) {
+      await page.evaluate(border => Object.assign(document.documentElement.dataset, { borderStyle: border, cornerStyle: 'square' }), border);
+      for (const surface of await read()) {
+        assert(surface.clip.startsWith('polygon('), `${border} ${surface.selector}: irregular contour, got ${surface.clip}`);
+        if (['#badge', '#alert', '#menu', '#popover', '#toast'].includes(surface.selector)) assert.equal(surface.border, '3px', `${border} ${surface.selector}: the border is the ink`);
+      }
+    }
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { borderStyle: 'solid', cornerStyle: 'asym' }));
+    for (const surface of await read()) {
+      assert.equal(surface.clip, 'none', `asym ${surface.selector}: no clip`);
+      assert(parseFloat(surface.radius[0]) > parseFloat(surface.radius[1]), `asym ${surface.selector}: shortened opposite corners, got ${surface.radius}`);
+    }
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { cornerStyle: 'pixel', frameScope: 'panels' }));
+    for (const surface of await read()) assert.deepEqual([surface.clip, surface.steps], ['none', 'none'], `panels ${surface.selector}: standard surfaces outside the controls scope`);
+    await page.evaluate(() => { document.documentElement.dataset.frameScope = 'all'; });
+    for (const id of ['link-badge', 'toast']) {
+      const surface = page.locator(`#${id}`);
+      await surface.focus(); await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab');
+      assert.deepEqual(await surface.evaluate(el => { const s = getComputedStyle(el); return [el.matches(':focus-visible'), s.clipPath, getComputedStyle(el, '::after').content, s.outlineStyle]; }), [true, 'none', 'none', 'solid'], `${id}: a focused surface shows the standard ring on its full box`);
+    }
+    await page.emulateMedia({ forcedColors: 'active' });
+    for (const surface of await read()) assert.deepEqual([surface.clip, surface.steps], ['none', 'none'], `forced colors ${surface.selector}: standard shapes`);
+  } finally { await page.close(); }
+});

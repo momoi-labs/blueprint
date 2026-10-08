@@ -295,7 +295,7 @@ export function AppearanceControls({ settings, onChange }: {
         {!expressive && detailBorder !== "solid" && borderDetail}
       </div>
     </details>
-    <p className="muted t-label">The outer frame uses the Inset layout. Native controls use compact internal guides. Menus and tooltips keep their standard outlines.</p>
+    <p className="muted t-label">The outer frame uses the Inset layout. Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
   </AppearanceSection>
   <AppearanceSection title="Background">
     <fieldset className="appearance-choices">

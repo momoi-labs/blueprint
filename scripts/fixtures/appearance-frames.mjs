@@ -1,6 +1,6 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Form, FormActions, Button, TableFrame, Table, TableHeader, TableHead, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input, Checkbox, Switch, Textarea, ChipInput, ChipInputBox, ChipInputField, Chip, ChipName, ChipValue, ChipRemove, FilterInput, Lifecycle, StatusBadge, ThemeSelector } from '../../packages/kiso-react/dist/index.js';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Form, FormActions, Button, TableFrame, Table, TableHeader, TableHead, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input, Checkbox, Switch, Textarea, ChipInput, ChipInputBox, ChipInputField, Chip, ChipName, ChipValue, ChipRemove, FilterInput, Lifecycle, StatusBadge, ThemeSelector, BrandMark, Badge, Skeleton } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
@@ -35,6 +35,19 @@ function Fixture() {
     h(Switch, { 'aria-label': 'Switch on', defaultChecked: true }),
     h('label', { className: 'switch' }, h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Native switch off' })),
     h('label', { className: 'switch' }, h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Native switch on', defaultChecked: true })),
+  );
+  // Control-sized surfaces at whole-pixel sizes, so their corners can be read.
+  if (params.has('surfaces')) return h('main', { id: 'surfaces', className: 'page', style: { display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '24px' } },
+    h(BrandMark, { id: 'brand' }, 'S'),
+    h(Badge, { id: 'badge', variant: 'success', style: { width: '96px' } }, 'Healthy'),
+    h(Badge, { id: 'link-badge', variant: 'info', asChild: true, style: { width: '80px' } }, h('a', { href: '#tagged' }, 'Tagged')),
+    h(Alert, { id: 'alert', variant: 'info', role: 'note', style: { width: '240px', height: '64px' } }, h(AlertContent, null, h(AlertTitle, null, 'Info'))),
+    h(Lifecycle, { id: 'lifecycle', status: h(StatusBadge, { tone: 'success', style: { width: '96px' } }, 'Running'), actions: h(Button, { size: 'sm', style: { width: '64px' } }, 'Stop') }),
+    h(Skeleton, { id: 'skeleton', variant: 'block', style: { width: '120px', height: '48px' } }),
+    h('div', { className: 'tooltip', id: 'tooltip', style: { display: 'grid', placeItems: 'center', width: '120px', height: '32px' } }, 'Hint'),
+    h('div', { className: 'menu', id: 'menu', style: { width: '200px' } }, h('div', { className: 'menu-item' }, 'Duplicate')),
+    h('div', { className: 'kiso-react-popover', 'data-slot': 'popover-content', id: 'popover', style: { width: '200px', height: '80px' } }, 'Details'),
+    h('div', { className: 'toast', id: 'toast', tabIndex: 0, style: { height: '64px' } }, 'Saved'),
   );
   if (params.has('canvas')) return h(AppShell, { variant: 'inset', id: 'canvas' },
     h('aside', { className: 'sidebar', id: 'rail' }, 'Navigation'),
