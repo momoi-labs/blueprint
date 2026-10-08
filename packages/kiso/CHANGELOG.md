@@ -1,5 +1,49 @@
 # @momoi-labs/kiso
 
+## 0.18.0
+
+### Minor Changes
+
+- 435a61c: Add Diagram: columns of typed nodes (route, service, repository, image,
+  database, or a custom icon) joined by elbow edges with optional labels,
+  dashed or dotted lines and a status tone. Nodes are Cards with a title, free
+  text and an optional stopped or failed status.
+  They follow the page's appearance, or take their own border style, corner
+  style, corner size and corner marks on the diagram, with a per-node override
+  for one node that is down. The diagram is a panel that paints the page's
+  canvas background, or one of the shell's background styles of its own, and
+  it keeps its width on narrow screens by scrolling instead of reflowing. Icons come from `lucide-react`, which is
+  now a peer dependency of `@momoi-labs/kiso-react`.
+- 974339e: Add `flow="masonry"` to PaneGrid. Panes keep their natural heights and take
+  the shortest free column space in their row, so short cards no longer leave
+  gaps below them. Rows stay separate groups. Masonry ignores `fill`, and
+  `overflow="scroll"` keeps the rows flow.
+- 8bb6a01: Add PaneGrid and GridPane. A PaneGrid lays an object's summary panes out on
+  twelve columns in rows. The reader resizes a pane at its end edge, up to the
+  free columns of its line, and moves it by its title, into a row or onto a
+  row of its own. Sizes never change on a move. A row wider than twelve columns
+  wraps onto more lines, or scrolls with `overflow="scroll"`. `fill` spends a
+  line's free columns on screen and `pack` orders a row by size. The grid
+  reports every change through `onLayoutChange` for the product to persist,
+  scales to six columns below 1024px and stacks below 640px.
+- 573ca6c: Add Solid, Pixel, Halftone and Rounded chart treatments and a DetailSelect component with illustrated rich options in a bounded overlay.
+- 45862a1: Add PasswordInput, a masked secret field with an accessible Show/Hide action, and update the login pattern with a context panel, pending protection and separate credential, service and network errors.
+
+### Patch Changes
+
+- a4bdb91: PaneGrid picks its twelve, six or one columns from its own width instead of
+  the viewport. A grid beside a sidebar or an open panel no longer squeezes
+  twelve columns into a narrow space. The breakpoints and saved sizes do not
+  change.
+- 59f8f78: Remove the dotted grip from the GridPane head. The head is still the drag
+  handle and shows the grab cursor.
+- d896a20: With `data-frame-scope="all"`, control-sized surfaces now follow the selected
+  corners: BrandMark, Badge, Alert, Lifecycle clusters, chips, FilterInput groups,
+  Skeleton, segmented tracks, menus, popovers, tooltips, toasts, and the
+  ThemeSelector and AccentSelector frames. They take Asymmetric corners, Pixel
+  steps in their own border color, and the Manga and Brush contour. Extra-small
+  buttons and the current Pagination page now take Pixel steps too.
+
 ## 0.17.0
 
 ### Minor Changes
