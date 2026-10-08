@@ -14,7 +14,7 @@ function Fixture() {
   return h('main', { className: 'page', style: { maxWidth: 'none' } },
     h(PaneGrid, {
       title: 'Summary', 'aria-label': 'Summary', onLayoutChange: setLayout,
-      overflow: params.get('overflow') || 'wrap', fill: params.has('fill'), pack: params.has('pack'),
+      overflow: params.get('overflow') || 'wrap', fill: params.has('fill'), pack: params.has('pack'), debug: params.has('debug'),
     }, ...panes.map(([id, title, min, size, newRow]) => h(GridPane, {
       key: id, id, title, min, size, newRow,
       actions: id === 'start' ? h(Button, { size: 'sm', variant: 'ghost', onClick: () => { window.copied = true; } }, 'Copy') : undefined,

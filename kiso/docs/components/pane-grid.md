@@ -28,8 +28,8 @@ PaneGrid
 A row is a group of panes. Its panes flow in reading order onto as many lines
 as they need, so a row whose panes add up to more than twelve columns wraps
 onto a second line and stays one row. A pane may start a row with `newRow`.
-The dashed rule between rows marks the boundary and is where a dragged pane
-is dropped to start a row of its own.
+Rows are separated by a wider gap. While a pane is dragged, a dashed rule
+appears in that gap: dropping on it starts a row.
 
 GridPane is a [Card](card.md). Its head is the drag handle and holds the h3
 title and optional compact actions ([Button](button.md) `sm`, `ghost`, or
@@ -75,6 +75,7 @@ to. An id in the layout without a pane is ignored. A size below the pane's
 | `scrollPages` | `2` | How many screens a scrolling row may span. |
 | `fill` | `false` | Hand each line's leftover columns to its panes, on screen only. Sizes do not change. |
 | `pack` | `false` | Order each row's panes by size, largest first, so lines fill up. Ignored with `overflow="scroll"`. The DOM keeps the row order. |
+| `debug` | `false` | Label every row with its columns, draw each line's free columns, and show each pane's size, minimum and maximum in its head. A development aid; not for readers. |
 
 A scrolling row uses the grid's own column tracks, so its columns stay
 aligned with the rows above and below it.
@@ -99,7 +100,7 @@ the wide screen it was designed for.
 | hover on the resizer | The hairline takes `--color-ring` and the column-resize cursor. |
 | resizing | Pointer capture keeps the resize active until release. The pane shows a ring. |
 | at a bound | Further movement leaves the size unchanged. The resizer is `aria-disabled` when min and max meet. |
-| moving | The dragged pane fades. A bar shows where it will land: between two panes, or across the grid for a new row. |
+| moving | The dragged pane fades. The rules between rows appear. A bar shows where it will land: between two panes, or across the grid for a new row. |
 | refused drop | The bar takes `--color-danger`. Releasing leaves the layout unchanged. |
 | focus | The head and the resizer show the focus indicator. |
 
