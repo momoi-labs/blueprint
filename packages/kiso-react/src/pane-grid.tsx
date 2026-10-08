@@ -137,6 +137,8 @@ export type PaneGridProps = Omit<React.ComponentProps<"section">, "title"> & {
   layout?: PaneGridLayout
   defaultLayout?: PaneGridLayout
   onLayoutChange?: (layout: PaneGridLayout) => void
+  /* Rows align heights; masonry places natural-height panes in the shortest space. */
+  flow?: "rows" | "masonry"
   /* What a row does when its panes exceed twelve columns. */
   overflow?: PaneGridOverflow
   /* Hand a line's leftover columns to its panes. */
@@ -156,6 +158,7 @@ export function PaneGrid({
   defaultLayout,
   onLayoutChange,
   overflow = "wrap",
+  flow = "rows",
   fill = false,
   pack = false,
   scrollPages = 2,
@@ -205,36 +208,86 @@ export function PaneGrid({
   const compact = columns !== COLUMNS
   const stacked = columns === 1
   const scrolling = overflow === "scroll" && !stacked
+  const masonry = flow === "masonry" && overflow === "wrap"
   const scrollMax = columns * Math.max(1, scrollPages)
 
   let gridRow = 0
   const rows: Row[] = layout.rows.map((ids) => {
-    const lines = layRow(ids, specMap, layout.sizes, columns, { fill, pack, scroll: scrolling }).map((line) => ({ ...line, row: ++gridRow }))
+    const lines = layRow(ids, specMap, layout.sizes, columns, { fill: fill && !masonry, pack, scroll: scrolling }).map((line) => ({ ...line, row: ++gridRow }))
     return { ids, lines }
+  })
+
+  // Pixel tracks keep natural heights while sharing the same column grid.
+  // Observe direct children only: nested PaneGrids own their measurements.
+  useIsomorphicLayoutEffect(() => {
+    const body = bodyRef.current
+    if (!body || !masonry) return
+    const panes = Array.from(body.children).filter((node): node is HTMLElement =>
+      node instanceof HTMLElement && node.hasAttribute("data-pane-id"))
+    const byId = new Map(panes.map(pane => [pane.dataset.paneId!, pane]))
+    const measure = () => {
+      const gap = parseFloat(getComputedStyle(body).columnGap) || 0
+      const heights = new Map(panes.map(pane => [pane.dataset.paneId!, pane.getBoundingClientRect().height]))
+      let base = 0
+      rows.forEach((row, index) => {
+        const bottoms = Array<number>(columns).fill(base)
+        const items = row.lines.flatMap(line => line.items)
+        if (pack) items.sort((a, b) => b.size - a.size)
+        for (const item of items) {
+          const pane = byId.get(item.id)
+          if (!pane) continue
+          let col = 0
+          let top = Infinity
+          for (let start = 0; start <= columns - item.span; start++) {
+            const candidate = Math.max(...bottoms.slice(start, start + item.span))
+            if (candidate < top) { col = start; top = candidate }
+          }
+          const height = Math.ceil(heights.get(item.id) ?? 0)
+          pane.style.setProperty("--masonry-r", String(Math.ceil(top) + 1))
+          pane.style.setProperty("--masonry-c", String(col + 1))
+          pane.style.setProperty("--masonry-h", String(Math.max(1, height)))
+          for (let at = col; at < col + item.span; at++) bottoms[at] = top + height + gap
+        }
+        const rule = body.querySelector<HTMLElement>(`:scope > [data-pane-row="${index}"]`)
+        rule?.style.setProperty("--masonry-r", String(Math.ceil(base) + 1))
+        base = Math.max(...bottoms)
+      })
+    }
+    measure()
+    if (typeof ResizeObserver === "undefined") return
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(measure)
+    })
+    observer.observe(body)
+    panes.forEach(pane => observer.observe(pane))
+    return () => { observer.disconnect(); cancelAnimationFrame(frame) }
   })
 
   /* Handlers read the latest render through this ref, so a drag that spans
      several renders never acts on a stale layout. */
-  const state = React.useRef({ layout, rows, columns, compact, stacked, scrolling, scrollMax, update })
-  state.current = { layout, rows, columns, compact, stacked, scrolling, scrollMax, update }
+  const state = React.useRef({ layout, rows, columns, compact, stacked, scrolling, masonry, scrollMax, update })
+  state.current = { layout, rows, columns, compact, stacked, scrolling, masonry, scrollMax, update }
 
   const specsRef = React.useRef(specMap)
   specsRef.current = specMap
 
   const api = React.useMemo<Api>(() => {
-    const paneElement = (id: string) => bodyRef.current?.querySelector<HTMLElement>(`[data-pane-id="${CSS.escape(id)}"]`)
+    const paneElement = (id: string) => bodyRef.current?.querySelector<HTMLElement>(`:scope > [data-pane-id="${CSS.escape(id)}"], :scope > .pane-grid-scroll > [data-pane-id="${CSS.escape(id)}"]`)
     const lineOf = (id: string) => {
       for (const row of state.current.rows) for (const line of row.lines) if (line.items.some((item) => item.id === id)) return line
       return undefined
     }
     const gaps = () => {
       const style = bodyRef.current ? getComputedStyle(bodyRef.current) : null
-      return { x: parseFloat(style?.columnGap ?? "0") || 0, y: parseFloat(style?.rowGap ?? "0") || 0 }
+      return { x: parseFloat(style?.columnGap ?? "0") || 0, y: parseFloat((state.current.masonry ? style?.columnGap : style?.rowGap) ?? "0") || 0 }
     }
     const maxOf = (id: string) => {
-      const { layout, columns, scrolling, scrollMax } = state.current
+      const { layout, columns, scrolling, masonry, scrollMax } = state.current
       const line = lineOf(id)
       const size = layout.sizes[id]!
+      if (masonry) return columns
       if (!line) return size
       return scrolling ? Math.min(columns, size + scrollMax - line.used) : size + line.free
     }
@@ -277,7 +330,7 @@ export function PaneGrid({
        lines, in the whole gap above a row as a row of its own, or after the
        last row. */
     const hitTest = (x: number, y: number, self: string): Target | null => {
-      const { rows, stacked } = state.current
+      const { rows, stacked, masonry } = state.current
       const rect = (id: string) => paneElement(id)?.getBoundingClientRect()
       for (const row of rows) {
         const bands = row.lines.map((line) => {
@@ -285,10 +338,23 @@ export function PaneGrid({
           return { line, top: Math.min(...rects.map((box) => box.top)), bottom: Math.max(...rects.map((box) => box.bottom)) }
         })
         if (!bands.length) continue
-        const top = bands[0]!.top
-        const bottom = bands[bands.length - 1]!.bottom
+        const top = Math.min(...bands.map(band => band.top))
+        const bottom = Math.max(...bands.map(band => band.bottom))
         if (y < top) return { ref: row.ids[0]!, where: "newrow-before" }
         if (y > bottom) continue
+        if (masonry) {
+          const candidates = row.ids.filter(id => id !== self).flatMap(id => {
+            const box = rect(id)
+            if (!box) return []
+            const dx = Math.max(box.left - x, 0, x - box.right)
+            const dy = Math.max(box.top - y, 0, y - box.bottom)
+            return [{ id, box, distance: Math.hypot(dx, dy) }]
+          }).sort((a, b) => a.distance - b.distance)
+          const nearest = candidates[0]
+          if (!nearest) return null
+          const before = stacked ? y < nearest.box.top + nearest.box.height / 2 : x < nearest.box.left + nearest.box.width / 2
+          return { ref: nearest.id, where: before ? "before" : "after" }
+        }
         const band = bands.reduce((near, next) =>
           Math.abs((next.top + next.bottom) / 2 - y) < Math.abs((near.top + near.bottom) / 2 - y) ? next : near)
         const items = band.line.items.filter((item) => item.id !== self)
@@ -326,7 +392,11 @@ export function PaneGrid({
       }
       if (target.where === "newrow-end") across(box.height + gap / 2)
       else if (!ref) drop.hidden = true
-      else if (target.where === "newrow-before") across(ref.top - box.top - gap / 2 - 1.5)
+      else if (target.where === "newrow-before") {
+        const row = state.current.rows.find(row => row.ids.includes(target.ref!))
+        const top = row ? Math.min(...row.ids.map(id => paneElement(id)?.getBoundingClientRect().top ?? ref.top)) : ref.top
+        across(top - box.top - gap / 2 - 1.5)
+      }
       else if (state.current.stacked) across((target.where === "before" ? ref.top - gap / 2 : ref.bottom + gap / 2) - box.top - 1.5)
       else {
         drop.dataset.axis = "x"
@@ -425,7 +495,7 @@ export function PaneGrid({
   for (const row of rows) {
     for (const line of row.lines) {
       for (const item of line.items) {
-        const max = scrolling ? Math.min(columns, item.size + scrollMax - line.used) : item.size + line.free
+        const max = masonry ? columns : scrolling ? Math.min(columns, item.size + scrollMax - line.used) : item.size + line.free
         placements.set(item.id, { id: item.id, row: line.scroll ? 1 : line.row, col: item.col, span: item.span, size: item.size, min: item.min, max, compact, stacked, debug })
       }
     }
@@ -451,6 +521,7 @@ export function PaneGrid({
         data-columns={columns}
         data-compact={compact ? "true" : undefined}
         data-overflow={overflow}
+        data-flow={masonry ? "masonry" : "rows"}
         data-debug={debug ? "true" : undefined}
         style={{ "--pane-cols": columns, "--pane-grid-width": `${width}px` } as React.CSSProperties}
       >
@@ -458,11 +529,11 @@ export function PaneGrid({
             its DOM node and its focus. */}
         {rows.flatMap((row, index) => [
           (index > 0 || debug) && (
-            <div key={`rule-${index}`} className="pane-grid-rule" aria-hidden="true" style={{ "--r": row.lines[0]!.row } as React.CSSProperties}>
+            <div key={`rule-${index}`} className="pane-grid-rule" data-pane-row={index} aria-hidden="true" style={{ "--r": row.lines[0]!.row } as React.CSSProperties}>
               {debug && `row ${index + 1} · ${row.lines.map((line) => `${line.used}/${columns}${line.scroll ? " ⇆ scroll" : ""}`).join(" + ")}`}
             </div>
           ),
-          ...row.lines.flatMap((line) =>
+          ...(masonry ? row.ids.map(renderPane) : row.lines.flatMap((line) =>
             line.scroll
               ? [
                   <div key={`scroll-${line.items[0]!.id}`} className="pane-grid-scroll" style={{ "--r": line.row, "--n": line.used } as React.CSSProperties}>
@@ -471,13 +542,13 @@ export function PaneGrid({
                 ]
               : [
                   ...line.items.map((item) => renderPane(item.id)),
-                  debug && line.free > 0 && !fill && (
+                  debug && !masonry && line.free > 0 && !fill && (
                     <div key={`free-${line.row}`} className="pane-grid-free" aria-hidden="true" style={{ "--r": line.row, "--c": line.used + 1, "--s": line.free } as React.CSSProperties}>
                       free {line.free}
                     </div>
                   ),
                 ],
-          ),
+          )),
         ])}
         <div ref={dropRef} className="pane-grid-drop" aria-hidden="true" hidden />
       </div>

@@ -169,3 +169,63 @@ test('A finger moves a stacked pane up and down', async () => {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   } finally { await page.close(); }
 });
+
+test('Masonry keeps natural heights, fills below shorter panes, and respects row boundaries', async () => {
+  const page = await open('masonry&pack');
+  try {
+    const boxes = async () => Promise.all(['url', 'listener', 'packages', 'start'].map(id => page.locator(`[data-pane-id="${id}"]`).boundingBox()));
+    await page.waitForFunction(() => document.querySelector('[data-pane-id="packages"]').getBoundingClientRect().top > document.querySelector('[data-pane-id="listener"]').getBoundingClientRect().top);
+    let [tall, short, below, nextRow] = await boxes();
+    assert.ok(tall.height > short.height + 200);
+    assert.ok(Math.abs(below.x - short.x) < 1);
+    assert.ok(below.y >= short.y + short.height);
+    assert.ok(below.y < tall.y + tall.height);
+    assert.ok(nextRow.y >= Math.max(tall.y + tall.height, below.y + below.height));
+    await page.locator('[data-pane-id="listener"] p').evaluate(el => { el.style.height = '240px'; });
+    await page.waitForFunction(() => {
+      const a = document.querySelector('[data-pane-id="listener"]').getBoundingClientRect();
+      const b = document.querySelector('[data-pane-id="packages"]').getBoundingClientRect();
+      return b.top >= a.bottom;
+    });
+    [tall, short, below, nextRow] = await boxes();
+    assert.ok(nextRow.y >= Math.max(tall.y + tall.height, below.y + below.height));
+    const handle = page.getByRole('separator', { name: 'Resize Public URL' });
+    assert.equal(await handle.getAttribute('aria-valuemax'), '12');
+    await handle.focus();
+    await page.keyboard.press('End');
+    assert.equal(await size(page, 'url'), 12);
+    await page.waitForFunction(() => document.querySelector('[data-pane-id="listener"]').getBoundingClientRect().top >= document.querySelector('[data-pane-id="url"]').getBoundingClientRect().bottom);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => document.querySelector('.pane-grid-body').dataset.columns === '1');
+    assert.equal(await page.getByRole('separator').count(), 0);
+    assert.equal(await page.evaluate(() => window.paneLayout.sizes.url), 12);
+  } finally { await page.close(); }
+});
+
+test('Masonry drag targets the short pane under the pointer and retains widths', async () => {
+  const page = await open('masonry');
+  try {
+    const listener = await page.locator('[data-pane-id="listener"]').boundingBox();
+    await dragTo(page, page.getByRole('button', { name: 'Move Start command' }), listener.x + listener.width - 10, listener.y + 40);
+    assert.deepEqual(await rows(page), [['url', 'listener', 'start', 'packages']]);
+    assert.equal(await size(page, 'start'), 12);
+    await page.getByRole('button', { name: 'Move Start command' }).focus();
+    await page.keyboard.press('Enter');
+    assert.deepEqual(await rows(page), [['url', 'listener'], ['start', 'packages']]);
+  } finally { await page.close(); }
+});
+
+test('Masonry pack preserves DOM order, ignores fill, and scroll uses rows flow', async () => {
+  const page = await open('masonry&pack&fill');
+  try {
+    const handle = page.getByRole('separator', { name: 'Resize Public URL' });
+    await handle.focus();
+    await page.keyboard.press('Home');
+    assert.equal(await size(page, 'url'), 3);
+    await page.waitForFunction(() => Number(document.querySelector('[data-pane-id="listener"]').style.getPropertyValue('--masonry-r')) < Number(document.querySelector('[data-pane-id="url"]').style.getPropertyValue('--masonry-r')));
+    assert.deepEqual(await page.locator('[data-pane-id]').evaluateAll(nodes => nodes.map(node => node.dataset.paneId)), ['url', 'listener', 'packages', 'start']);
+    await page.goto(`${url}?masonry&overflow=scroll`);
+    await page.getByRole('separator', { name: 'Resize Public URL' }).waitFor();
+    assert.equal(await page.locator('.pane-grid-body').getAttribute('data-flow'), 'rows');
+  } finally { await page.close(); }
+});

@@ -2369,6 +2369,13 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   gap: var(--presentation-grid-gap);
   min-width: 0;
 }
+.pane-grid-body[data-flow="masonry"] { grid-auto-rows: 1px; row-gap: 0; align-items: start; }
+.pane-grid-body[data-flow="masonry"] > .grid-pane {
+  grid-row: var(--masonry-r, 1) / span var(--masonry-h, 1);
+  grid-column: var(--masonry-c, 1) / span var(--s);
+  align-self: start;
+}
+.pane-grid-body[data-flow="masonry"] > .pane-grid-rule { grid-row: var(--masonry-r, 1); }
 /* The boundary above a row, and the drop target for "start a row". It sits
    in the grid gap, on no track of its own, so rows and columns keep the same
    gap. The rule shows while a pane is dragged or in debug. */
