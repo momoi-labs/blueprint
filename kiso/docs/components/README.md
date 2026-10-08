@@ -64,6 +64,7 @@ behavioral reference where one exists.
 - [Disclosure](disclosure.md): Native collapsible sections.
 - [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.
 - [DashboardGrid](dashboard-grid.md): Responsive twelve-column panel layout.
+- [PaneGrid / GridPane](pane-grid.md): Summary panes on twelve columns that the reader resizes and moves, saved by the product.
 
 - [AppShell / ApplicationShell](app-shell.md): Provides columns, an optional AppShellPanel with a header or floating toggle, or the complete shared application frame.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
