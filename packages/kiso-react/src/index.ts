@@ -32,6 +32,8 @@ export * from "./pagination.js";
 export * from "./popover.js";
 export * from "./search.js";
 export * from "./select.js";
+export * from "./detail-select.js";
+export type { ChartStyle } from "./chart-style.js";
 export * from "./separator.js";
 export * from "./sidebar.js";
 export * from "./skeleton.js";

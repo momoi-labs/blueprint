@@ -24,6 +24,7 @@ present somewhere nearby, or that names itself when it is not.
 | --- | --- | --- |
 | `tone` | `neutral` (default), `primary` | Neutral uses `--color-border-strong`, the voice of an incidental series. Primary uses `--color-primary` and marks the series a tile is about. At most one sibling raises its voice. |
 | `fill` | `false` (default), `true` | Draws the area under the line in the same color at 0.12 opacity. The fill is flat; there is no gradient. |
+| `chartStyle` | `solid`, `pixel`, `halftone`, `rounded` | Overrides inherited `data-chart-style`. Solid uses straight segments. Pixel uses small stairs. Halftone uses straight segments and adds a dotted area even when `fill` is false. Rounded uses monotone curves and round ends. |
 
 ## Sizes
 

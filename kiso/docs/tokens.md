@@ -328,6 +328,7 @@ No gallery CSS or JavaScript is required.
 | Attribute | Values | Default when omitted |
 | --- | --- | --- |
 | `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset`, `manga`, `brush` | Solid outline |
+| `data-chart-style` | `solid`, `pixel`, `halftone`, `rounded` | Solid chart treatment |
 | `data-corner-style` | `square`, `rounded`, `asym`, `pixel` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `diagonal`, `dots` | `ticks` |
@@ -341,6 +342,15 @@ internal separators, control borders, status rails and focus indicators.
 It applies to the same frames as the other border styles: cards, tables,
 dialogs, drawers, palettes, log viewers, code blocks and inset shell content.
 Menus and tooltips keep their own outlines and elevation.
+
+Chart treatment is independent of border and corner choices. It changes
+Chart and Sparkline paths, ChartLegend line ends, and Meter, Progress,
+BarGauge, and StepBar tracks. Solid uses straight segments. Pixel uses
+small stairs and square ends. Halftone adds dotted fills. Rounded uses
+bounded curves for line charts and round ends. Colors, gaps, sample positions,
+and measured lengths stay the same. Set the attribute on `html` or a containing
+element; React charts follow live changes. A Chart or Sparkline's `chartStyle`
+prop overrides the inherited treatment for that component.
 
 | Corner shape | Panel radius | Control radius |
 | --- | --- | --- |

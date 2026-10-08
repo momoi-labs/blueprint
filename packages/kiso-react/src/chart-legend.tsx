@@ -20,7 +20,7 @@ export type ChartLegendProps = React.ComponentProps<"div"> & {
 export function ChartSeriesLabel({ series, index }: { series: ChartSeries; index: number }) {
   const slot = chartSlot(series, index)
   return <span className="chart-series-label">
-    <svg aria-hidden="true" width="28" height="12" viewBox="0 0 28 12">
+    <svg className="chart-series-swatch" aria-hidden="true" width="28" height="12" viewBox="0 0 28 12">
       <path d="M0 6H28" stroke={chartColor(slot)} strokeWidth="2" />
     </svg>
     <span>{slot}. {series.label}</span>

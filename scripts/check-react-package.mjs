@@ -19,8 +19,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/time-range-control.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/filter-input.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -78,13 +78,13 @@ try {
       Alert, AlertTitle, AlertDescription, Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage,
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
       NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
-      Search, Select, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
+      Search, Select, DetailSelect, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
       ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
       Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
-    for (const component of [Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
+    for (const component of [DetailSelect, Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
     assert.match(render(h(Alert, { appearance: 'rail', variant: 'warning', role: 'note' })), /role="note"/);
     assert.match(render(h(Alert, { appearance: 'rail' })), /alert-rail/);
@@ -281,7 +281,7 @@ try {
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
     import { ApplicationShell, AppShellPanel, AppShellPanelToggle, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
-      Toasts, useToast, Steps, RadioGroup, RadioGroupItem, FileDropzone } from '@momoi-labs/kiso-react';
+      Toasts, useToast, Steps, RadioGroup, RadioGroupItem, FileDropzone, DetailSelect, Sparkline, type ChartStyle } from '@momoi-labs/kiso-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
       const notify = useToast();
@@ -290,6 +290,8 @@ try {
     createRoot(document.getElementById('root')!).render(<>
       <Steps label="Progress" current="first" items={[{ id: 'first', label: 'Start' }]} />
       <RadioGroup label="Format" defaultValue="compact" variant="tiles" controlSize="xl"><RadioGroupItem value="compact" label="Compact" /></RadioGroup>
+      <DetailSelect label="Definition" defaultValue="image" options={[{ value: "image", label: "Container image", icon: <TerminalIcon />, illustration: <span>Image</span>, description: <><p>Run a published image.</p><a href="/guide">Read the guide</a></> }]} />
+      <Sparkline values={[1, 2]} chartStyle={'rounded' satisfies ChartStyle} />
       <FileDropzone label="Choose file" accept=".txt" onFilesSelected={() => {}} />
       <Button presentation="tile" size="xl" description="Immediate action">Choose</Button>
       <FormField label="Large value" controlSize="xl" />
@@ -321,7 +323,7 @@ try {
   const cssAsset = (await readdir(assetDir)).find((name) => name.endsWith('.css'));
   assert(cssAsset, 'vite build must emit a CSS asset');
   const bundled = await readFile(path.join(assetDir, cssAsset), 'utf8');
-  for (const attribute of ['border-style', 'corner-marks', 'corner-size', 'mark-size']) {
+  for (const attribute of ['border-style', 'chart-style', 'corner-marks', 'corner-size', 'mark-size']) {
     assert(bundled.includes(`[data-${attribute}`), `Bundled CSS ignores data-${attribute}`);
   }
   const fontImport = bundled.match(/@import[^;]*fonts\.googleapis\.com[^;]*;/);

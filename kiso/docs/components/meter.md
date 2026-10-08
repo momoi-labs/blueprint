@@ -35,3 +35,8 @@ The 6px track combines `--spacing-xs` and `--spacing-2xs`, with `--radius-xs`, a
 Meter fill uses `--color-secondary-foreground`; Progress uses `--color-chart-1`. Labels use `--type-size-label` and
 `--color-foreground`. Unknown tracks use the existing hatch tokens. This
 contract adds `.meter-track`; legacy `.progress` rules remain compatible.
+
+`data-chart-style` controls track appearance independently of borders. Solid
+keeps the thin track, Pixel has square ends, Halftone dots the measured fill,
+and Rounded has round ends. Filled widths, labels, ARIA values, and unknown
+hatches keep their existing meaning.

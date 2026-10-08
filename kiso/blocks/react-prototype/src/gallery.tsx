@@ -7,6 +7,7 @@ import { TableDemo } from "./table-demo";
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { FilterInputDemo } from "./filter-input-demo";
+import { DetailSelectDemo } from "./detail-select-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
@@ -182,6 +183,7 @@ const catalog = [
     "Controls",
     "Single selection with keyboard navigation.",
   ],
+  ["detail-select", "DetailSelect", "Controls", "Illustrated options with rich descriptions in a bounded overlay."],
   [
     "checkbox",
     "Checkbox",
@@ -329,6 +331,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "radio-group": "wide",
   "file-dropzone": "wide",
   select: "wide",
+  "detail-select": "wide",
   "chip-input": "wide",
   "filter-input": "wide",
   "time-range-control": "wide",
@@ -384,6 +387,7 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<Label htmlFor="notes">Notes</Label>\n<Textarea id="notes" rows={4} />',
   select:
     '<Select defaultValue="English" onValueChange={setLanguage}>\n  <SelectTrigger aria-label="Language"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="English">English</SelectItem>\n  </SelectContent>\n</Select>',
+  "detail-select": '<DetailSelect\n  label="Definition"\n  value={definition}\n  onValueChange={setDefinition}\n  options={[{\n    value: "image",\n    label: "Container image",\n    icon: <TerminalIcon />,\n    illustration: <ImageDiagram />,\n    description: <><p>Run a published image.</p><a href="/docs/images">Read the guide</a></>,\n  }]}\n/>',
   checkbox:
     '<Checkbox id="platform" checked={checked} onCheckedChange={setChecked} />\n<Label htmlFor="platform">Show platform services</Label>',
   switch:
@@ -1220,6 +1224,8 @@ const Demo = memo(function Demo({
           </p>
         </div>
       );
+    case "detail-select":
+      return <DetailSelectDemo />;
     case "checkbox":
       return (
         <div className="stack">

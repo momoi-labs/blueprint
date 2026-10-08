@@ -1,4 +1,4 @@
-import type { Accent } from "@momoi-labs/kiso-react";
+import type { Accent, ChartStyle } from "@momoi-labs/kiso-react";
 
 export type BorderStyle = "solid" | "none" | "rail" | "dash" | "bevel" | "double" | "base" | "offset" | "manga" | "brush";
 export type CornerStyle = "square" | "rounded" | "asym" | "pixel";
@@ -8,6 +8,7 @@ export type MarkSize = Exclude<Size, "off">;
 export interface AppearanceSettings {
   theme: string;
   accent: Accent;
+  chartStyle: ChartStyle;
   borderStyle: BorderStyle;
   cornerStyle: CornerStyle;
   cornerMarks: CornerMarks;
@@ -65,6 +66,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
   return {
     ...current,
     accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime"]),
+    chartStyle: pick(["solid", "pixel", "halftone", "rounded"]),
     borderStyle: inner.border, cornerStyle: inner.corner, cornerMarks: inner.marks,
     cornerSize: pick(["small", "medium", "large"]), markSize: pick(["small", "medium", "large"]),
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),

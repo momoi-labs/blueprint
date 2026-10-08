@@ -23,7 +23,7 @@ function boot(values = {}, blocked = false) {
 test("new visits use the approved Pixel everywhere settings before React starts", () => {
   const { api, dataset } = boot();
   const expected = {
-    theme: "system", accent: "violet", borderStyle: "solid", cornerStyle: "pixel",
+    theme: "system", accent: "violet", chartStyle: "solid", borderStyle: "solid", cornerStyle: "pixel",
     cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
     appShell: "inset", frameScope: "all", markScope: "panels", markClearance: "normal",
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
@@ -202,4 +202,18 @@ test("restores bright and red accents in both themes before React starts", () =>
     assert.equal(dataset.theme, theme);
     assert.equal(api.read().accent, accent);
   }
+});
+
+for (const chartStyle of ["solid", "pixel", "halftone", "rounded"]) test(`persists ${chartStyle} charts independently of borders`, () => {
+  const { api, storage } = boot();
+  api.save({ ...api.defaults, chartStyle, cornerStyle: "square", borderStyle: "brush" });
+  const { dataset } = boot(Object.fromEntries(storage));
+  assert.equal(dataset.chartStyle, chartStyle);
+  assert.equal(dataset.borderStyle, "brush");
+  assert.equal(dataset.cornerStyle, "square");
+});
+
+test("unknown chart styles fall back to Solid", () => {
+  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ chartStyle: "unknown" }) });
+  assert.equal(dataset.chartStyle, "solid");
 });

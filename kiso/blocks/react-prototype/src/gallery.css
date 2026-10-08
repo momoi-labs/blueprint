@@ -383,3 +383,6 @@
     margin-inline: max(0px, calc(var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px) - var(--spacing-lg)));
   }
 }
+/* Illustrations in the DetailSelect reference example. */
+.detail-select-demo-flow { display: grid; justify-items: center; gap: var(--spacing-xs); color: var(--color-muted-foreground); font-size: var(--type-size-label); }
+.detail-select-demo-flow > span:not([aria-hidden]) { padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }

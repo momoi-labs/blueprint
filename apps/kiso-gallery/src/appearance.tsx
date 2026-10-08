@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
-import { AccentSelector, Button, ThemeSelector } from "@momoi-labs/kiso-react";
+import { AccentSelector, Button, DetailSelect, ThemeSelector, type ChartStyle } from "@momoi-labs/kiso-react";
+import { chartStyleOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 import { randomAppearance } from "./appearance-settings";
 import { BackgroundPreview, PanelPreview, PlacementPreview, ScopePreview } from "./appearance-previews";
@@ -219,6 +220,10 @@ export function AppearanceControls({ settings, onChange }: {
         </label>)}
       </div>
     </fieldset>
+  </AppearanceSection>
+  <AppearanceSection title="Charts">
+    <DetailSelect label="Chart style" value={settings.chartStyle} options={chartStyleOptions}
+      onValueChange={chartStyle => onChange({ chartStyle: chartStyle as ChartStyle })} />
   </AppearanceSection>
   <AppearanceSection title="Main style">
     <p className="muted t-label">Panels and controls use this style. The outer frame follows it unless customized below.</p>
