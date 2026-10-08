@@ -37,7 +37,7 @@ async function dragTo(page, locator, x, y) {
 }
 
 test('Rows come from newRow and a pane grows into the free columns only', async () => {
-  const page = await open('overflow=wrap');
+  const page = await open();
   try {
     const separator = page.getByRole('separator', { name: 'Resize Public URL' });
     assert.deepEqual(await separator.evaluate(el => [el.getAttribute('aria-valuemin'), el.getAttribute('aria-valuenow'), el.getAttribute('aria-valuemax')]), ['3', '6', '8']);
@@ -61,7 +61,7 @@ test('Rows come from newRow and a pane grows into the free columns only', async 
 });
 
 test('Moving a pane into a row keeps every size and wraps the row onto a second line', async () => {
-  const page = await open('overflow=wrap');
+  const page = await open();
   try {
     const variables = await page.locator('[data-pane-id="variables"]').boundingBox();
     await dragTo(page, page.getByRole('button', { name: 'Move Health' }), variables.x + variables.width - 10, variables.y + 40);
@@ -92,8 +92,8 @@ test('Actions in a pane head click without starting a move', async () => {
   } finally { await page.close(); }
 });
 
-test('Scroll overflow, the default, keeps a wide row on one line, up to two screens', async () => {
-  const page = await open();
+test('Scroll overflow keeps a wide row on one line, up to two screens', async () => {
+  const page = await open('overflow=scroll');
   try {
     const variables = await page.locator('[data-pane-id="variables"]').boundingBox();
     await dragTo(page, page.getByRole('button', { name: 'Move Health' }), variables.x + variables.width - 10, variables.y + 40);
@@ -115,7 +115,7 @@ test('Scroll overflow, the default, keeps a wide row on one line, up to two scre
 });
 
 test('Pack puts the big panes first and fill spends the free columns', async () => {
-  const page = await open('pack&fill&overflow=wrap');
+  const page = await open('pack&fill');
   try {
     assert.deepEqual(await Promise.all(['url', 'listener'].map(id => size(page, id))), [7, 5]);
     assert.equal(await page.getByRole('separator', { name: 'Resize Public URL' }).getAttribute('aria-valuenow'), '6');
@@ -123,7 +123,7 @@ test('Pack puts the big panes first and fill spends the free columns', async () 
 });
 
 test('Rules stay quiet until a drag, and debug labels rows, free columns and bounds', async () => {
-  const page = await open('overflow=wrap');
+  const page = await open();
   try {
     const rule = page.locator('.pane-grid-rule').first();
     assert.equal(await rule.evaluate(el => getComputedStyle(el, '::after').borderTopColor), 'rgba(0, 0, 0, 0)');
@@ -132,7 +132,7 @@ test('Rules stay quiet until a drag, and debug labels rows, free columns and bou
     assert.notEqual(await rule.evaluate(el => getComputedStyle(el, '::after').borderTopColor), 'rgba(0, 0, 0, 0)');
     await page.mouse.up();
     assert.equal(await page.locator('.grid-pane-meta').count(), 0);
-    await page.goto(`${url}?debug&overflow=wrap`);
+    await page.goto(`${url}?debug`);
     await page.locator('.grid-pane-meta').first().waitFor();
     assert.equal(await page.locator('.grid-pane-meta').first().textContent(), 'size=6 · min=3 · max=8');
     assert.deepEqual(await page.locator('.pane-grid-rule').evaluateAll(els => els.map(el => el.textContent)), ['row 1 · 10/12', 'row 2 · 12/12', 'row 3 · 12/12', 'row 4 · 6/12']);
