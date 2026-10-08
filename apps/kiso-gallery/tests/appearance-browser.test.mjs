@@ -721,7 +721,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1200, 'dark'], [16
       return { id: section.querySelector('h2').id, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
     }));
     const initial = await inspect();
-    assert.equal(initial.length, 64, 'The sweep covers every current catalog sample');
+    assert.equal(initial.length, 65, 'The sweep covers every current catalog sample');
     const baseline = Object.fromEntries(initial.map(item => [item.id, item.overflow]));
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);

@@ -24,8 +24,8 @@ Input root.
 - **Text** — general single-line entry.
 - **Email, URL, telephone, number** — uses the corresponding native `type` and
   appropriate `inputmode`; client validation does not replace server validation.
-- **Password** — obscures the value; an optional show/hide action has an
-  accessible name and preserves focus.
+- **Password** — obscures the value. For a show/hide action, use
+  [PasswordInput](password-input.md).
 - **Search** — use `type="search"` for a query field. Search behavior is defined
   by the later Search component, not by Input alone.
 - **Read-only** — value can be focused, selected, and copied but not edited.

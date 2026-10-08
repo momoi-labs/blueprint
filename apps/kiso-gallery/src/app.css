@@ -217,35 +217,73 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-lg);
 }
+/* Login: a context panel takes half the page beside the credential form.
+   The quiet Momoi mark and translucent card are an optional treatment. */
 .layout-login {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  place-items: center;
-  gap: var(--spacing-4xl);
   min-height: 740px;
-  padding: var(--spacing-3xl);
+  background-color: var(--color-background);
 }
-.layout-login-intro,
-.layout-login-form {
+.layout-login::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--canvas-mask-color);
+  mask-image: var(--canvas-mask);
+  mask-size: var(--canvas-size);
+  mask-position: var(--canvas-position);
+  mask-repeat: var(--canvas-repeat);
+  opacity: var(--canvas-opacity);
+}
+.layout-login-context {
+  display: grid;
+  align-content: center;
+  gap: var(--spacing-2xl);
+  padding: var(--spacing-3xl);
+  background: var(--color-muted);
+  border-inline-end: 1px solid var(--color-border);
+}
+.layout-login-context > * {
+  width: min(100%, 480px);
+  margin-inline: auto;
+}
+.layout-login-context-help {
+  padding-block-start: var(--spacing-xl);
+  border-block-start: 1px solid var(--color-border);
+}
+.layout-login-brand {
   display: grid;
   min-width: 0;
-  gap: var(--spacing-2xl);
-  width: min(100%, 380px);
+  overflow-wrap: anywhere;
 }
-.layout-login-intro h2 {
-  max-width: 9ch;
+.layout-login-help {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.layout-login-form .card-header {
-  text-align: center;
+.layout-login-access {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: var(--spacing-3xl);
 }
-.layout-divider {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding-block: var(--spacing-xs);
+.layout-login-panel {
+  width: min(100%, 400px);
 }
-.layout-divider .separator {
-  flex: 1;
+.layout-login-panel .card {
+  --frame-fill: color-mix(in srgb, var(--color-card) 65%, transparent);
+  background-color: var(--frame-fill);
+}
+.layout-login-mobile {
+  display: none;
+}
+@media (forced-colors: active) {
+  .layout-login::before { display: none; }
 }
 @container (max-width: 1050px) {
   .layout-stats {
@@ -282,6 +320,19 @@
   .layout-fields {
     grid-template-columns: minmax(0, 1fr);
   }
+  .layout-login {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .layout-login-context {
+    display: none;
+  }
+  .layout-login-access {
+    align-items: start;
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  .layout-login-mobile {
+    display: block;
+  }
 }
 @container (max-width: 400px) {
   .layout-stats {
@@ -292,11 +343,6 @@
   }
   .layout-list-toolbar {
     flex-wrap: wrap;
-  }
-  .layout-login {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-2xl);
-    padding: var(--spacing-xl) var(--spacing-md);
   }
 }
 @media (pointer: coarse) {
