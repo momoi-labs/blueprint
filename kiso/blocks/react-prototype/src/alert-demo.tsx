@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { CircleCheck, CircleX, Info, TriangleAlert } from "lucide-react";
 import { Alert, AlertContent, AlertDescription, AlertTitle } from "@momoi-labs/kiso-react";
 import { DemoSettings } from "./demo-settings";
 
@@ -6,6 +7,7 @@ export function AlertDemo() {
   const id = useId();
   const [appearance, setAppearance] = useState<"tinted" | "rail">("tinted");
   const [severity, setSeverity] = useState<"info" | "success" | "warning" | "error">("info");
+  const SeverityIcon = { info: Info, success: CircleCheck, warning: TriangleAlert, error: CircleX }[severity];
   return <div className="stack">
     <DemoSettings title="Alert">
       <div className="field"><label htmlFor={`${id}-appearance`}>Appearance</label>
@@ -20,12 +22,7 @@ export function AlertDemo() {
       </div>
     </DemoSettings>
     <Alert variant={severity} appearance={appearance} role="note" aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}>
-      <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-        {severity === "warning" ? <><path d="M8 2 15 14H1Z" /><path d="M8 6v4m0 1v1" /></> : <>
-          <circle cx="8" cy="8" r="6" />
-          <path d={severity === "success" ? "m4 8 3 3 5-6" : severity === "error" ? "m5 5 6 6m0-6-6 6" : "M8 7v5M8 4v1"} />
-        </>}
-      </svg>
+      <SeverityIcon className="icon" aria-hidden="true" />
       <AlertContent>
         <AlertTitle id={`${id}-title`}>{severity[0].toUpperCase() + severity.slice(1)}</AlertTitle>
         <AlertDescription id={`${id}-description`}>Review the configuration and its effect on concurrent operations.</AlertDescription>

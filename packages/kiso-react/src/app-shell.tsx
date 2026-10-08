@@ -3,6 +3,7 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
+import { PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
 import { Button } from "./button.js"
 import { Header } from "./header.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
@@ -61,9 +62,7 @@ function AppShellPanelToggle({
     data-placement={placement} className={cn("app-shell-panel-toggle", className)}
     aria-label={label ?? (props["aria-expanded"] ? "Close panel" : "Open panel")}
     title={label ?? (props["aria-expanded"] ? "Close panel" : "Open panel")} {...props}>
-    {children ?? <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-      <rect x="1.5" y="2" width="13" height="12" rx="1.5" /><path d="M10.5 2v12" />
-    </svg>}
+    {children ?? <PanelRight className="icon" aria-hidden="true" />}
   </Button>
 }
 
@@ -244,11 +243,7 @@ function ApplicationShellSidebar({
       title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       onClick={toggleSidebar}
     >
-      <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-        <rect x="1.5" y="2" width="13" height="12" rx="1.5" />
-        <path d="M5.5 2v12" />
-        <path d={isCollapsed ? "m8.5 5.5 2.5 2.5-2.5 2.5" : "m11 5.5-2.5 2.5 2.5 2.5"} />
-      </svg>
+      {isCollapsed ? <PanelLeftOpen className="icon" aria-hidden="true" /> : <PanelLeftClose className="icon" aria-hidden="true" />}
     </Button>
   ) : null
 

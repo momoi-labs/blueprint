@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
+import { Check } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover.js"
 
 export type DetailSelectOption = {
@@ -94,7 +95,7 @@ export function DetailSelect({ label, options, value, defaultValue, onValueChang
                   event.preventDefault()
                 }}>
                 <span>{option.label}</span>
-                {option.value === selected && <svg className="icon icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3.5 3.5L13 5" /></svg>}
+                {option.value === selected && <Check className="icon icon-sm" aria-hidden="true" />}
               </button>
             </h3>
             <div id={`${triggerId}-description-${index}`} className="detail-select-description">{option.description}</div>

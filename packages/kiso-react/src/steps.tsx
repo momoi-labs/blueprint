@@ -2,6 +2,7 @@
 
 import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { clsx as cn } from "clsx";
+import { Check, Lock } from "lucide-react";
 
 export type StepsStatus = "upcoming" | "completed" | "error" | "disabled";
 export type StepsItem = {
@@ -57,7 +58,7 @@ export function Steps({ label, items, current, orientation = "horizontal", respo
         const active = item.id === current;
         const canNavigate = status !== "disabled" && (item.href || (item.navigable && onStepChange));
         const content = <>
-          <span className="steps-marker" aria-hidden="true">{status === "completed" ? <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 8 3 3 7-7" /></svg> : status === "disabled" ? <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3.5" y="7" width="9" height="7" rx="1" /><path d="M5.5 7V4a2.5 2.5 0 0 1 5 0v3" /></svg> : status === "error" ? "!" : index + 1}</span>
+          <span className="steps-marker" aria-hidden="true">{status === "completed" ? <Check /> : status === "disabled" ? <Lock /> : status === "error" ? "!" : index + 1}</span>
           <span className="steps-copy">
             <span className="steps-label">{item.label}</span>
             <span className="steps-state">{active ? `${text.current}${status === "error" ? `, ${text.error}` : ""}` : text[status]}</span>

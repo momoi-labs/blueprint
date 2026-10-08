@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "./button.js";
 
 function ThemePreview({ theme }: { theme: "system" | "light" | "dark" }) {
@@ -34,21 +35,21 @@ export function ThemeSelector({
       label: "Follow system",
       name: "System",
       description: "Follow your device",
-      path: "M2 2h12v9H2zM8 11v3M5 14h6",
+      Icon: Monitor,
     },
     {
       value: "light",
       label: "Light theme",
       name: "Light",
       description: "Always use light colors",
-      path: "M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 0v2m0 12v2M0 8h2m12 0h2M2 2l2 2m8 8 2 2M2 14l2-2M12 4l2-2",
+      Icon: Sun,
     },
     {
       value: "dark",
       label: "Dark theme",
       name: "Dark",
       description: "Always use dark colors",
-      path: "M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5Z",
+      Icon: Moon,
     },
   ] as const;
   return (
@@ -56,14 +57,7 @@ export function ThemeSelector({
       <span className="t-label">Theme</span>
       <div className={cards ? "theme-cards" : "theme-buttons"} role="radiogroup" aria-label="Theme">
         {options.map((option, index) => {
-          const icon = <svg
-            className="icon icon-sm"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            aria-hidden="true"
-          ><path d={option.path} /></svg>;
+          const icon = <option.Icon className="icon icon-sm" aria-hidden="true" />;
           return (
             <Button
               key={option.value}

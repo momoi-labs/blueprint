@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
+import { Check, X } from "lucide-react";
 
 // One field holding several structured values. The component owns the box, the
 // chips, and the combobox keys; the product owns what a chip means, which
@@ -383,7 +384,7 @@ function EditableSegment({
             commit(draft);
           }}
         >
-          <CheckIcon />
+          <Check className="icon" aria-hidden="true" />
         </button>
       </>
     );
@@ -522,24 +523,8 @@ function ChipRemove({ className, onClick, ...props }: React.ComponentProps<"butt
         });
       }}
     >
-      <CloseIcon />
+      <X className="icon" aria-hidden="true" />
     </button>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="m3.5 8.5 3 3 6-7" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="m4 4 8 8M12 4l-8 8" />
-    </svg>
   );
 }
 
