@@ -37,6 +37,7 @@ function GridPreview({ panes, scroll = false }: { panes: readonly (readonly [x: 
 }
 
 export function PaneGridDemo() {
+  const [flow, setFlow] = useState<"rows" | "masonry">("rows");
   const [overflow, setOverflow] = useState<PaneGridOverflow>("wrap");
   const [fill, setFill] = useState<"off" | "on">("off");
   const [pack, setPack] = useState<"off" | "on">("off");
@@ -44,7 +45,11 @@ export function PaneGridDemo() {
   const [layout, setLayout] = useState<PaneGridLayout>();
   const debugId = useId();
   return <div className="stack">
-    <DemoSettings title="PaneGrid">
+    <DemoSettings title="PaneGrid" manual>
+      <Tiles label="Pane heights" value={flow} onChange={setFlow} options={[["rows", "Aligned rows"], ["masonry", "Masonry"]]}
+        preview={value => value === "rows"
+          ? <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 48]]} />
+          : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [48, 28, 48]]} />} />
       <Tiles label="Row wider than twelve columns" value={overflow} onChange={setOverflow} options={[["wrap", "Wrap onto lines"], ["scroll", "Scroll the row"]]}
         preview={value => value === "wrap"
           ? <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24]]} />
@@ -59,7 +64,7 @@ export function PaneGridDemo() {
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24], [24, 28, 24]]} />} />
     </DemoSettings>
     <div className="row"><Switch id={debugId} checked={debug} onCheckedChange={setDebug} /><Label htmlFor={debugId}>Debug: row columns, free columns and each pane's size bounds</Label></div>
-    <PaneGrid title="Summary" aria-label="Application summary" overflow={overflow} fill={fill === "on"} pack={pack === "on"} debug={debug} onLayoutChange={setLayout}>
+    <PaneGrid title="Summary" aria-label="Application summary" flow={flow} overflow={overflow} fill={fill === "on"} pack={pack === "on"} debug={debug} onLayoutChange={setLayout}>
       <GridPane id="url" title="Public URL" min={3} size={6}>
         <dl className="kv"><dt>URL</dt><dd><a className="link t-mono" href="#components/pane-grid">https://laya.example.internal</a></dd><dt>TLS</dt><dd><Badge>auto</Badge></dd></dl>
       </GridPane>

@@ -65,33 +65,12 @@
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-xl);
 }
-.catalog-masonry {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: 8px;
-  grid-auto-flow: row dense;
-  align-items: start;
-  column-gap: var(--spacing-xl);
-  row-gap: 0;
-}
 .catalog-section {
   min-width: 0;
   display: grid;
   gap: var(--spacing-lg);
 }
-.catalog-masonry > .catalog-section {
-  grid-row: span var(--catalog-rows, 1);
-  padding: var(--spacing-lg);
-}
-.catalog-masonry > .catalog-section[data-size="wide"] { grid-column: 1 / -1; }
-.catalog-masonry > .catalog-section[data-size="full"] { grid-column: 1 / -1; }
-@container catalog (min-width: 560px) {
-  .catalog-masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@container catalog (min-width: 960px) {
-  .catalog-masonry { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .catalog-masonry > .catalog-section[data-size="wide"] { grid-column: span 2; }
-}
+.catalog-pane > .grid-pane-body { min-width: 0; }
 .catalog-section-heading {
   display: flex;
   justify-content: space-between;
@@ -379,7 +358,7 @@
 
 /* Large drawing marks need more than the narrow browse view's edge padding. */
 @media (max-width: 400px) {
-  .catalog-masonry {
+  .catalog-pane-grid {
     margin-inline: max(0px, calc(var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px) - var(--spacing-lg)));
   }
 }
