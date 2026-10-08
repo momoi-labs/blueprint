@@ -37,7 +37,7 @@ function GridPreview({ panes, scroll = false }: { panes: readonly (readonly [x: 
 }
 
 export function PaneGridDemo() {
-  const [overflow, setOverflow] = useState<PaneGridOverflow>("wrap");
+  const [overflow, setOverflow] = useState<PaneGridOverflow>("scroll");
   const [fill, setFill] = useState<"off" | "on">("off");
   const [pack, setPack] = useState<"off" | "on">("off");
   const [debug, setDebug] = useState(false);
@@ -45,7 +45,7 @@ export function PaneGridDemo() {
   const debugId = useId();
   return <div className="stack">
     <DemoSettings title="PaneGrid">
-      <Tiles label="Row wider than twelve columns" value={overflow} onChange={setOverflow} options={[["wrap", "Wrap onto lines"], ["scroll", "Scroll the row"]]}
+      <Tiles label="Row wider than twelve columns" value={overflow} onChange={setOverflow} options={[["scroll", "Scroll the row"], ["wrap", "Wrap onto lines"]]}
         preview={value => value === "wrap"
           ? <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [96, 0, 24]]} scroll />} />
