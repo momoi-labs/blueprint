@@ -66,3 +66,4 @@ export * from "./status-badge.js";
 export * from "./steps.js";
 export * from "./radio-group.js";
 export * from "./file-dropzone.js";
+export * from "./diagram.js";

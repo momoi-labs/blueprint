@@ -2215,6 +2215,95 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 
 /* ===========================================================================
+   Diagram: columns of Cards joined by elbow edges on its own canvas
+   =========================================================================== */
+.diagram { padding: 0; }
+/* Scrolling lives on the inner element, so the card keeps its corner marks
+   outside the frame. The radius is inherited so the clip follows the theme. */
+.diagram-scroll { overflow-x: auto; border-radius: inherit; }
+/* The canvas is as wide as the drawing needs and never narrower than the
+   panel, so the drawing stays the same on small screens and scrolls instead
+   of reflowing. */
+.diagram-canvas { position: relative; isolation: isolate; width: max-content; min-width: 100%; padding: var(--spacing-xl); }
+/* The diagram is a canvas, so it paints its own background the way the shell
+   does. The pattern variables come from the nearest `data-background-style`,
+   the page's or the diagram's own; a page that set no canvas gets dots. */
+.diagram-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--canvas-mask-color, transparent);
+  mask-image: var(--canvas-mask, none);
+  mask-size: var(--canvas-size, var(--spacing-xl) var(--spacing-xl));
+  mask-position: var(--canvas-position, left top);
+  mask-repeat: var(--canvas-repeat, repeat);
+  background-image: var(--canvas-pattern, radial-gradient(circle, var(--color-foreground) 1px, transparent 1px));
+  background-size: var(--canvas-size, var(--spacing-xl) var(--spacing-xl));
+  background-position: var(--canvas-position, left top);
+  background-repeat: var(--canvas-repeat, repeat);
+  opacity: var(--canvas-opacity, .14);
+  z-index: -1;
+}
+/* Wide enough for an edge label such as DATABASE_URL to sit between nodes. */
+.diagram-lanes { display: grid; grid-auto-flow: column; grid-auto-columns: auto; gap: calc(var(--spacing-4xl) + var(--spacing-xl)); }
+.diagram-column { display: grid; align-content: center; gap: var(--spacing-lg); }
+.diagram-node { --diagram-tone: var(--color-border-strong); display: grid; gap: var(--spacing-xs); padding: var(--presentation-panel-padding); }
+.diagram-node[data-tone="primary"] { --diagram-tone: var(--color-primary); }
+.diagram-node[data-tone="info"] { --diagram-tone: var(--color-info); }
+/* A node that carries its own appearance attributes is its own scope, even
+   when no ancestor opened one, so a product that sets nothing on <html> can
+   still dash one node. */
+.diagram-node:is([data-border-style], [data-corner-style], [data-corner-size]) { border-radius: var(--appearance-corners); border-style: var(--appearance-panel-border); }
+/* Border styles that do not pair with Pixel corners (the same list the
+   appearance settings enforce) drop the inherited Pixel contour, the way a
+   nested corner scope does. Otherwise a dashed node under a Pixel page shows
+   its dashes only where the Pixel bands leave the border uncovered. */
+.diagram :is([data-border-style="rail"], [data-border-style="dash"], [data-border-style="bevel"], [data-border-style="double"], [data-border-style="base"], [data-border-style="offset"]) {
+  --appearance-pixel: 0;
+  --corner-ink-clip: initial; --corner-ink-color: initial; --corner-frame-shadow: initial;
+  --corner-overlay-content: initial; --corner-overlay-inset: initial;
+  --corner-overlay-border: initial; --corner-panel-shadow: initial;
+  --corner-border-color: initial;
+}
+/* Accent and status colour the frame; its line and corners stay whatever
+   the appearance scope says. The colour goes through the appearance
+   variables, so Pixel's ink contour takes it too, and only while Pixel is
+   on: other styles paint the overlay with the ink colour as a fill. */
+.diagram-node:is([data-accent], [data-status]) {
+  --appearance-border-color: var(--diagram-ink);
+  --corner-ink-color: color-mix(in srgb, var(--diagram-ink) calc(var(--appearance-pixel, 0) * 100%), transparent);
+}
+.diagram-node[data-accent] { --diagram-ink: var(--color-primary); }
+.diagram-node[data-status="stopped"] { --diagram-ink: var(--color-border-strong); color: var(--color-muted-foreground); }
+.diagram-node[data-status="failed"] { --diagram-ink: var(--color-danger); }
+.diagram-node-kind { display: flex; align-items: center; gap: var(--spacing-xs); }
+.diagram-node-kind .icon { color: var(--diagram-tone); }
+.diagram-node-title { font-weight: var(--type-weight-semibold); white-space: nowrap; }
+/* Free text keeps its line breaks and wraps only past a readable measure. */
+.diagram-node-text { white-space: pre-line; max-inline-size: 48ch; overflow-wrap: anywhere; color: var(--color-muted-foreground); }
+.diagram-node-status { justify-self: start; margin-block-start: var(--spacing-xs); }
+.diagram-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--color-border-strong); }
+.diagram-edges > path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.diagram-edges > path[data-line="dashed"] { stroke-dasharray: 6 4; }
+.diagram-edges > path[data-line="dotted"] { stroke-dasharray: 0 4; }
+/* The arrowhead is a filled triangle in the edge's tone. A marker paints
+   with its own colour, so the tone sits on the marker as well as the path. */
+.diagram-arrow path { fill: currentColor; stroke: none; }
+.diagram-edges :is(path, .diagram-arrow)[data-tone="success"] { color: var(--color-success); }
+.diagram-edges :is(path, .diagram-arrow)[data-tone="danger"] { color: var(--color-danger); }
+/* The label knocks the line out behind it with a stroke in the card colour. */
+.diagram-edge-label {
+  fill: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--type-size-metadata);
+  text-anchor: middle;
+  stroke: var(--color-card);
+  stroke-width: 4;
+  paint-order: stroke;
+}
+
+/* ===========================================================================
    Hatch — "this region is not data"
    ---------------------------------------------------------------------------
    Companion to the corner marks. Three sanctioned uses, and no others:

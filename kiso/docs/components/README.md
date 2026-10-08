@@ -43,6 +43,7 @@ behavioral reference where one exists.
 - [BarGauge](bar-gauge.md): Labelled bars on a shared scale.
 
 - [CommandPalette](command-palette.md): Searches and runs global actions or navigation from a keyboard-first overlay.
+- [Diagram](diagram.md): Draws how routes, services and stores connect, as columns of typed nodes joined by edges.
 - [Dot](dot.md): Adds a decorative status mark beside readable text.
 - [DropdownMenu](dropdown-menu.md): Presents contextual actions anchored to a specific object or trigger.
 - [EmptyState](empty-state.md): Replaces an empty collection with an explanation and optional next action.
