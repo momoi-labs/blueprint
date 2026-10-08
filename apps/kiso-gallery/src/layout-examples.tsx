@@ -1,3 +1,4 @@
+import { usePaneLayout } from "../../../kiso/blocks/react-prototype/src/use-pane-layout";
 import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
 import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
@@ -38,6 +39,8 @@ import {
   Badge,
   BrandMark,
   Button,
+  PaneGrid,
+  GridPane,
   Card,
   CardContent,
   CardFooter,
@@ -556,10 +559,10 @@ function ListDetailLayout({ createFails = false }: { createFails?: boolean }) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button size="sm">View activity</Button>
-            <Button variant="primary" size="sm">
-              Edit project
-            </Button>
+              <Button size="sm">View activity</Button>
+              <Button variant="primary" size="sm">
+                Edit project
+              </Button>
           </CardFooter>
         </Card>
       </div>
@@ -569,6 +572,7 @@ function ListDetailLayout({ createFails = false }: { createFails?: boolean }) {
 
 function SettingsLayout() {
   const id = useId();
+  const paneLayout = usePaneLayout("kiso-settings-pane-layout");
   return (
     <WorkspacePreview page="Settings">
       <div className="layout-between">
@@ -580,156 +584,127 @@ function SettingsLayout() {
         </PageHeader>
         <Badge variant="neutral">Workspace owner</Badge>
       </div>
-      <div className="layout-settings">
-        <div className="layout-section">
-          <Card>
-            <CardHeader>
-              <h3 className="t-h3">General</h3>
-              <p className="muted t-label">
-                How your workspace appears to the team.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="layout-fields">
-                <FormField
-                  label="Workspace name"
-                  defaultValue="Northstar"
-                  readOnly
-                />
-                <FormField
-                  label="Workspace URL"
-                  defaultValue="northstar.example"
-                  hint="Your team's shared workspace address."
-                  readOnly
-                />
+      <PaneGrid {...paneLayout} aria-label="Workspace settings groups">
+        <GridPane id="general" title="General" min={6} size={12}>
+          <p className="muted t-label">How your workspace appears to the team.</p>
+          <div className="layout-fields">
+            <FormField
+              label="Workspace name"
+              defaultValue="Northstar"
+              readOnly
+            />
+            <FormField
+              label="Workspace URL"
+              defaultValue="northstar.example"
+              hint="Your team's shared workspace address."
+              readOnly
+            />
+          </div>
+          <div className="field">
+            <Label htmlFor={`${id}-description`}>Description</Label>
+            <Textarea
+              id={`${id}-description`}
+              rows={3}
+              defaultValue="A shared space for ideas, projects and the people behind them."
+              readOnly
+            />
+          </div>
+          <div className="layout-fields">
+            <div className="field">
+              <Label htmlFor={`${id}-language`}>Language</Label>
+              <Select defaultValue="English">
+                <SelectTrigger id={`${id}-language`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="English">English</SelectItem>
+                  <SelectItem value="Português">Português</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="field">
+              <Label htmlFor={`${id}-timezone`}>Time zone</Label>
+              <Select defaultValue="UTC-03:00">
+                <SelectTrigger id={`${id}-timezone`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UTC-03:00">UTC-03:00</SelectItem>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <CardFooter>
+            <Button size="sm">Cancel</Button>
+            <Button size="sm" variant="primary">
+              Save changes
+            </Button>
+          </CardFooter>
+        </GridPane>
+        <GridPane id="profile" title="Your profile" min={6} size={6} newRow>
+          <div className="layout-account">
+            <BrandMark>A</BrandMark>
+            <div>
+              <p>Alex Morgan</p>
+              <p className="muted t-label">Workspace owner</p>
+            </div>
+          </div>
+          <FormField
+            label="Display name"
+            defaultValue="Alex Morgan"
+            readOnly
+          />
+          <FormField
+            label="Email address"
+            type="email"
+            defaultValue="alex@example.com"
+            readOnly
+          />
+          <CardFooter>
+            <Button size="sm">Update profile</Button>
+          </CardFooter>
+        </GridPane>
+        <GridPane id="plan" title="Your plan" min={6} size={6} actions={<Badge variant="info">Pro</Badge>}>
+          <p className="stat-value">
+            $24<span className="muted t-label"> / member</span>
+          </p>
+          <p className="muted t-label">12 members · billed monthly</p>
+          <Separator />
+          <p className="t-label">Storage usage</p>
+          <progress
+            className="layout-progress"
+            value={24}
+            max={100}
+            aria-label="Storage used"
+          />
+          <p className="muted t-label">24 GB of 100 GB used</p>
+          <CardFooter>
+            <Button size="sm">Manage plan</Button>
+          </CardFooter>
+        </GridPane>
+        <GridPane id="notifications" title="Notifications" min={6} size={12} newRow>
+          <p className="muted t-label">Choose which updates you receive.</p>
+          {[
+            ["Project updates", "Changes to projects you follow.", true],
+            ["Weekly summary", "A recap of your team's progress.", true],
+            ["Product news", "New features and improvements.", false],
+          ].map(([title, detail, checked], index) => (
+            <div className="settings-row" key={String(title)}>
+              <div>
+                <Label htmlFor={`${id}-notification-${index}`}>
+                  {title}
+                </Label>
+                <p className="muted t-label">{detail}</p>
               </div>
-              <div className="field">
-                <Label htmlFor={`${id}-description`}>Description</Label>
-                <Textarea
-                  id={`${id}-description`}
-                  rows={3}
-                  defaultValue="A shared space for ideas, projects and the people behind them."
-                  readOnly
-                />
-              </div>
-              <div className="layout-fields">
-                <div className="field">
-                  <Label htmlFor={`${id}-language`}>Language</Label>
-                  <Select defaultValue="English">
-                    <SelectTrigger id={`${id}-language`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="Português">Português</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="field">
-                  <Label htmlFor={`${id}-timezone`}>Time zone</Label>
-                  <Select defaultValue="UTC-03:00">
-                    <SelectTrigger id={`${id}-timezone`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UTC-03:00">UTC-03:00</SelectItem>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button size="sm">Cancel</Button>
-              <Button size="sm" variant="primary">
-                Save changes
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="t-h3">Notifications</h3>
-              <p className="muted t-label">Choose which updates you receive.</p>
-            </CardHeader>
-            <CardContent>
-              {[
-                ["Project updates", "Changes to projects you follow.", true],
-                ["Weekly summary", "A recap of your team's progress.", true],
-                ["Product news", "New features and improvements.", false],
-              ].map(([title, detail, checked], index) => (
-                <div className="settings-row" key={String(title)}>
-                  <div>
-                    <Label htmlFor={`${id}-notification-${index}`}>
-                      {title}
-                    </Label>
-                    <p className="muted t-label">{detail}</p>
-                  </div>
-                  <Switch
-                    id={`${id}-notification-${index}`}
-                    defaultChecked={Boolean(checked)}
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-        <div className="layout-section">
-          <Card>
-            <CardHeader>
-              <h3 className="t-h3">Your profile</h3>
-            </CardHeader>
-            <CardContent>
-              <div className="layout-account">
-                <BrandMark>A</BrandMark>
-                <div>
-                  <p>Alex Morgan</p>
-                  <p className="muted t-label">Workspace owner</p>
-                </div>
-              </div>
-              <FormField
-                label="Display name"
-                defaultValue="Alex Morgan"
-                readOnly
+              <Switch
+                id={`${id}-notification-${index}`}
+                defaultChecked={Boolean(checked)}
               />
-              <FormField
-                label="Email address"
-                type="email"
-                defaultValue="alex@example.com"
-                readOnly
-              />
-            </CardContent>
-            <CardFooter>
-              <Button size="sm">Update profile</Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="layout-between">
-                <h3 className="t-h3">Your plan</h3>
-                <Badge variant="info">Pro</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="stat-value">
-                $24<span className="muted t-label"> / member</span>
-              </p>
-              <p className="muted t-label">12 members · billed monthly</p>
-              <Separator />
-              <p className="t-label">Storage usage</p>
-              <progress
-                className="layout-progress"
-                value={24}
-                max={100}
-                aria-label="Storage used"
-              />
-              <p className="muted t-label">24 GB of 100 GB used</p>
-            </CardContent>
-            <CardFooter>
-              <Button size="sm">Manage plan</Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
+            </div>
+          ))}
+        </GridPane>
+      </PaneGrid>
     </WorkspacePreview>
   );
 }

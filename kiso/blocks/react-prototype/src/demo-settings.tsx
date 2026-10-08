@@ -19,6 +19,7 @@ export type DemoChoiceProps = {
 
 export const DemoSettingsContext = createContext<{
   target: HTMLElement | null;
+  linkTarget?: HTMLElement | null;
   open: boolean;
   register: (title: string | null) => void;
   /** Opens the panel and asks the demo section to take focus. */
@@ -46,7 +47,7 @@ export function DemoChoice(props: DemoChoiceProps) {
 
 // Demos retain their state while their controls appear in the gallery panel.
 // The standalone prototype and catalog cards keep controls beside the example.
-export function DemoSettings({ title, children }: { title: string; children: ReactNode }) {
+export function DemoSettings({ title, children, manual = false }: { title: string; children: ReactNode; manual?: boolean }) {
   const id = useId();
   const settings = useContext(DemoSettingsContext);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -55,10 +56,10 @@ export function DemoSettings({ title, children }: { title: string; children: Rea
   const open = settings?.open;
   const revision = settings?.revision ?? 0;
   useEffect(() => {
-    if (!register) return;
+    if (!register || manual) return;
     register(title);
     return () => register(null);
-  }, [register, title]);
+  }, [register, title, manual]);
   useLayoutEffect(() => {
     if (open) target?.scrollIntoView({ block: "nearest" });
   }, [open, target, title]);
@@ -66,12 +67,18 @@ export function DemoSettings({ title, children }: { title: string; children: Rea
     if (revision > 0 && open) heading.current?.focus();
   }, [revision, open]);
   if (!settings) return <div className="demo-settings-inline">{children}</div>;
-  return settings.target ? createPortal(
-    <section className="appearance-section" aria-labelledby={id}>
-      <h3 id={id} ref={heading} tabIndex={-1} className="t-caps">{title} options</h3>
-      <div className="stack">{children}</div>
-    </section>, settings.target,
-  ) : null;
+  return <>
+    {manual && settings.linkTarget && createPortal(<a href="#gallery-settings" className="link" aria-label={`${title} options in Appearance`} onClick={event => {
+      event.preventDefault();
+      settings.show();
+    }}>Options</a>, settings.linkTarget)}
+    {settings.target ? createPortal(
+      <section className="appearance-section" aria-labelledby={id}>
+        <h3 id={id} ref={heading} tabIndex={-1} className="t-caps">{title} options</h3>
+        <div className="stack">{children}</div>
+      </section>, settings.target,
+    ) : null}
+  </>;
 }
 
 // Tells the reader where the demo's controls went, with a way to get there.

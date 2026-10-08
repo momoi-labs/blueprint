@@ -1,3 +1,4 @@
+import { usePaneLayout } from "./use-pane-layout";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
@@ -14,7 +15,7 @@ import { MetricsDemo } from "./metrics-demo";
 import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
-import { memo, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { memo, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AccentSelector,
   type Accent,
@@ -39,6 +40,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
+  PaneGrid,
+  GridPane,
   Card,
   CardContent,
   CardFooter,
@@ -329,8 +332,7 @@ const catalog = [
 
 type CatalogId = (typeof catalog)[number][0];
 
-// Cards take one column of the browse grid unless listed here.
-// "wide" takes two columns, "full" takes the whole row.
+// Default panes span three columns, wide panes six, and full panes twelve.
 const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   textarea: "wide",
   steps: "full",
@@ -1982,30 +1984,6 @@ function sizeRank(size: "wide" | "full" | undefined) {
   return size === "full" ? 0 : size === "wide" ? 1 : 2;
 }
 
-const MASONRY_ROW = 8;
-
-// Read card sizes together, then update spans without forcing a layout per card.
-function useMasonryRows(grid: RefObject<HTMLDivElement | null>, active: boolean, items: string) {
-  useLayoutEffect(() => {
-    const root = grid.current;
-    if (!active || !root) return;
-    const gap = parseFloat(getComputedStyle(root).columnGap) || 0;
-    const fit = (sizes: [HTMLElement, number][]) => {
-      for (const [card, height] of sizes) {
-        const rows = String(Math.ceil((height + gap) / MASONRY_ROW));
-        if (card.style.getPropertyValue("--catalog-rows") !== rows) card.style.setProperty("--catalog-rows", rows);
-      }
-    };
-    const cards = Array.from(root.children).filter((c): c is HTMLElement => c instanceof HTMLElement);
-    const observer = new ResizeObserver(entries => {
-      fit(entries.map(entry => [entry.target as HTMLElement, entry.borderBoxSize[0]?.blockSize ?? entry.target.getBoundingClientRect().height]));
-    });
-    fit(cards.map(card => [card, card.getBoundingClientRect().height]));
-    for (const card of cards) observer.observe(card);
-    return () => observer.disconnect();
-  }, [grid, active, items]);
-}
-
 export function ComponentGallery({
   route,
   version,
@@ -2033,7 +2011,9 @@ export function ComponentGallery({
   panel?: ReactNode;
   settingsToggle?: ReactNode;
 }) {
+  const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
   const demoSettings = useContext(DemoSettingsContext);
+  const [optionsLinkTarget, setOptionsLinkTarget] = useState<HTMLSpanElement | null>(null);
   const [navigationCollapsed, setNavigationCollapsed] = useState(() => route === "intro");
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1024px)").matches);
   useEffect(() => {
@@ -2046,7 +2026,7 @@ export function ComponentGallery({
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
   const content = useRef<HTMLDivElement>(null);
-  const grid = useRef<HTMLDivElement>(null);
+
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
@@ -2060,7 +2040,8 @@ export function ComponentGallery({
         .filter((entry) => group === "all" || entry[2] === group)
         .sort((a, b) => sizeRank(catalogSize[a[0]]) - sizeRank(catalogSize[b[0]]))
     : catalog.filter((entry) => entry[0] === selected);
-  useMasonryRows(grid, browsing, visible.map(entry => entry[0]).join(","));
+  const CatalogGrid = browsing ? PaneGrid : "div";
+  const CatalogPane = browsing ? GridPane : "section";
 
   function showAll() {
     setSearch("");
@@ -2281,32 +2262,30 @@ export function ComponentGallery({
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
+              {!browsing && !showingExample && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
-        <div ref={grid} className={browsing ? "catalog-masonry" : "catalog-sections"} hidden={showingExample || showingIntro}>
+        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro}>
           {visible.map(([id, name, category, description]) => (
-            <section
-              className={browsing ? "catalog-section card" : "catalog-section"}
+            <CatalogPane
+              id={id}
+              title={name}
+              {...(browsing ? {
+                size: catalogSize[id] === "full" ? 12 : catalogSize[id] === "wide" ? 6 : 3,
+                min: catalogSize[id] ? 4 : 3,
+                actions: <a className="link t-label" href={`#components/${id}`} aria-label={`Open ${name}`}>Open</a>,
+              } : {})}
+              className={browsing ? "catalog-pane" : "catalog-section"}
               key={id}
               data-size={browsing ? catalogSize[id] : undefined}
-              aria-labelledby={browsing ? `catalog-${id}` : undefined}
               aria-label={browsing ? undefined : name}
             >
-              {browsing && (
-                <div className="catalog-section-heading">
-                  <div>
-                    <h2 id={`catalog-${id}`} className="t-h3">
-                      <a href={`#components/${id}`}>{name}<span aria-hidden="true"> ↗</span></a>
-                    </h2>
-                    <p className="muted t-label">{description}</p>
-                  </div>
-                </div>
-              )}
+              {browsing && <p className="muted t-label">{description}{id === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}</p>}
               <div className="catalog-preview">
-                <DemoSettingsContext.Provider value={browsing ? null : demoSettings}>
+                <DemoSettingsContext.Provider value={browsing && id !== "pane-grid" ? null : demoSettings && { ...demoSettings, linkTarget: optionsLinkTarget }}>
                 <Demo
                   id={id}
                   theme={theme}
@@ -2324,9 +2303,9 @@ export function ComponentGallery({
                   </pre>
                 </details>
               )}
-            </section>
+            </CatalogPane>
           ))}
-        </div>
+        </CatalogGrid>
         {!showingExample && !showingIntro && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
