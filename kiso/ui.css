@@ -2221,10 +2221,13 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 /* Scrolling lives on the inner element, so the card keeps its corner marks
    outside the frame. The radius is inherited so the clip follows the theme. */
 .diagram-scroll { overflow-x: auto; border-radius: inherit; }
-/* The canvas is as wide as the drawing needs and never narrower than the
-   panel, so the drawing stays the same on small screens and scrolls instead
-   of reflowing. */
-.diagram-canvas { position: relative; isolation: isolate; width: max-content; min-width: 100%; padding: var(--spacing-xl); }
+/* The canvas fills the panel and is never narrower than its content can
+   wrap to, so node text breaks before the drawing scrolls, and it scrolls
+   only once nothing can break any more. */
+.diagram-canvas { position: relative; isolation: isolate; width: 100%; min-width: min-content; padding: var(--spacing-xl); }
+/* When even the wrapped drawing does not fit, wrapping only cramps it, so
+   the canvas takes its natural width and scrolls. The Diagram sets this. */
+.diagram-canvas[data-overflow] { width: max-content; }
 /* The diagram is a canvas, so it paints its own background the way the shell
    does. The pattern variables come from the nearest `data-background-style`,
    the page's or the diagram's own; a page that set no canvas gets dots. */
@@ -2245,16 +2248,19 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   opacity: var(--canvas-opacity, .14);
   z-index: -1;
 }
-/* Wide enough for an edge label such as DATABASE_URL to sit between nodes. */
-.diagram-lanes { display: grid; grid-auto-flow: column; grid-auto-columns: auto; gap: calc(var(--spacing-4xl) + var(--spacing-xl)); }
+/* Columns are as wide as their content and sit together in the middle, so
+   spare room never stretches a node or its edges. The gap widens for an
+   edge label such as DATABASE_URL only when some edge has one. */
+.diagram-lanes { display: grid; grid-auto-flow: column; grid-auto-columns: auto; justify-content: center; gap: var(--spacing-4xl); }
+.diagram-lanes[data-edge-labels] { gap: calc(var(--spacing-4xl) + var(--spacing-xl)); }
 .diagram-column { display: grid; align-content: center; gap: var(--spacing-lg); }
-.diagram-node { --diagram-tone: var(--color-border-strong); display: grid; gap: var(--spacing-xs); padding: var(--presentation-panel-padding); }
+.diagram-node { --diagram-tone: var(--color-border-strong); --diagram-padding: var(--presentation-panel-padding); display: grid; align-content: start; gap: var(--spacing-xs); padding: var(--diagram-padding); }
 .diagram-node[data-tone="primary"] { --diagram-tone: var(--color-primary); }
 .diagram-node[data-tone="info"] { --diagram-tone: var(--color-info); }
 /* A node that carries its own appearance attributes is its own scope, even
    when no ancestor opened one, so a product that sets nothing on <html> can
    still dash one node. */
-.diagram-node:is([data-border-style], [data-corner-style], [data-corner-size]) { border-radius: var(--appearance-corners); border-style: var(--appearance-panel-border); }
+:is(.diagram-node, .diagram-node-group):is([data-border-style], [data-corner-style], [data-corner-size]) { border-radius: var(--appearance-corners); border-style: var(--appearance-panel-border); }
 /* Border styles that do not pair with Pixel corners (the same list the
    appearance settings enforce) drop the inherited Pixel contour, the way a
    nested corner scope does. Otherwise a dashed node under a Pixel page shows
@@ -2279,10 +2285,91 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .diagram-node[data-status="failed"] { --diagram-ink: var(--color-danger); }
 .diagram-node-kind { display: flex; align-items: center; gap: var(--spacing-xs); }
 .diagram-node-kind .icon { color: var(--diagram-tone); }
+.diagram-node-kind .t-caps { white-space: nowrap; }
 .diagram-node-title { font-weight: var(--type-weight-semibold); white-space: nowrap; }
-/* Free text keeps its line breaks and wraps only past a readable measure. */
-.diagram-node-text { white-space: pre-line; max-inline-size: 48ch; overflow-wrap: anywhere; color: var(--color-muted-foreground); }
+/* Without a caption the icon leads the title on its line, muted. */
+.diagram-node-title[data-lead] { display: flex; align-items: center; gap: var(--spacing-sm); }
+.diagram-node-title[data-lead] > .icon { color: var(--color-muted-foreground); }
+/* Free text keeps its line breaks and wraps only past a readable measure.
+   It breaks between words first, so names stay whole. */
+.diagram-node-text { white-space: pre-line; max-inline-size: 48ch; overflow-wrap: break-word; color: var(--color-muted-foreground); }
 .diagram-node-status { justify-self: start; margin-block-start: var(--spacing-xs); }
+/* Facts: the name muted on the left, the value in mono on the right. A value
+   that does not fit wraps onto its own line, still right-aligned. */
+.diagram-fact { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--spacing-lg); max-inline-size: 26rem; }
+.diagram-node-title + .diagram-fact, .diagram-node-kind + .diagram-fact, .diagram-node-status + .diagram-fact { margin-block-start: var(--spacing-xs); }
+.diagram-fact-label { display: inline-flex; align-items: center; gap: var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-label); }
+.diagram-fact-value { display: inline-flex; align-items: center; gap: var(--spacing-sm); margin-inline-start: auto; text-align: end; overflow-wrap: break-word; min-inline-size: 0; }
+/* Folds and sections reach the node's edges, separated by rules. A fold
+   after the title starts a full panel padding below it. */
+.diagram-fold { display: grid; margin-inline: calc(-1 * var(--diagram-padding)); }
+.diagram-fold:first-child { margin-block-start: calc(-1 * var(--diagram-padding)); }
+.diagram-fold:last-child { margin-block-end: calc(-1 * var(--diagram-padding)); }
+.diagram-fold:not(:first-child) { margin-block-start: calc(var(--diagram-padding) - var(--spacing-xs)); border-block-start: 1px solid var(--color-border); }
+.diagram-fold-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--diagram-padding);
+  border: 0; background: none; color: inherit; font: inherit; font-weight: var(--type-weight-semibold); text-align: start; cursor: pointer;
+}
+.diagram-fold-head:focus-visible { outline: 2px solid var(--color-ring); outline-offset: -2px; }
+.diagram-fold-head > .icon { color: var(--color-muted-foreground); }
+.diagram-fold-title, .diagram-section-title { display: inline-flex; align-items: center; gap: var(--spacing-sm); white-space: nowrap; }
+.diagram-fold-body { display: grid; border-block-start: 1px solid var(--color-border); }
+/* Folded, the body keeps its width and gives up its height, so the node
+   does not narrow and the hidden content leaves the tab order. */
+.diagram-fold[data-open="false"] > .diagram-fold-body { block-size: 0; overflow: clip; visibility: hidden; border-block-start: 0; }
+.diagram-filter { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); padding: var(--spacing-sm) var(--diagram-padding) 0; }
+.diagram-filter > button {
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-full);
+  background: none; color: var(--color-muted-foreground); font: inherit; font-size: var(--type-size-label); cursor: pointer;
+}
+.diagram-filter > button[aria-pressed="true"] { background: var(--color-muted); color: var(--color-foreground); }
+.diagram-filter > button:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 1px; }
+.diagram-section { display: grid; gap: var(--spacing-2xs); padding: var(--spacing-sm) var(--diagram-padding) var(--spacing-md); }
+.diagram-section + .diagram-section { border-block-start: 1px solid var(--color-border); }
+.diagram-section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.diagram-section-title > .icon { color: var(--color-muted-foreground); }
+/* Lines hang from their heading as a tree: a rule down the left and an
+   elbow into each line. The last line ends the rule. */
+.diagram-line {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--spacing-sm);
+  margin-inline-start: var(--spacing-sm); padding: var(--spacing-2xs) 0 var(--spacing-2xs) var(--spacing-lg);
+  border: 0; border-inline-start: 1px solid var(--color-border-strong);
+  background: none; color: inherit; font: inherit; text-align: start;
+}
+.diagram-line:last-child { border-inline-start-color: transparent; }
+.diagram-line::before {
+  content: ""; position: absolute; inset-inline-start: -1px; inset-block-start: 0;
+  block-size: 50%; inline-size: var(--spacing-md);
+  border-inline-start: 1px solid var(--color-border-strong); border-block-end: 1px solid var(--color-border-strong);
+  border-end-start-radius: var(--radius-xs);
+}
+.diagram-section[data-flat] > .diagram-line { margin-inline-start: 0; padding-inline-start: 0; border-inline-start: 0; }
+.diagram-section[data-flat] > .diagram-line::before { content: none; }
+.diagram-line-name { overflow-wrap: break-word; min-inline-size: 0; }
+.diagram-line-end { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--spacing-sm); min-inline-size: 0; margin-inline-start: auto; color: var(--color-muted-foreground); font-family: var(--font-mono); font-size: var(--type-size-label); text-align: end; overflow-wrap: break-word; }
+button.diagram-line { cursor: pointer; }
+button.diagram-line:hover > .diagram-line-name { text-decoration: underline; }
+button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 1px; }
+@media (pointer: coarse) {
+  .diagram-filter > button, button.diagram-line { min-height: var(--size-touch-min); }
+}
+/* A node group is one card holding several nodes, split by a rule. The
+   group carries the frame, so every border, corner and mark style draws it
+   whole; its nodes drop their own frame. An accent or a status on any node
+   colours the group's frame, with the same precedence as on a node. */
+.diagram-node-group { --diagram-padding: var(--presentation-panel-padding); display: grid; padding: 0; }
+.diagram-node-group > .diagram-node.diagram-node { border: 0; border-radius: 0; background: none; box-shadow: none; }
+.diagram-node-group > .diagram-node.diagram-node::before, .diagram-node-group > .diagram-node.diagram-node::after { content: none; }
+.diagram-node-group > .diagram-node + .diagram-node { border-block-start: 1px solid var(--color-border); }
+.diagram-node-group:has(> .diagram-node:is([data-accent], [data-status])) {
+  --appearance-border-color: var(--diagram-ink);
+  --corner-ink-color: color-mix(in srgb, var(--diagram-ink) calc(var(--appearance-pixel, 0) * 100%), transparent);
+}
+.diagram-node-group:has(> .diagram-node[data-accent]) { --diagram-ink: var(--color-primary); }
+.diagram-node-group:has(> .diagram-node[data-status="stopped"]) { --diagram-ink: var(--color-border-strong); }
+.diagram-node-group:has(> .diagram-node[data-status="failed"]) { --diagram-ink: var(--color-danger); }
 .diagram-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--color-border-strong); }
 .diagram-edges > path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
 .diagram-edges > path[data-line="dashed"] { stroke-dasharray: 6 4; }

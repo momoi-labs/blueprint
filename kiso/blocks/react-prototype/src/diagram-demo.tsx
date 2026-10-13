@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Zap } from "lucide-react";
+import { CornerDownRight, Database, FileCode, Forward, GitBranch, GitCommitHorizontal, Globe, Plug, Plus, Tag, Terminal, Zap } from "lucide-react";
 import {
-  Diagram, DiagramColumn, DiagramEdge, DiagramNode,
+  Badge, Button, Diagram, DiagramColumn, DiagramEdge, DiagramFact, DiagramFilter, DiagramFold, DiagramLine, DiagramNode,
+  DiagramNodeGroup, DiagramSection, StatusBadge,
   type DiagramBackground, type DiagramBorderStyle, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
 } from "@momoi-labs/kiso-react";
 import { DemoChoice, DemoSettings, DemoSettingsHint } from "./demo-settings";
@@ -88,6 +89,95 @@ export function DiagramDemo() {
         <DiagramEdge from="repo" to="db" label="DATABASE_URL" />
         <DiagramEdge from="repo" to="cache" label="REDIS_URL" line="dotted" tone="danger" />
       </Diagram>
+      <Diagram label="honcho-db: two applications read it, each from its own variable" background={background} strength={strength} {...frame}>
+        <DiagramColumn>
+          <DiagramNode id="honcho" kind="repository" title="honcho" />
+          <DiagramNode id="worker" kind="image" title="honcho-worker" />
+        </DiagramColumn>
+        <DiagramColumn>
+          <DiagramNode id="shared-db" kind="database" title="honcho-db" accent>postgres:17</DiagramNode>
+        </DiagramColumn>
+        <DiagramEdge from="honcho" to="shared-db" label="DATABASE_URL" />
+        <DiagramEdge from="worker" to="shared-db" label="QUEUE_DB_URL" />
+      </Diagram>
+      <ServiceSummary background={background} strength={strength} frame={frame} />
     </div>
+  );
+}
+
+function AddButton({ label }: { label: string }) {
+  return (
+    <Button size="xs" variant="ghost" className="btn-icon" aria-label={label}>
+      <Plus className="icon icon-sm" aria-hidden="true" />
+    </Button>
+  );
+}
+
+// A service's Summary as the self-host console draws it: the routes that
+// reach it fold under its hostname, the container that receives requests
+// carries its facts with the other containers joined under it, and the
+// databases it reads list the variable each URL arrives in.
+function ServiceSummary({ background, strength, frame }: {
+  background?: DiagramBackground;
+  strength?: "quiet" | "visible";
+  frame: { borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks };
+}) {
+  const [only, setOnly] = useState<string | null>(null);
+  const show = (kind: string) => only === null || only === kind;
+  return (
+    <Diagram label="storefront: the routes that reach it and the database it uses" background={background} strength={strength} {...frame}>
+      <DiagramColumn>
+        <DiagramNode id="domains" icon={Globe} title="app.example.com">
+          <DiagramFold title="Other routes" count={2}>
+            <DiagramFilter value={only} onValueChange={setOnly}
+              options={[{ value: "aliases", label: "Aliases", count: 1 }, { value: "redirects", label: "Redirects", count: 1 }]} />
+            {show("aliases") && (
+              <DiagramSection title="Aliases" icon={CornerDownRight} count={1} action={<AddButton label="Add an alias" />}>
+                <DiagramLine>admin.example.com/</DiagramLine>
+              </DiagramSection>
+            )}
+            {show("redirects") && (
+              <DiagramSection title="Redirects" icon={Forward} count={1} action={<AddButton label="Add a redirect" />}>
+                <DiagramLine end="↪ /admin (301)">admin.example.com/</DiagramLine>
+              </DiagramSection>
+            )}
+          </DiagramFold>
+        </DiagramNode>
+      </DiagramColumn>
+      <DiagramColumn>
+        <DiagramNodeGroup>
+          <DiagramNode id="app" kind="repository" label="storefront" title="app" accent>
+            <DiagramFact icon={GitBranch} label="Repository">https://github.com/example/storefront.git</DiagramFact>
+            <DiagramFact icon={Tag} label="Ref">main</DiagramFact>
+            <DiagramFact icon={FileCode} label="Built from">compose.deploy.yml</DiagramFact>
+            <DiagramFact icon={GitCommitHorizontal} label="Commit">
+              57f810fc03c8 <StatusBadge tone="success">Up to date</StatusBadge>
+            </DiagramFact>
+            <DiagramFact icon={Plug} label="Port">:8787</DiagramFact>
+            <DiagramFact icon={Terminal} label="Command" empty="Image default" />
+          </DiagramNode>
+          <DiagramNode id="containers">
+            <DiagramFold title="Other containers" count={1}>
+              <DiagramSection>
+                <DiagramLine end="https://github.com/example/storefront.git">worker</DiagramLine>
+              </DiagramSection>
+            </DiagramFold>
+          </DiagramNode>
+        </DiagramNodeGroup>
+      </DiagramColumn>
+      <DiagramColumn>
+        <DiagramNode id="databases">
+          <DiagramFold title="Databases" count={1}>
+            <DiagramSection title="PostgreSQL" icon={Database} count={1} action={<AddButton label="Connect a database" />}>
+              <DiagramLine onClick={() => {}} end={
+                <Badge className="badge-outline"><span>env</span><span className="mono">DATABASE_URL</span></Badge>
+              }>storefront-db</DiagramLine>
+            </DiagramSection>
+          </DiagramFold>
+        </DiagramNode>
+      </DiagramColumn>
+      <DiagramEdge from="domains" to="app" />
+      <DiagramEdge from="app" to="databases" />
+    </Diagram>
   );
 }
