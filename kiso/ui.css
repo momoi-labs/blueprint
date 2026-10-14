@@ -581,8 +581,12 @@ select.select option:disabled { color: var(--color-disabled); }
   font-size: var(--type-size-label);
   line-height: 1;
 }
-/* A structured chip can scroll without widening its field or shrinking targets. */
-.chip-input .chip:not(.filter-chip) { overflow-x: auto; }
+/* A structured chip can scroll without widening its field or shrinking targets.
+   Its scrollbar stays hidden: a classic one takes half the chip's height, and
+   the segment cut at the edge already says there is more. Wheel, touch and
+   focusing a segment still scroll it. */
+.chip-input .chip:not(.filter-chip) { overflow-x: auto; scrollbar-width: none; }
+.chip-input .chip:not(.filter-chip)::-webkit-scrollbar { display: none; }
 .chip-input .chip:not(.filter-chip) > * { flex-shrink: 0; }
 .chip:has(.is-editing) { background: var(--color-card); border-color: var(--color-primary); }
 .chip[data-state="invalid"] { background: var(--color-danger-surface); border-color: var(--color-danger-border); color: var(--color-danger); }

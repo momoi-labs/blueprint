@@ -313,6 +313,8 @@ for (const colorScheme of ['light', 'dark']) {
             assert(bounds.right <= width - 16 && bounds.document <= width, `${mode}: box right ${bounds.right}, document ${bounds.document}, viewport ${width}`);
             if (mode === 'layout-long') {
               assert(await page.locator('.chip').evaluate(element => element.scrollWidth > element.clientWidth), 'Long segments own a horizontal scroll range');
+              // A classic scrollbar would take half the chip's height.
+              assert(await page.locator('.chip').evaluate(element => !CSS.supports('scrollbar-width', 'none') || getComputedStyle(element).scrollbarWidth === 'none'), 'Long chips scroll without a visible scrollbar');
               assert(await page.locator('.chip-name, button.chip-value, button.chip-option').evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth)), 'Segment text remains readable within the chip scroll range');
             }
             if (mode === 'layout-many') {
