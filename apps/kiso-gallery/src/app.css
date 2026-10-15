@@ -59,9 +59,10 @@
   border-radius: inherit;
   overflow: clip;
 }
+/* Set the sidebar through the shell's width so the shell can still drop the
+   column below 1024px, where the sidebar opens as a drawer. */
 .layout-shell {
-  display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
+  --app-shell-sidebar-width: 168px;
   min-height: 740px;
 }
 .app-shell.layout-shell { min-height: 740px; }
