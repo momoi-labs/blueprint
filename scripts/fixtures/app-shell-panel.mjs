@@ -20,11 +20,15 @@ function Fixture() {
     h('label', null, 'Toggle placement', h('select', { className: 'select', value: placement, onChange: e => setPlacement(e.target.value) }, h('option', {value:'floating'}, 'Floating'), h('option', {value:'header'}, 'Header'))),
   );
   const body = h('div', { className: 'page' }, h('h1', null, 'Workspace'), h(FormField, { label: 'Main value', defaultValue: 'Independent' }), h('div', { style: { height: '1600px' } }, 'Scrollable main content'));
-  const props = { variant: params.get('variant') || 'default', style: { '--app-shell-panel-width': '320px' } };
+  const props = { variant: params.get('variant') || 'default', style: { '--app-shell-panel-width': '320px' }, ...(params.has('nested') ? { 'data-background-canvas': '' } : {}) };
   if (params.has('application')) return h(ApplicationShell, { ...props, brand: 'Workspace', ...(params.has('topbar') ? {layout:'topbar'} : {navigation:[], collapsible:true, togglePlacement:'header'}), header: header.props.children, panel }, body);
   return h(AppShell, { ...props, 'data-layout': params.has('topbar') ? 'topbar' : undefined },
     !params.has('topbar') && h(Sidebar, { id:'navigation', hidden: !navigationOpen }, h('nav', {'aria-label':'Navigation'}, h('a', {href:'#overview'}, 'Overview'))),
     h(AppShellMain, null, header, body), panel,
   );
 }
-createRoot(document.getElementById('root')).render(h(Fixture));
+// A preview renders a whole application inside the page's own shell.
+function Nested() {
+  return h(AppShell, { variant: 'inset', id: 'outer-shell', 'data-layout': 'topbar' }, h(AppShellMain, null, h('div', { id: 'preview' }, h(Fixture))));
+}
+createRoot(document.getElementById('root')).render(h(params.has('nested') ? Nested : Fixture));
