@@ -29,6 +29,11 @@ export interface AppearanceSettings {
   frameDetail: MarkSize;
   paperTone: "theme" | "accent";
   panelFill: "solid" | "translucent";
+  phoneBackgroundStyle: "inherit" | AppearanceSettings["backgroundStyle"];
+  phoneBorderStyle: "inherit" | BorderStyle;
+  phoneCornerStyle: "inherit" | CornerStyle;
+  phoneCornerMarks: "inherit" | CornerMarks;
+  phonePanelFill: "inherit" | AppearanceSettings["panelFill"];
 }
 
 declare global {
@@ -42,12 +47,21 @@ declare global {
 }
 
 export function appearanceCode(settings: AppearanceSettings) {
-  const attributes = Object.entries(settings)
+  const main = Object.fromEntries(Object.entries(settings).filter(([name]) => !name.startsWith("phone")));
+  // Phone overrides keep their main-style names, so they replace those values.
+  const phone = Object.fromEntries(Object.entries(settings)
+    .filter(([name, value]) => name.startsWith("phone") && value !== "inherit")
+    .map(([name, value]) => [name[5].toLowerCase() + name.slice(6), value]));
+  const attributes = Object.entries(main)
     .filter(([name, value]) => name !== "theme" || value !== "system")
     .map(([name, value]) => [`data-${name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`, value]);
+  const assign = `if (theme === "system") {\n  delete root.dataset.theme;\n} else {\n  root.dataset.theme = theme;\n}\nObject.assign(root.dataset, attributes);`;
+  const hasPhone = Object.keys(phone).length > 0;
   return {
-    html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <!-- Your application -->\n</html>`,
-    javascript: `const appearance = ${JSON.stringify(settings, null, 2)};\n\nconst { theme, ...attributes } = appearance;\nconst root = document.documentElement;\n\nif (theme === "system") {\n  delete root.dataset.theme;\n} else {\n  root.dataset.theme = theme;\n}\nObject.assign(root.dataset, attributes);`,
+    html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <!-- Your application -->${hasPhone ? "\n  <!-- Phone overrides need the JavaScript version. -->" : ""}\n</html>`,
+    javascript: hasPhone
+      ? `const appearance = ${JSON.stringify(main, null, 2)};\n\n// Below 700px wide these replace the main values.\nconst phone = ${JSON.stringify(phone, null, 2)};\nconst phoneQuery = matchMedia("(max-width: 699px)");\nconst root = document.documentElement;\n\nfunction apply() {\n  const { theme, ...attributes } = phoneQuery.matches ? { ...appearance, ...phone } : appearance;\n${assign.replace(/^/gm, "  ")}\n}\napply();\nphoneQuery.addEventListener("change", apply);`
+      : `const appearance = ${JSON.stringify(main, null, 2)};\n\nconst { theme, ...attributes } = appearance;\nconst root = document.documentElement;\n\n${assign}`,
   };
 }
 

@@ -5,10 +5,12 @@ import { runInNewContext } from "node:vm";
 import { randomAppearance } from "../src/appearance-settings.ts";
 
 const source = readFileSync(new URL("../public/appearance-init.js", import.meta.url), "utf8");
-function boot(values = {}, blocked = false) {
+function boot(values = {}, blocked = false, phone = false) {
   const storage = new Map(Object.entries(values));
   const dataset = {};
-  const window = {};
+  const listeners = [];
+  const query = { matches: phone, addEventListener: (_, listener) => listeners.push(listener) };
+  const window = { matchMedia: () => query };
   runInNewContext(source, {
     window,
     document: { documentElement: { dataset } },
@@ -17,7 +19,8 @@ function boot(values = {}, blocked = false) {
       setItem(key, value) { if (blocked) throw Error("Storage blocked"); storage.set(key, value); },
     },
   });
-  return { api: window.kisoAppearance, dataset, storage };
+  const resize = matches => { query.matches = matches; for (const listener of listeners) listener(); };
+  return { api: window.kisoAppearance, dataset, storage, resize };
 }
 
 test("new visits use the approved Pixel everywhere settings before React starts", () => {
@@ -29,9 +32,10 @@ test("new visits use the approved Pixel everywhere settings before React starts"
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
     frameDetail: "medium", paperTone: "theme", panelFill: "solid",
     outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit",
+    phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit",
   };
   assert.deepEqual(JSON.parse(JSON.stringify(api.read())), expected);
-  const { theme, ...attributes } = expected;
+  const { theme, phoneBackgroundStyle, phoneBorderStyle, phoneCornerStyle, phoneCornerMarks, phonePanelFill, ...attributes } = expected;
   assert.deepEqual(dataset, attributes);
 });
 
@@ -67,7 +71,18 @@ test("random appearances preserve theme and produce supported frame combinations
 test("restores the complete appearance before React starts", () => {
   const saved = { theme: "dark", accent: "teal", borderStyle: "solid", cornerStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small", visualStyle: "editorial", appShell: "inset" };
   const { api, dataset } = boot({ "kiso-gallery-appearance": JSON.stringify(saved) });
-  assert.deepEqual(dataset, { ...api.defaults, ...saved });
+  const attributes = Object.fromEntries(Object.entries(api.defaults).filter(([key]) => !key.startsWith("phone")));
+  assert.deepEqual(dataset, { ...attributes, ...saved });
+});
+
+test("phone overrides replace main choices only below 700px", () => {
+  const saved = { backgroundStyle: "fibers", cornerMarks: "ticks", phoneBackgroundStyle: "solid", phoneCornerMarks: "inherit" };
+  const { dataset, resize } = boot({ "kiso-gallery-appearance": JSON.stringify(saved) }, false, true);
+  assert.equal(dataset.backgroundStyle, "solid");
+  assert.equal(dataset.cornerMarks, "ticks", "Inherit keeps the main choice");
+  assert.equal(dataset.phoneBackgroundStyle, undefined, "Overrides are not attributes");
+  resize(false);
+  assert.equal(dataset.backgroundStyle, "fibers");
 });
 
 test("retains the existing theme and accent storage keys", () => {

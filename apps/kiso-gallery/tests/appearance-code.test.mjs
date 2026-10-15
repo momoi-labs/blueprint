@@ -33,3 +33,15 @@ test("JavaScript applies the current configuration and clears a forced theme", (
     assert.equal(dataset.appShell, "inset");
   }
 });
+
+test("JavaScript applies phone overrides below 700px", () => {
+  for (const matches of [true, false]) {
+    const dataset = {};
+    const matchMedia = () => ({ matches, addEventListener() {} });
+    const { javascript, html } = appearanceCode({ ...settings, backgroundStyle: "fibers", phoneBackgroundStyle: "solid", phoneBorderStyle: "inherit" });
+    runInNewContext(javascript, { document: { documentElement: { dataset } }, matchMedia });
+    assert.equal(dataset.backgroundStyle, matches ? "solid" : "fibers");
+    assert.equal(dataset.phoneBackgroundStyle, undefined);
+    assert.ok(!html.includes("data-phone"));
+  }
+});
