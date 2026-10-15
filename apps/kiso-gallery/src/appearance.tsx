@@ -59,7 +59,7 @@ const compositions: { label: string; settings: Partial<AppearanceSettings> }[] =
   { label: "Drawing plate", settings: { accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Drafting sheet", settings: { backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Pixel workshop", settings: { backgroundStyle: "dots", outerCornerStyle: "pixel", cornerMarks: "none", outerCornerMarks: "brackets", markScope: "outer" } },
-  { label: "Manga board", settings: { backgroundStyle: "grid", outerBorderStyle: "manga", cornerMarks: "none", outerCornerMarks: "diagonal", markScope: "outer" } },
+  { label: "Manga board", settings: { backgroundStyle: "grid", phoneBackgroundStyle: "dots", outerBorderStyle: "manga", cornerMarks: "none", outerCornerMarks: "diagonal", markScope: "outer" } },
   { label: "Brush study", settings: { backgroundStyle: "fibers", outerBorderStyle: "brush", cornerMarks: "none", frameScope: "outer", markScope: "outer" } },
   { label: "Momoi signature", settings: { backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" } },
   { label: "Pixel everywhere", settings: { theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
