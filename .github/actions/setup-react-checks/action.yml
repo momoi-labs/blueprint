@@ -1,0 +1,33 @@
+name: Set up React checks
+description: Install Node, npm packages and, when asked, Chromium for Playwright.
+
+inputs:
+  playwright:
+    description: Install Chromium and its system dependencies.
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: npm
+    - run: npm ci
+      shell: bash
+    - if: inputs.playwright == 'true'
+      id: playwright
+      shell: bash
+      run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+    - if: inputs.playwright == 'true'
+      id: browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+    - if: inputs.playwright == 'true' && steps.browsers.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+      shell: bash
+    - if: inputs.playwright == 'true' && steps.browsers.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
+      shell: bash

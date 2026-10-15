@@ -12,26 +12,88 @@ on:
       - '.changeset/**'
       - '.github/workflows/react-checks.yml'
       - '.github/workflows/release.yml'
+      - '.github/actions/setup-react-checks/**'
+  push:
+    branches: [main]
+    paths:
+      - 'package*.json'
+      - 'packages/**'
+      - 'apps/kiso-gallery/**'
+      - 'kiso/**'
+      - 'tokens/**'
+      - 'scripts/**'
+      - '.changeset/**'
+      - '.github/workflows/react-checks.yml'
+      - '.github/workflows/release.yml'
+      - '.github/actions/setup-react-checks/**'
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  # Pull requests run one representative case per gallery sweep. Pushes to main,
+  # the nightly schedule and manual runs run every viewport and theme.
+  KISO_FULL_SWEEP: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+
 jobs:
-  check:
-    name: Build and install React package
+  static:
+    name: Static checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-react-checks
       - run: npm audit --audit-level=low
       - run: npm run check
       - run: npm run check:react
-      - run: npx playwright install --with-deps chromium
-      - run: npm run check:browser
+      - run: npm run build:gallery
+      - run: npm run check:deploy --workspace=kiso-gallery
+
+  browser:
+    name: Browser checks ${{ matrix.shard }}/3
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-react-checks
+        with:
+          playwright: true
+      - run: npm run build:packages
+      - run: node scripts/run-browser-checks.mjs --shard=${{ matrix.shard }}/3
+        env:
+          KISO_BROWSER_CONCURRENCY: 2
+
+  gallery:
+    name: Gallery tests ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      KISO_TEST_SHARD: ${{ matrix.shard }}/4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-react-checks
+        with:
+          playwright: true
       - run: npm run build:gallery
       - run: node --test apps/kiso-gallery/tests/*.test.mjs
-      - run: npm run check:deploy --workspace=kiso-gallery
+
+  check:
+    name: Build and install React package
+    if: ${{ always() }}
+    needs: [static, browser, gallery]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass
+        run: |
+          echo "static=${{ needs.static.result }} browser=${{ needs.browser.result }} gallery=${{ needs.gallery.result }}"
+          test "${{ needs.static.result }}" = success
+          test "${{ needs.browser.result }}" = success
+          test "${{ needs.gallery.result }}" = success
