@@ -103,3 +103,24 @@ for (const rtl of [false, true]) test(`Inset frame marks paint above both adjace
     }), [true, true]);
   } finally { await page.close(); }
 });
+
+// A preview draws its own application shell inside the page's shell. The page's
+// outer frame treatment (ink, rings, marks) must not repeat on the nested one.
+for (const border of ['double', 'manga', 'brush', 'rail', 'base', 'offset', 'bevel']) test(`A nested shell does not repeat the ${border} outer frame`, async () => {
+  const page = await open('nested&variant=inset');
+  try {
+    const frame = selector => page.evaluate(selector => {
+      const main = document.querySelector(selector), s = getComputedStyle(main);
+      const layer = pseudo => { const p = getComputedStyle(main, pseudo); return [p.content, p.inset, p.borderTopWidth, p.backgroundImage, p.maskImage, p.clipPath].join('|'); };
+      return { border: [s.borderTopWidth, s.borderTopStyle], shadow: s.boxShadow, before: layer('::before'), after: layer('::after') };
+    }, selector);
+    const outer = '#outer-shell > [data-slot="app-shell-main"]', inner = '#preview [data-slot="app-shell-main"]';
+    const set = value => page.evaluate(value => Object.assign(document.documentElement.dataset, { appShell: 'inset', outerBorderStyle: value, outerCornerMarks: 'ticks', borderStyle: 'solid' }), value);
+    await set('inherit');
+    const plain = await frame(inner), outerPlain = JSON.stringify(await frame(outer));
+    assert.equal(plain.border[0], '1px', 'The nested main keeps its own panel edge');
+    await set(border);
+    assert.notEqual(JSON.stringify(await frame(outer)), outerPlain, `${border}: the top-level shell draws the outer frame`);
+    assert.deepEqual(await frame(inner), plain, `${border}: the nested shell draws no outer frame of its own`);
+  } finally { await page.close(); }
+});
