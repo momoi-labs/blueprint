@@ -3,7 +3,9 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
+import { Menu, PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
+import { Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer.js"
+import { VisuallyHidden } from "radix-ui"
 import { Button } from "./button.js"
 import { Header } from "./header.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
@@ -103,6 +105,10 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
   collapsed?: boolean
   defaultCollapsed?: boolean
   onCollapsedChange?: (collapsed: boolean) => void
+  /** Below 1024px the sidebar opens as a drawer. Control it to close the
+   *  drawer from a destination it cannot see, such as a menu in a portal. */
+  drawerOpen?: boolean
+  onDrawerOpenChange?: (open: boolean) => void
 }
 
 type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
@@ -115,6 +121,8 @@ type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
   collapsed?: never
   defaultCollapsed?: never
   onCollapsedChange?: never
+  drawerOpen?: never
+  onDrawerOpenChange?: never
 }
 
 type ApplicationShellProps =
@@ -209,9 +217,20 @@ function ApplicationShellSidebar({
   collapsed,
   defaultCollapsed = false,
   onCollapsedChange,
+  drawerOpen: controlledDrawer,
+  onDrawerOpenChange,
   ...shellProps
 }: ApplicationShellSidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed)
+  // Below 1024px the sidebar is not in the page; the same brand, action,
+  // navigation and footer open in a drawer from the header instead.
+  const [innerDrawer, setInnerDrawer] = React.useState(false)
+  const drawerOpen = controlledDrawer ?? innerDrawer
+  const setDrawerOpen = (open: boolean) => {
+    if (controlledDrawer === undefined) setInnerDrawer(open)
+    onDrawerOpenChange?.(open)
+  }
+  const menuRef = React.useRef<HTMLButtonElement>(null)
   const isCollapsed = collapsible && (collapsed ?? internalCollapsed)
   const sidebarId = React.useId()
   const sidebarRef = React.useRef<HTMLElement>(null)
@@ -247,8 +266,23 @@ function ApplicationShellSidebar({
     </Button>
   ) : null
 
+  const menu = (
+    <Button
+      ref={menuRef}
+      variant="ghost"
+      size="sm"
+      className="app-shell-menu btn-icon"
+      aria-expanded={drawerOpen}
+      aria-label="Open navigation"
+      title="Navigation"
+      onClick={() => setDrawerOpen(true)}
+    >
+      <Menu className="icon" aria-hidden="true" />
+    </Button>
+  )
+
   return (
-    <AppShell {...shellProps}>
+    <AppShell {...shellProps} data-phone-drawer="true">
       <Sidebar ref={sidebarRef} id={sidebarId} collapsed={isCollapsed}>
         <SidebarHeader className={collapsible && togglePlacement === "sidebar" ? "sidebar-header-collapsible" : undefined}>
           {collapsible ? <>
@@ -269,13 +303,37 @@ function ApplicationShellSidebar({
         {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
-        {(header || (collapsible && togglePlacement === "header")) && <Header variant={headerVariant}>
+        <Header variant={headerVariant} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
+          {menu}
           {togglePlacement === "header" && toggle}
           {header}
-        </Header>}
+        </Header>
         {children}
       </AppShellMain>
       {panel}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent
+          placement="side"
+          className="app-shell-drawer"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            menuRef.current?.focus()
+          }}
+        >
+          <DrawerHeader><VisuallyHidden.Root asChild><DrawerTitle>Navigation</DrawerTitle></VisuallyHidden.Root>{brand}</DrawerHeader>
+          <DrawerBody
+            onClick={(event) => {
+              // A destination, or anything the product marks as one, leaves
+              // the drawer: the page it opens is the point.
+              if ((event.target as Element).closest("a[href], [data-slot='navigation-link'], [data-shell-navigate]")) setDrawerOpen(false)
+            }}
+          >
+            {primaryAction}
+            <ApplicationShellNavigation navigation={navigation} navigationLabel={navigationLabel} collapsible={false} />
+            {footer && <div className="app-shell-drawer-footer">{footer}</div>}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </AppShell>
   )
 }

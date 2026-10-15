@@ -110,7 +110,8 @@ for (const theme of ['light', 'dark']) {
       if (screenshots) await page.screenshot({ path: `${screenshots}/inset-${theme}-collapsed.png` });
       await page.setViewportSize({ width: 390, height: 844 });
       assert(await noOverflow(page));
-      assert((await main.boundingBox()).y >= (await sidebar.boundingBox()).y + (await sidebar.boundingBox()).height);
+      assert.equal(await sidebar.isVisible(), false, 'The sidebar moves into the navigation drawer');
+      assert(await page.getByRole('button', { name: 'Open navigation' }).isVisible());
       if (screenshots) await page.screenshot({ path: `${screenshots}/inset-${theme}-mobile.png`, fullPage: true });
     } finally { await page.close(); }
   });

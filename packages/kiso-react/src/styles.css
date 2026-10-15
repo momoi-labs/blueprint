@@ -434,6 +434,14 @@
   border-start-start-radius: var(--radius-surface);
   border-start-end-radius: var(--radius-surface);
 }
+/* The shell's navigation opens from the edge its sidebar sat on, and leaves
+   a strip of the page showing so it reads as over the page, not a new one. */
+.kiso-react-drawer.app-shell-drawer[data-placement="side"] {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  width: min(20rem, calc(100vw - var(--spacing-3xl)));
+  border-radius: 0 var(--radius-surface) var(--radius-surface) 0;
+}
 /* Header and footer stay put; the body takes the leftover height. */
 .kiso-react-drawer [data-slot="dialog-body"] {
   flex: 1 1 auto;
