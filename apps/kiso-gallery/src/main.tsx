@@ -1,4 +1,5 @@
 import { StrictMode, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { AppShell, AppShellMain } from "@momoi-labs/kiso-react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts, phoneFrame } from "./layout-examples";
@@ -63,7 +64,14 @@ function PhoneFrame() {
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
   }, []);
-  return <main className="layout-phone-document"><LayoutExamples route={route} /></main>;
+  // Login and the guided flow have no shell of their own. On a desktop they
+  // sit in the gallery's shell, which carries the paper tone and background;
+  // here a shell of their own gives them the same canvas.
+  const ownShell = ["dashboard", "list-detail", "settings"].includes(route.split("/")[1] ?? "dashboard");
+  const example = <LayoutExamples route={route} />;
+  return ownShell
+    ? <div className="layout-phone-document">{example}</div>
+    : <AppShell className="layout-phone-document" data-layout="topbar"><AppShellMain>{example}</AppShellMain></AppShell>;
 }
 
 createRoot(document.getElementById("root")!).render(
