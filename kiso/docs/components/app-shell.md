@@ -244,7 +244,10 @@ button at the start of the Header. The Drawer holds the brand, the primary
 action, the navigation with labels, and the footer, and it closes when a
 destination is picked. Pass `drawerOpen` and `onDrawerOpenChange` to close it
 from a control the Drawer cannot see, such as a menu that opens in a portal,
-or mark such a control with `data-shell-navigate`. An AppShell laid out by
+or mark such a control with `data-shell-navigate`. The Drawer renders the brand,
+primary action and footer again rather than moving the sidebar's instances,
+so keep any state they hold in the product (a controlled value) for the
+Drawer and the sidebar to agree. An AppShell laid out by
 hand stacks the Sidebar above the content instead, with a scrollable body and
 a maximum height of 40vh. The desktop collapse toggle is hidden in both, and
 resizing back to desktop restores the collapse state.

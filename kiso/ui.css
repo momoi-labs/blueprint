@@ -2898,8 +2898,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   .app-shell[data-background-canvas]:has(> .sidebar:not([hidden])) { --canvas-column: 2; }
 }
 @media (max-width: 1023px) {
-  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:has(> .sidebar:not([hidden])),
-  .app-shell[data-background-canvas]:has(> .sidebar:not([hidden])) { --canvas-row: 2; }
+  /* A phone drawer takes the sidebar out of the grid, so main keeps row 1. */
+  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:not([data-phone-drawer="true"]):has(> .sidebar:not([hidden])),
+  .app-shell[data-background-canvas]:not([data-phone-drawer="true"]):has(> .sidebar:not([hidden])) { --canvas-row: 2; }
 }
 :where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;

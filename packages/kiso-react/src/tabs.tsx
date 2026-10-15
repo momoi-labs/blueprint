@@ -48,6 +48,11 @@ function SectionedTabs({
   // value it closed, so any other way to a panel (a tab, a link in a panel
   // that sets the value) opens it.
   const [collapsedFor, setCollapsedFor] = React.useState<string | undefined>();
+  const [shown, setShown] = React.useState(value);
+  if (shown !== value) {
+    setShown(value);
+    setCollapsedFor(undefined);
+  }
   const collapsed = value !== undefined && collapsedFor === value;
   const select = (next: string) => {
     if (controlled === undefined) setInner(next);

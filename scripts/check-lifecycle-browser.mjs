@@ -118,6 +118,18 @@ try {
     assert.equal(await page.locator('output').textContent(), 'Stop', `${label}: the action runs and the sheet closes`);
     await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'More actions', null, { timeout: 2000 })
       .catch(() => assert.fail(`${label}: focus returns to the trigger`));
+
+    // An action that owns its confirmation keeps it: the dialog opens over the sheet.
+    await page.goto(`${url}?confirm`);
+    await activate(more);
+    await activate(sheet.getByRole('button', { name: 'Remove', exact: true }));
+    const confirm = page.getByRole('alertdialog', { name: 'Remove it?' });
+    await confirm.waitFor();
+    await page.waitForTimeout(100);
+    assert(await confirm.isVisible(), `${label}: the confirmation survives the sheet`);
+    await activate(confirm.getByRole('button', { name: 'Confirm remove' }));
+    await confirm.waitFor({ state: 'detached' });
+    assert.equal(await page.locator('output').textContent(), 'Removed', `${label}: the confirmation runs`);
     console.log(`${label}: actions sheet passed.`);
     await context.close();
   }
