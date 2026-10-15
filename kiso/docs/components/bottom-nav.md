@@ -102,7 +102,9 @@ it has `display: none`.
 - More than five destinations in a hand-built bar. ApplicationShell's
   `phoneNavigation="bottom"` moves the extra ones behind More; otherwise use
   Sidebar.
-- Actions, such as "Create". Use a Button in the page or the header.
+- Actions, such as "Create". Use a Button in the page or the header. With
+  `phoneNavigation="bottom"`, ApplicationShell shows its `primaryAction` in
+  the header below 700px.
 - Tabs that switch panels within one page. Use [Tabs](tabs.md).
 
 ## Radix/shadcn mapping
