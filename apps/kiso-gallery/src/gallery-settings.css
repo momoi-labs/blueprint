@@ -58,3 +58,11 @@
 @media (max-width: 699px) {
   .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) { display: flex; flex: none; }
 }
+
+/* The layout previews cover most of the page signature and leave a fragment
+   in the margin, so the page skips it there. */
+[data-background-style="momoi"] .component-gallery:has(.catalog-layouts)::before { content: none; }
+/* A static preview sits inside the page, where its panels cover the corner and
+   leave a fragment of the signature. The phone preview is a page of its own
+   and keeps it. */
+[data-background-style="momoi"] .layout-preview:not(.layout-phone-document *) > .app-shell.layout-shell::before { content: none; }

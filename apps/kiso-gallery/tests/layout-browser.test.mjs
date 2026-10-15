@@ -296,7 +296,10 @@ for (const background of ["momoi", "momoi-repeat", "grid", "fibers", "solid"]) t
       await desktop.goto(`${url}#example/${example}`);
       await phone.goto(`${url}?phone-frame#example/${example}`);
       for (const page of [desktop, phone]) await page.locator(selector).waitFor();
-      assert.deepEqual(await phone.evaluate(layer, selector), await desktop.evaluate(layer, selector), `${example} on a phone`);
+      const drawn = await desktop.evaluate(layer, selector);
+      // The static dashboard preview skips the Momoi signature, which its panels would clip.
+      if (background === "momoi" && example === "dashboard") assert.equal(drawn.drawn, false, "The static dashboard preview draws no signature");
+      else assert.deepEqual(await phone.evaluate(layer, selector), drawn, `${example} on a phone`);
     } finally { await desktop.close(); await phone.close(); }
   }
 });
@@ -364,5 +367,21 @@ for (const width of [390, 320]) for (const theme of fullSweep ? ["light", "dark"
       if (close.length) failures.push({ preset, path: path || "gallery", route, close });
     }
     assert.deepEqual(failures, [], JSON.stringify(failures, null, 2));
+  } finally { await page.close(); }
+});
+
+// Panels cover the corner of a nested preview, and previews cover the page's
+// corner, so the Momoi signature must not show as a fragment behind either.
+for (const width of [1440, 390]) for (const theme of ["light", "dark"]) test(`Layout previews draw no partial Momoi glyph at ${width}px in ${theme}`, async () => {
+  const page = await open(width, "default", theme);
+  try {
+    await page.goto(`${url}#example/dashboard`);
+    await page.waitForFunction(() => window.kisoAppearance);
+    await page.evaluate(() => { const k = window.kisoAppearance; k.save({ ...k.read(), backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" }); });
+    await page.waitForFunction(() => document.documentElement.dataset.backgroundStyle === "momoi");
+    await page.locator(".layout-preview .layout-shell").waitFor();
+    const layers = await page.evaluate(() => [...document.querySelectorAll(".app-shell")].map(el => [el.className, getComputedStyle(el, "::before").content]));
+    assert(layers.length >= 2, "The preview shell is nested in the page shell");
+    assert.deepEqual(layers.filter(([, content]) => content !== "none"), [], "No shell behind the preview draws the signature");
   } finally { await page.close(); }
 });
