@@ -59,7 +59,9 @@ The default title uses the page-heading role. The editorial title scales from
 `--type-size-display` to `--type-size-editorial` with viewport width. It keeps
 the heading family, weight, and line height, with display letter spacing.
 Editorial descriptions use the body role. The heading has `--spacing-md`
-between title and description and `--spacing-lg` of vertical padding.
+between title and description and `--spacing-lg` of vertical padding. Inside
+`.page` the header adds no padding: the page owns the spacing, so the gap from
+the header to the next section equals the section gap.
 The actions row uses `--spacing-xl` between regions. Child Buttons retain
 their own sizes. Long titles wrap without pushing actions out of the page.
 

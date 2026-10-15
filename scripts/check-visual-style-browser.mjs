@@ -28,7 +28,7 @@ async function open(query, width = 1440) {
 
 const measure = locator => locator.evaluate(el => {
   const s = getComputedStyle(el);
-  return Object.fromEntries(['fontSize', 'lineHeight', 'fontWeight', 'padding', 'paddingInlineStart', 'rowGap', 'height', 'borderRadius', 'borderStyle', 'color', 'backgroundColor'].map(key => [key, s[key]]));
+  return Object.fromEntries(['fontSize', 'lineHeight', 'fontWeight', 'padding', 'paddingInlineStart', 'paddingBlockStart', 'rowGap', 'height', 'borderRadius', 'borderStyle', 'color', 'backgroundColor'].map(key => [key, s[key]]));
 });
 
 for (const theme of ['light', 'dark']) {
@@ -49,6 +49,9 @@ for (const theme of ['light', 'dark']) {
       assert.equal((await measure(page.locator('#application-card [data-slot="card-title"]'))).fontSize, '18px');
       assert.equal((await measure(page.locator('#application-card .card-body'))).paddingInlineStart, '24px');
       assert.equal((await measure(page.locator('.page'))).rowGap, '32px');
+      const gap = await page.evaluate(() => document.querySelector('#section-title').getBoundingClientRect().top - document.querySelector('[data-slot="page-header-description"]').getBoundingClientRect().bottom);
+      assert.equal(gap, 32, 'The header text sits one section gap above the next section');
+      assert.equal((await measure(page.locator('.page-header'))).paddingBlockStart, '0px');
       assert.equal((await measure(page.locator('.dashboard-grid'))).rowGap, '24px');
       assert(parseFloat((await measure(page.locator('#metric-card .stat-value'))).fontSize) > 30);
       assert.deepEqual(await Promise.all(unchanged.map(selector => measure(page.locator(selector)))), baseline);
