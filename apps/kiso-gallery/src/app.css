@@ -46,8 +46,10 @@
 .layout-phone-document .layout-login { min-height: 100dvh; }
 /* Inside the frame the page is the whole screen. */
 .layout-phone-document .layout-preview-caption { display: none; }
-.layout-scene-controls label { white-space: nowrap; }
-.layout-scene-controls .select { width: auto; }
+.layout-scene-controls label { white-space: nowrap; flex-wrap: wrap; max-width: 100%; }
+/* On a narrow screen the controls wrap and shrink rather than widen the page. */
+.layout-scene-controls .select { width: auto; min-width: 0; max-width: 100%; }
+.layout-scene-controls > .field { min-width: 0; max-width: 100%; }
 
 .layout-preview {
   container-type: inline-size;
