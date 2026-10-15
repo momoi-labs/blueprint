@@ -115,6 +115,11 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
         const shell = await page.locator(".layout-shell").evaluate(el => ({ shell: el.clientWidth, main: el.querySelector(":scope > main").getBoundingClientRect().width }));
         if (shell.main < shell.shell - 2) issues.push(`example main is ${shell.main}px of a ${shell.shell}px shell`);
       }
+      // The gallery scrolls the example card, so its header must not stick to the gallery.
+      if (await page.locator(".layout-preview > .layout-shell > main > .topbar").count()) {
+        const position = await page.locator(".layout-preview > .layout-shell > main > .topbar").evaluate(el => getComputedStyle(el).position);
+        if (position !== "static") issues.push(`example header is ${position}`);
+      }
       if (issues.length) failures.push({ route, issues });
     }
     assert.deepEqual(errors, [], "No render or lifecycle exceptions");
