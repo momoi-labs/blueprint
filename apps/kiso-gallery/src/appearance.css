@@ -141,5 +141,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-section > .disclosure > .disclosure-content { display: grid; gap: var(--spacing-md); }
 
 /* Tabs group the settings. The strip stays in view while a tab scrolls. */
-.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: var(--color-sidebar); }
+/* It takes the panel's own fill, which changes with the frame and background. */
+.appearance-controls-scroll, .appearance-tabs { background: inherit; }
+.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; }
 .appearance-tabs [role="tabpanel"] > :is(.appearance-section, .appearance-usage):first-child { border-top: 0; }
