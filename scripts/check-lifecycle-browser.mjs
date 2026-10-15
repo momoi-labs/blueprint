@@ -138,6 +138,48 @@ try {
     console.log(`${label}: actions sheet passed.`);
     await context.close();
   }
+
+  // On a phone the status badges wrap as separate shapes, so the cluster keeps
+  // no clip or contour of its own and each badge shows all four borders.
+  const appearances = [
+    { cornerStyle: 'pixel', borderStyle: 'solid' },
+    { cornerStyle: 'pixel', borderStyle: 'double' },
+    { cornerStyle: 'pixel', borderStyle: 'bevel' },
+    { cornerStyle: 'rounded', borderStyle: 'solid' },
+    { cornerStyle: 'square', borderStyle: 'manga' },
+    { cornerStyle: 'square', borderStyle: 'brush' },
+  ];
+  for (const colorScheme of ['light', 'dark']) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 700 }, colorScheme });
+    const page = await context.newPage();
+    await page.goto(url);
+    await page.getByRole('group', { name: 'Status' }).waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    for (const { cornerStyle, borderStyle } of appearances) {
+      const label = `${colorScheme}-390-${cornerStyle}-${borderStyle}`;
+      await page.evaluate(({ cornerStyle, borderStyle }) => {
+        Object.assign(document.documentElement.dataset, {
+          cornerStyle, cornerSize: 'small', borderStyle, panelFill: 'translucent', frameScope: 'all',
+        });
+      }, { cornerStyle, borderStyle });
+      const cluster = page.getByRole('group', { name: 'Status' });
+      assert.deepEqual(await cluster.evaluate(element => {
+        const style = getComputedStyle(element);
+        return [style.clipPath, getComputedStyle(element, '::after').content, style.borderTopWidth];
+      }), ['none', 'none', '0px'], `${label}: the cluster carries no clip, contour, or frame`);
+      const badges = cluster.locator('.badge');
+      assert.equal(await badges.count(), 2);
+      assert(await badges.evaluateAll(items => items.every(item => {
+        const style = getComputedStyle(item);
+        const rect = item.getBoundingClientRect();
+        return ['Top', 'Right', 'Bottom', 'Left'].every(side => parseFloat(style[`border${side}Width`]) >= 1)
+          && item === document.elementFromPoint(rect.right - 2, rect.top + rect.height / 2);
+      })), `${label}: every badge shows all four borders`);
+      if (screenshots) await page.screenshot({ path: `${screenshots}/${label}.png`, clip: { x: 0, y: 0, width: 390, height: 140 } });
+    }
+    console.log(`${colorScheme}-390: wrapped status badges keep their own borders.`);
+    await context.close();
+  }
 } finally {
   await browser?.close();
   await server.close();

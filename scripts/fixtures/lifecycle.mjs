@@ -24,7 +24,10 @@ function Fixture() {
   return h('main', null,
     h('h1', null, 'Lifecycle'),
     h(Lifecycle, {
-      status: h(StatusBadge, { tone: 'success' }, 'Running'),
+      status: [
+        h(StatusBadge, { key: 'state', tone: 'success' }, 'Running'),
+        h(StatusBadge, { key: 'health', tone: 'warning' }, 'Health unverified'),
+      ],
       actions: [action('Start', true), action('Stop'), action('Restart')],
       destructive: new URLSearchParams(location.search).has('confirm')
         ? h(OwnConfirm, { onConfirm: () => setActions(current => [...current, 'Removed']) })
