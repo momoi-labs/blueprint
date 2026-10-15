@@ -1,7 +1,7 @@
 import { usePaneLayout } from "../../../kiso/blocks/react-prototype/src/use-pane-layout";
 import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
 import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
-import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { createContext, useContext, useId, useState, type FormEvent, type ReactNode } from "react";
 import { ChevronDown, FileText, Folder, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 import {
   Alert,
@@ -830,8 +830,8 @@ function LoginLayout({ result }: { result: LoginResult }) {
   );
 }
 
-function LoginExample({ description }: { description: string }) {
-  const [result, setResult] = useState<LoginResult>("refused");
+function LoginExample({ description, initialResult }: { description: string; initialResult?: string }) {
+  const [result, setResult] = useState<LoginResult>(loginResults.find(([value]) => value === initialResult)?.[0] ?? "refused");
   const id = useId();
   return (
     <section aria-label="Login">
@@ -845,9 +845,9 @@ function LoginExample({ description }: { description: string }) {
           </select>
         </label>
       </div>
-      <Card className="layout-preview">
+      <LayoutPreview route={`example/login/${result}`}>
         <LoginLayout result={result} />
-      </Card>
+      </LayoutPreview>
     </section>
   );
 }
@@ -857,9 +857,9 @@ function LoginExample({ description }: { description: string }) {
    height the shell leaves. */
 const scenes = [["split", "Split"], ["list", "List"], ["detail", "Detail"], ["create", "Create"]] as const;
 
-function ListDetailExamples({ description, initialScene }: { description: string; initialScene?: string }) {
+function ListDetailExamples({ description, initialScene, initialResult }: { description: string; initialScene?: string; initialResult?: string }) {
   const [scene, setScene] = useState(initialScene && scenes.some(([key]) => key === initialScene) ? initialScene : "split");
-  const [createFails, setCreateFails] = useState(false);
+  const [createFails, setCreateFails] = useState(initialResult === "error");
   const id = useId();
   return (
     <section aria-label="List & detail">
@@ -885,37 +885,68 @@ function ListDetailExamples({ description, initialScene }: { description: string
           </div>
         </div>
       </div>
-      <Card className="layout-preview">
+      <LayoutPreview route={`example/list-detail/${scene}/${createFails ? "error" : "success"}`}>
         {scene === "split" ? <ListDetailLayout createFails={createFails} /> : (
           <WorkspacePreview page="Projects">
             {scene === "list" ? <ListScreen createFails={createFails} /> : scene === "detail" ? <DetailScreen /> : <CreateScreen />}
           </WorkspacePreview>
         )}
-      </Card>
+      </LayoutPreview>
     </section>
   );
 }
 
+// The phone view loads the example in a 390x844 frame, so its media queries
+// respond as they would on a phone. The frame shows the page alone; the
+// example's controls stay outside it and pass their state in the route.
+export const phoneFrame = new URLSearchParams(window.location.search).has("phone-frame");
+const PhoneView = createContext(false);
+
+function LayoutPreview({ route, children }: { route: string; children: ReactNode }) {
+  const phone = useContext(PhoneView);
+  if (phoneFrame) return <div className="layout-preview">{children}</div>;
+  if (phone) return <iframe className="layout-phone-frame" title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />;
+  return <Card className="layout-preview">{children}</Card>;
+}
+
 export function LayoutExamples({ route }: { route: string }) {
-  const [, requested, scene] = route.split("/");
+  const [phone, setPhone] = useState(() => localStorage.getItem("kiso-gallery-layout-device") === "phone");
+  if (phoneFrame) return <LayoutExample route={route} />;
+  const choose = (next: boolean) => { setPhone(next); localStorage.setItem("kiso-gallery-layout-device", next ? "phone" : "desktop"); };
+  const guided = route.split("/")[1] === "guided-flow";
+  return (
+    <div className="stack">
+      <div className="btn-group layout-device" role="group" aria-label="Layout width">
+        <Button size="sm" aria-pressed={!phone} onClick={() => choose(false)}>Desktop</Button>
+        <Button size="sm" aria-pressed={phone} onClick={() => choose(true)}>Phone</Button>
+      </div>
+      <PhoneView.Provider value={phone}>
+        {phone && guided ? <LayoutPreview route={route}>{null}</LayoutPreview> : <LayoutExample route={route} />}
+      </PhoneView.Provider>
+    </div>
+  );
+}
+
+function LayoutExample({ route }: { route: string }) {
+  const [, requested, scene, result] = route.split("/");
   const selected =
     layouts.find((layout) => layout.id === requested) ?? layouts[0];
   if (selected.id === "guided-flow") return <GuidedFlowDemo />;
-  if (selected.id === "login") return <LoginExample description={selected.description} />;
-  if (selected.id === "list-detail") return <ListDetailExamples key={scene} description={selected.description} initialScene={scene} />;
+  if (selected.id === "login") return <LoginExample key={scene} description={selected.description} initialResult={scene} />;
+  if (selected.id === "list-detail") return <ListDetailExamples key={route} description={selected.description} initialScene={scene} initialResult={result} />;
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">
         <p className="muted t-label">{selected.description}</p>
         <Badge variant="neutral">Static preview</Badge>
       </div>
-      <Card className="layout-preview">
+      <LayoutPreview route={`example/${selected.id}`}>
         {selected.id === "dashboard" ? (
           <DashboardLayout />
         ) : (
           <SettingsLayout />
         )}
-      </Card>
+      </LayoutPreview>
     </section>
   );
 }
