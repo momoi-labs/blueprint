@@ -1,8 +1,8 @@
 import { usePaneLayout } from "../../../kiso/blocks/react-prototype/src/use-pane-layout";
 import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
 import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
-import { createContext, useContext, useId, useState, type FormEvent, type ReactNode } from "react";
-import { ChevronDown, FileText, Folder, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
+import { createContext, useContext, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { ChevronDown, FileText, Folder, LayoutDashboard, Monitor, Settings, Smartphone, Users, type LucideIcon } from "lucide-react";
 import {
   Alert,
   AlertContent,
@@ -839,6 +839,7 @@ function LoginExample({ description, initialResult }: { description: string; ini
             {loginResults.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
+        <DeviceSwitch />
       </div>
       <LayoutPreview route={`example/login/${result}`}>
         <LoginLayout result={result} />
@@ -874,6 +875,7 @@ function ListDetailExamples({ description, initialScene, initialResult }: { desc
           <RadioGroup label="View" variant="segmented" value={scene} onValueChange={setScene}>
             {scenes.map(([key, label]) => <RadioGroupItem key={key} value={key} label={label} />)}
           </RadioGroup>
+          <DeviceSwitch />
         </div>
       </div>
       <LayoutPreview route={`example/list-detail/${scene}/${createFails ? "error" : "success"}`}>
@@ -891,15 +893,53 @@ function ListDetailExamples({ description, initialScene, initialResult }: { desc
 // respond as they would on a phone. The frame shows the page alone; the
 // example's controls stay outside it and pass their state in the route.
 export const phoneFrame = new URLSearchParams(window.location.search).has("phone-frame");
-const PhoneView = createContext(false);
+const PhoneView = createContext<{ phone: boolean; choose: (phone: boolean) => void }>({ phone: false, choose: () => {} });
+
+// Sits in each example's caption row, so the preview keeps the height.
+function DeviceSwitch() {
+  const { phone, choose } = useContext(PhoneView);
+  if (phoneFrame) return null;
+  return <RadioGroup label="Preview width" variant="segmented" className="layout-device" value={phone ? "phone" : "desktop"} onValueChange={value => choose(value === "phone")}>
+    <RadioGroupItem value="desktop" label="Desktop" icon={<Monitor className="icon" />} />
+    <RadioGroupItem value="phone" label="Phone" icon={<Smartphone className="icon" />} />
+  </RadioGroup>;
+}
 
 function LayoutPreview({ route, children }: { route: string; children: ReactNode }) {
-  const phone = useContext(PhoneView);
+  const { phone } = useContext(PhoneView);
   if (phoneFrame) return <div className="layout-preview">{children}</div>;
-  if (phone) return <Card className="layout-phone-frame">
-    <iframe title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />
-  </Card>;
+  if (phone) return <PhoneFrame route={route} />;
   return <Card className="layout-preview">{children}</Card>;
+}
+
+// The phone keeps a real 844px screen. Its panel takes the height left in
+// the window and scrolls inside, so the page around it does not scroll.
+function PhoneFrame({ route }: { route: string }) {
+  const stage = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>();
+  useEffect(() => {
+    const fit = () => {
+      const panel = stage.current;
+      const card = panel?.parentElement;
+      if (!panel || !card) return;
+      // The gallery page scrolls inside its frame, not the window.
+      let scroller: HTMLElement | null = card.parentElement;
+      while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+      if (!scroller) return;
+      const inner = scroller.getBoundingClientRect().bottom - parseFloat(getComputedStyle(scroller).paddingBottom);
+      const content = Math.max(...[...scroller.children].filter(child => child.getClientRects().length > 0)
+        .map(child => child.getBoundingClientRect().bottom + parseFloat(getComputedStyle(child).marginBottom)));
+      setHeight(Math.floor(Math.max(320, panel.offsetHeight + inner - content - 1)));
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  return <Card className="layout-phone-frame">
+    <div ref={stage} className="layout-phone-stage hatch" style={{ height }}>
+      <iframe title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />
+    </div>
+  </Card>;
 }
 
 export function LayoutExamples({ route }: { route: string }) {
@@ -908,15 +948,12 @@ export function LayoutExamples({ route }: { route: string }) {
   const choose = (next: boolean) => { setPhone(next); localStorage.setItem("kiso-gallery-layout-device", next ? "phone" : "desktop"); };
   const guided = route.split("/")[1] === "guided-flow";
   return (
-    <div className="stack">
-      <RadioGroup label="Preview width" variant="segmented" className="layout-device" value={phone ? "phone" : "desktop"} onValueChange={value => choose(value === "phone")}>
-        <RadioGroupItem value="desktop" label="Desktop" />
-        <RadioGroupItem value="phone" label="Phone" />
-      </RadioGroup>
-      <PhoneView.Provider value={phone}>
-        {phone && guided ? <LayoutPreview route={route}>{null}</LayoutPreview> : <LayoutExample route={route} />}
-      </PhoneView.Provider>
-    </div>
+    <PhoneView.Provider value={{ phone, choose }}>
+      {guided ? <div className="stack">
+        <DeviceSwitch />
+        {phone ? <LayoutPreview route={route}>{null}</LayoutPreview> : <LayoutExample route={route} />}
+      </div> : <LayoutExample route={route} />}
+    </PhoneView.Provider>
   );
 }
 
@@ -931,7 +968,10 @@ function LayoutExample({ route }: { route: string }) {
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">
         <p className="muted t-label">{selected.description}</p>
-        <Badge variant="neutral">Static preview</Badge>
+        <div className="row-wrap layout-scene-controls">
+          <Badge variant="neutral">Static preview</Badge>
+          <DeviceSwitch />
+        </div>
       </div>
       <LayoutPreview route={`example/${selected.id}`}>
         {selected.id === "dashboard" ? (
