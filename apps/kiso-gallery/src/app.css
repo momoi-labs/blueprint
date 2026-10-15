@@ -9,6 +9,19 @@
   gap: var(--spacing-md);
   padding-block-end: var(--spacing-lg);
 }
+.layout-device { align-self: start; }
+.layout-phone-frame {
+  display: block;
+  box-sizing: content-box;
+  width: 390px; max-width: calc(100% - 2px);
+  height: 844px;
+  margin-inline: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+}
+/* Inside the frame the page is the whole screen. */
+.layout-phone-document .layout-preview-caption { display: none; }
 .layout-scene-controls label { white-space: nowrap; }
 .layout-scene-controls .select { width: auto; }
 

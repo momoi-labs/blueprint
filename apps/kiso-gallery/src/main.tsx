@@ -1,7 +1,7 @@
 import { StrictMode, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
-import { LayoutExamples, layouts } from "./layout-examples";
+import { LayoutExamples, layouts, phoneFrame } from "./layout-examples";
 import { Intro } from "./intro";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
@@ -52,8 +52,22 @@ function App() {
   );
 }
 
+// The phone preview frame: the layout alone, following the gallery's saved
+// appearance as it changes in the parent page.
+function PhoneFrame() {
+  const [route, setRoute] = useState(() => window.location.hash.slice(1));
+  useEffect(() => {
+    const navigate = () => setRoute(window.location.hash.slice(1));
+    const appearance = () => window.kisoAppearance.save(window.kisoAppearance.read());
+    window.addEventListener("hashchange", navigate);
+    window.addEventListener("storage", appearance);
+    return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
+  }, []);
+  return <main className="layout-phone-document"><LayoutExamples route={route} /></main>;
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    {phoneFrame ? <PhoneFrame /> : <App />}
   </StrictMode>
 );
