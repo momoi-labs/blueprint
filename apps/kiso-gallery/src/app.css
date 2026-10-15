@@ -43,6 +43,7 @@
 /* Login draws its own canvas; the phone frame's shell only lends it the
    paper colors. */
 .app-shell.layout-phone-document:has(.layout-login)::before { content: none; }
+.layout-phone-document .layout-login { min-height: 100dvh; }
 /* Inside the frame the page is the whole screen. */
 .layout-phone-document .layout-preview-caption { display: none; }
 .layout-scene-controls label { white-space: nowrap; }

@@ -21,4 +21,5 @@ reserves space so the last content scrolls clear of the bar.
 `.topbar` now has a minimum height instead of a fixed one, so wrapped header
 content stays inside it. Header content taller than 52px now grows the bar
 instead of spilling over its border. The Momoi watermark is at most 64px wide
-below 700px.
+below 700px, and it now sits 8px inside the frame's corner instead of on the
+frame's border.
