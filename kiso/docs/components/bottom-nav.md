@@ -99,8 +99,9 @@ it has `display: none`.
 
 ## When NOT to use
 
-- More than five destinations. Use Sidebar, which stacks above the content on
-  narrow screens.
+- More than five destinations in a hand-built bar. ApplicationShell's
+  `phoneNavigation="bottom"` moves the extra ones behind More; otherwise use
+  Sidebar.
 - Actions, such as "Create". Use a Button in the page or the header.
 - Tabs that switch panels within one page. Use [Tabs](tabs.md).
 
