@@ -526,6 +526,52 @@ select.select option:disabled { color: var(--color-disabled); }
 .password-input-toggle > span { grid-area: 1 / 1; }
 .password-input-toggle > [aria-hidden="true"] { visibility: hidden; }
 .password-input-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* Code editor: one field-control frame around the gutter and the code. A
+   native textarea edits; the highlight sits under its transparent text with
+   the same metrics. Inner parts own no fill or border, so the frame's
+   appearance, including Pixel fills and marks, shows through. */
+.field-control.code-editor, .field[data-control-size] > .field-control.code-editor {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch; gap: 0; padding: 0;
+}
+.code-editor[data-line-numbers="false"] { grid-template-columns: minmax(0, 1fr); }
+.code-editor-gutter, .code-editor-highlight > *, .code-editor .code-editor-input {
+  font-family: var(--type-role-code-font-family); font-size: var(--type-role-code-font-size);
+  line-height: var(--type-role-code-line-height); font-variant-ligatures: none; letter-spacing: 0; tab-size: 2;
+}
+/* The numbers sit out of flow, so the textarea alone sets the height. The
+   width follows the digit count of the last line. */
+.code-editor-gutter {
+  position: relative; overflow: hidden; box-sizing: content-box;
+  inline-size: calc(max(2, var(--code-editor-digits, 2)) * 1ch); padding-inline: var(--spacing-sm);
+  border-inline-end: 1px solid var(--color-border);
+  color: var(--color-muted-foreground); text-align: end; user-select: none;
+}
+.code-editor-gutter > * { position: absolute; inset-inline: var(--spacing-sm); inset-block-start: 0; padding-block: var(--spacing-sm); }
+.code-editor-gutter span { display: block; }
+.code-editor-code { position: relative; min-width: 0; overflow: hidden; }
+.code-editor-highlight { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.code-editor-highlight > * { padding: var(--spacing-sm) var(--spacing-md); color: var(--color-foreground); white-space: pre; }
+.code-editor .code-editor-input {
+  position: relative; display: block; width: 100%; min-height: 0; margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md); border: 0; border-radius: 0; box-shadow: none;
+  background: transparent; color: var(--color-foreground); caret-color: var(--color-foreground);
+  white-space: pre; overflow: auto; resize: vertical;
+}
+.code-editor .code-editor-input::placeholder { color: var(--color-muted-foreground); }
+.code-editor .code-editor-input:focus-visible { outline: none; }
+.code-editor[data-highlighted="true"] .code-editor-input { color: transparent; }
+/* The textarea is not a direct child, so the frame states repeat here. They
+   keep the field-control weight, so appearance styles still override them. */
+.code-editor.field-control:where(:has(.code-editor-input:disabled)) { background: var(--color-disabled-surface); }
+.code-editor:has(.code-editor-input:disabled) { --pixel-fill: var(--color-disabled-surface); }
+.code-editor .code-editor-input:disabled { color: var(--color-disabled); cursor: not-allowed; }
+.code-editor:has(.code-editor-input:disabled) .code-editor-gutter { color: var(--color-disabled); }
+.code-editor.field-control:where(:has(.code-editor-input[aria-invalid="true"])) { border-color: var(--color-danger); }
+.code-editor.field-control:where(:has(.code-editor-input[aria-invalid="true"])):focus-within { outline-color: var(--color-danger); }
+@media (forced-colors: active) {
+  .code-editor-highlight { display: none; }
+  .code-editor[data-highlighted="true"] .code-editor-input { color: CanvasText; }
+}
 @media (pointer: coarse) {
   .field > .field-control, .field[data-control-size] > .field-control { min-height: max(var(--field-control-height), calc(var(--size-touch-min) + 2px)); }
   .field-control > :is(.input, .select) { min-width: var(--size-touch-min); min-height: max(calc(var(--field-control-height) - 2px), var(--size-touch-min)); }

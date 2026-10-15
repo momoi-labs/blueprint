@@ -70,8 +70,8 @@ the loading status independently perceivable.
 ## When NOT to use
 
 - Do not use for a single short value; use Input.
-- Do not use as a code editor when syntax, line numbers, or editor commands are
-  required; that needs a specialized component.
+- Do not use for code that needs highlighting or line numbers; use
+  [CodeEditor](code-editor.md). Editor commands need a specialized component.
 - Do not prevent paste or ordinary keyboard editing.
 - Do not use placeholder text as the only label or instruction.
 

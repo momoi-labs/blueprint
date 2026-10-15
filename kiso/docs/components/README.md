@@ -15,6 +15,7 @@ behavioral reference where one exists.
 - [Card](card.md): Groups related content and actions with visual separation.
 - [Checkbox](checkbox.md): Toggles an option in a list or selects multiple values.
 - [ChipInput](chip-input.md): Collects several structured values in one field, each with its own options.
+- [CodeEditor](code-editor.md): Edits code in a native textarea, with line numbers and a highlight the product provides.
 - [Form](form.md): Composes fields and explicit submission actions in a native form.
 - [FormActions](form-actions.md): Groups form actions and optional feedback, with inline or sticky placement.
 - [FormField](form-field.md): Composes Label, a form control, HelperText, and ValidationMessage with consistent ID and ARIA wiring.
