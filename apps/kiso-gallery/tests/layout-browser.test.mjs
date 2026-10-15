@@ -110,6 +110,11 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
       await settings(page, width >= 1200);
       await assertSettingsToggle(page);
       const issues = await layoutIssues(page, route.startsWith("components/") ? ".catalog-preview" : ".catalog-main");
+      // Below 1024px the example's sidebar is a drawer, so its main area takes the whole shell.
+      if (width < 1024 && await page.locator(".layout-shell").count()) {
+        const shell = await page.locator(".layout-shell").evaluate(el => ({ shell: el.clientWidth, main: el.querySelector(":scope > main").getBoundingClientRect().width }));
+        if (shell.main < shell.shell - 2) issues.push(`example main is ${shell.main}px of a ${shell.shell}px shell`);
+      }
       if (issues.length) failures.push({ route, issues });
     }
     assert.deepEqual(errors, [], "No render or lifecycle exceptions");
