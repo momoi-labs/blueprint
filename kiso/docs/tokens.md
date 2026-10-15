@@ -343,6 +343,23 @@ It applies to the same frames as the other border styles: cards, tables,
 dialogs, drawers, palettes, log viewers, code blocks and inset shell content.
 Menus and tooltips keep their own outlines and elevation.
 
+Side rail (`rail`), Weighted base (`base`) and Offset outline (`offset`) are
+hard shadows. Each one shows the panel floating above the page, lit from one
+direction:
+
+| Border style | Light comes from | Shadow falls |
+| --- | --- | --- |
+| Side rail | the right | to the left |
+| Weighted base | above | below |
+| Offset outline | the top left | to the bottom right |
+
+The panel keeps its Solid border and corners. With Rounded or Asymmetric
+corners, the shadow is 3px of the panel's own shape, outside the panel, and it
+follows each corner until it tapers into the next edge. With Square corners,
+Side rail and Weighted base paint a 3px band inside the panel edge, and Offset
+outline paints the same 3px shadow outside it. The outer inset frame follows
+its own corner style, including `data-outer-corner-style`.
+
 Chart treatment is independent of border and corner choices. It changes
 Chart and Sparkline paths, ChartLegend line ends, and Meter, Progress,
 BarGauge, and StepBar tracks. Solid uses straight segments. Pixel uses
