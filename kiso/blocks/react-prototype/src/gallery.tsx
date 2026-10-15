@@ -1,5 +1,5 @@
 import { usePaneLayout } from "./use-pane-layout";
-import { ChevronDown, FileText, PanelLeft, Pencil, Plus, SquareArrowOutUpRight, UserRound } from "lucide-react";
+import { BookOpen, Boxes, ChevronDown, FileText, LayoutDashboard, ListTree, PanelLeft, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, UserRound, X } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { CodeEditorDemo } from "./code-editor-demo";
@@ -2067,6 +2067,10 @@ export function ComponentGallery({
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
+  // On a phone the header is one row: brand, search and settings. The pages
+  // move to a BottomNav and the categories to a sheet from it.
+  const phone = useNarrow();
+  const [searching, setSearching] = useState(false);
   const content = useRef<HTMLDivElement>(null);
 
   const selected = route.split("/")[1] || "all";
@@ -2125,11 +2129,53 @@ export function ComponentGallery({
     window.location.hash = "components";
   }
 
+  const destinations = showingExample && examples.length > 0 ? (
+    <Navigation aria-label="Example layouts">
+      <NavigationGroup label="Layouts">
+        <NavigationList>
+          {examples.map((layout, index) => (
+            <NavigationItem key={layout.id}>
+              <NavigationLink
+                href={`#example/${layout.id}`}
+                active={selected === layout.id || (selected === "all" && index === 0)}
+              >
+                {layout.label}
+              </NavigationLink>
+            </NavigationItem>
+          ))}
+        </NavigationList>
+      </NavigationGroup>
+    </Navigation>
+  ) : (
+    <Navigation aria-label="Component categories">
+      <NavigationGroup label="Explore components">
+        <NavigationList>
+          {categories.map(([category, label, count]) => (
+            <NavigationItem key={category}>
+              <NavigationLink
+                href="#components"
+                active={browsing && group === category}
+                onClick={(event) => {
+                  event.preventDefault();
+                  if (category === "all") showAll();
+                  else showGroup(category);
+                }}
+              >
+                <span className="grow">{label}</span>
+                <Badge variant="neutral">{count}</Badge>
+              </NavigationLink>
+            </NavigationItem>
+          ))}
+        </NavigationList>
+      </NavigationGroup>
+    </Navigation>
+  );
+
   return (
     <AppShell
       className="component-gallery"
     >
-      <Sidebar
+      {!phone && <Sidebar
         id="component-navigation"
         // A closed narrow menu is hidden too, so the shell gives it no row.
         hidden={desktop ? navigationCollapsed : !menuOpen}
@@ -2142,67 +2188,43 @@ export function ComponentGallery({
           </a>
         </SidebarHeader>
         <SidebarBody>
-          {showingExample && examples.length > 0 ? (
-            <Navigation aria-label="Example layouts">
-              <NavigationGroup label="Layouts">
-                <NavigationList>
-                  {examples.map((layout, index) => (
-                    <NavigationItem key={layout.id}>
-                      <NavigationLink
-                        href={`#example/${layout.id}`}
-                        active={selected === layout.id || (selected === "all" && index === 0)}
-                      >
-                        {layout.label}
-                      </NavigationLink>
-                    </NavigationItem>
-                  ))}
-                </NavigationList>
-              </NavigationGroup>
-            </Navigation>
-          ) : (
-          <Navigation aria-label="Component categories">
-            <NavigationGroup label="Explore components">
-              <NavigationList>
-                {categories.map(([category, label, count]) => (
-                  <NavigationItem key={category}>
-                    <NavigationLink
-                      href="#components"
-                      active={browsing && group === category}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        if (category === "all") showAll();
-                        else showGroup(category);
-                      }}
-                    >
-                      <span className="grow">{label}</span>
-                      <Badge variant="neutral">{count}</Badge>
-                    </NavigationLink>
-                  </NavigationItem>
-                ))}
-              </NavigationList>
-            </NavigationGroup>
-          </Navigation>
-          )}
+          {destinations}
         </SidebarBody>
         {!settingsEnabled && <SidebarFooter>
           <ThemeSelector theme={theme} onChange={onThemeChange} />
         </SidebarFooter>}
-      </Sidebar>
+      </Sidebar>}
       <AppShellMain>
         <Header className="catalog-header">
+          {phone && searching ? <>
+            <Search
+              aria-label="Find a component"
+              placeholder="Find a component..."
+              autoFocus
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                window.location.hash = "components";
+              }}
+              onKeyDown={(e) => { if (e.key === "Escape") setSearching(false); }}
+            />
+            <Button className="btn-icon" size="sm" variant="ghost" aria-label="Close search" onClick={() => setSearching(false)}>
+              <X className="icon" aria-hidden="true" />
+            </Button>
+          </> : <>
           <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
             <PanelLeft className="icon" aria-hidden="true" />
           </Button>
-          {!showingIntro && (
+          {(!showingIntro || phone) && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
               <BrandMark><TerminalIcon /></BrandMark>
               <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
             </a>
           )}
-          <Navigation aria-label="Preview pages">
+          {!phone && <Navigation aria-label="Preview pages">
             <NavigationList className="nav-row">
               {intro !== undefined && (
                 <NavigationItem>
@@ -2220,14 +2242,18 @@ export function ComponentGallery({
                 </NavigationItem>
               )}
             </NavigationList>
-          </Navigation>
+          </Navigation>}
           <div className="catalog-tools">
-            {version && <Link className="catalog-version t-label mono"
+            {version && !phone && <Link className="catalog-version t-label mono"
               href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
               title={`Kiso ${version} release notes`} target="_blank" rel="noreferrer">
               v{version}
             </Link>}
-            <Search
+            {phone ? (
+              <Button className="btn-icon" size="sm" variant="ghost" aria-label="Find a component" onClick={() => setSearching(true)}>
+                <SearchIcon className="icon" aria-hidden="true" />
+              </Button>
+            ) : <Search
               aria-label="Find a component"
               placeholder="Find a component..."
               value={search}
@@ -2235,10 +2261,10 @@ export function ComponentGallery({
                 setSearch(e.target.value);
                 window.location.hash = "components";
               }}
-            />
+            />}
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
-            <Button
+            {!phone && <Button
               className="catalog-menu"
               size="sm"
               aria-controls="component-navigation"
@@ -2246,9 +2272,10 @@ export function ComponentGallery({
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? "Hide navigation" : "Show navigation"}
-            </Button>
+            </Button>}
             {settingsToggle}
           </div>
+          </>}
         </Header>
         <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
@@ -2363,6 +2390,45 @@ export function ComponentGallery({
         </div>
       </AppShellMain>
       {panel}
+      {phone && <>
+        <BottomNav aria-label="Preview pages">
+          {intro !== undefined && <BottomNavLink href="#intro" active={showingIntro}>
+            <span className="bottom-nav-icon" aria-hidden="true"><BookOpen className="icon" /></span>
+            <span>Intro</span>
+          </BottomNavLink>}
+          <BottomNavLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
+            <span className="bottom-nav-icon" aria-hidden="true"><Boxes className="icon" /></span>
+            <span>Components</span>
+          </BottomNavLink>
+          {example !== undefined && <BottomNavLink href="#example" active={showingExample}>
+            <span className="bottom-nav-icon" aria-hidden="true"><LayoutDashboard className="icon" /></span>
+            <span>Layouts</span>
+          </BottomNavLink>}
+          <BottomNavLink asChild>
+            <button type="button" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+              <span className="bottom-nav-icon" aria-hidden="true"><ListTree className="icon" /></span>
+              <span>Browse</span>
+            </button>
+          </BottomNavLink>
+        </BottomNav>
+        <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+          <DrawerContent placement="bottom" className="catalog-sheet">
+            <DrawerHeader><DrawerTitle>{showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></DrawerHeader>
+            <DrawerBody
+              onClick={(event) => {
+                if ((event.target as Element).closest("a[href]")) setMenuOpen(false);
+              }}
+            >
+              {destinations}
+              {version && <Link className="catalog-version t-label mono"
+                href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
+                target="_blank" rel="noreferrer">
+                Kiso v{version} release notes
+              </Link>}
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      </>}
     </AppShell>
   );
 }

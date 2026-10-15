@@ -54,3 +54,6 @@
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools { flex: 1; justify-content: end; }
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools > [data-slot="search"] { width: min(100%, 240px); }
 }
+@media (max-width: 699px) {
+  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) { display: flex; flex: none; }
+}

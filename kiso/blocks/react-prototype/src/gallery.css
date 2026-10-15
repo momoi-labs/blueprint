@@ -206,6 +206,12 @@
     align-items: center;
     min-height: var(--size-touch-min);
   }
+  .catalog-brand, .catalog-version, .catalog-open, .catalog-code summary, a[href="#gallery-settings"] {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-touch-min);
+  }
+  .catalog-open { min-width: var(--size-touch-min); justify-content: center; }
 }
 /* Below the shell's own breakpoint the Sidebar is gone, so the brand moves to
    the Header and "Show filters" folds the Sidebar in above the content. */
@@ -259,8 +265,17 @@
     padding: var(--spacing-md);
   }
 }
+/* On a phone the header is one row: brand, search and settings. The pages
+   are in the BottomNav and the categories in its sheet. */
+@media (max-width: 699px) {
+  .catalog-header { flex-wrap: nowrap; gap: var(--spacing-sm); padding-block: var(--spacing-xs); }
+  .catalog-main { padding-block-start: var(--spacing-xs); }
+  .catalog-heading { gap: 0; }
+  .catalog-header > [data-slot="search"] { flex: 1; min-width: 0; }
+  .catalog-sheet [data-slot="dialog-body"] { display: grid; gap: var(--spacing-lg); align-content: start; }
+}
 @media (max-width: 400px) {
-  .catalog-main { padding: var(--spacing-sm); }
+  .catalog-main { padding: var(--spacing-sm); padding-block-start: var(--spacing-xs); }
 }
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */

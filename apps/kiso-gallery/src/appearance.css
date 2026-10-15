@@ -136,3 +136,6 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 }
 
 .appearance-outer-customization > .disclosure-content { display: grid; gap: var(--spacing-md); }
+.appearance-section:has(> .disclosure) { padding-block: 0; }
+.appearance-section > .disclosure > summary { color: var(--color-muted-foreground); }
+.appearance-section > .disclosure > .disclosure-content { display: grid; gap: var(--spacing-md); }
