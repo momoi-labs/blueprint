@@ -24,6 +24,8 @@ try {
         await page.goto(url);
         const stop = page.getByRole('button', { name: 'Stop', exact: true });
         await stop.waitFor();
+        // A late web font moves the buttons after they are measured.
+        await page.evaluate(() => document.fonts.ready);
         const label = `${hasTouch ? 'touch' : 'desktop'}-${width}-${colorScheme}`;
         assert.equal(await page.evaluate(() => matchMedia('(pointer: coarse)').matches), hasTouch);
         if (screenshots) await page.screenshot({ path: `${screenshots}/${label}.png` });

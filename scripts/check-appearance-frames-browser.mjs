@@ -12,7 +12,8 @@ after(async () => { await browser?.close(); await server.close(); });
 async function open(query) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
   page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
-  await page.goto(`${url}?${query}`); await page.locator('#sample, #solid-square').first().waitFor();
+  // The first load compiles the fixture through vite, which is slow when other checks run alongside.
+  await page.goto(`${url}?${query}`, { timeout: 30000 }); await page.locator('#sample, #solid-square').first().waitFor({ timeout: 30000 });
   return page;
 }
 const radii = el => { const s = getComputedStyle(el); return [s.borderTopLeftRadius, s.borderTopRightRadius].map(parseFloat); };
@@ -157,6 +158,9 @@ test('Fields, structured inputs and grouped actions retain their frame scope and
     assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).textContent(), '22');
     await page.getByRole('button', { name: 'Remove node', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Edit version', exact: true }).count(), 0);
+    // Removing a chip moves focus to the chip field on the next frame. Filling first lets that late focus
+    // move land mid-typing, so wait for it.
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Dependencies');
     await filters.fill('status=active');
     const typed = await filters.inputValue();
     await filters.press('Enter');
