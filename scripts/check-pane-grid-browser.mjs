@@ -229,3 +229,21 @@ test('Masonry pack preserves DOM order, ignores fill, and scroll uses rows flow'
     assert.equal(await page.locator('.pane-grid-body').getAttribute('data-flow'), 'rows');
   } finally { await page.close(); }
 });
+test('On touch a pane header scrolls the page and its grip moves the pane', async () => {
+  const page = await open('', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  try {
+    const head = page.getByRole('button', { name: 'Move Public URL' });
+    assert.equal(await head.evaluate(el => getComputedStyle(el).touchAction), 'pan-y');
+    const grip = head.locator('.grid-pane-grip');
+    assert(await grip.isVisible());
+    assert.equal(await grip.evaluate(el => getComputedStyle(el).touchAction), 'none');
+    const box = await grip.boundingBox();
+    assert(box.width >= 44 && box.height >= 44, `The grip is ${box.width}x${box.height}`);
+    // A gesture the browser takes over for scrolling cancels the move.
+    const before = await rows(page);
+    await head.dispatchEvent('pointerdown', { pointerId: 7, pointerType: 'touch', clientX: 100, clientY: 100, isPrimary: true, button: 0 });
+    await head.dispatchEvent('pointermove', { pointerId: 7, pointerType: 'touch', clientX: 100, clientY: 400, isPrimary: true });
+    await head.dispatchEvent('pointercancel', { pointerId: 7, pointerType: 'touch', isPrimary: true });
+    assert.deepEqual(await rows(page), before);
+  } finally { await page.close(); }
+});

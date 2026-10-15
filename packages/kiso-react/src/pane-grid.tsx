@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
+import { GripVertical } from "lucide-react"
 
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 
@@ -420,7 +421,8 @@ export function PaneGrid({
       if ((event.target as HTMLElement).closest("button, a, input, select, textarea, [role='button']:not(.grid-pane-head)")) return
       event.preventDefault()
       const handle = event.currentTarget
-      handle.setPointerCapture(event.pointerId)
+      // A pointer the browser has already handed to scrolling cannot be captured.
+      try { handle.setPointerCapture(event.pointerId) } catch { /* the gesture stays a scroll */ }
       const start = { x: event.clientX, y: event.clientY }
       let active = false
       let target: Target | null = null
@@ -435,13 +437,14 @@ export function PaneGrid({
         if (target) target.invalid = exceeds(id, target)
         paint(target)
       }
-      const stop = () => {
+      const stop = (ended: Event) => {
         handle.removeEventListener("pointermove", move)
         for (const type of RELEASE) handle.removeEventListener(type, stop)
         pane.classList.remove("dragging")
         delete bodyRef.current?.dataset.dragging
         paint(null)
-        if (!active || !target || target.invalid) return
+        // A cancelled gesture, such as a touch that became a scroll, moves nothing.
+        if (ended.type === "pointercancel" || !active || !target || target.invalid) return
         const rows = plan(id, target)
         if (rows) state.current.update({ rows, sizes: state.current.layout.sizes })
       }
@@ -585,6 +588,8 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
           event.preventDefault()
         }}
       >
+        {/* On touch the header scrolls the page; the grip moves the pane. */}
+        <GripVertical className="icon grid-pane-grip" aria-hidden="true" />
         <h3 data-slot="grid-pane-title" className="grid-pane-title t-h3">{title}</h3>
         {placement.debug && <span className="grid-pane-meta">size={placement.size} · min={placement.min} · max={placement.max}</span>}
         {actions != null && <div data-slot="grid-pane-actions" className="grid-pane-actions">{actions}</div>}
