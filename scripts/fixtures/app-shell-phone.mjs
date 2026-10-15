@@ -1,7 +1,7 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { FilePlus, FileText, Pencil, UserRound } from 'lucide-react';
-import { ApplicationShell, BottomNav, BottomNavBadge, BottomNavLink, Button, Card, CardContent, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, FormField } from '../../packages/kiso-react/dist/index.js';
+import { ApplicationShell, BottomNav, BottomNavBadge, BottomNavLink, Button, Card, CardContent, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Form, FormActions, FormField } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 const root = document.documentElement;
@@ -24,6 +24,10 @@ function Fixture() {
       leading: h(Icon, { className: 'icon' }), trailing: count })) },
       ...(params.has('more') ? [{ label: 'Manage', destinations: ['Settings', 'Help'].map(label => ({ href: `#${label}`, label, leading: h(UserRound, { className: 'icon' }) })) }] : [])],
     footer: params.has('more') ? h('p', null, 'Signed in as Alex') : undefined },
+    params.has('form') ? h('div', { className: 'page' }, h('h1', null, 'Workspace'),
+      h(Card, { id: 'form-card' }, h(Form, { onSubmit: event => event.preventDefault() },
+        h('div', { className: 'form-body' }, ...Array.from({ length: 14 }, (_, i) => h(FormField, { key: i, label: `Field ${i + 1}`, defaultValue: 'Value' }))),
+        h(FormActions, { sticky: true }, h(Button, { type: 'button', variant: 'ghost' }, 'Discard'), h(Button, { type: 'submit' }, 'Save'))))) :
     h('div', { className: 'page' }, h('h1', null, 'Workspace'), h('output', { 'aria-label': 'Created' }, created), ...Array.from({ length: 40 }, (_, i) => h('p', { key: i }, `Line ${i + 1}`)),
       h('button', { className: 'btn', id: 'last' }, 'Last action')));
   return h(ApplicationShell, { layout: 'topbar', brand: h('strong', null, 'Product'),

@@ -65,7 +65,12 @@ that remains unchanged after editing.
 ## Placement and scrolling
 
 For page scrolling, put FormActions last inside Form and pass `sticky`.
-Its bottom offset defaults to zero. When the page has outer padding, set
+Its bottom offset defaults to zero. In a shell with a
+[BottomNav](bottom-nav.md), the offset below 700px is the bar's height plus
+the safe-area inset, so the actions stop above the bar and land in flow at
+the form's end. The shell sets it as `--shell-bottom-inset`. Actions in a
+`form-scroll` region keep a zero offset, because the region ends above the
+bar. When the page has outer padding, set
 `inset-block-end` to the same spacing token so the floating actions respect
 that inset. Cover the space below the floating bar with the page background,
 including the container border, so scrolling fields do not show through the
