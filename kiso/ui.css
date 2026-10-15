@@ -2940,7 +2940,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 [data-background-style="momoi-repeat"] {
   --canvas-mask: url("./assets/momoi-repeat.svg");
   --canvas-mask-color: var(--color-accent-400);
-  --canvas-size: calc(3 * var(--spacing-2xl)) calc(3 * var(--spacing-2xl));
+  --canvas-size: calc(18 * var(--spacing-2xl)) calc(18 * var(--spacing-2xl));
 }
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)),
 .app-shell[data-background-canvas] {
