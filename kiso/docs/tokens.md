@@ -497,12 +497,16 @@ opacity on the background layer only.
 `momoi-repeat` is a separate tiled option. Both use the SVG as an alpha mask
 painted with `--color-accent-400`, so the motif follows the selected accent.
 
-Patterned canvases use foreground color for secondary text so labels remain
-legible over the pattern. Solid keeps the existing theme typography.
+Patterned canvases use foreground color for secondary text on the bare canvas,
+so labels remain legible over the pattern. A surface with an opaque fill (card,
+header, table, dialog) keeps `muted-foreground` and `subtle-foreground`, so
+inactive tabs and breadcrumb ancestors still read as secondary there. Solid
+keeps the existing theme typography.
 
 Translucent paints cards at 65% opacity for every background. It clears the
 outer fill for inside/both placement and for the Momoi signature.
-Text stays opaque and secondary text uses the foreground color. Fields, code,
+Text stays opaque and secondary text uses the foreground color, including on
+translucent cards and the header. Fields, code,
 tables, and overlays retain solid backing. Forced colors suppress decorative
 backgrounds and retain native outlines.
 

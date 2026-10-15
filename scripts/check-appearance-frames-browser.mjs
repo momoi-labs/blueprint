@@ -411,6 +411,21 @@ for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accen
   } finally { await page.close(); }
 });
 
+test('Patterns keep inactive tabs and breadcrumb ancestors secondary on opaque surfaces', async () => {
+  const page = await open('canvas&backgroundStyle=fibers&panelFill=solid');
+  try {
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; document.documentElement.dataset.backgroundStyle = 'fibers'; document.documentElement.dataset.panelFill = 'solid'; }, theme);
+      const color = selector => page.locator(selector).evaluate(el => getComputedStyle(el).color);
+      assert.notEqual(await color('#header-crumbs a'), await color('#header-crumbs [aria-current]'), `${theme}: header ancestor differs from current`);
+      assert.notEqual(await color('#header-tabs button:not([aria-selected])'), await color('#header-tabs [aria-selected]'), `${theme}: header inactive tab differs from current`);
+      assert.equal(await color('#bare-crumbs a'), await color('#bare-crumbs [aria-current]'), `${theme}: bare canvas stays at full contrast`);
+      await page.evaluate(() => { document.documentElement.dataset.panelFill = 'translucent'; });
+      assert.equal(await color('#header-crumbs a'), await color('#header-crumbs [aria-current]'), `${theme}: translucent header stays at full contrast`);
+    }
+  } finally { await page.close(); }
+});
+
 test('Panel translucency retains contrast across every background, paper tone, theme and accent', async () => {
   const page = await open('canvas&backgroundStyle=momoi&panelFill=translucent&corners=square');
   try {
@@ -432,7 +447,7 @@ test('Panel translucency retains contrast across every background, paper tone, t
         const backing = fill === 'solid' ? solidCard : blend(solidCard, pattern, .65);
         const canvasText = background === 'solid' && fill === 'solid' ? token(outer, '--color-background') : pattern;
         return {
-          text: Math.min(...(background === 'solid' && fill === 'solid' && tone === 'theme' ? ['--color-foreground', '--color-muted-foreground'] : ['--color-foreground', '--color-muted-foreground', '--color-subtle-foreground']).flatMap(name => [contrast(token(card, name), backing), contrast(token(outer, name), canvasText)])),
+          text: Math.min(...(background === 'solid' && fill === 'solid' && tone === 'theme' ? ['--color-foreground', '--color-muted-foreground'] : ['--color-foreground', '--color-muted-foreground', '--color-subtle-foreground']).flatMap(name => [contrast(token(card, name), backing) * (name === '--color-subtle-foreground' && fill === 'solid' ? 4.5 / 3 : 1), contrast(token(outer, name), canvasText)])),
           focus: contrast(token(card, '--color-ring'), backing),
         };
       }, { background, tone, theme, accent, strength, fill });

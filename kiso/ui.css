@@ -3232,10 +3232,21 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge, .cluster, .alert, .chip, .filter-group, .skeleton, .tooltip, .chart-inspection, .toast, [data-slot="popover-content"], .segmented, .radio-group, .theme-buttons, .theme-card, .theme-card-preview, .accent-preview)::after { content: none; }
 }
 
-/* Patterns can pass behind page labels. Keep secondary text fully legible. */
+/* Patterns can pass behind page labels. Raise secondary text to full contrast
+   on the bare canvas. A surface with an opaque fill keeps the muted hierarchy,
+   so inactive tabs and breadcrumb ancestors still read as secondary. Translucent
+   panels let the pattern through, so they stay at full contrast. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) {
+  --surface-muted-foreground: var(--color-muted-foreground);
+  --surface-subtle-foreground: var(--color-subtle-foreground);
+}
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --color-muted-foreground: var(--color-foreground);
   --color-subtle-foreground: var(--color-foreground);
+}
+:where([data-background-style]:not([data-background-style="solid"]):not([data-panel-fill="translucent"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) :is(.card, .table-wrap, .dialog, .marked, .topbar:not([data-variant="plain"])) {
+  --color-muted-foreground: var(--surface-muted-foreground, var(--color-muted-foreground));
+  --color-subtle-foreground: var(--surface-subtle-foreground, var(--color-subtle-foreground));
 }
 
 /* The scroller fills the frame. Clip its paint at the stepped corners instead
