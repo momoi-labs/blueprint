@@ -1,6 +1,5 @@
-import { useId, type ReactNode } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 import { AccentSelector, Button, DetailSelect, Disclosure, ThemeSelector, type ChartStyle } from "@momoi-labs/kiso-react";
-import { useNarrow } from "../../../kiso/blocks/react-prototype/src/use-narrow";
 import { chartStyleOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 import { randomAppearance } from "./appearance-settings";
@@ -131,20 +130,23 @@ function OuterFramePreview({ outer }: { outer: AppearanceSettings["appShellOuter
   </svg>;
 }
 
-// On a phone the sections are disclosures, so the drawer is a short list.
-function AppearanceSection({ title, open, children }: { title: string; open?: boolean; children: ReactNode }) {
+// Rarely changed sections start closed, so a long tab stays easy to scan.
+function AppearanceSection({ title, collapsed = false, children }: { title: string; collapsed?: boolean; children: ReactNode }) {
   const id = useId();
-  const narrow = useNarrow();
   return <section className="appearance-section" aria-labelledby={id}>
-    {narrow ? <Disclosure summary={<span id={id} className="t-caps">{title}</span>} open={open || undefined}>{children}</Disclosure>
-      : <h3 id={id} className="t-caps">{title}</h3>}
-    {!narrow && children}
+    {collapsed ? <Disclosure summary={<span id={id} className="t-caps">{title}</span>}>{children}</Disclosure>
+      : <><h3 id={id} className="t-caps">{title}</h3>{children}</>}
   </section>;
 }
 
-export function AppearanceControls({ settings, onChange }: {
+export type AppearanceSectionId = "colors" | "presets" | "layout" | "charts" | "main" | "scope" | "background" | "phone";
+
+// Renders the named sections in the given order.
+export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [] }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  sections: readonly AppearanceSectionId[];
+  collapsed?: readonly AppearanceSectionId[];
 }) {
   const borderName = useId();
   const cornerName = useId();
@@ -174,14 +176,14 @@ export function AppearanceControls({ settings, onChange }: {
     ["solid", "Solid"], ["dots", "Dot grid"], ["grid", "Fine grid"], ["crosses", "Cross grid"],
     ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"],
   ] as const;
-  return <>
-  <AppearanceSection title="Colors" open>
+  const sections: Record<AppearanceSectionId, ReactNode> = {
+  colors: <AppearanceSection title="Colors">
     <div className="appearance-colors">
       <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
     </div>
-  </AppearanceSection>
-  <AppearanceSection title="Presets">
+  </AppearanceSection>,
+  presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
     <p className="muted t-label">Pixel everywhere is the starting appearance. Default restores the previous look. Both follow your system theme; other presets keep your theme.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
@@ -206,8 +208,8 @@ export function AppearanceControls({ settings, onChange }: {
         <span>Random</span>
       </Button>
     </div>
-  </AppearanceSection>
-  <AppearanceSection title="Layout">
+  </AppearanceSection>,
+  layout: <AppearanceSection title="Layout" collapsed={collapsed.includes("layout")}>
 
     <fieldset className="appearance-choices">
       <legend className="t-label">Visual style</legend>
@@ -268,12 +270,12 @@ export function AppearanceControls({ settings, onChange }: {
         </label>)}
       </div>
     </fieldset>
-  </AppearanceSection>
-  <AppearanceSection title="Charts">
+  </AppearanceSection>,
+  charts: <AppearanceSection title="Charts" collapsed={collapsed.includes("charts")}>
     <DetailSelect label="Chart style" value={settings.chartStyle} options={chartStyleOptions}
       onValueChange={chartStyle => onChange({ chartStyle: chartStyle as ChartStyle })} />
-  </AppearanceSection>
-  <AppearanceSection title="Main style">
+  </AppearanceSection>,
+  main: <AppearanceSection title="Main style" collapsed={collapsed.includes("main")}>
     <p className="muted t-label">Panels and controls use this style. The outer frame follows it unless customized below.</p>
     <fieldset className="appearance-choices">
       <legend className="t-label">Border style</legend>
@@ -322,8 +324,8 @@ export function AppearanceControls({ settings, onChange }: {
     <p className="muted t-label">Curved brackets do not pair with Pixel, Manga or Brush. Brush also excludes outer brackets. Unavailable choices remain saved.</p>
     <ChoiceSelector options={markSizes} label="Mark size" value={settings.markSize} onChange={markSize => onChange({ markSize })} disabled={settings.cornerMarks === "none" && outerMark === "none"}
       preview={markSize => <PanelPreview marks={settings.cornerMarks === "none" ? outerMark === "none" ? "ticks" : outerMark : settings.cornerMarks} markSize={markSize} />} />
-  </AppearanceSection>
-  <AppearanceSection title="Where to apply">
+  </AppearanceSection>,
+  scope: <AppearanceSection title="Where to apply" collapsed={collapsed.includes("scope")}>
     <VisualSelector label="Apply frames to" value={settings.frameScope} onChange={frameScope => onChange({ frameScope })} layout="scope" preview={scope => <ScopePreview scope={scope} />}
       options={[["outer", "Outer only"], ["panels", "With panels"], ["all", "With controls"]]} />
     <VisualSelector label="Apply marks to" value={settings.markScope} onChange={markScope => onChange({ markScope })} layout="scope" preview={scope => <ScopePreview scope={scope} marks />}
@@ -349,8 +351,8 @@ export function AppearanceControls({ settings, onChange }: {
       </div>
     </details>
     <p className="muted t-label">The outer frame uses the Inset layout. Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
-  </AppearanceSection>
-  <AppearanceSection title="Background">
+  </AppearanceSection>,
+  background: <AppearanceSection title="Background" collapsed={collapsed.includes("background")}>
     <fieldset className="appearance-choices">
       <legend className="t-label">Canvas background</legend>
       <div className="appearance-options">
@@ -372,8 +374,8 @@ export function AppearanceControls({ settings, onChange }: {
     <VisualSelector label="Panel fill" options={[["solid", "Solid"], ["translucent", "Translucent"]]} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} layout="wide"
       preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill} tone={settings.paperTone} />} />
     <p className="muted t-label">Translucency affects panel fills. Text, fields and data samples stay opaque.</p>
-  </AppearanceSection>
-  <AppearanceSection title="Phone">
+  </AppearanceSection>,
+  phone: <AppearanceSection title="Phone" collapsed={collapsed.includes("phone")}>
     <p className="muted t-label">These replace the main choices below 700px wide. Same as desktop keeps them. Layouts &gt; Phone shows the result.</p>
     <VisualSelector label="Phone background" value={settings.phoneBackgroundStyle} onChange={phoneBackgroundStyle => onChange({ phoneBackgroundStyle })}
       preview={background => <BackgroundPreview background={background === "inherit" ? settings.backgroundStyle : background} tone={settings.paperTone} />}
@@ -391,6 +393,7 @@ export function AppearanceControls({ settings, onChange }: {
     <VisualSelector label="Phone panel fill" value={settings.phonePanelFill} onChange={phonePanelFill => onChange({ phonePanelFill })} layout="wide"
       preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill === "inherit" ? settings.panelFill : fill} tone={settings.paperTone} />}
       options={[["inherit", "Same as desktop"], ["solid", "Solid"], ["translucent", "Translucent"]]} />
-  </AppearanceSection>
-  </>;
+  </AppearanceSection>,
+  };
+  return <>{shown.map(id => <Fragment key={id}>{sections[id]}</Fragment>)}</>;
 }

@@ -139,3 +139,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-section:has(> .disclosure) { padding-block: 0; }
 .appearance-section > .disclosure > summary { color: var(--color-muted-foreground); }
 .appearance-section > .disclosure > .disclosure-content { display: grid; gap: var(--spacing-md); }
+
+/* Tabs group the settings. The strip stays in view while a tab scrolls. */
+.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: var(--color-sidebar); }
+.appearance-tabs [role="tabpanel"] > :is(.appearance-section, .appearance-usage):first-child { border-top: 0; }

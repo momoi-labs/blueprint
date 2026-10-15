@@ -29,11 +29,14 @@ modal Drawer with Escape dismissal and focus return. The old `/#appearance`
 bookmark opens settings on Intro.
 
 The panel uses the navigation sidebar background in Default and Inset frames.
-Reset appearance stays at the top while the options scroll. Colors, Layout,
-Borders, Corner style, and Corner marks remain open, separated by lines.
+Reset appearance and Share stay at the top while the options scroll. The
+settings sit in five tabs: Look (colors and presets), Canvas (background and
+charts), Frame (main style, where to apply, and layout), Phone, and Code (Use
+in code). In Frame, Where to apply and Layout start closed. Below 1024px the
+tabs become sections, one open at a time.
 Compact choices keep visual samples, labels, and keyboard controls.
-Table, Alert, ApplicationShell, and inline field demos append their own controls
-and open the panel on arrival. Closing it retains the current demo values.
+Table, Alert, ApplicationShell, and inline field demos add their own controls
+above the tabs and open the panel on arrival. Closing it retains the current demo values.
 Changing pages replaces the component controls and keeps global preferences.
 The catalog overview and standalone prototype keep controls beside each demo.
 

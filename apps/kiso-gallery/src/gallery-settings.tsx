@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Settings } from "lucide-react";
-import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@momoi-labs/kiso-react";
+import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import { DemoSettingsContext, type DemoChoiceProps } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
-import { AppearanceControls, VisualSelector } from "./appearance";
+import { AppearanceControls, VisualSelector, type AppearanceSectionId } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 import { AppearanceShare } from "./appearance-share-ui";
 import { AppearanceUsage } from "./appearance-usage";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
+
+// Each tab is short. Frame puts the most used section first. Below 1024px the
+// tabs become sections, one open at a time, so five labels never need to fit
+// a phone.
+const appearanceTabs: { value: string; label: string; sections?: AppearanceSectionId[] }[] = [
+  { value: "look", label: "Look", sections: ["colors", "presets"] },
+  { value: "canvas", label: "Canvas", sections: ["background", "charts"] },
+  { value: "frame", label: "Frame", sections: ["main", "scope", "layout"] },
+  { value: "phone", label: "Phone", sections: ["phone"] },
+  { value: "code", label: "Code" },
+];
 
 export function GallerySettings({ children, route, settings, onChange, onReset }: {
   children: (panel: ReactNode, toggle: ReactNode) => ReactNode;
@@ -20,6 +31,23 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1200px)").matches);
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const [message, setMessage] = useState("");
+  const [tab, setTab] = useState("look");
+  const scroll = useRef<HTMLDivElement>(null);
+  // A new tab starts at its top. The strip is sticky, so scroll back to it
+  // only when it has scrolled away; a phone section header stays in view.
+  function selectTab(value: string) {
+    setTab(value);
+    requestAnimationFrame(() => {
+      const region = scroll.current;
+      const tabs = region?.querySelector(".appearance-tabs");
+      const list = tabs?.querySelector<HTMLElement>(":scope > [role=tablist]");
+      if (!region || !tabs || !list) return;
+      if (list.offsetParent) {
+        const top = tabs.getBoundingClientRect().top - region.getBoundingClientRect().top + region.scrollTop;
+        region.scrollTop = Math.min(region.scrollTop, top);
+      } else tabs.querySelector(".tabs-section[aria-expanded=true]")?.scrollIntoView({ block: "nearest" });
+    });
+  }
   const trigger = useRef<HTMLButtonElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const manualOpen = useRef(false);
@@ -99,10 +127,17 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       </div>
       <p role="status" className="muted t-label">{message}</p>
     </div>
-    <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0}>
-      <AppearanceControls settings={settings} onChange={onChange} />
+    <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0} ref={scroll}>
       <div ref={setTarget} className="gallery-component-settings" />
-      <AppearanceUsage settings={settings} />
+      <Tabs sections className="appearance-tabs" value={tab} onValueChange={selectTab}>
+        <TabsList aria-label="Appearance groups">
+          {appearanceTabs.map(item => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}
+        </TabsList>
+        {appearanceTabs.map(item => <TabsContent key={item.value} value={item.value} forceMount hidden={tab !== item.value}>
+          {item.sections ? <AppearanceControls settings={settings} onChange={onChange} sections={item.sections} collapsed={["scope", "layout"]} />
+            : <AppearanceUsage settings={settings} />}
+        </TabsContent>)}
+      </Tabs>
     </div>
   </>;
   const toggle = <AppShellPanelToggle ref={trigger} placement="header"

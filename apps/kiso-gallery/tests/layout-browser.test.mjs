@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { before, after } from "node:test";
 import { test } from "./shard.mjs";
+import { field, tab } from "./settings-tabs.mjs";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 
@@ -201,14 +202,14 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
     assert.equal(await panel.locator("details:not([open])").count(), 1, "Only outer overrides are collapsed");
     if (width === 320) {
-      for (const button of await panel.getByRole("group", { name: "Accent", exact: true }).getByRole("button").all()) {
+      for (const button of await (await field(panel, "Accent")).getByRole("button").all()) {
         assert((await button.boundingBox()).height >= 44, "Compact accent options retain their touch targets");
       }
     }
     for (const style of ["Default", "Editorial"]) {
-      await panel.getByRole("group", { name: "Visual style", exact: true }).getByRole("radio", { name: style, exact: true }).check();
+      await (await field(panel, "Visual style")).getByRole("radio", { name: style, exact: true }).check();
       for (const groupName of ["Border style", "Corner type", "Corner size", "Corner marks", "Mark size"]) {
-        const group = panel.getByRole("group", { name: groupName, exact: true });
+        const group = await field(panel, groupName);
         const choices = await group.getByRole("radio").all();
         assert(choices.length > 0, `${groupName} must expose its choices`);
         for (const radio of choices) {
@@ -221,6 +222,7 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
       }
       const region = panel.getByRole("region", { name: "Settings options" });
       assert(await region.evaluate(el => el.scrollWidth <= el.clientWidth + 1), "Settings never need sideways scrolling");
+      await tab(panel, "Code");
       for (const code of await panel.locator("pre > code").all()) {
         await code.scrollIntoViewIfNeeded();
         assert(await code.evaluate(el => el.scrollWidth <= el.clientWidth + 1), "Code wraps within its panel");
