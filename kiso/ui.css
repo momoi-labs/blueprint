@@ -2884,7 +2884,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --canvas-mask: url("./assets/momoi-symbol.svg");
   --canvas-mask-color: var(--color-accent-400);
   --canvas-size: min(calc(5 * var(--spacing-2xl)), calc(100% - 2 * var(--spacing-lg))) auto;
-  --canvas-position: right var(--spacing-lg) bottom var(--spacing-lg);
+  /* A signature in the corner, a few pixels in from both edges. */
+  --canvas-position: right var(--spacing-sm) bottom var(--spacing-sm);
   --canvas-repeat: no-repeat;
 }
 [data-background-style="momoi-repeat"] {
@@ -3293,6 +3294,11 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 :where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before {
   margin: var(--canvas-frame-inset, 0px);
+}
+/* The layer spans the frame margin too; the signature still sits in the
+   frame's own corner rather than on its border. */
+:where([data-background-style="momoi"]:not([data-background-placement="inside"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before {
+  mask-position: right calc(var(--canvas-frame-inset, 0px) + var(--spacing-sm)) bottom calc(var(--canvas-frame-inset, 0px) + var(--spacing-sm));
 }
 :where([data-background-placement="outside"]:not([data-background-style="momoi"][data-panel-fill="translucent"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: var(--color-background);

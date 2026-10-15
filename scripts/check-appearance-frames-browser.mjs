@@ -353,7 +353,7 @@ for (const theme of ['light', 'dark']) test(`Canvas watermark, scope boundaries 
       });
       const symbol = width < 700 ? '64px' : '160px';
       assert(geometry.size.includes(symbol), `The symbol has a ${symbol} preferred width`);
-      assert(geometry.position.includes('16px'), 'Both edge insets are 16px');
+      assert(geometry.position.includes('8px'), 'Both edge insets are 8px');
       assert.equal(geometry.margin, width < 700 ? 0 : 16, 'The signature uses the same frame margin as other patterns');
       const watermarkFrame = await page.locator('#outer').boundingBox();
       await page.evaluate(() => document.documentElement.dataset.backgroundStyle = 'momoi-repeat');
@@ -403,7 +403,8 @@ for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accen
       assert.equal(paint.image, 'none');
       assert(paint.mask.includes('svg'));
       assert.equal(paint.repeat, background === 'momoi' ? 'no-repeat' : 'repeat');
-      if (background === 'momoi') assert(paint.position.includes('16px'));
+      // In the corner of the frame: its margin plus the 8px inset.
+      if (background === 'momoi') assert(/\b(8|24)px/.test(paint.position), paint.position);
     }
     await page.evaluate(() => document.documentElement.dataset.backgroundStyle = 'solid');
     assert.equal(await page.locator('#canvas').evaluate(el => getComputedStyle(el, '::before').maskImage), 'none');

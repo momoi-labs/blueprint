@@ -489,7 +489,8 @@ controls under Main style. Outer frame overrides live in a collapsed
 Customize outer frame disclosure and share the size settings.
 
 Momoi uses the symbol without its badge, at a preferred width of 160px and
-16px from the canvas's right and bottom edges. It scales down when the canvas
+8px in from the right and bottom edges of the frame, not of the margin around
+it. It scales down when the canvas
 cannot fit it. Below 700px wide its preferred width is 64px. It uses the same frame margin as other patterns, so changing to
 the watermark does not shrink the frame. Quiet and Visible use 14% and 22%
 opacity on the background layer only.
