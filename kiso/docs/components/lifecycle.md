@@ -43,7 +43,9 @@ Buttons are `size="sm"`; the clusters are `--size-control-sm` tall. At 720px
 and below the status stays in the row and wraps its badges, and the verbs and
 the destructive action move into a bottom sheet behind a "More actions"
 button. `actionsLabel` names the sheet; it defaults to "Actions". Picking an
-enabled action closes the sheet, so a confirmation it opens takes the screen.
+enabled action closes the sheet. An action that renders its own confirmation
+dialog keeps the sheet open under that dialog, so the dialog is not unmounted
+with it.
 
 ## Accessibility
 

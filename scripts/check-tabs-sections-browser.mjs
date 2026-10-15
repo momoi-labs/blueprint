@@ -43,6 +43,13 @@ try {
   await section('Configuration').click();
   assert(await page.getByRole('textbox', { name: 'Name' }).isVisible());
 
+  // A section closed earlier opens again when it is picked again.
+  await section('Configuration').click();
+  await section('Summary').click();
+  await section('Configuration').click();
+  assert.equal(await section('Configuration').getAttribute('aria-expanded'), 'true', 'a stale collapse does not hide every panel');
+  await page.getByRole('textbox', { name: 'Name' }).fill('kept');
+
   // Turning the phone sideways past the breakpoint keeps the panel and what it holds.
   await section('Configuration').click();
   await page.setViewportSize({ width: 1280, height: 800 });

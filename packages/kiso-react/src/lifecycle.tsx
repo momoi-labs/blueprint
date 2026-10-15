@@ -20,10 +20,11 @@ export type LifecycleProps = Omit<React.ComponentProps<"div">, "children"> & {
    dropped rather than rendered as an empty bordered box.
 
    On a phone the verbs and the destructive action do not fit beside the
-   status, so they move to a sheet behind one button. A verb that opens a
-   dialog of its own closes the sheet first, so the dialog takes the screen. */
+   status, so they move to a sheet behind one button. Picking one closes the
+   sheet, unless it opened a dialog of its own, which then sits over it. */
 export function Lifecycle({ status, actions, destructive, actionsLabel = "Actions", className, ...props }: LifecycleProps) {
   const [open, setOpen] = React.useState(false)
+  const sheet = React.useRef<HTMLDivElement>(null)
   return <div {...props} data-slot="lifecycle" className={cn("lifecycle", className)}>
     <div className="cluster cluster-status" role="group" aria-label="Status">{status}</div>
     {actions ? <div className="cluster cluster-verbs" role="group" aria-label="Actions">{actions}</div> : null}
@@ -35,13 +36,20 @@ export function Lifecycle({ status, actions, destructive, actionsLabel = "Action
             <Ellipsis className="icon" aria-hidden="true" />
           </Button>
         </DrawerTrigger>
-        <DrawerContent placement="bottom">
+        <DrawerContent ref={sheet} placement="bottom">
           <DrawerHeader><DrawerTitle>{actionsLabel}</DrawerTitle></DrawerHeader>
           <DrawerBody>
             <div
               className="lifecycle-sheet"
               onClick={(event) => {
-                if ((event.target as Element).closest("button:not(:disabled), a[href]")) setOpen(false)
+                if (!(event.target as Element).closest("button:not(:disabled), a[href]")) return
+                // An action that owns its confirmation renders it inside the
+                // sheet; closing the sheet would unmount both. Its dialog
+                // opens over the sheet instead.
+                requestAnimationFrame(() => {
+                  const dialogs = document.querySelectorAll("[role='dialog'][data-state='open'], [role='alertdialog'][data-state='open']")
+                  if (![...dialogs].some((dialog) => dialog !== sheet.current)) setOpen(false)
+                })
               }}
             >
               {actions}

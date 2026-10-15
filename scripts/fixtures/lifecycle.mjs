@@ -3,7 +3,17 @@ import { createRoot } from 'react-dom/client';
 import { Lifecycle } from '../../packages/kiso-react/dist/lifecycle.js';
 import { Button } from '../../packages/kiso-react/dist/button.js';
 import { StatusBadge } from '../../packages/kiso-react/dist/status-badge.js';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../../packages/kiso-react/dist/alert-dialog.js';
 import '../../packages/kiso-react/dist/styles.css';
+
+// A destructive action that owns its confirmation, as products often write it.
+function OwnConfirm({ onConfirm }) {
+  return h(AlertDialog, null,
+    h(AlertDialogTrigger, { asChild: true }, h(Button, { size: 'sm', variant: 'ghost', className: 'btn-danger-ghost' }, 'Remove')),
+    h(AlertDialogContent, null,
+      h(AlertDialogHeader, null, h(AlertDialogTitle, null, 'Remove it?')),
+      h(AlertDialogFooter, null, h(AlertDialogCancel, null, 'Cancel'), h(AlertDialogAction, { onClick: onConfirm }, 'Confirm remove'))));
+}
 
 function Fixture() {
   const [actions, setActions] = useState([]);
@@ -16,7 +26,9 @@ function Fixture() {
     h(Lifecycle, {
       status: h(StatusBadge, { tone: 'success' }, 'Running'),
       actions: [action('Start', true), action('Stop'), action('Restart')],
-      destructive: h(Button, { size: 'sm', variant: 'ghost', className: 'btn-danger-ghost' }, 'Remove'),
+      destructive: new URLSearchParams(location.search).has('confirm')
+        ? h(OwnConfirm, { onConfirm: () => setActions(current => [...current, 'Removed']) })
+        : h(Button, { size: 'sm', variant: 'ghost', className: 'btn-danger-ghost' }, 'Remove'),
     }),
     h('output', { 'aria-label': 'Actions triggered' }, actions.join(', ')),
   );
