@@ -11,7 +11,10 @@ after(async () => { await browser?.close(); await server.close(); });
 async function open(query = '', options = {}) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 }, ...options });
   page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
-  await page.goto(`${url}?${query}`); await page.getByRole('spinbutton', { name: 'RAM', exact: true }).waitFor();
+  // The first load compiles the fixture through vite, which is slow when other checks run alongside.
+  await page.goto(`${url}?${query}`, { timeout: 30000 }); await page.getByRole('spinbutton', { name: 'RAM', exact: true }).waitFor({ timeout: 30000 });
+  // Field borders transition on focus; a screenshot taken mid-transition shows a blended ring colour.
+  await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; }' });
   return page;
 }
 for (const theme of ['light', 'dark']) for (const [size, height] of [['sm', 32], ['md', 36], ['lg', 40], ['xl', 56]]) test(`Inline frame sizing and descriptions for ${size}/${theme}`, async () => {
