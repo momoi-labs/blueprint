@@ -566,6 +566,29 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
   } finally { await page.close(); }
 });
 
+for (const theme of ['light', 'dark']) test(`Switching the application frame keeps the canvas paper in ${theme}`, async () => {
+  const page = await open('intro', 1440, theme);
+  try {
+    const panel = await settings(page);
+    const frames = panel.getByRole('group', { name: 'Application frame', exact: true });
+    // The paper under the pattern is the inset shell's ::after layer, else the shell or page background.
+    const paper = () => page.evaluate(() => {
+      const shell = document.querySelector('.app-shell'), layer = getComputedStyle(shell, '::after');
+      const clear = color => color === 'rgba(0, 0, 0, 0)';
+      if (layer.content !== 'none' && !clear(layer.backgroundColor)) return layer.backgroundColor;
+      const own = getComputedStyle(shell).backgroundColor;
+      return clear(own) ? getComputedStyle(document.body).backgroundColor : own;
+    });
+    for (const preset of ['Manga board', 'Blueprint', 'Pixel everywhere']) {
+      await panel.getByRole('button', { name: preset, exact: true }).click();
+      await frames.getByRole('radio', { name: 'Default', exact: true }).check();
+      const expected = await paper();
+      await frames.getByRole('radio', { name: 'Inset', exact: true }).check();
+      assert.equal(await paper(), expected, `${preset}: an inset frame keeps the paper of the default frame`);
+    }
+  } finally { await page.close(); }
+});
+
 test('Legacy selections remain explicit until replaced, and incompatible choices retain state', async () => {
   const page = await open('components/card');
   try {
