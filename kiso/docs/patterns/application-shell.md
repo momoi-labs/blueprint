@@ -20,6 +20,7 @@ actions, or collection behavior.
 | Top chrome | [Header](../components/header.md) | Brand/home [Link](../components/link.md), optional primary [Navigation](../components/navigation.md), global [IconButton](../components/icon-button.md) / [DropdownMenu](../components/dropdown-menu.md) |
 | Side chrome | [Sidebar](../components/sidebar.md) | Persistent product destinations via Navigation Links; optional collapse [IconButton](../components/icon-button.md) |
 | Main | page content | Routed page patterns; starts with [PageHeader](../components/page-header.md) unless the page pattern specifies otherwise |
+| Phone chrome | [BottomNav](../components/bottom-nav.md) | Optional: the same primary destinations in a bar at the bottom edge below 700px |
 | Global jump | [CommandPalette](../components/command-palette.md) | Optional app-wide search/actions; triggered from Header or keyboard — not a Sidebar substitute |
 
 Do not place page-scoped create/edit Buttons in Header. Those belong in
@@ -41,7 +42,9 @@ destinations. Focus rings use `--color-focus`.
    mounted unless the destination leaves the authenticated app (for example
    sign-out → [login/authentication](login-authentication.md)).
 5. Narrow viewports: Sidebar collapses per its component contract; Header keeps
-   brand/home and essential global actions.
+   brand/home and essential global actions. A product with three to five
+   primary destinations can move them to BottomNav on phones instead. An
+   inset frame meets the screen edges below 700px.
 
 ## States
 

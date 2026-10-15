@@ -1,5 +1,5 @@
 import { usePaneLayout } from "./use-pane-layout";
-import { ChevronDown, PanelLeft, Plus, SquareArrowOutUpRight } from "lucide-react";
+import { ChevronDown, FileText, PanelLeft, Pencil, Plus, SquareArrowOutUpRight, UserRound } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
@@ -108,6 +108,9 @@ import {
   LogViewLevel,
   LogViewLine,
   LogViewTime,
+  BottomNav,
+  BottomNavBadge,
+  BottomNavLink,
   Navigation,
   NavigationGroup,
   NavigationItem,
@@ -283,6 +286,7 @@ const catalog = [
     "Navigation",
     "Semantic links and active destinations.",
   ],
+  ["bottom-nav", "BottomNav", "Navigation", "Main destinations in a bar at the bottom of a phone."],
   ["breadcrumb", "Breadcrumb", "Navigation", "Location within the console."],
   ["link", "Link", "Navigation", "Navigation using a real anchor."],
   ["tabs", "Tabs", "Navigation", "Related panels with arrow-key navigation."],
@@ -426,6 +430,8 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<ApplicationShell\n  collapsible\n  brand={brand}\n  navigation={groups}\n  collapsed={collapsed}\n  onCollapsedChange={setCollapsed}\n>\n  {page}\n</ApplicationShell>',
   navigation:
     '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#components/app-shell" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
+  "bottom-nav":
+    '<ApplicationShell\n  layout="topbar"\n  brand={brand}\n  header={tabs}\n  bottomNav={\n    <BottomNav aria-label="Primary">\n      <BottomNavLink href="/new" active><Plus className="icon" aria-hidden="true" /><span>New</span></BottomNavLink>\n      <BottomNavLink href="/drafts"><Pencil className="icon" aria-hidden="true" /><span>Drafts</span><BottomNavBadge>3</BottomNavBadge></BottomNavLink>\n    </BottomNav>\n  }\n>\n  {page}\n</ApplicationShell>',
   breadcrumb:
     '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Workspace</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>Website refresh</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
   link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
@@ -1507,6 +1513,20 @@ const Demo = memo(function Demo({
             ))}
           </NavigationList>
         </Navigation>
+      );
+    case "bottom-nav":
+      return (
+        <div className="gallery-bottom-nav-preview">
+          <BottomNav aria-label="Example phone navigation">
+            {([["New", Plus], ["Drafts", Pencil, "3"], ["Ready", FileText], ["Account", UserRound]] as const).map(([label, Icon, count], i) => (
+              <BottomNavLink key={label} href="#components/bottom-nav" active={i === 0}>
+                <Icon className="icon" aria-hidden="true" />
+                <span>{label}</span>
+                {count && <BottomNavBadge>{count}</BottomNavBadge>}
+              </BottomNavLink>
+            ))}
+          </BottomNav>
+        </div>
       );
     case "breadcrumb":
       return (

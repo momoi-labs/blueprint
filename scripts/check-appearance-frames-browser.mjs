@@ -351,9 +351,10 @@ for (const theme of ['light', 'dark']) test(`Canvas watermark, scope boundaries 
         const css = getComputedStyle(canvas, '::before'); const rect = outer.getBoundingClientRect();
         return { size: css.backgroundSize, position: css.backgroundPosition, margin: parseFloat(getComputedStyle(outer).marginRight), width: rect.width, overflow: document.documentElement.scrollWidth > innerWidth };
       });
-      assert(geometry.size.includes('160px'), 'The symbol has a 160px preferred width');
+      const symbol = width < 700 ? '64px' : '160px';
+      assert(geometry.size.includes(symbol), `The symbol has a ${symbol} preferred width`);
       assert(geometry.position.includes('16px'), 'Both edge insets are 16px');
-      assert.equal(geometry.margin, 16, 'The signature uses the same frame margin as other patterns');
+      assert.equal(geometry.margin, width < 700 ? 0 : 16, 'The signature uses the same frame margin as other patterns');
       const watermarkFrame = await page.locator('#outer').boundingBox();
       await page.evaluate(() => document.documentElement.dataset.backgroundStyle = 'momoi-repeat');
       assert.deepEqual(await page.locator('#outer').boundingBox(), watermarkFrame, 'Switching between a watermark and repeating symbols does not resize the frame');

@@ -16,6 +16,7 @@ export interface AppearanceSettings {
   markSize: MarkSize;
   visualStyle: "default" | "editorial";
   appShell: "default" | "inset";
+  appShellOuter: "auto" | "full" | "compact" | "none";
   outerBorderStyle: "inherit" | BorderStyle;
   outerCornerStyle: "inherit" | CornerStyle;
   outerCornerMarks: "inherit" | CornerMarks;

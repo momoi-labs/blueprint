@@ -202,6 +202,25 @@ overrides it for one shell. Without either setting, the default stays
 edge-to-edge. The gallery saves this choice under Appearance > Layout > Application
 frame.
 
+### Outer frame
+
+`data-app-shell-outer` on `html` sets the space around an inset frame. It has
+no effect on the default variant.
+
+| Value | Result |
+| --- | --- |
+| `auto` (or omitted) | `full` from 700px wide, `none` below 700px. |
+| `full` | The full frame at every width: `--spacing-lg` around it, its border and its corners. |
+| `compact` | `--spacing-sm` around the frame, at half the corner size. |
+| `none` | No outer space, border, corners or corner marks. The main area meets the screen edges, as in the default variant. |
+
+The 700px breakpoint is a fixed media query. CSS custom properties cannot drive
+media queries, so set the attribute to choose another behavior. With a
+background style, `full` keeps its usual extra `--spacing-lg` canvas margin,
+`compact` replaces both with one `--spacing-sm`, and `none` removes both.
+Panels inside the main area keep their own frames in every mode. The gallery
+saves this choice under Appearance > Layout > Outer frame.
+
 An embedded preview can mark its content wrapper with
 `data-slot="app-shell-main"` to receive the frame without nesting main landmarks.
 
@@ -256,11 +275,41 @@ resizing back to desktop restores the collapse state.
 the 1023px media query to collapse a sidebar track.
 
 The inset variant reserves `--spacing-lg` around the shell within its viewport
-height. On desktop, a top-level inset shell keeps its frame, header, and sidebar
+height, or the space its [outer frame](#outer-frame) setting chooses. On desktop, a top-level inset shell keeps its frame, header, and sidebar
 in place while its page container scrolls. Wrap page content in one container,
 such as `.page`, beside the optional Header. This keeps the top border and
 corner marks visible during scrolling. Embedded shells keep their natural
 height. On narrow screens the document scrolls as in the default variant.
+Below 700px the frame is removed unless `data-app-shell-outer` keeps it.
+
+### Phone navigation
+
+Below 1024px ApplicationShell's sidebar layout opens its navigation in a
+Drawer, as described under Sizes. `phoneNavigation="bottom"` puts the same
+destinations in a [BottomNav](bottom-nav.md) below 700px instead: each
+destination's `leading` content is its icon, and a string or number in
+`trailing` is its badge. The Header shows the brand, and the menu button
+is hidden. Between 700px and 1023px the Drawer stays. The
+default, `phoneNavigation="drawer"`, uses the Drawer at every width below
+1024px. Keep the bar to five destinations or fewer.
+
+`layout="topbar"` has no navigation groups. Pass a BottomNav to its
+`bottomNav` slot. When AppShell is laid out by hand, place the BottomNav as a
+direct child of AppShell after AppShellMain. In both cases the shell reserves
+bottom space for the bar, and above 700px the bar does not render, so keep
+the same destinations in the Header.
+
+### Breakpoints
+
+| Width | What changes |
+| --- | --- |
+| 1023px and below | The sidebar becomes a Drawer or stacks above main. Tabs with `sections` become section headers. |
+| 720px and below | Lifecycle moves its verbs to a sheet. |
+| 699px and below | The inset frame meets the screen edges unless `data-app-shell-outer` keeps it. BottomNav shows. The Momoi watermark shrinks to 64px. |
+
+These are fixed media queries. CSS custom properties cannot drive media
+queries, so a product changes the result with the documented attributes and
+props, not with a breakpoint token.
 
 ## States
 

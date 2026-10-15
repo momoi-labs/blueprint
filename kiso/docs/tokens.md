@@ -410,6 +410,7 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-paper-tone` | `theme`, `accent` | `theme` |
 | `data-frame-detail` | `small`, `medium`, `large` | `medium` |
 | `data-panel-fill` | `solid`, `translucent` | `solid` |
+| `data-app-shell-outer` | `auto`, `full`, `compact`, `none` | `auto`: `full` from 700px, `none` below |
 
 Set these on `html`, alongside theme and accent. The outer choices apply to
 inset AppShell main frames. Their children and portals retain the inner
@@ -489,7 +490,7 @@ Customize outer frame disclosure and share the size settings.
 
 Momoi uses the symbol without its badge, at a preferred width of 160px and
 16px from the canvas's right and bottom edges. It scales down when the canvas
-cannot fit it. It uses the same frame margin as other patterns, so changing to
+cannot fit it. Below 700px wide its preferred width is 64px. It uses the same frame margin as other patterns, so changing to
 the watermark does not shrink the frame. Quiet and Visible use 14% and 22%
 opacity on the background layer only.
 `momoi-repeat` is a separate tiled option. Both use the SVG as an alpha mask

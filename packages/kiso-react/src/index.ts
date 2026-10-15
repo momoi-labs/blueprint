@@ -4,6 +4,7 @@ export * from "./alert.js";
 export * from "./alert-dialog.js";
 export * from "./app-shell.js";
 export * from "./badge.js";
+export * from "./bottom-nav.js";
 export * from "./brand-mark.js";
 export * from "./breadcrumb.js";
 export * from "./button.js";
