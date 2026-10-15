@@ -11,7 +11,7 @@ checks. The catalog and contracts define the APIs; this matrix defines probes.
 | --- | --- |
 | Package API | Public exports, types, refs, required props, distributed CSS and assets. Use the package entry point; test a tarball when packaging is in scope. |
 | States | Documented variants, empty/loading/error states, disabled controls, and transitions between them. Confirm state and accessible attributes agree. |
-| Layout | Light/dark themes, 320px and 390px widths, a desktop width, long unbroken text, many items, missing content, and text zoom. Check clipping, overlap, document overflow, and reachable actions. |
+| Layout | Light/dark themes, 320px and 390px widths, a desktop width, long unbroken text, many items, missing content, and text zoom. Check clipping, overlap, document overflow, and reachable actions. For anything a page sits in, also run the phone checks below. |
 | Semantics | Names, roles, IDs, label associations, descriptions, invalid state, current/selected state, and decorative content. Multiple instances must not share IDs accidentally. |
 | Focus | Tab and Shift+Tab order, visible focus, rerenders, removal of focused elements, and restoration after edit or dismissal. Inspect the actual focused element. |
 | Pointer | Fine and coarse pointers. Measure effective targets using hit tests, including pseudo-elements, and verify edge taps/dragging. Check both target dimensions against the current accessibility contract. |
@@ -23,6 +23,45 @@ method. A smaller viewport alone does not establish 200% text-zoom behavior.
 Use deterministic waits for observable state rather than arbitrary sleeps.
 Record layout magnification and text-only zoom separately. Include browser
 versions, pointer emulation, font availability, and consumer styling in evidence.
+
+## Phone layouts
+
+Clipping and overflow checks pass on a layout that wastes a third of a phone's
+width. In Kiso 0.19 the inset shell passed them while it put 32px of frame on
+each side of a 390px screen, drew wrapped header tabs over the page, and kept a
+160px watermark behind the content. Apply these checks to shells, headers,
+pages, and other containers that hold a product's screens.
+
+- Use the consumer's composition and appearance, not the unstyled default.
+  Copy the `html` attributes the product ships (`data-app-shell`,
+  `data-background-style`, border and corner choices) and its own CSS. Also run
+  the gallery default. Insets stack: shell padding, frame margin, border, page
+  padding, and card padding each pass alone.
+- Measure the inset stack at 390px. Record the distance from the screen edge
+  to the first text and to the width of a full-width text field. Chrome must
+  not add space beyond the page's own padding without a reason. Compare with
+  the default variant at the same width.
+- Make children wrap. Use the consumer's real header content with long labels
+  at 320px and 390px. Assert that every child's bottom is above the
+  container's bottom border, not only that the document does not overflow. A
+  fixed `height` on a container with wrapping content is a defect.
+- Size decorative layers against the viewport. A watermark, pattern, or
+  illustration sized for a desktop canvas reads as content on a phone.
+- Test fixed and sticky chrome with a page longer than the screen. Scroll to
+  the end and assert the last action is above the bar. Check
+  `env(safe-area-inset-bottom)` padding and the reserved space.
+- Test each side of every breakpoint the component uses: for example 699px
+  and 700px, 1023px and 1024px. Assert that wider widths do not change.
+- Emulate a phone, not only a narrow window: use a Playwright device such as
+  `devices['iPhone 13']` for `isMobile`, `hasTouch`, and device pixel ratio.
+  Record real-hardware checks as untested unless a person ran them.
+- Look at the result. In the gallery, Layouts > Phone shows each layout in a
+  390x844 frame where phone media queries apply; a narrow container inside a
+  desktop window does not trigger them. Capture each consumer screen at
+  390x844 in light and dark, and review it as a person on a phone would: content width, chrome
+  that competes with content, and what sits under the thumb. Compare it with
+  a native app pattern for the same task. Report "passes assertions but wastes
+  space" as a finding, with the measured numbers.
 
 ## Text entry, chips, and filters
 
