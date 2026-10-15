@@ -526,6 +526,28 @@ const commands = [
   ["Manage API keys", "Actions"],
 ] as const;
 
+function BottomNavDemo() {
+  const [current, setCurrent] = useState("New");
+  return (
+    <div className="gallery-bottom-nav-preview">
+      <BottomNav aria-label="Example phone navigation">
+        {([["New", Plus], ["Drafts", Pencil, "3"], ["Ready", FileText], ["Account", UserRound]] as const).map(([label, Icon, count]) => (
+          <BottomNavLink
+            key={label}
+            href="#components/bottom-nav"
+            active={label === current}
+            onClick={() => setCurrent(label)}
+          >
+            <Icon className="icon" aria-hidden="true" />
+            <span>{label}</span>
+            {count && <BottomNavBadge>{count}</BottomNavBadge>}
+          </BottomNavLink>
+        ))}
+      </BottomNav>
+    </div>
+  );
+}
+
 function CommandPaletteDemo() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -544,7 +566,7 @@ function CommandPaletteDemo() {
         >
           Open command palette
         </Button>
-        <p className="muted t-label">
+        <p className="muted t-label gallery-keyboard-hint">
           Arrow keys move the highlight, Enter runs, Escape closes.
         </p>
       </div>
@@ -1568,17 +1590,7 @@ const Demo = memo(function Demo({
       );
     case "bottom-nav":
       return (
-        <div className="gallery-bottom-nav-preview">
-          <BottomNav aria-label="Example phone navigation">
-            {([["New", Plus], ["Drafts", Pencil, "3"], ["Ready", FileText], ["Account", UserRound]] as const).map(([label, Icon, count], i) => (
-              <BottomNavLink key={label} href="#components/bottom-nav" active={i === 0}>
-                <Icon className="icon" aria-hidden="true" />
-                <span>{label}</span>
-                {count && <BottomNavBadge>{count}</BottomNavBadge>}
-              </BottomNavLink>
-            ))}
-          </BottomNav>
-        </div>
+        <BottomNavDemo />
       );
     case "breadcrumb":
       return (

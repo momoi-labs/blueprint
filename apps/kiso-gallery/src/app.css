@@ -289,6 +289,13 @@
   .layout-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* Two columns: a rule between the columns and one between the rows. */
+  .layout-stats > .stat:nth-child(odd) {
+    border-inline-start: 0;
+  }
+  .layout-stats > .stat:nth-child(n + 3) {
+    border-block-start: 1px solid var(--color-border);
+  }
   .layout-list-detail {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -320,6 +327,11 @@
 @container (max-width: 400px) {
   .layout-stats {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* One column: the rule runs between the stacked stats. */
+  .layout-stats > .stat + .stat {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--color-border);
   }
   .layout-chart-axis span:nth-child(even) {
     display: none;
