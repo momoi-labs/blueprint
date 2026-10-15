@@ -293,7 +293,12 @@ Drawer, as described under Sizes. `phoneNavigation="bottom"` puts the same
 destinations in a [BottomNav](bottom-nav.md) below 700px instead: each
 destination's `leading` content is its icon, and a string or number in
 `trailing` is its badge. The Header shows the brand, and the menu button
-is hidden. Between 700px and 1023px the Drawer stays. The
+is hidden. `primaryAction` moves to the Header, after the brand and at its
+end, so it is visible on every screen whatever the number of destinations;
+the Drawer that held it cannot open. Keep it compact there, as an icon
+button or a short label. A menu passed as `primaryAction` opens from the
+Header. Between 700px and 1023px the Drawer stays and holds
+`primaryAction` as before. The
 default, `phoneNavigation="drawer"`, uses the Drawer at every width below
 1024px. The bar holds five destinations. With more, it shows the first four
 and a More button; More opens a bottom sheet with the other destinations,

@@ -140,3 +140,31 @@ test('More holds the destinations past the fifth and the footer', async () => {
     assert(await page.evaluate(() => document.activeElement?.textContent?.includes('More')), 'Focus returns to More');
   } finally { await page.close(); }
 });
+
+for (const query of ['sidebar=bottom&action', 'sidebar=bottom&more&action']) test(`The primary action stays reachable with the bar at 390px (${query})`, async () => {
+  const page=await open(query, 390);
+  try {
+    const header=page.locator('.topbar');
+    const create=header.getByRole('button', { name: 'Create' });
+    assert(await create.isVisible(), 'The header shows the primary action after the brand');
+    const brand=await header.locator('.app-shell-phone-brand').boundingBox();
+    const box=await create.boundingBox();
+    assert(box.x >= brand.x + brand.width && box.x + box.width <= 390, 'It sits after the brand, inside the screen');
+    assert.equal(await page.getByRole('button', { name: 'Create' }).count(), 1, 'Hidden copies do not show');
+    await create.click();
+    await page.getByRole('menuitem', { name: 'Database' }).click();
+    assert.equal(await page.getByLabel('Created').textContent(), 'Database', 'A menu passed as the action opens and its items work');
+  } finally { await page.close(); }
+});
+test('The primary action stays in the drawer from 700px', async () => {
+  for (const width of [800, 1280]) {
+    const page=await open('sidebar=bottom&action', width);
+    try {
+      assert.equal(await page.locator('.topbar .app-shell-phone-action').isVisible(), false, `${width}px: the header does not repeat it`);
+      if (width === 800) {
+        await page.getByRole('button', { name: 'Open navigation' }).click();
+        assert(await page.getByRole('dialog').getByRole('button', { name: 'Create' }).isVisible(), 'The drawer holds it');
+      } else assert(await page.locator('.sidebar').getByRole('button', { name: 'Create' }).isVisible(), 'The sidebar holds it');
+    } finally { await page.close(); }
+  }
+});

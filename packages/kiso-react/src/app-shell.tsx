@@ -315,6 +315,7 @@ function ApplicationShellSidebar({
         <Header variant={headerVariant} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
           {menu}
           {phoneNavigation === "bottom" && <div className="app-shell-phone-brand">{brand}</div>}
+          {phoneNavigation === "bottom" && primaryAction && <div className="app-shell-phone-action">{primaryAction}</div>}
           {togglePlacement === "header" && toggle}
           {header}
         </Header>

@@ -3696,7 +3696,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   }
 }
 
-.app-shell-phone-brand { display: none; }
+.app-shell-phone-brand, .app-shell-phone-action { display: none; }
 
 /* Phone navigation: a bar fixed to the bottom edge below 700px. Wider
    screens keep the header or sidebar destinations and do not show it. */
@@ -3770,6 +3770,9 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
      wider screens, and the header carries the brand. */
   .app-shell[data-phone-navigation="bottom"] .app-shell-menu { display: none; }
   .app-shell[data-phone-navigation="bottom"] .app-shell-phone-brand { display: flex; min-width: 0; }
+  /* The drawer cannot open, so the primary action sits in the header after
+     the brand, where every screen shows it. */
+  .app-shell[data-phone-navigation="bottom"] .app-shell-phone-action { display: flex; flex: none; margin-inline-start: auto; }
   /* The page ends above the bar, so its last content can scroll clear. */
   .app-shell:has(> .bottom-nav) {
     padding-block-end: calc(var(--app-shell-outer, 0px) + var(--bottom-nav-size) + env(safe-area-inset-bottom));
