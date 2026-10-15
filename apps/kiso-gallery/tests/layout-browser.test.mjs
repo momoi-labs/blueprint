@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { before, after, test } from "node:test";
+import { before, after } from "node:test";
+import { test } from "./shard.mjs";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 
 const { chromium, devices } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
+// Pull requests run one representative case per sweep; main and nightly set KISO_FULL_SWEEP=1.
+const fullSweep = process.env.KISO_FULL_SWEEP === "1";
 let server, browser, url, routes, titles;
 before(async () => {
   server = await preview({ root: fileURLToPath(new URL("../", import.meta.url)), configFile: false, logLevel: "error", preview: { host: "127.0.0.1", port: 0 } });
@@ -114,7 +117,7 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
   } finally { await page.close(); }
 });
 
-for (const frame of ["default", "inset"]) test(`Catalog uses available space and all card actions stay reachable in ${frame}`, async () => {
+for (const frame of fullSweep ? ["default", "inset"] : ["inset"]) test(`Catalog uses available space and all card actions stay reachable in ${frame}`, async () => {
   const page = await open(1920, frame);
   try {
     await page.goto(`${url}#components`);
@@ -179,7 +182,7 @@ test("Resizing between panel and drawer retains values, focus and page scrolling
   } finally { await page.close(); }
 });
 
-for (const width of [320, 1200, 1920]) test(`Settings choices and code remain reachable at ${width}px`, async () => {
+for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choices and code remain reachable at ${width}px`, async () => {
   const page = await open(width, "inset", width === 1200 ? "light" : "dark", width === 320);
   try {
     await page.goto(`${url}#components`);

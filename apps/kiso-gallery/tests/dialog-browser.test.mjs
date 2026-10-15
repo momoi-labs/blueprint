@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { after, before, test } from "node:test";
+import { after, before } from "node:test";
+import { test } from "./shard.mjs";
 import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";

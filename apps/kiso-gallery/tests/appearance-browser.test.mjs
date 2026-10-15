@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { before, after, test } from "node:test";
+import { before, after } from "node:test";
+import { test } from "./shard.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
@@ -7,6 +8,8 @@ import { appearanceCode } from "../src/appearance-settings.ts";
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 const screenshots = process.env.SCREENSHOT_DIR;
+// Pull requests run one representative case per sweep; main and nightly set KISO_FULL_SWEEP=1.
+const fullSweep = process.env.KISO_FULL_SWEEP === "1";
 let server, browser, url;
 before(async () => {
   if (screenshots) await mkdir(screenshots, { recursive: true });
@@ -712,7 +715,7 @@ test('Intro stacks within the space left by both rails', async () => {
   } finally { await page.close(); }
 });
 
-for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1200, 'dark'], [1680, 'light']]) test(`Every gallery sample survives appearance transitions at ${width}px in ${theme}`, async () => {
+for (const [width, theme] of fullSweep ? [[320, 'dark'], [390, 'light'], [1200, 'dark'], [1680, 'light']] : [[390, 'light']]) test(`Every gallery sample survives appearance transitions at ${width}px in ${theme}`, async () => {
   const page = await open('components', width, theme);
   const failures = [], errors = [];
   page.on('pageerror', error => errors.push(error.message));

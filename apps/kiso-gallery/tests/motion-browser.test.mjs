@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { before, after, test } from 'node:test';
+import { before, after } from 'node:test';
+import { test } from './shard.mjs';
 import { fileURLToPath } from 'node:url';
 import { preview } from 'vite';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
