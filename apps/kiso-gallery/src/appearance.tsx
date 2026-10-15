@@ -181,8 +181,8 @@ export function AppearanceControls({ settings, onChange }: {
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
     </div>
   </AppearanceSection>
-  <AppearanceSection title="Compositions">
-    <p className="muted t-label">Pixel everywhere is the starting appearance. Default restores the previous look. Both follow your system theme; other studies keep your theme.</p>
+  <AppearanceSection title="Presets">
+    <p className="muted t-label">Pixel everywhere is the starting appearance. Default restores the previous look. Both follow your system theme; other presets keep your theme.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.defaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };

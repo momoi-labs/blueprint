@@ -473,7 +473,7 @@ Accent paper uses the existing accent surface color on the canvas and cards.
 Navigation and settings share that paper; portals keep their regular surfaces. Cobalt, dark
 theme, accent paper, drawing guides inside, square panels, an outer Double
 outline and Original ticks reproduce the Blueprint study. The gallery's
-composition buttons apply ordinary settings and remain editable.
+preset buttons apply ordinary settings and remain editable.
 
 New gallery visits and Reset appearance use Pixel everywhere: small Pixel
 corners, Original ticks on panels, paper fibers, solid fill, Editorial style and
