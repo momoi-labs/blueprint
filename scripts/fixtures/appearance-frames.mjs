@@ -51,8 +51,8 @@ function Fixture() {
   );
   if (params.has('canvas')) return h(AppShell, { variant: 'inset', id: 'canvas' },
     h('aside', { className: 'sidebar', id: 'rail' }, 'Navigation'),
-    h(AppShellMain, { id: 'outer' }, h(Header, null, 'Document tools', h(Button, null, 'Header action')), h('div', { className: 'page' },
-      h('h1', null, 'Canvas composition'), h(Sample),
+    h(AppShellMain, { id: 'outer' }, h(Header, null, 'Document tools', h('nav', { className: 'breadcrumb', id: 'header-crumbs' }, h('a', { href: '#' }, 'Ancestor'), h('span', { className: 'sep' }, '/'), h('span', { 'aria-current': 'page' }, 'Current')), h('div', { className: 'tabs', id: 'header-tabs' }, h('button', null, 'Inactive'), h('button', { 'aria-selected': 'true' }, 'Current')), h(Button, null, 'Header action')), h('div', { className: 'page' },
+      h('h1', null, 'Canvas composition'), h('div', { id: 'bare-nav' }, h('nav', { className: 'breadcrumb', id: 'bare-crumbs' }, h('a', { href: '#' }, 'Ancestor'), h('span', { className: 'sep' }, '/'), h('span', { 'aria-current': 'page' }, 'Current')), h('div', { className: 'tabs', id: 'bare-tabs' }, h('button', null, 'Inactive'), h('button', { 'aria-selected': 'true' }, 'Current'))), h(Sample),
       h('div', { id: 'nested', 'data-border-style': 'solid', 'data-corner-style': 'rounded' }, h(Card, null, h(CardContent, null, 'Local override'))),
       h(Input, { 'aria-label': 'Native field', defaultValue: 'Editable', 'aria-invalid': 'true' }),
       h(Dialog, null, h(DialogTrigger, { asChild: true }, h(Button, null, 'Open dialog')),
