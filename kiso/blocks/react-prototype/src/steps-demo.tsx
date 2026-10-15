@@ -167,7 +167,7 @@ export function StepBarDemo() {
         <TableHeader><TableRow><TableHead>Machine</TableHead><TableHead>Status</TableHead><TableHead>Address</TableHead></TableRow></TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell><b>sf-dev-env</b><br /><span className="muted">ubuntu-24.04 · 4 CPU</span></TableCell>
+            <TableCell><b style={{ whiteSpace: "nowrap" }}>sf-dev-env</b><br /><span className="muted">ubuntu-24.04 · 4 CPU</span></TableCell>
             <TableCell>
               <span className="gallery-step-cell" title={current?.label}>
                 <Badge variant={tone}>{active ? `Create · ${status}` : status}</Badge>
