@@ -1,5 +1,14 @@
 # @momoi-labs/kiso
 
+## 0.20.2
+
+### Patch Changes
+
+- 0087fe9: Scatter the `momoi-repeat` background. The `>_` marks now sit in a larger
+  fixed tile with varied position, size, tilt and opacity, so rows and columns no
+  longer line up. Strength, paper tone and placement work as before.
+- eaec6d2: Side rail, Weighted base and Offset outline now cast a shadow that follows Rounded and Asymmetric corners. The shadow sits outside the panel, to the left, below, or to the bottom right, and the panel keeps its Solid border. It no longer ends in a crescent inside the panel or leaves a gap at the corner. The outer inset frame uses its own corner style for the shadow. Square corners look the same.
+
 ## 0.20.1
 
 ### Patch Changes
