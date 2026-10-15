@@ -58,6 +58,7 @@
 .catalog-main {
   min-width: 0;
   padding: var(--spacing-xl);
+  --catalog-mark-room: calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (2 * var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)));
   container: catalog / inline-size;
 }
 .catalog-heading {
@@ -270,12 +271,15 @@
 @media (max-width: 699px) {
   .catalog-header { flex-wrap: nowrap; gap: var(--spacing-sm); padding-block: var(--spacing-xs); }
   .catalog-main { padding-block-start: var(--spacing-xs); }
+  /* Panels meet the page padding, and their corner marks reach beyond them.
+     The page keeps the marks' reach plus one mark length from the screen edge. */
+  .catalog-main { padding-inline: max(var(--spacing-lg), var(--catalog-mark-room)); }
   .catalog-heading { gap: 0; }
   .catalog-header > [data-slot="search"] { flex: 1; min-width: 0; }
   .catalog-sheet [data-slot="dialog-body"] { display: grid; gap: var(--spacing-lg); align-content: start; }
 }
 @media (max-width: 400px) {
-  .catalog-main { padding: var(--spacing-sm); padding-block-start: var(--spacing-xs); }
+  .catalog-main { padding: var(--spacing-sm); padding-block-start: var(--spacing-xs); padding-inline: max(var(--spacing-sm), var(--catalog-mark-room)); }
 }
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */

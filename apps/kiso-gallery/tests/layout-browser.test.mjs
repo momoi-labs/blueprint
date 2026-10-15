@@ -326,3 +326,43 @@ for (const width of [390, 320]) test(`The phone chrome is compact and touchable 
     assert.deepEqual(await small(), [], "Settings drawer targets");
   } finally { await page.close(); }
 });
+
+// A frame's corner marks sit outside its border. On a phone the page padding is
+// the only space between them and the screen edge, so it must keep one mark
+// length (--corner-mark-tick) clear. Checks the gallery page and the phone frame.
+const markPresets = {
+  "Default": { appShell: "default" },
+  "Pixel everywhere": { cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" },
+  "All frames": { frameScope: "all", markScope: "all" },
+};
+for (const width of [390, 320]) for (const theme of fullSweep ? ["light", "dark"] : ["light"]) test(`Corner marks keep their clearance from the screen edge at ${width}px in ${theme}`, async () => {
+  const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: theme, hasTouch: true });
+  page.setDefaultTimeout(5000);
+  await page.route("https://fonts.googleapis.com/**", route => route.abort());
+  const failures = [];
+  try {
+    for (const [preset, settings] of Object.entries(markPresets)) for (const path of ["", "?phone-frame"]) for (const route of ["login", "dashboard"]) {
+      await page.goto(`${url}${path}#example/${route}`);
+      await page.evaluate(settings => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, theme: "system", cornerStyle: "square", cornerSize: "medium", backgroundStyle: "solid", visualStyle: "default", appShell: "inset", frameScope: "panels", ...settings }), settings);
+      await page.reload();
+      await page.locator(path ? ".layout-phone-document" : ".catalog-layouts").waitFor();
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const close = await page.evaluate(() => {
+        const found = [];
+        for (const el of document.querySelectorAll("*")) {
+          const marks = getComputedStyle(el, "::after");
+          // Only marks that reach outside their frame matter; internal guides stay inside it.
+          if (marks.content === "none" || marks.position !== "absolute" || Number(marks.opacity) === 0 || !(parseFloat(marks.left) < 0 || parseFloat(marks.right) < 0)) continue;
+          const box = el.getBoundingClientRect();
+          if (!box.width) continue;
+          const clearance = parseFloat(getComputedStyle(el).getPropertyValue("--corner-mark-tick"));
+          const left = box.left + parseFloat(marks.left), right = document.documentElement.clientWidth - (box.right - parseFloat(marks.right));
+          if (Math.min(left, right) < clearance - 0.5) found.push(`${el.className} marks ${left.toFixed(1)}px left, ${right.toFixed(1)}px right, need ${clearance}px`);
+        }
+        return found;
+      });
+      if (close.length) failures.push({ preset, path: path || "gallery", route, close });
+    }
+    assert.deepEqual(failures, [], JSON.stringify(failures, null, 2));
+  } finally { await page.close(); }
+});
