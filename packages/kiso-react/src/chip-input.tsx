@@ -193,6 +193,11 @@ function ChipInputList({
     return () => setOpen(false);
   }, [setOpen]);
 
+  // Near the bottom of a phone screen the list would open out of sight.
+  React.useEffect(() => {
+    if (open) listRef.current?.scrollIntoView?.({ block: "nearest" });
+  }, [open, listRef]);
+
   return (
     <div
       id={listId}
@@ -353,7 +358,8 @@ function EditableSegment({
           autoFocus
           size={1}
           style={{
-            width: `${Math.min(Math.max(draft.length + 1, 6), maxWidth)}ch`,
+            // The segment's own padding comes on top of the text.
+            width: `calc(${Math.min(Math.max(draft.length + 1, 6), maxWidth)}ch + 2 * var(--spacing-sm))`,
           }}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={() => commit(draft)}

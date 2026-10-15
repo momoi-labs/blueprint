@@ -47,6 +47,15 @@ function CommandPalette({
   const composing = React.useRef(false);
   const listId = React.useId();
   const listRef = React.useRef<HTMLDivElement>(null);
+  // A palette opened by a shortcut or a controlled button has no Radix
+  // trigger, so remember where focus was and return it there. The input
+  // takes focus as it mounts, so read it while rendering the open state.
+  const returnFocus = React.useRef<HTMLElement | null>(null);
+  const wasOpen = React.useRef(false);
+  if (props.open && !wasOpen.current && typeof document !== "undefined") {
+    returnFocus.current = document.activeElement as HTMLElement | null;
+  }
+  wasOpen.current = Boolean(props.open);
 
   return (
     <DialogPrimitive.Root data-slot="command-palette" {...props}>
@@ -54,6 +63,10 @@ function CommandPalette({
         <DialogOverlay />
         <DialogPrimitive.Content
           aria-modal="true"
+          onCloseAutoFocus={(event) => {
+            const target = returnFocus.current;
+            if (target?.isConnected && target !== document.body) { event.preventDefault(); target.focus(); }
+          }}
           onEscapeKeyDown={(event) => {
             if (composing.current || event.isComposing || event.keyCode === 229) event.preventDefault();
           }}

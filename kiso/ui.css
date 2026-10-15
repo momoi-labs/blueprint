@@ -433,7 +433,11 @@ fieldset.form-body { border: 0; margin: 0; }
   transition: border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 .textarea { height: auto; min-height: 76px; padding-block: var(--spacing-sm); line-height: var(--type-line-height-normal); resize: vertical; }
-.input::placeholder, .textarea::placeholder { color: var(--color-muted-foreground); }
+/* A pattern behind the page raises secondary text to full contrast inside
+   main. A field has its own fill, so its placeholder keeps the muted color
+   from outside main and does not read as a typed value. */
+:where(.app-shell:not(.app-shell .app-shell)) { --field-placeholder: var(--color-muted-foreground); }
+.input::placeholder, .textarea::placeholder { color: var(--field-placeholder, var(--color-muted-foreground)); }
 .input:hover, .select:hover, .textarea:hover { border-color: var(--color-border-strong); }
 .input:disabled, .select:disabled, .textarea:disabled {
   background: var(--color-disabled-surface);
@@ -558,7 +562,7 @@ select.select option:disabled { color: var(--color-disabled); }
   font: inherit; font-size: var(--type-size-body);
   outline: none;
 }
-.chip-input-field::placeholder { color: var(--color-muted-foreground); }
+.chip-input-field::placeholder { color: var(--field-placeholder, var(--color-muted-foreground)); }
 .chip-input-list {
   position: absolute; inset-inline: 0; top: 100%; z-index: 40;
   margin-block-start: var(--spacing-xs);
@@ -834,7 +838,7 @@ table.table {
 .table tbody tr:nth-last-child(1 of :not([hidden])) td { border-bottom: 0; }
 .table tbody tr:hover { background: var(--color-accent-surface); }
 .table tbody tr[aria-selected="true"] { background: var(--color-selected); }
-.table .num { text-align: end; font-variant-numeric: tabular-nums; }
+.table .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .table .col-tight { width: 1%; white-space: nowrap; }
 .th-sort { display: inline-flex; align-items: center; gap: var(--spacing-xs); cursor: pointer; background: none; border: 0; font: inherit; color: inherit; padding: 0; }
 .table-toolbar { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); border-bottom: 1px solid var(--color-border); }
@@ -846,7 +850,8 @@ table.table {
 /* ===========================================================================
    Tabs
    =========================================================================== */
-.tabs { display: flex; gap: var(--spacing-lg); border-bottom: 1px solid var(--color-border); }
+/* A strip wider than its host scrolls sideways inside itself. */
+.tabs { display: flex; gap: var(--spacing-lg); max-width: 100%; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--color-border); }
 .tabs button {
   position: relative;
   height: var(--size-control-lg);
@@ -857,9 +862,11 @@ table.table {
   font-weight: var(--type-weight-medium);
   color: var(--color-muted-foreground);
   white-space: nowrap; /* a strip that scrolls sideways must not wrap "Last run" */
+  flex-shrink: 0; /* nor squeeze a label under its neighbor */
   cursor: pointer;
 }
 .tabs button:hover { color: var(--color-foreground); }
+.tabs button:disabled { color: var(--color-disabled); cursor: not-allowed; }
 .tabs button[aria-selected="true"] { color: var(--color-foreground); }
 /* The underline stays inside the button, just above the strip's border, so a
    strip that scrolls sideways has no extra pixel of block overflow to draw a
@@ -1040,7 +1047,7 @@ table.table {
 .toast-region { position: fixed; inset-block-end: var(--spacing-lg); inset-inline-end: var(--spacing-lg); z-index: 60; display: grid; gap: var(--spacing-sm); }
 .toast {
   display: flex; align-items: flex-start; gap: var(--spacing-md);
-  width: 340px;
+  width: min(340px, calc(100vw - 2 * var(--spacing-lg)));
   padding: var(--spacing-md);
   background: var(--color-popover);
   border: 1px solid var(--color-border);
@@ -1088,7 +1095,7 @@ table.table {
 /* ===========================================================================
    Navigation: breadcrumb, pagination, sidebar, header
    =========================================================================== */
-.breadcrumb { display: flex; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); color: var(--color-muted-foreground); }
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); color: var(--color-muted-foreground); }
 .breadcrumb a { color: var(--color-muted-foreground); }
 .breadcrumb a:hover { color: var(--color-foreground); text-decoration: none; }
 .breadcrumb [aria-current="page"] { color: var(--color-foreground); font-weight: var(--type-weight-medium); }
@@ -1626,6 +1633,16 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     min-width: var(--size-touch-min); min-height: var(--size-touch-min);
   }
   .chip-action { min-width: var(--size-touch-min); height: var(--size-touch-min); }
+  /* A chip that scrolls sideways keeps its remove button in reach. */
+  .chip-input .chip:not(.filter-chip) > .chip-action:last-child { position: sticky; inset-inline-end: 0; background: var(--color-secondary); }
+  .chip-input .chip:not(.filter-chip) > :not(:last-child) { scroll-margin-inline-end: var(--size-touch-min); }
+  /* iOS Safari zooms the page into any field under 16px when it takes focus. */
+  .input, .select, .textarea, .chip-input-field, .chip-value.is-editing, .chip-option.is-editing, .filter-segment-input { font-size: 16px; }
+  .breadcrumb :is(a, [aria-current="page"]) { display: inline-flex; align-items: center; min-height: var(--size-touch-min); }
+}
+/* Below 560px a page title needs the width: its actions go under it. */
+@media (max-width: 559px) {
+  [data-slot="page-header-row"] { --page-header-actions-wrap: wrap; }
 }
 
 /* Narrow viewports: the sidebar stacks above main as compact navigation
@@ -2577,6 +2594,16 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
   cursor: grab; user-select: none; touch-action: none;
 }
 .grid-pane-head:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.grid-pane-grip { display: none; }
+@media (pointer: coarse) {
+  .grid-pane-head { touch-action: pan-y; }
+  .grid-pane-grip {
+    display: block; flex: none; box-sizing: content-box;
+    padding: calc((var(--size-touch-min) - var(--size-icon-md)) / 2);
+    margin: calc((var(--size-touch-min) - var(--size-icon-md)) / -2);
+    color: var(--color-muted-foreground); touch-action: none;
+  }
+}
 .grid-pane-title { margin: 0; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .grid-pane-actions { display: flex; align-items: center; gap: var(--spacing-xs); flex: none; cursor: auto; }
 .grid-pane-body { padding: var(--presentation-panel-padding); min-width: 0; overflow: auto; display: grid; gap: var(--presentation-panel-gap); align-content: start; }
