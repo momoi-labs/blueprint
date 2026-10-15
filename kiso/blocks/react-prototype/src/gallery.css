@@ -307,6 +307,8 @@
   align-content: start;
   padding: var(--spacing-md);
 }
+.gallery-split-stacked { height: auto; }
+.gallery-split-stacked > .gallery-split-pane + .gallery-split-pane { border-top: 1px solid var(--color-border); }
 .gallery-log-preview {
   height: 200px;
 }
