@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const screenshots = process.env.SCREENSHOT_DIR;
 const server = await createServer({ root: fileURLToPath(new URL('../', import.meta.url)), configFile: false, logLevel: 'error', server: { host: '127.0.0.1', port: 0 } });
 let browser, url;
 before(async () => { await server.listen(); url = `http://127.0.0.1:${server.httpServer.address().port}/scripts/fixtures/appearance-frames.html`; browser = await chromium.launch(); if (process.env.SCREENSHOT_DIR) await mkdir(process.env.SCREENSHOT_DIR, { recursive: true }); });
@@ -91,6 +92,20 @@ test('Frameless tables and frame scopes remove content decoration without losing
       assert(await scroller.evaluate(el => el.scrollLeft > 0), `${width}: wide rows scroll inside the frame`);
       await page.getByRole('button', { name: 'Next page' }).click();
     }
+  } finally { await page.close(); }
+});
+
+test('A single-class transparent background clears the pixel fill of a layered editor', async () => {
+  const page = await open('contents&corners=pixel&frameScope=all&marks=none');
+  try {
+    await page.addStyleTag({ content: '.layered-editor { background: transparent; color: transparent; }' });
+    const notes = page.locator('#fields > .textarea');
+    const paint = () => notes.evaluate(el => { const s = getComputedStyle(el); return { image: s.backgroundImage, color: s.backgroundColor }; });
+    assert((await paint()).image.includes('gradient'), 'A plain pixel textarea still paints its fill');
+    await notes.evaluate(el => el.classList.add('layered-editor'));
+    assert.deepEqual(await paint(), { image: 'none', color: 'rgba(0, 0, 0, 0)' }, 'The consumer background wins');
+    if (screenshots) await page.locator('#fields').screenshot({ path: `${screenshots}/layered-editor.png` });
+    assert((await page.locator('#fields > .input').evaluate(el => getComputedStyle(el).backgroundImage)).includes('gradient'), 'A plain pixel input still paints its fill');
   } finally { await page.close(); }
 });
 
