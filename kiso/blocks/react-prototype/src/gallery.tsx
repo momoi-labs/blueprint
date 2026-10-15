@@ -2,6 +2,7 @@ import { usePaneLayout } from "./use-pane-layout";
 import { ChevronDown, FileText, PanelLeft, Pencil, Plus, SquareArrowOutUpRight, UserRound } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
+import { CodeEditorDemo } from "./code-editor-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
 import { useNarrow } from "./use-narrow";
@@ -189,6 +190,7 @@ const catalog = [
   ["input", "Input", "Controls", "Default, disabled and invalid fields."],
   ["password-input", "PasswordInput", "Controls", "A masked secret with a Show/Hide action."],
   ["textarea", "Textarea", "Controls", "Multi-line text and configuration."],
+  ["code-editor", "CodeEditor", "Controls", "Code with line numbers and a highlight you provide."],
   [
     "select",
     "Select",
@@ -378,6 +380,7 @@ const snippets: Record<string, string> = {
   steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
   "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
   "password-input": '<FormField label="Password">\n  <PasswordInput name="password" />\n</FormField>',
+  "code-editor": '<FormField label="Startup script">\n  <CodeEditor value={script} onChange={(event) => setScript(event.target.value)}\n    highlight={(code) => ({ __html: Prism.highlight(code, Prism.languages.bash, "bash") })} />\n</FormField>',
   "file-dropzone": '<FileDropzone label="Choose a file" accept=".txt" onFilesSelected={setFiles} />',
 
   "filter-input": `const fields: FilterField[] = [
@@ -1291,6 +1294,8 @@ const Demo = memo(function Demo({
           <small className="field-hint">{value.length} characters</small>
         </div>
       );
+    case "code-editor":
+      return <CodeEditorDemo />;
     case "chip-input":
       return <ChipInputDemo />;
     case "filter-input":

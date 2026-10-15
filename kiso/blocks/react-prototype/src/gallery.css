@@ -383,3 +383,9 @@
 @media (pointer: coarse) {
   .gallery-keyboard-hint { display: none; }
 }
+
+/* Token colors for the CodeEditor preview's highlighter. */
+.code-demo-comment { color: var(--color-muted-foreground); }
+.code-demo-string { color: var(--color-success); }
+.code-demo-variable { color: var(--color-primary); }
+.code-demo-keyword { color: var(--color-info); }

@@ -19,8 +19,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -83,7 +83,7 @@ try {
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
-      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel } from '@momoi-labs/kiso-react';
+      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel, CodeEditor } from '@momoi-labs/kiso-react';
     for (const component of [DetailSelect, Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
     assert.match(render(h(Alert, { appearance: 'rail', variant: 'warning', role: 'note' })), /role="note"/);
@@ -178,6 +178,13 @@ try {
     assert.match(render(h(Spinner)), /aria-hidden="true"/);
     assert.match(render(h(Skeleton, { variant: 'circle' })), /class="skeleton skeleton-circle"/);
     assert.match(render(h(Textarea, { rows: 3 })), /class="textarea"/);
+    const code = render(h(FormField, { id: 'script', label: 'Script', error: 'Required.' },
+      h(CodeEditor, { defaultValue: 'a<b', highlight: value => ({ __html: value.replace('<', '&lt;') }) })));
+    assert.match(code, /class="field-control code-editor" data-slot="code-editor" data-highlighted="true"/);
+    assert.match(code, /<textarea [^>]*id="script"[^>]*aria-invalid="true"/);
+    assert.match(code, /class="code-editor-gutter" aria-hidden="true"/);
+    assert.match(code, /class="code-editor-highlight" aria-hidden="true"><div>a&lt;b<[/]div>/);
+    assert(!render(h(CodeEditor, { defaultValue: 'x', highlight: () => null })).includes('code-editor-highlight'));
     assert.match(render(h(ValidationMessage, { id: 'e' }, 'Use lowercase letters.')), /class="field-error"/);
     assert.match(render(h(PageHeader, { actions: h(Button, null, 'Deploy') },
       h(PageHeaderTitle, null, 'Applications'))), /class="between"/);
