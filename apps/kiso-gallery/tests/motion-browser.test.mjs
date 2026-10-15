@@ -100,7 +100,9 @@ for (const mode of ['reduce', 'unsupported']) test(`Rail toggles respond without
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.getByRole('button', { name: 'Open settings', exact: true }).click();
+    // CI runners sometimes stall on Playwright's post-click navigation wait here,
+    // though nothing navigates; the panel wait below is the real signal.
+    await page.getByRole('button', { name: 'Open settings', exact: true }).click({ noWaitAfter: true });
     await page.locator('#gallery-settings').waitFor();
     await page.keyboard.press('Escape');
     await page.locator('#gallery-settings').waitFor({ state: 'hidden' });
