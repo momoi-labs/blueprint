@@ -59,6 +59,11 @@ scroll reachability, accessible state, or hit-tested target. Pair failure
 probes with positive controls such as ordinary Enter after composition ends.
 Source inspection helps explain a failure; it does not replace a reproduction.
 
+For shells, headers, pages, and other containers, run the matrix's phone
+checks with the consumer's appearance attributes and CSS. A narrow viewport
+that shows no clipping or overflow does not establish that a layout works on a
+phone; measure the space it leaves for content and look at the screenshots.
+
 For interactive components, include both an isolated fixture and a realistic
 consumer composition when one is available. A controlled parent must rerender
 as the real application does. Mock external effects and record those limits;
