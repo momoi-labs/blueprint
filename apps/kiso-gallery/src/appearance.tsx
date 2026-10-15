@@ -46,6 +46,13 @@ const applicationFrames = [
   { value: "inset", label: "Inset", description: "Content sits inside a separate frame" },
 ] as const;
 
+const outerFrames = [
+  { value: "auto", label: "Automatic", description: "Full from 700px wide, edge to edge on phones" },
+  { value: "full", label: "Full", description: "The full frame at every width" },
+  { value: "compact", label: "Compact", description: "A narrow frame with smaller corners" },
+  { value: "none", label: "None", description: "Edge to edge at every width" },
+] as const;
+
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
   { label: "Default", settings: { theme: "system", appShell: "default" } },
   { label: "Blueprint", settings: { accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
@@ -108,6 +115,21 @@ function FramePreview({ inset }: { inset: boolean }) {
   </svg>;
 }
 
+// A desktop and a phone side by side, each with its outer spacing.
+function OuterFramePreview({ outer }: { outer: AppearanceSettings["appShellOuter"] }) {
+  const [desktop, phone] = { auto: [3, 0], full: [3, 2], compact: [1.5, 1], none: [0, 0] }[outer];
+  const screen = (x: number, width: number, height: number, inset: number) =>
+    <g transform={`translate(${x} ${35 - height})`}>
+      <rect className="appearance-frame-outline" width={width} height={height} rx="2" />
+      <rect className="appearance-frame-main" x={inset} y={inset} width={width - 2 * inset} height={height - 2 * inset} rx={inset ? 1 : 0} stroke={inset ? undefined : "none"} />
+      <path d={`M${inset} ${inset + 5}h${width - 2 * inset}M${inset + 3} ${inset + 9}h${width / 2 - inset}`} />
+    </g>;
+  return <svg className="appearance-frame-sample" viewBox="0 0 48 36" fill="none" stroke="currentColor" strokeWidth="1" focusable="false">
+    {screen(1, 30, 22, desktop)}
+    {screen(35, 12, 22, phone)}
+  </svg>;
+}
+
 function AppearanceSection({ title, children }: { title: string; children: ReactNode }) {
   const id = useId();
   return <section className="appearance-section" aria-labelledby={id}>
@@ -125,6 +147,7 @@ export function AppearanceControls({ settings, onChange }: {
   const markName = useId();
   const styleName = useId();
   const frameName = useId();
+  const outerName = useId();
   const backgroundName = useId();
   const borderOptions = settings.borderStyle === "bevel" ? [...borders, { value: "bevel" as const, label: "Inset edge (legacy)", description: "Saved appearance. Replace to leave the legacy style." }] : borders;
   const markOptions = settings.cornerMarks === "dots" ? [...marks, { value: "dots" as const, label: "Corner dots (legacy)" }] : marks;
@@ -216,6 +239,25 @@ export function AppearanceControls({ settings, onChange }: {
             </span>
             <span id={`${frameName}-${frame.value}-label`} className="t-label">{frame.label}</span>
             <span id={`${frameName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
+          </span>
+        </label>)}
+      </div>
+    </fieldset>
+    <fieldset className="appearance-choices" disabled={settings.appShell !== "inset"}>
+      <legend className="t-label">Outer frame</legend>
+      <div className="appearance-options">
+        {outerFrames.map(frame => <label className="appearance-option" key={frame.value} title={frame.description}>
+          <input type="radio" name={outerName} value={frame.value}
+            checked={settings.appShellOuter === frame.value}
+            onChange={() => onChange({ appShellOuter: frame.value })}
+            aria-labelledby={`${outerName}-${frame.value}-label`}
+            aria-describedby={`${outerName}-${frame.value}-description`} />
+          <span className="appearance-option-body">
+            <span className="appearance-swatch" aria-hidden="true">
+              <OuterFramePreview outer={frame.value} />
+            </span>
+            <span id={`${outerName}-${frame.value}-label`} className="t-label">{frame.label}</span>
+            <span id={`${outerName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
           </span>
         </label>)}
       </div>

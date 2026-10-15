@@ -77,7 +77,7 @@ try {
     import { Button, Form, FormActions, FormField, Checkbox, AlertDialog, Table, TableFrame, ThemeSelector, BrandMark, TerminalIcon,
       Alert, AlertTitle, AlertDescription, Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage,
       CommandPalette, Drawer, DropdownMenu, EmptyState, Header, Link, Navigation, NavigationList,
-      NavigationItem, NavigationLink, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
+      NavigationItem, NavigationLink, BottomNav, BottomNavLink, BottomNavBadge, PageHeader, PageHeaderTitle, Pagination, PaginationPage, Popover,
       Search, Select, DetailSelect, Sidebar, Skeleton, Spinner, Sparkline, Switch, Tabs, Textarea, Toast, Tooltip,
       ValidationMessage, ApplicationShell, Chart, ChartLegend, Meter, Progress, BarGauge,
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
@@ -169,6 +169,10 @@ try {
       h(NavigationItem, null, h(NavigationLink, { href: '/overview', active: true }, 'Overview')))));
     assert.match(nav, /<nav [^>]*aria-label="Primary"/);
     assert.match(nav, /<a [^>]*aria-current="page" class="nav-item" href="\\/overview"/);
+    const bottomNav = render(h(BottomNav, { 'aria-label': 'Primary' },
+      h(BottomNavLink, { href: '/inbox', active: true }, 'Inbox', h(BottomNavBadge, null, '3'))));
+    assert.match(bottomNav, /<nav [^>]*aria-label="Primary"[^>]*><ul class="bottom-nav-list"><li[^>]*><a [^>]*aria-current="page" class="bottom-nav-link"/);
+    assert.match(bottomNav, /class="bottom-nav-badge">3</);
     assert.match(render(h(Search, { 'aria-label': 'Find' })), /class="input-group"/);
     assert.match(render(h(Spinner, { label: 'Deploying' })), /role="status"/);
     assert.match(render(h(Spinner)), /aria-hidden="true"/);

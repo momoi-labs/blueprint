@@ -6,6 +6,7 @@ import { clsx as cn } from "clsx"
 import { Menu, PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
 import { Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer.js"
 import { VisuallyHidden } from "radix-ui"
+import { BottomNav, BottomNavBadge, BottomNavLink } from "./bottom-nav.js"
 import { Button } from "./button.js"
 import { Header } from "./header.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
@@ -109,10 +110,16 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
    *  drawer from a destination it cannot see, such as a menu in a portal. */
   drawerOpen?: boolean
   onDrawerOpenChange?: (open: boolean) => void
+  /** Below 700px, "bottom" moves the destinations to a BottomNav. */
+  phoneNavigation?: "drawer" | "bottom"
+  bottomNav?: never
 }
 
 type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
   layout: "topbar"
+  /** A BottomNav for phones, below 700px. */
+  bottomNav?: React.ReactNode
+  phoneNavigation?: never
   navigation?: never
   navigationLabel?: never
   footer?: never
@@ -181,7 +188,7 @@ function ApplicationShellNavigation({
 
 function ApplicationShell(props: ApplicationShellProps) {
   if (props.layout === "topbar") {
-    const { brand, primaryAction, header, headerVariant, panel, children, layout: _layout, ...shellProps } =
+    const { brand, primaryAction, header, headerVariant, panel, bottomNav, children, layout: _layout, ...shellProps } =
       props
     return (
       <AppShell {...shellProps} data-layout="topbar">
@@ -194,6 +201,7 @@ function ApplicationShell(props: ApplicationShellProps) {
           {children}
         </AppShellMain>
         {panel}
+        {bottomNav}
       </AppShell>
     )
   }
@@ -219,6 +227,7 @@ function ApplicationShellSidebar({
   onCollapsedChange,
   drawerOpen: controlledDrawer,
   onDrawerOpenChange,
+  phoneNavigation = "drawer",
   ...shellProps
 }: ApplicationShellSidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed)
@@ -282,7 +291,7 @@ function ApplicationShellSidebar({
   )
 
   return (
-    <AppShell {...shellProps} data-phone-drawer="true">
+    <AppShell {...shellProps} data-phone-drawer="true" data-phone-navigation={phoneNavigation}>
       <Sidebar ref={sidebarRef} id={sidebarId} collapsed={isCollapsed}>
         <SidebarHeader className={collapsible && togglePlacement === "sidebar" ? "sidebar-header-collapsible" : undefined}>
           {collapsible ? <>
@@ -305,6 +314,7 @@ function ApplicationShellSidebar({
       <AppShellMain>
         <Header variant={headerVariant} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
           {menu}
+          {phoneNavigation === "bottom" && <div className="app-shell-phone-brand">{brand}</div>}
           {togglePlacement === "header" && toggle}
           {header}
         </Header>
@@ -334,6 +344,24 @@ function ApplicationShellSidebar({
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+      {phoneNavigation === "bottom" && <BottomNav aria-label={navigationLabel}>
+        {navigation.flatMap(group => group.destinations).map((destination, index) => (
+          <BottomNavLink
+            key={`${destination.href}-${index}`}
+            href={destination.href}
+            active={destination.active}
+            onClick={(event) => {
+              if (!destination.onClick) return
+              event.preventDefault()
+              destination.onClick()
+            }}
+          >
+            {destination.leading && <span className="bottom-nav-icon" aria-hidden="true">{destination.leading}</span>}
+            <span>{destination.label}</span>
+            {(typeof destination.trailing === "string" || typeof destination.trailing === "number") && <BottomNavBadge>{destination.trailing}</BottomNavBadge>}
+          </BottomNavLink>
+        ))}
+      </BottomNav>}
     </AppShell>
   )
 }

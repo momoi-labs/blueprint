@@ -11,6 +11,7 @@
     markSize: ["medium", "small", "large"],
     visualStyle: ["default", "editorial"],
     appShell: ["default", "inset"],
+    appShellOuter: ["auto", "full", "compact", "none"],
     frameScope: ["all", "panels", "outer"],
     markScope: ["panels", "all", "outer"],
     markClearance: ["normal", "sheet"],

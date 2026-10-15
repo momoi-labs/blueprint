@@ -25,7 +25,7 @@ test("new visits use the approved Pixel everywhere settings before React starts"
   const expected = {
     theme: "system", accent: "violet", chartStyle: "solid", borderStyle: "solid", cornerStyle: "pixel",
     cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
-    appShell: "inset", frameScope: "all", markScope: "panels", markClearance: "normal",
+    appShell: "inset", appShellOuter: "auto", frameScope: "all", markScope: "panels", markClearance: "normal",
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
     frameDetail: "medium", paperTone: "theme", panelFill: "solid",
     outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit",

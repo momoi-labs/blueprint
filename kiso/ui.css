@@ -1101,14 +1101,16 @@ table.table {
 .app-shell[data-layout="topbar"] { grid-template-columns: minmax(0, 1fr); }
 /* An explicit variant overrides the document Appearance preference. */
 .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
-  padding: var(--spacing-lg);
+  /* The outer spacing. See "Outer frame modes" for data-app-shell-outer. */
+  --app-shell-outer: var(--spacing-lg);
+  padding: var(--app-shell-outer);
   min-height: 100dvh;
   background: var(--color-sidebar);
 }
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   position: relative;
   /* Large marks need room beyond the shell's standard padding. */
-  margin: max(0px, calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px)) - var(--spacing-lg)));
+  margin: max(0px, calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px)) - var(--app-shell-outer)));
   /* The frame and its outer marks sit above both adjacent rails. */
   z-index: 1;
   min-height: 0;
@@ -1123,8 +1125,8 @@ table.table {
 .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar { border: 0; }
 @media (min-width: 1024px) {
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar {
-    top: var(--spacing-lg);
-    height: calc(100dvh - 2 * var(--spacing-lg));
+    top: var(--app-shell-outer);
+    height: calc(100dvh - 2 * var(--app-shell-outer));
   }
   /* Keep the outer frame and its marks still while the page scrolls inside.
      Embedded shells retain their natural height within the parent page. */
@@ -1201,7 +1203,7 @@ table.table {
   .app-shell-panel-toggle[data-placement="floating"][aria-expanded="true"] {
     inset-inline-end: calc(var(--app-shell-panel-width, var(--size-sidebar)) + var(--app-shell-panel-offset, 0px));
   }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-panel-offset: var(--spacing-lg); }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-panel-offset: var(--app-shell-outer); }
 }
 @media (min-width: 1024px) {
   .app-shell:has(> .app-shell-panel:not([hidden])) {
@@ -1211,8 +1213,8 @@ table.table {
     grid-template-columns: minmax(0, 1fr) var(--app-shell-panel-width, var(--size-sidebar));
   }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .app-shell-panel {
-    top: var(--spacing-lg);
-    height: calc(100dvh - 2 * var(--spacing-lg));
+    top: var(--app-shell-outer);
+    height: calc(100dvh - 2 * var(--app-shell-outer));
   }
 }
 @media (max-width: 1023px) {
@@ -1345,8 +1347,9 @@ table.table {
 
 .topbar {
   display: flex; align-items: center; gap: var(--spacing-md);
-  height: var(--size-control-lg);
+  /* A minimum, so content that wraps grows the bar instead of spilling out. */
   min-height: 52px;
+  padding-block: var(--spacing-xs);
   padding-inline: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background);
@@ -3256,7 +3259,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 
 /* Pattern placement uses a single layer, including the Momoi signature. */
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
-  --canvas-frame-inset: var(--spacing-lg);
+  --canvas-frame-inset: var(--app-shell-outer);
 }
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   margin: var(--canvas-frame-inset, 0px);
@@ -3489,4 +3492,126 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .steps-list > li[data-state="upcoming"]:not([data-current="true"]) .steps-marker {
   --pixel-line-image-x: repeating-linear-gradient(to right, var(--pixel-line) 0 var(--spacing-xs), transparent var(--spacing-xs) calc(2 * var(--spacing-xs)));
   --pixel-line-image-y: repeating-linear-gradient(to bottom, var(--pixel-line) 0 var(--spacing-xs), transparent var(--spacing-xs) calc(2 * var(--spacing-xs)));
+}
+
+/* Outer frame modes. data-app-shell-outer="full" keeps the inset frame at
+   every width, "compact" narrows it and "none" removes it. Unset, or "auto",
+   removes it below 700px, where the frame costs a phone too much width. */
+:where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  --app-shell-outer: var(--spacing-sm);
+}
+/* A background already insets the main frame by the same amount. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where([data-app-shell-outer="compact"] *) {
+  padding: 0;
+}
+:where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-scale: calc(var(--inner-appearance-scale, 1) / 2);
+}
+:where([data-app-shell-outer="none"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  --app-shell-outer: 0px;
+}
+:where([data-app-shell-outer="none"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
+  --appearance-pixel: 0; --appearance-expressive: 0;
+  margin: 0; border: 0; border-radius: 0; box-shadow: none;
+  /* The screen edge replaces the frame: panel ink and marks stop at it. */
+  overflow-x: clip;
+}
+:where([data-app-shell-outer="none"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])::before,
+:where([data-app-shell-outer="none"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])::after { content: none; }
+@media (max-width: 699px) {
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not([data-app-shell-outer]:not([data-app-shell-outer="auto"]) *)) {
+    --app-shell-outer: 0px;
+  }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not([data-app-shell-outer]:not([data-app-shell-outer="auto"]) *)) > :is(main, [data-slot="app-shell-main"]) {
+    --appearance-pixel: 0; --appearance-expressive: 0;
+    margin: 0; border: 0; border-radius: 0; box-shadow: none;
+    overflow-x: clip;
+  }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not([data-app-shell-outer]:not([data-app-shell-outer="auto"]) *)) > :is(main, [data-slot="app-shell-main"])::before,
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not([data-app-shell-outer]:not([data-app-shell-outer="auto"]) *)) > :is(main, [data-slot="app-shell-main"])::after { content: none; }
+  /* On a phone the signature sits behind content, so it shrinks to a mark. */
+  [data-background-style="momoi"] {
+    --canvas-size: min(calc(2 * var(--spacing-2xl)), calc(100% - 2 * var(--spacing-lg))) auto;
+  }
+}
+
+.app-shell-phone-brand { display: none; }
+
+/* Phone navigation: a bar fixed to the bottom edge below 700px. Wider
+   screens keep the header or sidebar destinations and do not show it. */
+.bottom-nav {
+  display: none;
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+.bottom-nav-list {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  gap: var(--spacing-2xs);
+  margin: 0; padding: var(--spacing-xs);
+  list-style: none;
+}
+.bottom-nav-link {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--spacing-2xs);
+  min-width: 0;
+  height: calc(var(--size-touch-min) + var(--spacing-sm));
+  padding-inline: var(--spacing-2xs);
+  border-radius: var(--radius-md);
+  color: var(--color-muted-foreground);
+  font-size: var(--type-size-label);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.bottom-nav-link > :not(.bottom-nav-badge) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.bottom-nav-icon { display: inline-flex; }
+.bottom-nav-link .icon { color: var(--color-subtle-foreground); }
+.bottom-nav-link:hover { background: var(--color-accent-surface-hover); color: var(--color-foreground); text-decoration: none; }
+/* As in the sidebar, the current destination is marked on the edge it shares
+   with its siblings, here the bar's top border. */
+.bottom-nav-link[aria-current="page"] { color: var(--color-selected-foreground); font-weight: var(--type-weight-medium); }
+.bottom-nav-link[aria-current="page"] .icon { color: currentColor; }
+.bottom-nav-link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(-1 * var(--spacing-xs) - 1px);
+  inset-inline: var(--spacing-md);
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+.bottom-nav-badge {
+  position: absolute;
+  inset-block-start: var(--spacing-2xs);
+  inset-inline-start: calc(50% + var(--spacing-sm));
+  min-width: 18px; height: 18px;
+  padding-inline: var(--spacing-xs);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--type-size-metadata);
+  font-weight: var(--type-weight-semibold);
+  line-height: 18px;
+  text-align: center;
+}
+@media (max-width: 699px) {
+  :where(.app-shell, .bottom-nav) {
+    --bottom-nav-size: calc(var(--size-touch-min) + var(--spacing-sm) + 2 * var(--spacing-xs) + 1px);
+  }
+  .bottom-nav {
+    display: block;
+    position: fixed; inset: auto 0 0; z-index: 30;
+    padding-block-end: env(safe-area-inset-bottom);
+  }
+  /* With the bar, ApplicationShell's drawer and its menu button wait for
+     wider screens, and the header carries the brand. */
+  .app-shell[data-phone-navigation="bottom"] .app-shell-menu { display: none; }
+  .app-shell[data-phone-navigation="bottom"] .app-shell-phone-brand { display: flex; min-width: 0; }
+  /* The page ends above the bar, so its last content can scroll clear. */
+  .app-shell:has(> .bottom-nav) {
+    padding-block-end: calc(var(--app-shell-outer, 0px) + var(--bottom-nav-size) + env(safe-area-inset-bottom));
+  }
+}
+@media (forced-colors: active) {
+  .bottom-nav-link[aria-current="page"]::before { background: CanvasText; }
 }

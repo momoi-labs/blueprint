@@ -281,6 +281,16 @@
 @media (max-width: 1023px) {
   .gallery-shell-preview { grid-template-columns: minmax(0, 1fr); height: auto; }
 }
+/* The bar is fixed to a phone's bottom edge in production. The preview shows
+   it in place at every width. */
+.gallery-bottom-nav-preview {
+  max-width: 390px;
+  padding-block-start: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+  overflow: hidden;
+}
+.gallery-bottom-nav-preview .bottom-nav { display: block; position: static; }
 .gallery-shell-page {
   display: grid;
   gap: var(--spacing-2xs);

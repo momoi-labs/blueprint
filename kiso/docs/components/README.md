@@ -69,6 +69,7 @@ behavioral reference where one exists.
 
 - [AppShell / ApplicationShell](app-shell.md): Provides columns, an optional AppShellPanel with a header or floating toggle, or the complete shared application frame.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
+- [BottomNav](bottom-nav.md): Puts a phone's main destinations in a bar fixed to the bottom edge.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
 - [Header](header.md): Composes persistent application navigation and global actions.
 - [Lifecycle](lifecycle.md): Groups a detail screen's status, verbs, and destructive action in one row.
