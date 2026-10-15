@@ -54,7 +54,10 @@ pages, and other containers that hold a product's screens.
   and 700px, 1023px and 1024px. Assert that wider widths do not change.
 - Emulate a phone, not only a narrow window: use a Playwright device such as
   `devices['iPhone 13']` for `isMobile`, `hasTouch`, and device pixel ratio.
-  Record real-hardware checks as untested unless a person ran them.
+  Record real-hardware checks as untested unless a person ran them. In
+  Chromium, a `fullPage` screenshot turns touch emulation off for the rest of
+  the page, so `(pointer: coarse)` stops matching. Measure before any full-page
+  capture, or use a fresh page, and confirm `matchMedia("(pointer: coarse)")`.
 - Look at the result. In the gallery, Layouts > Phone shows each layout in a
   390x844 frame where phone media queries apply; a narrow container inside a
   desktop window does not trigger them. Capture each consumer screen at
