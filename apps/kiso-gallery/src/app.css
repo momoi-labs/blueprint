@@ -42,56 +42,19 @@
   min-height: 740px;
 }
 .app-shell.layout-shell { min-height: 740px; }
-.app-shell.layout-shell > .layout-sidebar { height: auto; }
-.layout-sidebar {
-  position: static;
-  width: auto;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-lg) var(--spacing-md);
-  background: var(--color-sidebar);
-  border-inline-end: 1px solid var(--color-border);
-}
-.layout-sidebar .brand {
-  gap: var(--spacing-sm);
-}
-.layout-nav {
-  display: grid;
-  gap: var(--spacing-xs);
-}
-.layout-nav > p {
-  padding: var(--spacing-sm);
-}
-.layout-nav > p:not(:first-child) {
-  margin-top: var(--spacing-lg);
-}
-.layout-nav .nav-item {
-  font-size: var(--type-size-label);
+/* Inside a card the sidebar takes the card's height, not the viewport's. */
+.app-shell.layout-shell > .sidebar { position: static; height: auto; }
+.layout-shell .topbar > .layout-inline { margin-inline-start: auto; }
+/* On a phone the tab bar marks the page, so the header keeps the brand and
+   the plan; the location trail and the workspace subtitle would only wrap. */
+@media (max-width: 699px) {
+  .layout-shell .topbar > nav[aria-label="Example location"],
+  .layout-shell .app-shell-phone-brand .muted { display: none; }
 }
 .layout-account {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-}
-.layout-sidebar > .layout-account {
-  margin-top: auto;
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-border);
-}
-.layout-workspace {
-  min-width: 0;
-}
-.layout-header {
-  position: static;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border);
 }
 .layout-content {
   display: grid;
@@ -305,23 +268,7 @@
   .layout-shell {
     grid-template-columns: minmax(0, 1fr);
   }
-  .layout-sidebar {
-    border-inline-end: 0;
-    border-bottom: 1px solid var(--color-border);
-    gap: var(--spacing-md);
-  }
-  .layout-sidebar > .btn,
-  .layout-sidebar > .layout-account,
-  .layout-nav > p {
-    display: none;
-  }
-  .layout-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-  .layout-content,
-  .layout-header {
+  .layout-content {
     padding: var(--spacing-lg);
   }
   .layout-fields {
@@ -444,7 +391,7 @@
    an application. */
 @media (min-width: 1024px) {
   .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { height: 740px; }
-  .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) .layout-workspace {
+  .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) > [data-slot="app-shell-main"] {
     display: flex; flex-direction: column; min-height: 0;
   }
   .layout-content:has(> :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
