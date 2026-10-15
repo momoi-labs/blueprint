@@ -389,7 +389,11 @@ fieldset.form-body { border: 0; margin: 0; }
   color: var(--color-card-foreground);
   border-end-start-radius: inherit; border-end-end-radius: inherit;
 }
-.form-actions[data-sticky="true"] { position: sticky; inset-block-end: 0; z-index: 1; }
+/* A shell with a bottom bar sets `--shell-bottom-inset` to the bar's height
+   plus the safe area, so the actions stop above the bar and not under it. */
+.form-actions[data-sticky="true"] { position: sticky; inset-block-end: var(--shell-bottom-inset, 0px); z-index: 1; }
+/* A bounded region scrolls above the bar, so its actions rest on its own edge. */
+.form-scroll .form-actions[data-sticky="true"] { inset-block-end: 0; }
 .form-actions[data-tone="warning"] {
   background: linear-gradient(var(--color-warning-surface), var(--color-warning-surface)), var(--color-card);
   border-block-start-color: var(--color-warning-border);
@@ -3775,6 +3779,7 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   .app-shell[data-phone-navigation="bottom"] .app-shell-phone-action { display: flex; flex: none; margin-inline-start: auto; }
   /* The page ends above the bar, so its last content can scroll clear. */
   .app-shell:has(> .bottom-nav) {
+    --shell-bottom-inset: calc(var(--bottom-nav-size) + env(safe-area-inset-bottom));
     padding-block-end: calc(var(--app-shell-outer, 0px) + var(--bottom-nav-size) + env(safe-area-inset-bottom));
   }
 }

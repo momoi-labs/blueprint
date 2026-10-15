@@ -26,7 +26,8 @@ With `layout="topbar"`, pass the bar to the `bottomNav` slot. With AppShell
 laid out by hand, place it as a direct child of AppShell after AppShellMain.
 In each case the shell adds bottom padding equal to the bar's height plus
 `env(safe-area-inset-bottom)`, so the last content of a long page scrolls
-clear of the bar.
+clear of the bar. It also sets `--shell-bottom-inset` to that height, which
+sticky [FormActions](form-actions.md) use as their bottom offset.
 
 ```tsx
 <ApplicationShell

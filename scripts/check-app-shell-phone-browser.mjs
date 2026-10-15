@@ -168,3 +168,26 @@ test('The primary action stays in the drawer from 700px', async () => {
     } finally { await page.close(); }
   }
 });
+
+for (const [query, bar] of [['sidebar=bottom&form', true], ['sidebar&form', false]]) test(`Sticky FormActions ${bar ? 'clear the bar' : 'rest on the screen edge without one'} at 390px`, async () => {
+  const page=await open(query, 390);
+  try {
+    const actions=page.locator('.form-actions');
+    const edge=async () => bar ? (await page.locator('.bottom-nav').boundingBox()).y : 844;
+    for (const y of [0, 600, 1200]) {
+      await page.evaluate(y => scrollTo(0, y), y);
+      const box=await actions.boundingBox();
+      const top=await edge();
+      if (box.y + box.height > top) assert.fail(`At scroll ${y} the actions end at ${box.y + box.height}, past ${top}`);
+      assert(await page.getByRole('button', { name: 'Save' }).evaluate(save => {
+        const rect=save.getBoundingClientRect();
+        return save.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+      }), `At scroll ${y} Save is not covered`);
+    }
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    const end=await actions.boundingBox();
+    const card=await page.locator('#form-card').boundingBox();
+    assert(Math.abs(end.y + end.height - (card.y + card.height)) <= 1, 'At the end of the form the actions land in flow');
+    if (!bar) assert.equal(await actions.evaluate(element => getComputedStyle(element).insetBlockEnd), '0px');
+  } finally { await page.close(); }
+});
