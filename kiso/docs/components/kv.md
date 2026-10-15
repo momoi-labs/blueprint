@@ -25,7 +25,7 @@ One description-list layout. No variant prop.
 
 ## Sizes
 
-One size. The key column has a 96px minimum and grows with its content; the
+One size. The key column has a minimum of 96px, or 30% of the list when that is smaller, and grows with its content; the
 value column takes remaining space with a zero minimum. Row and column gaps
 use `--spacing-sm` and `--spacing-lg`. Keys use
 `--color-muted-foreground` and `--type-size-label`; values use `--font-mono`

@@ -48,6 +48,9 @@ try {
       else await page.mouse.click(x, y);
     }
 
+    const xs = await page.getByRole('button', { name: 'Go', exact: true }).boundingBox();
+    if (hasTouch) assert(xs.width >= 44, `${label}: xs button is 44px wide`);
+
     const failures = [];
     for (const role of ['checkbox', 'switch', 'tab', 'range']) {
       try {

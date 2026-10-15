@@ -286,6 +286,7 @@
 [data-slot="select-trigger"]:disabled { cursor: not-allowed; }
 [data-slot="select-item"] { justify-content: space-between; }
 [data-slot="select-content"] {
+  min-width: var(--radix-select-trigger-width);
   max-height: var(--radix-select-content-available-height);
   overflow: hidden;
 }
@@ -432,6 +433,7 @@
   inset-inline: 0;
   inset-block-end: 0;
   max-height: 85dvh;
+  padding-block-end: env(safe-area-inset-bottom);
   border-start-start-radius: var(--radius-surface);
   border-start-end-radius: var(--radius-surface);
 }

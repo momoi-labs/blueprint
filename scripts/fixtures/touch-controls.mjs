@@ -41,6 +41,7 @@ function Fixture() {
         h(TabsContent, { value: 'logs' }, 'Logs panel'),
       ),
     ),
+    h('section', { id: 'xs-button' }, h('button', { type: 'button', className: 'btn btn-xs' }, 'Go')),
     h('section', { id: 'time-range', className: 'stack' },
       h('h2', null, 'Time range'),
       h(TimeRangeControl, { value: range, bounds, onValueChange: setRange }),

@@ -127,6 +127,9 @@ try {
     await confirm.waitFor();
     await page.waitForTimeout(100);
     assert(await confirm.isVisible(), `${label}: the confirmation survives the sheet`);
+    if (hasTouch) await page.touchscreen.tap(4, 4); else await page.mouse.click(4, 4);
+    assert(await confirm.isVisible(), `${label}: a backdrop tap keeps the confirmation open`);
+    assert(await confirm.evaluate(element => element.contains(document.activeElement)), `${label}: a backdrop tap keeps focus in the confirmation`);
     await activate(confirm.getByRole('button', { name: 'Confirm remove' }));
     await confirm.waitFor({ state: 'detached' });
     assert.equal(await page.locator('output').textContent(), 'Removed', `${label}: the confirmation runs`);

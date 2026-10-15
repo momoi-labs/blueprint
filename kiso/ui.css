@@ -1418,7 +1418,7 @@ pre {
    the frame — the same reason `.table-scroll` exists. Write `<pre><code>`. */
 pre code { display: block; overflow-x: auto; padding: 0; background: none; border: 0; }
 
-.kv { display: grid; grid-template-columns: minmax(96px, auto) minmax(0, 1fr); gap: var(--spacing-sm) var(--spacing-lg); font-size: var(--type-size-body); }
+.kv { display: grid; grid-template-columns: minmax(min(96px, 30%), auto) minmax(0, 1fr); gap: var(--spacing-sm) var(--spacing-lg); font-size: var(--type-size-body); }
 .kv dt { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
 .kv dd { margin: 0; font-family: var(--font-mono); font-size: var(--type-size-label); overflow-wrap: anywhere; }
 
@@ -1620,7 +1620,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   .btn, .input, .select, .nav-item, .menu-item, .tabs button {
     min-height: var(--size-touch-min);
   }
-  .btn-icon, .tabs button { min-width: var(--size-touch-min); }
+  .btn-icon, .btn-xs, .tabs button { min-width: var(--size-touch-min); }
   .pagination { flex-wrap: wrap; }
   .pagination .btn { min-width: var(--size-touch-min); flex-shrink: 0; }
   /* Let the frame include the touch-sized buttons and both borders. */
@@ -3416,7 +3416,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .btn.choice-tile:is(.btn-primary, .btn-danger) :is(.choice-icon, .choice-description) { color: inherit; }
 /* One labelled list is shared by the full and compact progress layouts. */
 .steps { container: kiso-steps / inline-size; width: 100%; min-width: 0; }
-.steps-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--spacing-lg); list-style: none; margin: 0; padding: 0; }
+/* A step never breaks mid-word: when the columns cannot fit, the row scrolls. */
+.steps-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(min-content, 1fr); gap: var(--spacing-lg); list-style: none; margin: 0; padding: 0; overflow-x: auto; }
 .steps-list > li { position: relative; min-width: 0; }
 .steps-list > li:not(:last-child)::before { content: ""; position: absolute; inset-block-start: calc(var(--size-control-md) / 2 - 1px); inset-inline-start: calc(50% + var(--size-control-md) / 2 + var(--spacing-xs)); width: max(0px, calc(100% + var(--spacing-lg) - var(--size-control-md) - 2 * var(--spacing-xs))); height: 2px; pointer-events: none; background: var(--color-border); }
 .steps-list > li[data-state="completed"]::before { background: var(--color-foreground); }
@@ -3428,7 +3429,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .steps-list > li[data-state="completed"] .steps-marker { --step-fill: var(--color-foreground); --step-border: var(--color-foreground); color: var(--color-background); }
 .steps-list > li[data-current="true"] .steps-marker { --step-fill: var(--color-primary); --step-border: var(--color-link); color: var(--color-primary-foreground); }
 .steps-list > li[data-state="error"] .steps-marker { --step-fill: var(--color-danger-surface); --step-border: var(--color-danger); color: var(--color-danger); }
-.steps-copy { display: grid; gap: var(--spacing-2xs); min-width: 0; overflow-wrap: anywhere; }
+.steps-copy { display: grid; gap: var(--spacing-2xs); min-width: 0; overflow-wrap: break-word; }
 .steps-label { font-weight: var(--type-weight-semibold); }
 .steps-state, .steps-description { color: var(--color-muted-foreground); font-size: var(--type-size-body); }
 .steps-list > li:is([data-state="upcoming"], [data-state="disabled"]):not([data-current="true"]) .steps-label { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
@@ -3656,6 +3657,24 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   /* The page ends above the bar, so its last content can scroll clear. */
   .app-shell:has(> .bottom-nav) {
     padding-block-end: calc(var(--app-shell-outer, 0px) + var(--bottom-nav-size) + env(safe-area-inset-bottom));
+  }
+}
+/* A scroller that overflows sideways fades the edge that has more behind it.
+   The fade follows the scroll position and is absent when nothing overflows
+   or when the browser has no scroll-driven animations. */
+@property --scroll-fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --scroll-fade-end { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes scroll-fade {
+  0% { --scroll-fade-start: 0px; --scroll-fade-end: var(--spacing-xl); }
+  4% { --scroll-fade-start: var(--spacing-xl); }
+  96% { --scroll-fade-end: var(--spacing-xl); }
+  100% { --scroll-fade-start: var(--spacing-xl); --scroll-fade-end: 0px; }
+}
+@supports (animation-timeline: scroll()) {
+  :is(.table-scroll, .chart-table-scroll, .diagram-scroll, .steps-list) {
+    mask-image: linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent);
+    animation: scroll-fade linear both;
+    animation-timeline: scroll(self inline);
   }
 }
 @media (forced-colors: active) {
