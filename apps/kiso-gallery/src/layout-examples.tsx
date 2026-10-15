@@ -61,6 +61,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  RadioGroup,
+  RadioGroupItem,
 } from "@momoi-labs/kiso-react";
 
 export const layouts = [
@@ -876,13 +878,9 @@ function ListDetailExamples({ description, initialScene, initialResult }: { desc
               </select>
             </label>
           ) : null}
-          <div className="btn-group" role="group" aria-label="View">
-            {scenes.map(([key, label]) => (
-              <Button key={key} size="sm" aria-pressed={scene === key} onClick={() => setScene(key)}>
-                {label}
-              </Button>
-            ))}
-          </div>
+          <RadioGroup label="View" variant="segmented" value={scene} onValueChange={setScene}>
+            {scenes.map(([key, label]) => <RadioGroupItem key={key} value={key} label={label} />)}
+          </RadioGroup>
         </div>
       </div>
       <LayoutPreview route={`example/list-detail/${scene}/${createFails ? "error" : "success"}`}>
@@ -905,7 +903,9 @@ const PhoneView = createContext(false);
 function LayoutPreview({ route, children }: { route: string; children: ReactNode }) {
   const phone = useContext(PhoneView);
   if (phoneFrame) return <div className="layout-preview">{children}</div>;
-  if (phone) return <iframe className="layout-phone-frame" title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />;
+  if (phone) return <Card className="layout-phone-frame">
+    <iframe title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />
+  </Card>;
   return <Card className="layout-preview">{children}</Card>;
 }
 
@@ -916,10 +916,10 @@ export function LayoutExamples({ route }: { route: string }) {
   const guided = route.split("/")[1] === "guided-flow";
   return (
     <div className="stack">
-      <div className="btn-group layout-device" role="group" aria-label="Layout width">
-        <Button size="sm" aria-pressed={!phone} onClick={() => choose(false)}>Desktop</Button>
-        <Button size="sm" aria-pressed={phone} onClick={() => choose(true)}>Phone</Button>
-      </div>
+      <RadioGroup label="Preview width" variant="segmented" className="layout-device" value={phone ? "phone" : "desktop"} onValueChange={value => choose(value === "phone")}>
+        <RadioGroupItem value="desktop" label="Desktop" />
+        <RadioGroupItem value="phone" label="Phone" />
+      </RadioGroup>
       <PhoneView.Provider value={phone}>
         {phone && guided ? <LayoutPreview route={route}>{null}</LayoutPreview> : <LayoutExample route={route} />}
       </PhoneView.Provider>
