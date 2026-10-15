@@ -47,6 +47,7 @@
   gap: var(--spacing-xs);
   padding: 0 var(--spacing-lg) var(--spacing-md);
 }
+.gallery-settings-buttons { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
 .gallery-settings-actions [role="status"]:empty { display: none; }
 [data-app-shell="inset"] .component-gallery > .gallery-settings-panel { border: 0; }
 @media (min-width: 1200px) {

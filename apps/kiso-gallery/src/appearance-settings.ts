@@ -40,6 +40,7 @@ declare global {
   interface Window {
     kisoAppearance: {
       defaults: AppearanceSettings;
+      options: Record<keyof AppearanceSettings, readonly string[]>;
       read: () => AppearanceSettings;
       save: (settings: AppearanceSettings) => AppearanceSettings;
     };
