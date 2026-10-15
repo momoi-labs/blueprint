@@ -16,7 +16,7 @@ a gate, not a product tour. After success, enter the
 | Region | Compose with | Role |
 | --- | --- | --- |
 | Page canvas | two equal columns on `--color-background`; one column on narrow screens | No Header/Sidebar product chrome |
-| Context panel | `--color-muted` column, full height, half the width | Brand, optional server origin, one heading and access help. Hidden on narrow screens |
+| Context panel | `--color-card` column, full height, half the width | Brand, optional server origin, one heading and access help. Hidden on narrow screens |
 | Brand | product name / home [Link](../components/link.md) or [BrandMark](../components/brand-mark.md) | Identity only; not a marketing hero. Repeated above the form on narrow screens |
 | Form surface | [Card](../components/card.md) | Contains the auth form |
 | Fields | [FormField](../components/form-field.md) | Email/username [Input](../components/input.md), secret in [PasswordInput](../components/password-input.md), optional OTP Input |
@@ -26,7 +26,7 @@ a gate, not a product tour. After success, enter the
 | Access help | list in the context panel; [Disclosure](../components/disclosure.md) in the form on narrow screens | Same content in both places |
 | Busy | Button with [Spinner](../components/spinner.md) and `aria-busy` | Prevent double submit |
 
-Tokens: canvas `--color-background`, context panel `--color-muted`, Card `--color-surface` / `--color-border`,
+Tokens: canvas `--color-background`, context panel `--color-card`, Card `--color-surface` / `--color-border`,
 text `--color-foreground` / `--color-muted-foreground`, primary action
 `--color-primary`, focus `--color-focus`. Keep flourish out of error copy
 ([voice-and-tone](../voice-and-tone.md)).
@@ -82,7 +82,7 @@ fields; do not hide password auth without a documented product decision.
 
 ```text
 ┌──────────────────────────────────┬───────────────────────────────────┐
-│ --color-muted                    │ --color-background                │
+│ --color-card                     │ --color-background                │
 │                                  │                                   │
 │ [N] Momoi Product                │      ┌─────────────────────────┐  │
 │     app.example.com              │      │ Card: Sign in           │  │
