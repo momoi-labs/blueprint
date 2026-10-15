@@ -68,6 +68,9 @@
 .app-shell.layout-shell { min-height: 740px; }
 /* Inside a card the sidebar takes the card's height, not the viewport's. */
 .app-shell.layout-shell > .sidebar { position: static; height: auto; }
+/* The gallery scrolls the card past its header, so the header stays in the
+   card. The phone preview is its own document and keeps the sticky header. */
+.layout-preview:not(.layout-phone-document *) > .app-shell.layout-shell > :is(main, [data-slot="app-shell-main"]) > .topbar { position: static; }
 .layout-shell .topbar > .layout-inline { margin-inline-start: auto; }
 /* On a phone the tab bar marks the page, so the header keeps the brand and
    the plan; the location trail and the workspace subtitle would only wrap. */
