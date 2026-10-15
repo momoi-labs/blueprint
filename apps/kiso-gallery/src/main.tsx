@@ -1,18 +1,40 @@
 import { StrictMode, useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { AppShell, AppShellMain } from "@momoi-labs/kiso-react";
+import { AppShell, AppShellMain, Toasts, useToast } from "@momoi-labs/kiso-react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts, phoneFrame } from "./layout-examples";
 import { Intro } from "./intro";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
+import { readShare, shareParam, type ShareResult } from "./appearance-share";
+import { announceShare } from "./appearance-share-ui";
 import "@momoi-labs/kiso-react/styles.css";
 import "../../../kiso/blocks/react-prototype/src/gallery.css";
 import "./app.css";
 import "./appearance.css";
 import "./gallery-settings.css";
 
+// A share link applies and saves its look, then drops the code from the URL.
+// The hash keeps the route, so the code lives in the query string.
+let incomingLook: ShareResult | null = null;
+if (!phoneFrame) {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get(shareParam);
+  if (code !== null) {
+    incomingLook = readShare(code, window.kisoAppearance);
+    if (incomingLook.settings) window.kisoAppearance.save(incomingLook.settings);
+    url.searchParams.delete(shareParam);
+    window.history.replaceState(null, "", url);
+  }
+}
+
 function App() {
+  const notify = useToast();
+  useEffect(() => {
+    const look = incomingLook;
+    incomingLook = null;
+    if (look) announceShare(look, notify);
+  }, [notify]);
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "intro"
   );
@@ -76,6 +98,6 @@ function PhoneFrame() {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {phoneFrame ? <PhoneFrame /> : <App />}
+    {phoneFrame ? <PhoneFrame /> : <Toasts><App /></Toasts>}
   </StrictMode>
 );

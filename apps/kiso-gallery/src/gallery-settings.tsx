@@ -5,6 +5,7 @@ import { DemoSettingsContext, type DemoChoiceProps } from "../../../kiso/blocks/
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
 import { AppearanceControls, VisualSelector } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
+import { AppearanceShare } from "./appearance-share-ui";
 import { AppearanceUsage } from "./appearance-usage";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
@@ -92,7 +93,10 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   }
   const controls = <>
     <div className="gallery-settings-actions">
-      <Button size="sm" onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
+      <div className="gallery-settings-buttons">
+        <Button size="sm" onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
+        <AppearanceShare settings={settings} onApply={onChange} />
+      </div>
       <p role="status" className="muted t-label">{message}</p>
     </div>
     <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0}>
