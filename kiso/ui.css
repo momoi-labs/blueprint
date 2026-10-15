@@ -1379,6 +1379,8 @@ table.table {
   display: grid; min-width: 0; gap: var(--page-header-gap);
   padding-block: var(--page-header-padding); overflow-wrap: anywhere;
 }
+/* The page owns the spacing between blocks, so its header adds none. */
+.page > .page-header, .page > [data-slot="page-header-row"] > .page-header { padding-block: 0; }
 .page-header > :is([data-slot="page-header-title"], .t-h1) {
   font-size: var(--page-header-title-size);
   letter-spacing: var(--page-header-tracking);
