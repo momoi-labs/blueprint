@@ -88,3 +88,10 @@ check touch targets, taps, disabled controls, and keyboard interaction for
 Lifecycle, Checkbox, Switch, Tabs, and TimeRangeControl in Chromium. Checks
 cover coarse and fine pointers at 390px and 1280px in both themes. Set
 `SCREENSHOT_DIR=artifacts/touch-controls` to save screenshots.
+
+`npm run check:browser` runs every `scripts/check-*-browser.mjs` in parallel
+(`KISO_BROWSER_CONCURRENCY` sets the limit). `npm run check:changed` runs only
+the browser checks and gallery tests related to files changed against
+`origin/main`, and everything when `ui.css` or other shared code changed. Gallery
+tests run one viewport per sweep unless `KISO_FULL_SWEEP=1`, which CI sets on
+`main` and nightly.
