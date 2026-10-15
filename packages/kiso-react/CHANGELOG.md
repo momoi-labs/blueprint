@@ -1,5 +1,16 @@
 # @momoi-labs/kiso-react
 
+## 0.16.1
+
+### Patch Changes
+
+- e1973ba: ApplicationShell with `phoneNavigation="bottom"` now shows `primaryAction` in the header, after the brand, below 700px. Before, the menu button was hidden and neither the bar nor the More sheet held it, so a phone could not reach it. A menu passed as `primaryAction` opens from the header. From 700px the drawer and sidebar hold it as before.
+- Updated dependencies [e1973ba]
+- Updated dependencies [da2fa9d]
+- Updated dependencies [6fc79f4]
+- Updated dependencies [6460ce3]
+  - @momoi-labs/kiso@0.20.3
+
 ## 0.16.0
 
 ### Minor Changes

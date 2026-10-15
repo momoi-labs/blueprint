@@ -1,5 +1,14 @@
 # @momoi-labs/kiso
 
+## 0.20.3
+
+### Patch Changes
+
+- e1973ba: ApplicationShell with `phoneNavigation="bottom"` now shows `primaryAction` in the header, after the brand, below 700px. Before, the menu button was hidden and neither the bar nor the More sheet held it, so a phone could not reach it. A menu passed as `primaryAction` opens from the header. From 700px the drawer and sidebar hold it as before.
+- da2fa9d: An inset application frame with a patterned background no longer shows a dark ring around the frame. The area around the frame now uses the same paper as the inside, including accent paper, so the pattern reads as one surface. A solid background and the default frame look the same.
+- 6fc79f4: Lifecycle status badges keep all four borders on phones. At 720px and below the status cluster dropped its joined frame but kept the frame's clip and Pixel contour, which cut the corners of the last badge and broke its right border. The cluster now carries no clip there, and each wrapped badge takes the corner treatment and tone border of a standalone badge. At 721px and wider the joined cluster looks as before.
+- 6460ce3: Sticky FormActions now stop above the BottomNav on phones. The fixed bar covered the save bar while a tall form scrolled. A shell with a bar sets `--shell-bottom-inset` to the bar's height plus the safe area below 700px, and sticky FormActions use it as their bottom offset. Pages without a bar, and sticky actions in a `form-scroll` region, keep a zero offset.
+
 ## 0.20.2
 
 ### Patch Changes
