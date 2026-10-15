@@ -1773,6 +1773,11 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     height: var(--size-control-sm);
     border-width: 1px; border-style: solid; border-radius: var(--radius-sm);
   }
+  /* A neutral badge has no border color of its own, and a wrapped one would be
+     bare text next to the boxed tones. */
+  .lifecycle > .cluster-status > .badge:not(.badge-solid, .badge-outline, .badge-info, .badge-success, .badge-warning, .badge-danger) {
+    border-color: var(--color-border);
+  }
 }
 
 /* Choice controls participate in the shared control appearance rules below. */

@@ -175,6 +175,16 @@ try {
         return ['Top', 'Right', 'Bottom', 'Left'].every(side => parseFloat(style[`border${side}Width`]) >= 1)
           && item === document.elementFromPoint(rect.right - 2, rect.top + rect.height / 2);
       })), `${label}: every badge shows all four borders`);
+      // A neutral tone has no border of its own, so the phone gives it one.
+      const borders = element => {
+        const style = getComputedStyle(element);
+        return ['Top', 'Right', 'Bottom', 'Left'].map(side => [style[`border${side}Width`], style[`border${side}Color`], style[`border${side}Style`]]);
+      };
+      const neutral = await cluster.locator('.badge', { hasText: 'Health unverified' }).evaluate(borders);
+      assert(neutral.every(([width, color, style]) => parseFloat(width) >= 1 && style !== 'none' && color !== 'rgba(0, 0, 0, 0)' && color !== 'transparent'),
+        `${label}: the neutral status badge shows a border on all four sides`);
+      assert(!(await page.locator('#standalone').evaluate(borders)).some(([, color]) => color !== 'rgba(0, 0, 0, 0)'),
+        `${label}: a standalone neutral badge keeps its transparent border`);
       if (screenshots) await page.screenshot({ path: `${screenshots}/${label}.png`, clip: { x: 0, y: 0, width: 390, height: 140 } });
     }
     console.log(`${colorScheme}-390: wrapped status badges keep their own borders.`);

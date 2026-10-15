@@ -26,13 +26,14 @@ function Fixture() {
     h(Lifecycle, {
       status: [
         h(StatusBadge, { key: 'state', tone: 'success' }, 'Running'),
-        h(StatusBadge, { key: 'health', tone: 'warning' }, 'Health unverified'),
+        h(StatusBadge, { key: 'health', tone: 'neutral' }, 'Health unverified'),
       ],
       actions: [action('Start', true), action('Stop'), action('Restart')],
       destructive: new URLSearchParams(location.search).has('confirm')
         ? h(OwnConfirm, { onConfirm: () => setActions(current => [...current, 'Removed']) })
         : h(Button, { size: 'sm', variant: 'ghost', className: 'btn-danger-ghost' }, 'Remove'),
     }),
+    h(StatusBadge, { id: 'standalone', tone: 'neutral' }, 'Standalone'),
     h('output', { 'aria-label': 'Actions triggered' }, actions.join(', ')),
   );
 }
