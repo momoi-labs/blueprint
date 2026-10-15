@@ -407,6 +407,108 @@ test('New border contours, clearance, patterns and frameless suppression compose
   } finally { await page.close(); }
 });
 
+// Side rail, Weighted base and Offset outline are hard shadows: light from the
+// right, from above, and from the top left. Each frame is compared with Solid
+// in flat test colors: shadow red, border blue, outside and fill distinct.
+const casts = { rail: [-1, 0], base: [0, 1], offset: [1, 1] };
+const shadowFrames = [
+  ...['rounded', 'asym', 'square'].flatMap(corners => Object.keys(casts).map(border => ({ query: `corners=${corners}`, border, shapes: { '#sample': corners, '#outer': corners } }))),
+  // The outer frame resolves its own corners when they differ from the panels.
+  { query: 'corners=rounded&outerCornerStyle=square', border: 'rail', shapes: { '#sample': 'rounded', '#outer': 'square' } },
+  { query: 'corners=square&outerCornerStyle=rounded', border: 'base', shapes: { '#sample': 'square', '#outer': 'rounded' } },
+];
+test('Shadow border styles cast away from the light and keep the panel border', async () => {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 2 });
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  const colors = ':root, [data-theme] { --color-border-strong: rgb(255, 0, 0) !important; --color-border: rgb(0, 0, 255) !important; --color-card: rgb(255, 255, 255) !important; --color-background: rgb(0, 160, 0) !important; --color-sidebar: rgb(0, 0, 0) !important; --color-accent-surface: rgb(0, 0, 0) !important; } .card { box-shadow: none !important; }';
+  const failures = [];
+  try {
+    let loaded;
+    for (const frame of shadowFrames) {
+      if (loaded !== frame.query) {
+        await page.goto(`${url}?canvas&marks=none&${frame.query}`, { timeout: 30000 }); await page.locator('#outer #sample').waitFor({ timeout: 30000 });
+        await page.addStyleTag({ content: colors }); loaded = frame.query;
+      }
+      for (const [id, shape] of Object.entries(frame.shapes)) {
+        const shot = async border => {
+          await page.evaluate(border => { document.documentElement.dataset.borderStyle = border; }, border);
+          const el = page.locator(id); await el.scrollIntoViewIfNeeded();
+          const box = await el.boundingBox(); const pad = 10;
+          const png = await page.screenshot({ clip: { x: box.x - pad, y: box.y - pad, width: box.width + 2 * pad, height: box.height + 2 * pad } });
+          return { source: `data:image/png;base64,${png.toString('base64')}`, box, radius: await el.evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius)) };
+        };
+        const solid = await shot('solid'), cast = await shot(frame.border);
+        const result = await page.evaluate(async ({ solid, cast, direction, outside, fill }) => {
+          const load = async source => {
+            const image = new Image(); image.src = source; await image.decode();
+            const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+            return { width: image.width, height: image.height, data: ctx.getImageData(0, 0, image.width, image.height).data };
+          };
+          const S = await load(solid.source), T = await load(cast.source), scale = S.width / (solid.box.width + 20);
+          const at = (img, x, y) => { const i = (Math.round(y) * img.width + Math.round(x)) * 4; return [img.data[i], img.data[i + 1], img.data[i + 2]]; };
+          const near = (a, b, d = 60) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < d;
+          const red = p => p[0] > 180 && p[1] < 90 && p[2] < 90;
+          // Device pixels of the border box inside the clip.
+          const L = 10 * scale, Tp = 10 * scale, R = L + solid.box.width * scale - 1, B = Tp + solid.box.height * scale - 1;
+          const span = (from, to) => Array.from({ length: Math.floor(to - from) }, (_, n) => from + n);
+          const margin = (solid.radius + 6) * scale;
+          const xs = span(L + margin, R - margin), ys = span(Tp + margin, B - margin);
+          const strip = (img, side, from, to) => {
+            const points = [];
+            for (let d = from * scale; d <= to * scale; d++) {
+              if (side === 'left') ys.forEach(y => points.push([L - d, y]));
+              if (side === 'right') ys.forEach(y => points.push([R + d, y]));
+              if (side === 'top') xs.forEach(x => points.push([x, Tp - d]));
+              if (side === 'bottom') xs.forEach(x => points.push([x, B + d]));
+            }
+            return points.filter(([x, y]) => red(at(img, x, y))).length / points.length;
+          };
+          const sides = ['left', 'right', 'top', 'bottom'];
+          const out = Object.fromEntries(sides.map(side => [side, strip(T, side, 1, 2.5)]));
+          const inside = Object.fromEntries(sides.map(side => [side, strip(T, side, -2.5, -1.5)]));
+          // The panel's own edge: pixels up to 6px inside the border box that are
+          // not outside in Solid and not next to the outside.
+          let changed = 0, gaps = 0;
+          const ring = (x, y) => x >= L && x <= R && y >= Tp && y <= B && Math.min(x - L, R - x, y - Tp, B - y) < 6 * scale;
+          const isOutside = (x, y) => near(at(S, x, y), outside);
+          for (let y = 1; y < S.height - 1; y++) for (let x = 1; x < S.width - 1; x++) {
+            const s = at(S, x, y), t = at(T, x, y);
+            if (ring(x, y) && !isOutside(x, y) && ![[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]].some(([dx, dy]) => isOutside(x + dx, y + dy)) && (near(s, [0, 0, 255], 40) || near(s, fill, 40)) && !near(s, t, 40)) changed++;
+            // From every shadow pixel, the way back toward the panel stays shadow or panel.
+            if (red(t) && isOutside(x, y)) {
+              const length = Math.hypot(...direction);
+              for (let step = 1; step <= 4 * scale; step++) {
+                const px = x - direction[0] / length * step, py = y - direction[1] / length * step;
+                if (!isOutside(px, py)) break;
+                if (near(at(T, px, py), outside)) { gaps++; break; }
+              }
+            }
+          }
+          return { out, inside, changed, gaps };
+        }, { solid, cast, direction: casts[frame.border], outside: id === '#outer' ? [0, 0, 0] : [0, 160, 0], fill: id === '#outer' ? [0, 160, 0] : [255, 255, 255] });
+        const [dx, dy] = casts[frame.border];
+        const castSides = [dx < 0 && 'left', dx > 0 && 'right', dy < 0 && 'top', dy > 0 && 'bottom'].filter(Boolean);
+        const name = `${id} ${frame.border} ${frame.query} (${shape})`;
+        const check = (ok, message) => { if (!ok) failures.push(`${name}: ${message} ${JSON.stringify(result)}`); };
+        // Square corners keep the 0.20.0 look: Side rail and Weighted base paint inside the panel.
+        const within = shape === 'square' && frame.border !== 'offset';
+        for (const side of ['left', 'right', 'top', 'bottom']) {
+          const casting = castSides.includes(side);
+          check(casting && !within ? result.out[side] > .9 : result.out[side] < .02, `outside ${side}`);
+          check(casting && within ? result.inside[side] > .6 : result.inside[side] < .02, `inside ${side}`);
+        }
+        if (shape !== 'square') {
+          // A few anti-aliased pixels on a fractional edge may take the shadow tint.
+          check(result.changed <= 6, 'the panel border and fill match Solid');
+          check(result.gaps === 0, 'the shadow meets the panel without a gap');
+        }
+      }
+    }
+  } finally { await page.close(); }
+  assert.deepEqual(failures, []);
+});
+
 for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accent in ${theme}`, async () => {
   const page = await open(`canvas&theme=${theme}&backgroundStyle=momoi&panelFill=translucent`);
   try {

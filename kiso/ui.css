@@ -1163,7 +1163,7 @@ table.table {
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   position: relative;
   /* Large marks need room beyond the shell's standard padding. */
-  margin: max(0px, calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-sheet-clearance, 0px)) - var(--app-shell-outer)));
+  margin: max(0px, calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)) - var(--app-shell-outer)));
   /* The frame and its outer marks sit above both adjacent rails. */
   z-index: 1;
   min-height: 0;
@@ -1822,8 +1822,12 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-content: initial;
   --appearance-marks-enabled: 1;
   --appearance-overlay-content: none;
-  --appearance-overlay-inset: 0;
+  --appearance-overlay-inset: 0px;
   --appearance-overlay-border: 0;
+  --appearance-cast: 0;
+  --appearance-cast-x: 0px;
+  --appearance-cast-y: 0px;
+  --appearance-cast-inside: 0;
   --appearance-overlay-radius: var(--appearance-corners);
   --appearance-ink-images: none;
   --appearance-ink-image-size: auto;
@@ -1869,8 +1873,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-base-opposite: .25;
   --appearance-control-opposite: calc(1 / 3);
 }
+/* A shadow follows the outer frame's own corners, also when the frame only
+   sets an outer corner style. */
+:where([data-border-style="rail"], [data-border-style="base"], [data-border-style="offset"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-radius: var(--appearance-corners); }
 [data-border-style="rail"],
-:where([data-outer-border-style="rail"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-base-radius: 6px; --appearance-control-base: 3px; --appearance-panel-shadow: inset 3px 0 var(--color-border-strong); }
+:where([data-outer-border-style="rail"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-base-radius: 6px; --appearance-control-base: 3px;
+  /* Light from the right casts the shadow to the left. */
+  --appearance-cast: 1; --appearance-cast-x: -3px; --appearance-cast-inside: 1;
+}
 [data-border-style="dash"],
 :where([data-outer-border-style="dash"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-panel-border: dashed; }
 [data-border-style="bevel"],
@@ -1881,13 +1891,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where([data-outer-border-style="base"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: "";
   /* Match the outer frame so the thick base covers its bottom hairline. */
   --appearance-overlay-inset: -1px;
-  --appearance-panel-shadow: inset 0 -3px var(--color-border-strong);
+  /* Light from above casts the shadow below. */
+  --appearance-cast: 1; --appearance-cast-y: 3px; --appearance-cast-inside: 1;
 }
 [data-border-style="offset"],
 :where([data-outer-border-style="offset"]) :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: "";
   --appearance-overlay-inset: -1px;
-  /* An opaque, hard shadow keeps underlying content out of the offset. */
-  --appearance-panel-shadow: 3px 3px 0 0 var(--color-border-strong);
+  /* Light from the top left casts an opaque, hard shadow to the bottom right. */
+  --appearance-cast: 1; --appearance-cast-x: 3px; --appearance-cast-y: 3px;
 }
 
 /* Corner choices override legacy border radii and survive nested border scopes. */
@@ -1927,15 +1938,31 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border-radius: var(--appearance-corners);
   border-style: var(--appearance-panel-border);
 }
+/* Side rail, Weighted base and Offset outline cast a hard shadow away from
+   the light. With rounded corners (k = 1) the overlay matches the border box
+   and the shadow is the panel's shape swept along the cast, so it follows
+   every corner and leaves the panel's border alone. Square corners (k = 0)
+   keep the flat band inside the panel. Each frame resolves k from its own
+   corners, and an outside shadow keeps the corner marks clear. */
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone) {
+  --appearance-cast-k: calc(var(--appearance-cast, 0) * var(--appearance-rounded, 0) * clamp(0, var(--appearance-scale, 1) * 100, 1) * (1 - var(--appearance-pixel, 0)));
+  --appearance-cast-clearance: calc(var(--appearance-cast-k) * var(--appearance-cast-inside, 0) * var(--spacing-xs));
+}
 /* Paint decorative edges above table headers and panel footers. */
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
   content: var(--appearance-mark-content, var(--corner-overlay-content, var(--appearance-overlay-content, none)));
+  --appearance-cast-out: calc(1 - var(--appearance-cast-inside, 0) * (1 - var(--appearance-cast-k, 0)));
   position: absolute;
-  inset: var(--corner-overlay-inset, var(--appearance-overlay-inset));
+  inset: var(--corner-overlay-inset, calc(var(--appearance-overlay-inset) * (1 - var(--appearance-cast-k, 0)) - 1px * var(--appearance-cast-k, 0)));
   border: var(--corner-overlay-border, var(--appearance-overlay-border));
   border-radius: var(--appearance-overlay-radius);
-  box-shadow: var(--appearance-ink-shadow, var(--corner-panel-shadow, var(--appearance-panel-shadow)));
+  box-shadow: var(--appearance-ink-shadow, var(--corner-panel-shadow, var(--appearance-panel-shadow),
+    inset calc(-1 * var(--appearance-cast-x, 0px) * (1 - var(--appearance-cast-out))) calc(-1 * var(--appearance-cast-y, 0px) * (1 - var(--appearance-cast-out))) var(--color-border-strong),
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) * 2 / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) * 2 / 3)) var(--color-border-strong),
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) / 3)) var(--color-border-strong),
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out)) var(--color-border-strong)));
   pointer-events: none;
   background-color: color-mix(in srgb, var(--frame-fill, var(--color-card)) calc(var(--appearance-expressive, 0) * 100%), var(--appearance-ink-color, var(--corner-ink-color, transparent)));
   background-image: var(--appearance-ink-images, none);
@@ -2000,7 +2027,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   /* Marks that are off (`--corner-mark: 0`) also collapse the inset to 0, so
      the pseudo-element stops reaching outside the frame and a scroll container
      around the panel does not scroll for marks nobody sees. */
-  inset: calc(var(--marks-visible, 1) * (var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)))) - var(--appearance-effect-clearance, 0px) - var(--appearance-sheet-clearance, 0px)));
+  inset: calc(var(--marks-visible, 1) * (var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap)))) - var(--appearance-effect-clearance, 0px) - var(--appearance-cast-clearance, 0px) - var(--appearance-sheet-clearance, 0px)));
   background-image: var(--appearance-mark-images,
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
@@ -2186,6 +2213,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --inner-appearance-palette-marks: var(--appearance-palette-marks);
   --inner-appearance-panel-border: var(--appearance-panel-border);
   --inner-appearance-panel-shadow: var(--appearance-panel-shadow);
+  --inner-appearance-cast: var(--appearance-cast);
+  --inner-appearance-cast-x: var(--appearance-cast-x);
+  --inner-appearance-cast-y: var(--appearance-cast-y);
+  --inner-appearance-cast-inside: var(--appearance-cast-inside);
   --inner-appearance-pixel: var(--appearance-pixel);
   --inner-appearance-rounded: var(--appearance-rounded);
   --inner-appearance-scale: var(--appearance-scale);
@@ -2256,6 +2287,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-palette-marks: var(--inner-appearance-palette-marks);
   --appearance-panel-border: var(--inner-appearance-panel-border);
   --appearance-panel-shadow: var(--inner-appearance-panel-shadow);
+  --appearance-cast: var(--inner-appearance-cast);
+  --appearance-cast-x: var(--inner-appearance-cast-x);
+  --appearance-cast-y: var(--inner-appearance-cast-y);
+  --appearance-cast-inside: var(--inner-appearance-cast-inside);
   --appearance-pixel: var(--inner-appearance-pixel);
   --appearance-rounded: var(--inner-appearance-rounded);
   --appearance-scale: var(--inner-appearance-scale);
