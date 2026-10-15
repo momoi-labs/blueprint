@@ -210,7 +210,7 @@
   gap: var(--spacing-lg);
 }
 /* Login: a context panel takes half the page beside the credential form.
-   The quiet Momoi mark and translucent card are an optional treatment. */
+   It is a page of its own, so it draws the chosen background itself. */
 .layout-login {
   position: relative;
   isolation: isolate;
@@ -225,12 +225,18 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-color: var(--canvas-mask-color);
-  mask-image: var(--canvas-mask);
+  /* The same layer as the application canvas: a mask for the symbols and
+     an image for the line patterns. */
+  background-color: var(--canvas-mask-color, transparent);
+  mask-image: var(--canvas-mask, none);
   mask-size: var(--canvas-size);
   mask-position: var(--canvas-position);
   mask-repeat: var(--canvas-repeat);
-  opacity: var(--canvas-opacity);
+  background-image: var(--canvas-pattern, none);
+  background-size: var(--canvas-size);
+  background-position: var(--canvas-position);
+  background-repeat: var(--canvas-repeat);
+  opacity: var(--canvas-opacity, .14);
 }
 .layout-login-context {
   display: grid;

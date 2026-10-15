@@ -185,6 +185,9 @@ function WorkspacePreview({
   return (
     <ApplicationShell
       className="layout-shell"
+      // A preview of a whole application: it draws the chosen background
+      // itself, as it does when it is the page in the phone preview.
+      data-background-canvas=""
       phoneNavigation="bottom"
       navigationLabel="Example workspace"
       brand={
@@ -758,7 +761,7 @@ function LoginLayout({ result }: { result: LoginResult }) {
   }
 
   return (
-    <div className="layout-login" data-background-style="momoi" data-background-strength="quiet">
+    <div className="layout-login">
       <aside className="layout-login-context" aria-labelledby={`${id}-context`}>
         <LoginBrand />
         <div className="stack-sm">

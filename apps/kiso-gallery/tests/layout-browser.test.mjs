@@ -257,3 +257,30 @@ test("The workspace remains usable at an equivalent 200% layout zoom", async () 
     await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open settings");
   } finally { await page.close(); }
 });
+
+// The phone preview must draw what the desktop preview draws for the same
+// appearance. Only the documented phone changes may differ (Momoi size and
+// corner inset), so compare what is painted, not where.
+for (const background of ["momoi", "momoi-repeat", "grid", "fibers", "solid"]) test(`Desktop and phone previews draw the same ${background} background`, async () => {
+  const appearance = { version: 2, theme: "dark", accent: "tangerine", paperTone: "accent", backgroundStyle: background };
+  const layer = selector => {
+    const element = document.querySelector(selector);
+    const style = getComputedStyle(element, "::before");
+    return { drawn: style.content !== "none", mask: style.maskImage, image: style.backgroundImage, repeat: style.maskRepeat, color: style.backgroundColor, opacity: style.opacity,
+      paper: getComputedStyle(element).backgroundColor };
+  };
+  for (const [example, selector] of [["login", ".layout-login"], ["dashboard", ".layout-shell"]]) {
+    const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    try {
+      for (const page of [desktop, phone]) await page.addInitScript(value => {
+        localStorage.setItem("kiso-gallery-appearance", JSON.stringify(value));
+        localStorage.setItem("kiso-gallery-layout-device", "desktop");
+      }, appearance);
+      await desktop.goto(`${url}#example/${example}`);
+      await phone.goto(`${url}?phone-frame#example/${example}`);
+      for (const page of [desktop, phone]) await page.locator(selector).waitFor();
+      assert.deepEqual(await phone.evaluate(layer, selector), await desktop.evaluate(layer, selector), `${example} on a phone`);
+    } finally { await desktop.close(); await phone.close(); }
+  }
+});
