@@ -1,5 +1,69 @@
 # @momoi-labs/kiso
 
+## 0.20.0
+
+### Minor Changes
+
+- 115a322: Add CodeEditor, a native textarea for short code with line numbers and a highlight the product provides.
+  
+  - One field frame holds the gutter and the code, so every border style, corner style and frame scope draws a single contour. Inner parts have no fill of their own, so Pixel corners stay visible.
+  - `highlight` returns React nodes or HTML as `{ __html }`, as from Prism. Kiso ships no highlighter. Without one, or under forced colors, the textarea shows its own text.
+  - `lineNumbers` turns the gutter on or off. The gutter and the highlight follow the textarea on both scroll axes and use the same font metrics.
+  - Focus, invalid and disabled states reach the frame inside FormField.
+- 9f0f91f: Fit the inset app shell to phones. Below 700px wide the inset frame now meets
+  the screen edges: no outer padding, canvas margin, border, corners or corner
+  marks. Wider screens are unchanged. `data-app-shell-outer` on `html` chooses
+  `full`, `compact` or `none` at every width instead; `auto`, the default, keeps
+  the new behavior.
+  
+  Add `BottomNav`, `BottomNavLink` and `BottomNavBadge` for a phone's main
+  destinations in a bar fixed to the bottom edge below 700px. A sidebar
+  ApplicationShell builds the bar from its navigation with
+  `phoneNavigation="bottom"` and keeps the drawer between 700px and 1023px.
+  With more than five destinations, the bar shows four and a More button that
+  opens the rest, with the footer, in a bottom sheet. A
+  top-bar ApplicationShell takes a BottomNav in its `bottomNav` slot. The shell
+  reserves space so the last content scrolls clear of the bar.
+  
+  `.topbar` now has a minimum height instead of a fixed one, so wrapped header
+  content stays inside it. Header content taller than 52px now grows the bar
+  instead of spilling over its border. The Momoi watermark is at most 64px wide
+  below 700px, and it now sits 8px inside the frame's corner instead of on the
+  frame's border.
+- e3b7a11: ApplicationShell, Tabs and Lifecycle now fit a phone.
+  
+  - ApplicationShell: below 1024px the sidebar leaves the page and opens as a drawer from a menu button at the start of the header. The drawer holds the brand, the primary action, the navigation and the footer, and closes when a destination is picked. Pass `drawerOpen` and `onDrawerOpenChange` to close it from somewhere the drawer cannot see, such as a menu that opens in a portal. A sidebar laid out by hand with AppShell keeps the stacked navigation.
+  - Tabs: the new `sections` prop shows each panel under a header of its own below 1024px, one open at a time, instead of a strip of triggers that cannot fit. The panels are the same elements in both layouts, so crossing the breakpoint keeps an edited form or a running terminal.
+  - Lifecycle: at 720px and below the status stays in the row and every action moves into a bottom sheet behind a "More actions" button. `actionsLabel` names the sheet. Status badges wrap instead of running off the screen.
+
+### Patch Changes
+
+- 9118a27: A pixel Textarea no longer paints over a layered editor. The pixel rules kept the field-control exclusion outside `:where()`, which raised their specificity to two classes. A later single-class `background: transparent` now clears the pixel fill.
+- 47e44fd: Secondary text keeps its muted color on opaque surfaces over a patterned background. Inactive tabs and breadcrumb ancestors in a card, the header, a table or a dialog read as secondary again. Text on the bare canvas and on translucent panels stays at full contrast.
+- b0dac0e: A PageHeader inside `.page` no longer adds block padding in the editorial style. The gap from the header to the next section now equals the section gap, 32px.
+- 3a06bac: Fix components that broke on phone screens. Fields use 16px text on touch
+  screens, so iOS no longer zooms the page when one takes focus. A long chip
+  keeps its remove button in reach, chip suggestions scroll into view, and
+  editing a chip value no longer hides its first letter. A toast fits a 320px
+  screen. Tab labels keep their width, the strip scrolls inside itself, and a
+  disabled tab looks disabled. A breadcrumb wraps and its links take touch
+  height. Page actions go under the title below 560px. Table numbers keep their
+  unit on one line. A side drawer keeps fields under their labels. A
+  controlled command palette returns focus to the control that opened it. On
+  touch, a pane header scrolls the page and a grip moves the pane. Placeholders
+  stay muted over patterned backgrounds. Accent pills and DetailSelect
+  illustrations fit touch screens.
+- 00d6ba8: Phone polish from the component review.
+  
+  - Chart: the last x-axis label is no longer cut.
+  - Table, Chart data table, ChartLegend, Diagram and horizontal Steps fade the edge that has more content behind it when they scroll sideways.
+  - Steps: a horizontal list no longer breaks words mid-word. It scrolls instead.
+  - Button `xs` is 44px wide on a coarse pointer.
+  - Select: the listbox is never narrower than its trigger.
+  - Bottom sheets keep their content above the safe area at the bottom of the screen.
+  - AlertDialog: tapping the backdrop keeps focus inside the dialog.
+  - KV: the key column takes at most 30% of the list when the list is narrow.
+
 ## 0.19.1
 
 ### Patch Changes
