@@ -1641,6 +1641,65 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 
 
+/* ApplicationShell on a phone: the sidebar leaves the page and opens as a
+   drawer from a menu button at the start of the header. Only shells that
+   carry `data-phone-drawer` do this; a product that lays out AppShell and
+   Sidebar by hand keeps the stacked navigation above. */
+.app-shell-menu { display: none; }
+.topbar[data-phone-only="true"] { display: none; }
+@media (max-width: 1023px) {
+  .app-shell[data-phone-drawer="true"] > .sidebar { display: none; }
+  .app-shell[data-phone-drawer="true"] .app-shell-menu { display: inline-flex; flex: none; }
+  .app-shell[data-phone-drawer="true"] .topbar[data-phone-only="true"] { display: flex; }
+  /* Here the document scrolls under the sticky header, so a translucent
+     panel fill would let the page show through it. */
+  .app-shell[data-phone-drawer="true"] > :is(main, [data-slot="app-shell-main"]) > .topbar { background-color: var(--color-background); }
+}
+.app-shell-drawer [data-slot="dialog-header"] { padding-block-end: 0; }
+.app-shell-drawer [data-slot="dialog-body"] { display: grid; gap: var(--spacing-lg); align-content: start; }
+.app-shell-drawer-footer { display: grid; gap: var(--spacing-2xs); padding-block-start: var(--spacing-sm); border-top: 1px solid var(--color-border); }
+
+/* Tabs with `sections`: below 1024px the strip of triggers cannot fit, so each
+   panel gets a header of its own and one is open at a time. The panels are
+   the same elements, so their own rules (padding, height, a form's edges)
+   still apply. */
+.tabs-section { display: none; }
+@media (max-width: 1023px) {
+  [data-slot="tabs"][data-sections="true"] > [data-slot="tabs-list"] { display: none; }
+  [data-slot="tabs"][data-sections="true"] > .tabs-section {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md);
+    width: 100%; min-height: var(--size-touch-min);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 0; border-block-start: 1px solid var(--color-border);
+    background: none; color: var(--color-foreground);
+    font: inherit; font-weight: 600; text-align: start; cursor: pointer;
+  }
+  [data-slot="tabs"][data-sections="true"] > .tabs-section:first-child { border-block-start: 0; }
+  [data-slot="tabs"][data-sections="true"] > .tabs-section:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+  [data-slot="tabs"][data-sections="true"] > .tabs-section:disabled { color: var(--color-disabled); cursor: not-allowed; }
+  .tabs-section-label { display: inline-flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; min-width: 0; }
+  .tabs-section-chevron { flex: none; color: var(--color-muted-foreground); transition: transform 0.15s ease; }
+  .tabs-section[data-state="open"] .tabs-section-chevron { transform: rotate(180deg); }
+  [data-slot="tabs"][data-sections="true"][data-collapsed="true"] > [role="tabpanel"] { display: none; }
+}
+
+/* Lifecycle on a phone: the status wraps instead of running off the screen,
+   and the verbs and the destructive action move to a sheet behind one
+   button. */
+.lifecycle-more { display: none; }
+.lifecycle-sheet { display: grid; gap: var(--spacing-sm); }
+.lifecycle-sheet > .btn { width: 100%; justify-content: flex-start; }
+@media (max-width: 720px) {
+  .lifecycle { flex-wrap: nowrap; align-items: flex-start; }
+  .lifecycle > :not(.cluster-status, .lifecycle-more) { display: none; }
+  .lifecycle-more { display: inline-flex; flex: none; margin-inline-start: auto; }
+  .lifecycle > .cluster-status { height: auto; flex-wrap: wrap; gap: var(--spacing-xs); border: 0; overflow: visible; }
+  .lifecycle > .cluster-status > .badge {
+    height: var(--size-control-sm);
+    border-width: 1px; border-style: solid; border-radius: var(--radius-sm);
+  }
+}
+
 /* Choice controls participate in the shared control appearance rules below. */
 .radio-group { display: grid; gap: var(--spacing-sm); min-width: 0; }
 .radio-group[data-control-size="xl"] { --choice-font-size: var(--type-role-body-large-font-size); --choice-height: var(--size-control-xl); }

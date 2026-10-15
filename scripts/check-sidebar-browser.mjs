@@ -55,13 +55,17 @@ test('Header toggle works without header content and follows the narrow breakpoi
     assert(await expand.isVisible());
     await page.setViewportSize({ width: 390, height: 850 });
     assert.equal(await expand.isVisible(), false);
-    assert(await page.getByRole('link', { name: 'Overview', exact: true }).isVisible());
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    assert(await page.getByRole('dialog').getByRole('link', { name: 'Overview', exact: true }).isVisible());
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'detached' });
+    assert(await page.getByRole('button', { name: 'Open navigation' }).evaluate(element => element === document.activeElement), 'Focus returns to the menu button');
     await page.setViewportSize({ width: 1280, height: 900 });
     assert(await expand.isVisible());
     assert.equal(await expand.getAttribute('aria-expanded'), 'false');
     await page.goto(`${url}?headerToggle&noHeader&plain`);
     assert.equal(await page.locator('.sidebar-toggle').count(), 0);
-    assert.equal(await page.locator('.topbar').count(), 0);
+    assert.equal(await page.locator('.topbar:visible').count(), 0, 'The phone header stays out of a wide screen');
   } finally { await page.close(); }
 });
 
@@ -136,9 +140,16 @@ test('Collapsed desktop navigation stays available on narrow screens and restore
     assert(linkBox.width >= 44 && linkBox.height >= 44, `Navigation touch target: ${JSON.stringify(linkBox)}`);
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.getByRole('button', { name: /sidebar/ }).count(), 0);
-    assert((await link.locator('.sidebar-link-label').boundingBox()).width > 1);
-    await page.getByRole('link', { name: 'Applications 4', exact: true }).tap();
+    const menu = page.getByRole('button', { name: 'Open navigation' });
+    const menuBox = await menu.boundingBox();
+    assert(menuBox.width >= 44 && menuBox.height >= 44, `Menu touch target: ${JSON.stringify(menuBox)}`);
+    await menu.tap();
+    const drawer = page.getByRole('dialog');
+    assert((await drawer.getByRole('link', { name: 'Overview', exact: true }).boundingBox()).width > 100,
+      'The drawer shows labels even when the desktop sidebar is collapsed');
+    await drawer.getByRole('link', { name: 'Applications 4', exact: true }).tap();
     await page.getByRole('heading', { name: 'Applications', exact: true }).waitFor();
+    await drawer.waitFor({ state: 'detached' });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     if (screenshots) await page.screenshot({ path: `${screenshots}/sidebar-narrow.png` });
     await page.setViewportSize({ width: 1280, height: 900 });

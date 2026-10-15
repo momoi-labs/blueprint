@@ -17,7 +17,7 @@ try {
   const url = `http://127.0.0.1:${server.httpServer.address().port}/scripts/fixtures/lifecycle.html`;
   browser = await chromium.launch();
   for (const hasTouch of [true, false]) {
-    for (const width of [390, 1280]) {
+    for (const width of [768, 1280]) {
       for (const colorScheme of ['light', 'dark']) {
         const context = await browser.newContext({ hasTouch, viewport: { width, height: 600 }, colorScheme });
         const page = await context.newPage();
@@ -90,6 +90,36 @@ try {
         await context.close();
       }
     }
+  }
+
+  // A phone keeps the status and moves every action into a sheet.
+  for (const hasTouch of [true, false]) {
+    const context = await browser.newContext({ hasTouch, viewport: { width: 390, height: 700 } });
+    const page = await context.newPage();
+    await page.goto(url);
+    const label = `${hasTouch ? 'touch' : 'desktop'}-390`;
+    const more = page.getByRole('button', { name: 'More actions' });
+    await more.waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Stop', exact: true }).isVisible(), false, `${label}: actions leave the row`);
+    assert(await page.getByRole('group', { name: 'Status' }).isVisible(), `${label}: status stays`);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: no sideways scroll`);
+    const activate = locator => hasTouch ? locator.tap() : locator.click();
+    await activate(more);
+    const sheet = page.getByRole('dialog', { name: 'Actions' });
+    await sheet.waitFor();
+    if (screenshots) await page.screenshot({ path: `${screenshots}/${label}-sheet.png` });
+    assert(await sheet.getByRole('button', { name: 'Start', exact: true }).isDisabled());
+    assert(await sheet.getByRole('button', { name: 'Remove', exact: true }).isVisible(), `${label}: destructive action in the sheet`);
+    const stop = sheet.getByRole('button', { name: 'Stop', exact: true });
+    const sheetBox = await sheet.boundingBox();
+    assert((await stop.boundingBox()).width > sheetBox.width / 2, `${label}: full-width action`);
+    await activate(stop);
+    await sheet.waitFor({ state: 'detached' });
+    assert.equal(await page.locator('output').textContent(), 'Stop', `${label}: the action runs and the sheet closes`);
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'More actions', null, { timeout: 2000 })
+      .catch(() => assert.fail(`${label}: focus returns to the trigger`));
+    console.log(`${label}: actions sheet passed.`);
+    await context.close();
   }
 } finally {
   await browser?.close();

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Lifecycle } from '../../packages/kiso-react/dist/lifecycle.js';
 import { Button } from '../../packages/kiso-react/dist/button.js';
 import { StatusBadge } from '../../packages/kiso-react/dist/status-badge.js';
+import '../../packages/kiso-react/dist/styles.css';
 
 function Fixture() {
   const [actions, setActions] = useState([]);

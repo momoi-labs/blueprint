@@ -182,8 +182,9 @@ try {
     assert.match(lifecycle, /^<div data-slot="lifecycle" class="lifecycle custom">/);
     assert.match(lifecycle, /class="cluster cluster-status" role="group" aria-label="Status"><span[^>]*class="badge badge-success"/);
     assert.match(lifecycle, /class="cluster cluster-verbs" role="group" aria-label="Actions"><button/);
-    assert.match(lifecycle, /<[/]div><button[^>]*class="[^"]*btn-danger-ghost[^"]*"[^>]*>Remove<[/]button><[/]div>$/);
+    assert.match(lifecycle, /<[/]div><button[^>]*class="[^"]*btn-danger-ghost[^"]*"[^>]*>Remove<[/]button><button[^>]*class="[^"]*lifecycle-more[^"]*"[^>]*aria-label="More actions"/);
     assert(!render(h(Lifecycle, { status: 'Built' })).includes('cluster-verbs'));
+    assert(!render(h(Lifecycle, { status: 'Built' })).includes('lifecycle-more'), 'nothing to act on, no sheet');
     assert(!render(h(StatusBadge, { tone: 'neutral' }, 'Stopped')).includes('dot-pulse'));
     assert.match(render(h(StatusBadge, { tone: 'danger', pulse: true }, 'Failed')), /class="badge badge-danger"[^>]*><span[^>]*class="dot dot-pulse"/);
     assert.match(render(h(Pagination, null, h(PaginationPage, { active: true }, '2'))), /aria-label="Pagination"/);
@@ -215,7 +216,8 @@ try {
     assert.match(applicationShell, /<aside [^>]*class="sidebar"/);
     assert.match(applicationShell, /aria-label="Primary"/);
     assert.match(applicationShell, /aria-current="page"[^>]*href="#app-1"/);
-    assert.match(applicationShell, /<header [^>]*class="topbar"><span>Healthy/);
+    assert.match(applicationShell, /data-phone-drawer="true"/);
+    assert.match(applicationShell, /<header [^>]*class="topbar"><button [^>]*aria-label="Open navigation"[^>]*>.*?<[/]button><span>Healthy/);
     assert.match(applicationShell, /<main [^>]*class="grow"/);
     const topbarShell = render(h(ApplicationShell, {
       layout: 'topbar',
@@ -232,6 +234,7 @@ try {
     assert.match(topbarShell, /<span>Meus cards<[/]span>/);
     assert.match(topbarShell, /<main [^>]*class="grow"/);
     assert.match(topbarShell, /<section>Board<[/]section>/);
+    assert.doesNotMatch(topbarShell, /Open navigation|data-phone-drawer/, 'a topbar shell has no sidebar to move');
     assert.equal(typeof Toasts, 'function');
     assert.equal(typeof useToast, 'function');
     assert.match(render(h(Dot, { variant: 'success', size: 'lg', pulse: true })),

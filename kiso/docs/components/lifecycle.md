@@ -40,8 +40,10 @@ slip on Restart cannot land on Delete.
 ## Sizes
 
 Buttons are `size="sm"`; the clusters are `--size-control-sm` tall. At 720px
-and below the row takes the width under the title, the verbs take a row of
-their own, and the destructive action follows without its extra gap.
+and below the status stays in the row and wraps its badges, and the verbs and
+the destructive action move into a bottom sheet behind a "More actions"
+button. `actionsLabel` names the sheet; it defaults to "Actions". Picking an
+enabled action closes the sheet, so a confirmation it opens takes the screen.
 
 ## Accessibility
 

@@ -27,6 +27,19 @@ typography tokens; `--motion-duration-fast`; and `--motion-easing-standard`.
 Two orientations: horizontal (default) and vertical. Orientation changes the
 TabList layout and arrow-key axis, not the selection or panel semantics.
 
+### Sections on a phone
+
+`sections` shows each panel under a header of its own at widths of 1023px or
+less, one open at a time, instead of a strip of triggers that cannot fit. Use
+it for the tabs of a detail screen. The panels are the same elements in both
+layouts, so crossing the breakpoint keeps an edited form or a running
+terminal. Pressing the open header closes it without changing the value, so a
+wider screen still shows that panel; any other way to a panel opens it.
+
+Each header is a Button with `aria-expanded`. The TabList is hidden while
+sections show, so arrow keys do not apply; Tab moves between headers and into
+the open panel.
+
 ## Sizes
 
 One size. Tabs use a single label and spacing treatment; do not add compact or

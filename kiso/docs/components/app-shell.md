@@ -238,10 +238,16 @@ frame. Either can be used alone.
 The Sidebar column uses `--size-sidebar`; the main column takes the remaining
 width with a zero minimum. The shell has a minimum height of one viewport.
 The collapsed rail leaves room for touch targets and navigation padding.
-At widths of 1023px or less, a sidebar layout becomes one column. Sidebar
-stacks above the content with a scrollable body and a maximum height of 40vh.
-Labels remain visible, and the desktop collapse toggle is hidden. Resizing
-back to desktop restores the collapse state.
+At widths of 1023px or less, a sidebar layout becomes one column.
+ApplicationShell moves the Sidebar into a Drawer that opens from a menu
+button at the start of the Header. The Drawer holds the brand, the primary
+action, the navigation with labels, and the footer, and it closes when a
+destination is picked. Pass `drawerOpen` and `onDrawerOpenChange` to close it
+from a control the Drawer cannot see, such as a menu that opens in a portal,
+or mark such a control with `data-shell-navigate`. An AppShell laid out by
+hand stacks the Sidebar above the content instead, with a scrollable body and
+a maximum height of 40vh. The desktop collapse toggle is hidden in both, and
+resizing back to desktop restores the collapse state.
 
 `layout="topbar"` is a single main column at every width. It does not rely on
 the 1023px media query to collapse a sidebar track.
@@ -251,8 +257,7 @@ height. On desktop, a top-level inset shell keeps its frame, header, and sidebar
 in place while its page container scrolls. Wrap page content in one container,
 such as `.page`, beside the optional Header. This keeps the top border and
 corner marks visible during scrolling. Embedded shells keep their natural
-height. On narrow screens, navigation stacks above the main content and the
-document scrolls as in the default variant.
+height. On narrow screens the document scrolls as in the default variant.
 
 ## States
 
@@ -265,7 +270,9 @@ Those states belong inside AppShellMain. There is no disabled or active shell.
   AppShellMain.
 - Give the Sidebar's navigation an accessible name and provide a skip link to
   the main content.
-- Keep navigation available when the Sidebar is hidden. AppShell does not
+- Keep navigation available when the Sidebar is hidden. ApplicationShell's
+  phone Drawer is a dialog named "Navigation"; it traps focus while open and
+  returns it to the menu button when it closes. AppShell on its own does not
   create a mobile menu or manage its focus.
 - A top-bar layout has no Sidebar navigation landmark; put destinations in the
   Header or elsewhere in the product chrome.
