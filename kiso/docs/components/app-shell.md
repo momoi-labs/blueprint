@@ -227,7 +227,11 @@ An embedded preview can mark its content wrapper with
 The inset frame uses the current Appearance settings for border style, corner
 size, and corner marks. Colors follow the active theme and palette. It does
 not force rounded corners. The surrounding area uses `--color-sidebar`; the
-main area uses `--color-background` and `--color-border`.
+main area uses `--color-background` and `--color-border`. With a patterned
+background, the surrounding area uses the canvas paper instead
+(`--color-background`, or the accent surface with accent paper), so the canvas
+reads as one surface and only the frame border separates the inside from the
+outside. The sidebar and the side panel take the same paper.
 The main frame and its outer corner marks paint above both adjacent rails.
 
 ```tsx

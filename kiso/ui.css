@@ -3009,16 +3009,17 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   z-index: 0;
 }
 /* An inset shell paints its surround with the sidebar color. Main is clear so the
-   pattern shows, which would leave that color under the canvas. Lay the paper
-   under the pattern so the canvas keeps the tone of the default frame. */
-:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))::after,
-.app-shell[data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))::after {
-  content: "";
-  grid-area: var(--canvas-row) / var(--canvas-column);
-  min-width: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-color: var(--canvas-fill, var(--color-background));
+   pattern shows. Paint the whole shell with the canvas paper instead, so the
+   surround and the inside read as one surface and only the frame border
+   separates them. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])),
+.app-shell[data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  background: var(--canvas-fill, var(--color-background));
+}
+/* The side panels sit on the same surface, so they take the paper too. */
+:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(.sidebar, .app-shell-panel),
+.app-shell[data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(.sidebar, .app-shell-panel) {
+  background: var(--canvas-fill, var(--color-background));
 }
 @media (min-width: 1024px) {
   :where([data-background-style]:not([data-background-style="solid"])) .app-shell:has(> .sidebar:not([hidden])),
@@ -3401,8 +3402,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   margin: var(--canvas-frame-inset, 0px);
 }
-:where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before,
-:where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::after {
+:where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before {
   margin: var(--canvas-frame-inset, 0px);
 }
 /* The layer spans the frame margin too; the signature still sits in the

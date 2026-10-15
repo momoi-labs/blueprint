@@ -487,6 +487,10 @@ margin. The Momoi signature remains one symbol; translucent fill can reveal
 the part that extends behind the frame.
 
 Accent paper uses the existing accent surface color on the canvas and cards.
+In an inset application frame, a patterned background paints the area around
+the frame, the sidebar and the side panel with the same paper, so the canvas is
+one continuous surface. A solid background keeps the sidebar color around the
+frame.
 Navigation and settings share that paper; portals keep their regular surfaces. Cobalt, dark
 theme, accent paper, drawing guides inside, square panels, an outer Double
 outline and Original ticks reproduce the Blueprint study. The gallery's
