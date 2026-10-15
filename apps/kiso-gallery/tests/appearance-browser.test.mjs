@@ -589,6 +589,30 @@ for (const theme of ['light', 'dark']) test(`Switching the application frame kee
   } finally { await page.close(); }
 });
 
+for (const theme of ['light', 'dark']) test(`An inset frame surround matches the canvas paper in ${theme}`, async () => {
+  const page = await open('components', 1440, theme);
+  try {
+    // The component pages show the sidebar, and the settings panel shows its side panel.
+    await settings(page);
+    const colors = (token) => page.evaluate(token => {
+      const shell = document.querySelector('.app-shell'), probe = document.createElement('span');
+      probe.style.color = token; shell.append(probe);
+      const resolved = getComputedStyle(probe).color; probe.remove();
+      const side = [...shell.querySelectorAll(':scope > :is(.sidebar, .app-shell-panel)')].filter(el => getComputedStyle(el).display !== 'none').map(el => getComputedStyle(el).backgroundColor);
+      return { ring: getComputedStyle(shell).backgroundColor, side, resolved };
+    }, token);
+    for (const paperTone of ['theme', 'accent']) for (const backgroundStyle of ['momoi-repeat', 'fibers', 'construction']) for (const backgroundPlacement of ['inside', 'outside', 'both']) {
+      await page.evaluate(settings => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, theme: 'system', appShell: 'inset', ...settings }), { paperTone, backgroundStyle, backgroundPlacement });
+      const { ring, side, resolved } = await colors('var(--canvas-fill, var(--color-background))');
+      assert.equal(ring, resolved, `${paperTone}/${backgroundStyle}/${backgroundPlacement}: the area around an inset frame uses the canvas paper`);
+      assert.deepEqual(side, side.map(() => resolved), `${paperTone}/${backgroundStyle}/${backgroundPlacement}: the side panels use the canvas paper`);
+    }
+    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, theme: 'system', appShell: 'inset', backgroundStyle: 'solid' }));
+    const solid = await colors('var(--color-sidebar)');
+    assert.equal(solid.ring, solid.resolved, 'A solid background keeps the sidebar color around the frame');
+  } finally { await page.close(); }
+});
+
 test('Legacy selections remain explicit until replaced, and incompatible choices retain state', async () => {
   const page = await open('components/card');
   try {
