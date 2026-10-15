@@ -9,15 +9,18 @@
   gap: var(--spacing-md);
   padding-block-end: var(--spacing-lg);
 }
-.layout-device { align-self: start; }
+.radio-group.layout-device { justify-self: start; }
+/* A 390x844 screen inside a panel that follows the appearance frame. */
 .layout-phone-frame {
-  display: block;
-  box-sizing: content-box;
-  width: 390px; max-width: calc(100% - 2px);
-  height: 844px;
+  width: fit-content; max-width: 100%;
   margin-inline: auto;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  padding: var(--spacing-xs);
+}
+.layout-phone-frame > iframe {
+  display: block;
+  width: 390px; max-width: 100%;
+  height: 844px;
+  border: 0;
   background: var(--color-background);
 }
 /* Inside the frame the page is the whole screen. */
