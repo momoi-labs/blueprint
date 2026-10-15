@@ -58,6 +58,12 @@ pages, and other containers that hold a product's screens.
   Chromium, a `fullPage` screenshot turns touch emulation off for the rest of
   the page, so `(pointer: coarse)` stops matching. Measure before any full-page
   capture, or use a fresh page, and confirm `matchMedia("(pointer: coarse)")`.
+- Compare the phone with the desktop under the same appearance. Every
+  background, paper tone and frame choice must paint the same on both, except
+  the documented phone changes. Switch between at least one symbol pattern
+  (`momoi-repeat`), one line pattern and `solid`. An example that forces its
+  own background, or a preview shell that skips the canvas, shows a different
+  page on one of them.
 - Look at the result. In the gallery, Layouts > Phone shows each layout in a
   390x844 frame where phone media queries apply; a narrow container inside a
   desktop window does not trigger them. Capture each consumer screen at
