@@ -75,7 +75,7 @@ export function Chart({ data, series, label, variant = "line", layout = "standar
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart data={plot} syncId={syncId ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
-        margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+        margin={{ top: 8, right: 20, bottom: 0, left: 0 }}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-halftone-${index}`}
           color={chartColor(chartSlot(series[index]!, index))} />)}</defs>
         <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />

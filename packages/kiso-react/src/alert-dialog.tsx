@@ -31,11 +31,17 @@ function AlertDialogPortal({
 
 function AlertDialogOverlay({
   className,
+  onMouseDown,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
   return (
     <AlertDialogPrimitive.Overlay
       data-slot="alert-dialog-overlay"
+      // The dialog stays open on a backdrop tap, so focus must stay in it.
+      onMouseDown={(event) => {
+        onMouseDown?.(event)
+        event.preventDefault()
+      }}
       className={cn(
         "kiso-react-overlay",
         className
