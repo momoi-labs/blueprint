@@ -25,9 +25,14 @@
   for (const key of ["borderStyle", "cornerStyle", "cornerMarks"]) {
     options[`outer${key[0].toUpperCase()}${key.slice(1)}`] = ["inherit", ...options[key]];
   }
+  // Phone overrides replace a main choice below 700px wide.
+  const phoneKeys = ["backgroundStyle", "borderStyle", "cornerStyle", "cornerMarks", "panelFill"];
+  const phoneKey = key => `phone${key[0].toUpperCase()}${key.slice(1)}`;
+  for (const key of phoneKeys) options[phoneKey(key)] = ["inherit", ...options[key]];
+  const phone = window.matchMedia?.("(max-width: 699px)");
   const defaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
   Object.assign(defaults, { cornerStyle: "pixel", cornerSize: "small", appShell: "inset", backgroundStyle: "fibers", visualStyle: "editorial" });
-  const attributes = Object.fromEntries(Object.keys(options).map(key => [key, key]));
+  const attributes = Object.fromEntries(Object.keys(options).filter(key => !key.startsWith("phone")).map(key => [key, key]));
   function validate(value) {
     // Split the old radius presets into border and corner choices.
     if (["square", "soft", "round", "asym"].includes(value?.borderStyle)) {
@@ -71,10 +76,12 @@
   }
   function apply(value) {
     const settings = validate(value);
+    const shown = { ...settings };
+    if (phone?.matches) for (const key of phoneKeys) if (settings[phoneKey(key)] !== "inherit") shown[key] = settings[phoneKey(key)];
     delete document.documentElement.dataset.pageHeader;
     for (const [key, attr] of Object.entries(attributes)) {
-      if (key === "theme" && settings[key] === "system") delete document.documentElement.dataset[attr];
-      else document.documentElement.dataset[attr] = settings[key];
+      if (key === "theme" && shown[key] === "system") delete document.documentElement.dataset[attr];
+      else document.documentElement.dataset[attr] = shown[key];
     }
     return settings;
   }
@@ -88,4 +95,5 @@
   }
   window.kisoAppearance = { defaults, read, save };
   apply(read());
+  phone?.addEventListener?.("change", () => apply(read()));
 })();

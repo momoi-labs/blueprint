@@ -157,6 +157,8 @@ export function AppearanceControls({ settings, onChange }: {
   const outerBorder = settings.outerBorderStyle === "inherit" ? settings.borderStyle : settings.outerBorderStyle;
   const outerCorner = settings.outerCornerStyle === "inherit" ? settings.cornerStyle : settings.outerCornerStyle;
   const outerMark = settings.outerCornerMarks === "inherit" ? settings.cornerMarks : settings.outerCornerMarks;
+  const phoneBorder = settings.phoneBorderStyle === "inherit" ? settings.borderStyle : settings.phoneBorderStyle;
+  const phoneCorner = settings.phoneCornerStyle === "inherit" ? settings.cornerStyle : settings.phoneCornerStyle;
   const expressive = ["manga", "brush"].includes(settings.borderStyle);
   const detailBorder = expressive ? settings.borderStyle : ["manga", "brush"].includes(outerBorder) ? outerBorder : "solid";
   const sizedCorner = !expressive && settings.cornerStyle !== "square" ? settings.cornerStyle
@@ -366,6 +368,25 @@ export function AppearanceControls({ settings, onChange }: {
     <VisualSelector label="Panel fill" options={[["solid", "Solid"], ["translucent", "Translucent"]]} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} layout="wide"
       preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill} tone={settings.paperTone} />} />
     <p className="muted t-label">Translucency affects panel fills. Text, fields and data samples stay opaque.</p>
+  </AppearanceSection>
+  <AppearanceSection title="Phone">
+    <p className="muted t-label">These replace the main choices below 700px wide. Same as desktop keeps them. Layouts &gt; Phone shows the result.</p>
+    <VisualSelector label="Phone background" value={settings.phoneBackgroundStyle} onChange={phoneBackgroundStyle => onChange({ phoneBackgroundStyle })}
+      preview={background => <BackgroundPreview background={background === "inherit" ? settings.backgroundStyle : background} tone={settings.paperTone} />}
+      options={[["inherit", "Same as desktop"], ...backgrounds]} />
+    <VisualSelector disabledOptions={phoneCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Phone border" value={settings.phoneBorderStyle} onChange={phoneBorderStyle => onChange({ phoneBorderStyle })}
+      preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
+      options={[["inherit", "Same as desktop"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string])]} />
+    <VisualSelector disabledOptions={pixelBorder(phoneBorder) ? [] : ["pixel"]} label="Phone corners" value={settings.phoneCornerStyle} onChange={phoneCornerStyle => onChange({ phoneCornerStyle })}
+      preview={corner => <PanelPreview corner={corner === "inherit" ? settings.cornerStyle : corner} />}
+      disabled={["manga", "brush"].includes(phoneBorder)}
+      options={[["inherit", "Same as desktop"], ...corners.map(c => [c.value, c.label] as [CornerStyle, string])]} />
+    <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, phoneBorder, phoneCorner)).map(m => m.value)} label="Phone marks" value={settings.phoneCornerMarks} onChange={phoneCornerMarks => onChange({ phoneCornerMarks })}
+      preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
+      options={[["inherit", "Same as desktop"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string])]} />
+    <VisualSelector label="Phone panel fill" value={settings.phonePanelFill} onChange={phonePanelFill => onChange({ phonePanelFill })} layout="wide"
+      preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill === "inherit" ? settings.panelFill : fill} tone={settings.paperTone} />}
+      options={[["inherit", "Same as desktop"], ["solid", "Solid"], ["translucent", "Translucent"]]} />
   </AppearanceSection>
   </>;
 }

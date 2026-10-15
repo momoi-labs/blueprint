@@ -534,7 +534,7 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
   try {
     let panel = await settings(page);
     await panel.getByRole('group', { name: 'Application frame', exact: true }).getByRole('radio', { name: 'Inset', exact: true }).check();
-    await panel.getByRole('radio', { name: 'Momoi watermark', exact: true }).check();
+    await panel.getByRole('group', { name: 'Canvas background', exact: true }).getByRole('radio', { name: 'Momoi watermark', exact: true }).check();
     await panel.getByRole('group', { name: 'Panel fill', exact: true }).getByRole('radio', { name: 'Translucent', exact: true }).check();
     await panel.locator('summary').filter({ hasText: 'Customize outer frame' }).click();
     await panel.getByRole('group', { name: 'Outer border', exact: true }).locator('input[value="brush"]').check();
@@ -548,7 +548,7 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
     assert.equal(selected.panelFill, 'translucent');
     assert((await panel.locator('.appearance-usage').innerText()).includes('data-outer-border-style="brush"'));
     await page.reload(); panel = await settings(page);
-    assert(await panel.getByRole('radio', { name: 'Momoi watermark', exact: true }).isChecked());
+    assert(await panel.getByRole('group', { name: 'Canvas background', exact: true }).getByRole('radio', { name: 'Momoi watermark', exact: true }).isChecked());
     await panel.locator('summary').filter({ hasText: 'Customize outer frame' }).click();
     assert(await panel.getByRole('group', { name: 'Outer border', exact: true }).locator('input[value="brush"]').isChecked());
     assert(await panel.getByRole('group', { name: 'Apply marks to', exact: true }).locator('input[value="outer"]').isChecked());
