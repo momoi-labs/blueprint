@@ -1,5 +1,12 @@
 # @momoi-labs/kiso
 
+## 0.20.4
+
+### Patch Changes
+
+- 0987735: A neutral status badge in Lifecycle keeps a visible border on phones. At 720px and below the status badges wrap as separate shapes, and a neutral badge has a transparent border and background, so it showed as a dot and bare text next to the boxed tones. It now takes the standard border color. Standalone neutral badges and the joined cluster at 721px and wider do not change.
+- f4ef9f6: A nested app shell, such as a layout preview inside a page shell, no longer repeats the page's outer border style, corner marks or ink. One outer frame is drawn and inner panels keep their own edges.
+
 ## 0.20.3
 
 ### Patch Changes
