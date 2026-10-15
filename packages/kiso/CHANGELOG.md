@@ -1,5 +1,14 @@
 # @momoi-labs/kiso
 
+## 0.20.1
+
+### Patch Changes
+
+- 598795b: An inset application frame with a patterned canvas now keeps the paper of the default frame. The canvas showed the darker sidebar color through the clear main area, so switching frames changed the background tone. Paper tone follows the same layer.
+- bafa6a5: Draw the login context panel on `--color-card` instead of `--color-muted`. In
+  the light theme `--color-muted` equals `--color-background`, so the two login
+  panels blended. `--color-card` differs from the background in both themes.
+
 ## 0.20.0
 
 ### Minor Changes
