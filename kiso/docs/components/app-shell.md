@@ -291,7 +291,9 @@ destination's `leading` content is its icon, and a string or number in
 `trailing` is its badge. The Header shows the brand, and the menu button
 is hidden. Between 700px and 1023px the Drawer stays. The
 default, `phoneNavigation="drawer"`, uses the Drawer at every width below
-1024px. Keep the bar to five destinations or fewer.
+1024px. The bar holds five destinations. With more, it shows the first four
+and a More button; More opens a bottom sheet with the other destinations,
+in their groups, and the footer.
 
 `layout="topbar"` has no navigation groups. Pass a BottomNav to its
 `bottomNav` slot. When AppShell is laid out by hand, place the BottomNav as a

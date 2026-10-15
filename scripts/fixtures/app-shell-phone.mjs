@@ -16,7 +16,9 @@ const tabs = h('nav', { 'aria-label': 'Contracts', style: { display: 'flex', fle
 function Fixture() {
   if (params.has('sidebar')) return h(ApplicationShell, { brand: h('strong', null, 'Product'), phoneNavigation: params.get('sidebar') || undefined,
     navigation: [{ label: 'Contracts', destinations: destinations.map(([label, Icon, count], index) => ({ href: `#${label}`, label, active: index === 1,
-      leading: h(Icon, { className: 'icon' }), trailing: count })) }] },
+      leading: h(Icon, { className: 'icon' }), trailing: count })) },
+      ...(params.has('more') ? [{ label: 'Manage', destinations: ['Settings', 'Help'].map(label => ({ href: `#${label}`, label, leading: h(UserRound, { className: 'icon' }) })) }] : [])],
+    footer: params.has('more') ? h('p', null, 'Signed in as Alex') : undefined },
     h('div', { className: 'page' }, h('h1', null, 'Workspace'), ...Array.from({ length: 40 }, (_, i) => h('p', { key: i }, `Line ${i + 1}`)),
       h('button', { className: 'btn', id: 'last' }, 'Last action')));
   return h(ApplicationShell, { layout: 'topbar', brand: h('strong', null, 'Product'),

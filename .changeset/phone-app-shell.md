@@ -12,7 +12,9 @@ the new behavior.
 Add `BottomNav`, `BottomNavLink` and `BottomNavBadge` for a phone's main
 destinations in a bar fixed to the bottom edge below 700px. A sidebar
 ApplicationShell builds the bar from its navigation with
-`phoneNavigation="bottom"` and keeps the drawer between 700px and 1023px. A
+`phoneNavigation="bottom"` and keeps the drawer between 700px and 1023px.
+With more than five destinations, the bar shows four and a More button that
+opens the rest, with the footer, in a bottom sheet. A
 top-bar ApplicationShell takes a BottomNav in its `bottomNav` slot. The shell
 reserves space so the last content scrolls clear of the bar.
 

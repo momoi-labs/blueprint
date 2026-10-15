@@ -3590,6 +3590,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   text-decoration: none;
   white-space: nowrap;
 }
+button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit; font-size: var(--type-size-label); cursor: pointer; }
+.bottom-nav-link[aria-expanded="true"] { color: var(--color-foreground); }
 .bottom-nav-link > :not(.bottom-nav-badge) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bottom-nav-icon { display: inline-flex; }
 .bottom-nav-link .icon { color: var(--color-subtle-foreground); }

@@ -124,3 +124,19 @@ test('The default drawer keeps its menu on phones', async () => {
     assert.equal(await page.locator('.bottom-nav').count(), 0);
   } finally { await page.close(); }
 });
+test('More holds the destinations past the fifth and the footer', async () => {
+  const page=await open('sidebar=bottom&more', 390);
+  try {
+    const bar=page.locator('.bottom-nav');
+    assert.deepEqual(await bar.getByRole('link').allInnerTexts(), ['New', 'In progress\n12', 'Ready', 'Account']);
+    const more=bar.getByRole('button', { name: 'More' });
+    await more.click();
+    const sheet=page.getByRole('dialog', { name: 'More' });
+    await sheet.waitFor();
+    assert.deepEqual(await sheet.getByRole('link').allInnerTexts(), ['Settings', 'Help']);
+    assert(await sheet.getByText('Signed in as Alex').isVisible());
+    await sheet.getByRole('link', { name: 'Settings' }).click();
+    await sheet.waitFor({ state: 'hidden' });
+    assert(await page.evaluate(() => document.activeElement?.textContent?.includes('More')), 'Focus returns to More');
+  } finally { await page.close(); }
+});

@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { Menu, PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
+import { Ellipsis, Menu, PanelLeftClose, PanelLeftOpen, PanelRight } from "lucide-react"
 import { Drawer, DrawerBody, DrawerContent, DrawerHeader, DrawerTitle } from "./drawer.js"
 import { VisuallyHidden } from "radix-ui"
 import { BottomNav, BottomNavBadge, BottomNavLink } from "./bottom-nav.js"
@@ -344,26 +344,65 @@ function ApplicationShellSidebar({
           </DrawerBody>
         </DrawerContent>
       </Drawer>
-      {phoneNavigation === "bottom" && <BottomNav aria-label={navigationLabel}>
-        {navigation.flatMap(group => group.destinations).map((destination, index) => (
-          <BottomNavLink
-            key={`${destination.href}-${index}`}
-            href={destination.href}
-            active={destination.active}
-            onClick={(event) => {
-              if (!destination.onClick) return
-              event.preventDefault()
-              destination.onClick()
-            }}
-          >
-            {destination.leading && <span className="bottom-nav-icon" aria-hidden="true">{destination.leading}</span>}
-            <span>{destination.label}</span>
-            {(typeof destination.trailing === "string" || typeof destination.trailing === "number") && <BottomNavBadge>{destination.trailing}</BottomNavBadge>}
-          </BottomNavLink>
-        ))}
-      </BottomNav>}
+      {phoneNavigation === "bottom" && <ApplicationShellBottomNav navigation={navigation} navigationLabel={navigationLabel} footer={footer} />}
     </AppShell>
   )
+}
+
+/* The bar holds five destinations at most. With more, the first four stay in
+   the bar and the rest, with the footer, open from More in a bottom sheet. */
+function ApplicationShellBottomNav({ navigation, navigationLabel, footer }: {
+  navigation: readonly ApplicationShellGroup[]
+  navigationLabel: string
+  footer?: React.ReactNode
+}) {
+  const [moreOpen, setMoreOpen] = React.useState(false)
+  const destinations = navigation.flatMap(group => group.destinations)
+  const overflow = destinations.length > 5
+  const inBar = overflow ? destinations.slice(0, 4) : destinations
+  const rest = navigation
+    .map(group => ({ ...group, destinations: group.destinations.filter(destination => !inBar.includes(destination)) }))
+    .filter(group => group.destinations.length > 0)
+  const link = (destination: ApplicationShellDestination, index: number) => (
+    <BottomNavLink
+      key={`${destination.href}-${index}`}
+      href={destination.href}
+      active={destination.active}
+      onClick={(event) => {
+        if (!destination.onClick) return
+        event.preventDefault()
+        destination.onClick()
+      }}
+    >
+      {destination.leading && <span className="bottom-nav-icon" aria-hidden="true">{destination.leading}</span>}
+      <span>{destination.label}</span>
+      {(typeof destination.trailing === "string" || typeof destination.trailing === "number") && <BottomNavBadge>{destination.trailing}</BottomNavBadge>}
+    </BottomNavLink>
+  )
+  return <>
+    <BottomNav aria-label={navigationLabel}>
+      {inBar.map(link)}
+      {overflow && <BottomNavLink asChild active={rest.some(group => group.destinations.some(destination => destination.active))}>
+        <button type="button" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={() => setMoreOpen(true)}>
+          <span className="bottom-nav-icon" aria-hidden="true"><Ellipsis className="icon" /></span>
+          <span>More</span>
+        </button>
+      </BottomNavLink>}
+    </BottomNav>
+    {overflow && <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
+      <DrawerContent placement="bottom" className="app-shell-drawer app-shell-more">
+        <DrawerHeader><DrawerTitle>More</DrawerTitle></DrawerHeader>
+        <DrawerBody
+          onClick={(event) => {
+            if ((event.target as Element).closest("a[href], [data-slot='navigation-link'], [data-shell-navigate]")) setMoreOpen(false)
+          }}
+        >
+          <ApplicationShellNavigation navigation={rest} navigationLabel={`${navigationLabel}, more`} />
+          {footer && <div className="app-shell-drawer-footer">{footer}</div>}
+        </DrawerBody>
+      </DrawerContent>
+    </Drawer>}
+  </>
 }
 
 export { AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, ApplicationShell }
