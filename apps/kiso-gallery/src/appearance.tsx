@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
-import { AccentSelector, Button, DetailSelect, ThemeSelector, type ChartStyle } from "@momoi-labs/kiso-react";
+import { AccentSelector, Button, DetailSelect, Disclosure, ThemeSelector, type ChartStyle } from "@momoi-labs/kiso-react";
+import { useNarrow } from "../../../kiso/blocks/react-prototype/src/use-narrow";
 import { chartStyleOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 import { randomAppearance } from "./appearance-settings";
@@ -130,11 +131,14 @@ function OuterFramePreview({ outer }: { outer: AppearanceSettings["appShellOuter
   </svg>;
 }
 
-function AppearanceSection({ title, children }: { title: string; children: ReactNode }) {
+// On a phone the sections are disclosures, so the drawer is a short list.
+function AppearanceSection({ title, open, children }: { title: string; open?: boolean; children: ReactNode }) {
   const id = useId();
+  const narrow = useNarrow();
   return <section className="appearance-section" aria-labelledby={id}>
-    <h3 id={id} className="t-caps">{title}</h3>
-    {children}
+    {narrow ? <Disclosure summary={<span id={id} className="t-caps">{title}</span>} open={open || undefined}>{children}</Disclosure>
+      : <h3 id={id} className="t-caps">{title}</h3>}
+    {!narrow && children}
   </section>;
 }
 
@@ -171,7 +175,7 @@ export function AppearanceControls({ settings, onChange }: {
     ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"],
   ] as const;
   return <>
-  <AppearanceSection title="Colors">
+  <AppearanceSection title="Colors" open>
     <div className="appearance-colors">
       <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />

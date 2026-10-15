@@ -3,7 +3,7 @@ import { before, after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 
-const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
+const { chromium, devices } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 let server, browser, url, routes, titles;
 before(async () => {
   server = await preview({ root: fileURLToPath(new URL("../", import.meta.url)), configFile: false, logLevel: "error", preview: { host: "127.0.0.1", port: 0 } });
@@ -35,6 +35,7 @@ async function settings(page, open) {
     await page.getByRole("button", { name: open ? "Open settings" : "Close settings", exact: true }).click();
   }
   await panel.waitFor({ state: open ? "visible" : "hidden" });
+  if (open) await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details:not(.appearance-outer-customization)").forEach(details => { details.open = true; }));
 }
 async function layoutIssues(page, selector) {
   return page.locator(selector).evaluateAll(roots => {
@@ -78,7 +79,7 @@ async function assertSettingsToggle(page) {
   const trigger = page.locator(".gallery-settings-trigger");
   const toggle = await trigger.boundingBox();
   const header = await page.locator(".catalog-header").boundingBox();
-  const search = await page.getByRole("searchbox", { name: "Find a component", exact: true }).boundingBox();
+  const search = await page.locator('[aria-label="Find a component"]').boundingBox();
   assert.equal(await trigger.getAttribute("data-placement"), "header");
   assert(toggle.x >= header.x && toggle.x + toggle.width <= header.x + header.width + 1);
   assert(toggle.y >= header.y && toggle.y + toggle.height <= header.y + header.height + 1);
@@ -283,4 +284,30 @@ for (const background of ["momoi", "momoi-repeat", "grid", "fibers", "solid"]) t
       assert.deepEqual(await phone.evaluate(layer, selector), await desktop.evaluate(layer, selector), `${example} on a phone`);
     } finally { await desktop.close(); await phone.close(); }
   }
+});
+
+// The phone header is one row, so the page starts on the first screen, and
+// every control in the chrome keeps a touch target.
+for (const width of [390, 320]) test(`The phone chrome is compact and touchable at ${width}px`, async () => {
+  const page = await browser.newPage({ ...devices["iPhone 13"], viewport: { width, height: 844 } });
+  page.setDefaultTimeout(5000);
+  await page.route("https://fonts.googleapis.com/**", route => route.abort());
+  const small = () => page.evaluate(() => [...document.querySelectorAll(".catalog-header :is(a, button, input, summary), .bottom-nav :is(a, button), .catalog-heading :is(a, button, summary), .catalog-code summary, [role=dialog] :is(a, button, summary, input)")]
+    .filter(el => el.getBoundingClientRect().width && getComputedStyle(el).visibility !== "hidden" && getComputedStyle(el).opacity !== "0" && el.getBoundingClientRect().height < 44)
+    .map(el => `${el.className} ${(el.getAttribute("aria-label") || el.textContent).trim()}`));
+  try {
+    for (const route of ["components", "components/button"]) {
+      await page.goto(`${url}#${route}`);
+      await page.locator("h1").first().waitFor();
+      assert((await page.locator("h1").first().boundingBox()).y < 120, `${route}: the page heading starts in the first 120px`);
+      assert.deepEqual(await small(), [], `${route}: chrome targets`);
+    }
+    await page.getByRole("button", { name: "Browse", exact: true }).click();
+    await page.getByRole("navigation", { name: "Component categories" }).waitFor();
+    assert.deepEqual(await small(), [], "Browse sheet targets");
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Open settings", exact: true }).click();
+    await page.locator("#gallery-settings").waitFor();
+    assert.deepEqual(await small(), [], "Settings drawer targets");
+  } finally { await page.close(); }
 });

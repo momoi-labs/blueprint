@@ -29,6 +29,8 @@ async function settings(page) {
   const panel = page.locator("#gallery-settings");
   if (!await panel.isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
   await panel.waitFor();
+  // On a phone the sections are disclosures; these tests work on their contents.
+  await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details:not(.appearance-outer-customization)").forEach(details => { details.open = true; }));
   return panel;
 }
 async function group(panel, name) {
@@ -323,7 +325,7 @@ test("The settings gear stays after search in the header", async () => {
     const mainBox = await page.locator('.component-gallery > [data-slot="app-shell-main"]').boundingBox();
     const panelBox = await panel.boundingBox();
     assert.equal(mainBox.x + mainBox.width, panelBox.x, "No empty column between preview and settings");
-    const searchBox = await page.getByRole("searchbox", { name: "Find a component" }).boundingBox();
+    const searchBox = await page.locator('[aria-label="Find a component"]').boundingBox();
     const headerToggleBox = await toggle.boundingBox();
     assert(headerToggleBox.x >= searchBox.x + searchBox.width, "Gear follows the search field");
     assert.equal(await panel.getByRole("combobox", { name: "Settings toggle", exact: true }).count(), 0);
@@ -460,9 +462,10 @@ for (const width of [320, 390]) test(`Small screens use a dismissible settings d
     assert(await panel.evaluate(el => el.contains(document.activeElement)));
     if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-settings-mobile-${width}.png` });
     await close(page);
-    await page.getByRole("button", { name: "Show navigation", exact: true }).click();
+    // The categories open in a sheet from the phone tab bar.
+    await page.getByRole("button", { name: "Browse", exact: true }).click();
     assert(await page.getByRole("navigation", { name: "Component categories" }).isVisible());
-    await page.getByRole("button", { name: "Hide navigation", exact: true }).click();
+    await page.keyboard.press("Escape");
     assert.equal(await page.getByRole("navigation", { name: "Component categories" }).isVisible(), false);
   } finally { await page.close(); }
 });
@@ -870,15 +873,17 @@ for (const theme of ['light', 'dark']) test(`Native select options stay readable
 for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and after route changes at ${width}px`, async () => {
   const page = await open('intro', width);
   try {
-    const expanded = width >= 1024 ? 'Collapse navigation' : 'Hide navigation';
-    const collapsed = width >= 1024 ? 'Expand navigation' : 'Show navigation';
+    const phone = width < 700;
+    const expanded = 'Collapse navigation';
+    const collapsed = phone ? 'Browse' : 'Expand navigation';
     const nav = page.getByRole('navigation', { name: 'Component categories', exact: true });
     await page.getByRole('button', { name: collapsed, exact: true }).click();
     assert(await nav.isVisible());
+    if (phone) await page.keyboard.press('Escape');
     await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Components', exact: true }).click();
     await page.waitForURL(`${url}#components`);
-    await page.getByRole('button', { name: width >= 1024 ? expanded : collapsed, exact: true }).waitFor();
-    if (width >= 1024) await page.getByRole('button', { name: expanded, exact: true }).click();
+    await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
+    if (!phone) await page.getByRole('button', { name: expanded, exact: true }).click();
     await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Intro', exact: true }).click();
     await page.waitForURL(`${url}#intro`);
     await page.getByRole('button', { name: collapsed, exact: true }).waitFor();
