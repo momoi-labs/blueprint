@@ -1,6 +1,7 @@
 // A run a machine walks and a person reads (issue #98). The simulation stands
 // in for the Host: the same run drives the list, the bar, and the toast.
 import { useEffect, useId, useMemo, useState } from "react"
+import { useNarrow } from "./use-narrow"
 import { Badge, Button, Checkbox, Label, LogView, LogViewLine, Pane, Split, Splitter, StepBar, StepList,
   Table, TableFrame, TableBody, TableCell, TableHead, TableHeader, TableRow, type StepItem, type StepState } from "@momoi-labs/kiso-react"
 
@@ -118,17 +119,22 @@ export function StepListDemo() {
   const { run, steps, start, reset } = useRun(failAt, 3)
   const current = steps.find(step => step.state === "running" || step.state === "failed")
   const shown = steps.find(step => step.key === picked) ?? current ?? steps[run.status === "done" ? steps.length - 1 : 0]!
+  const narrow = useNarrow()
   return <div className="stack">
     <RunControls run={run} start={() => { setPicked(null); start() }} reset={() => { setPicked(null); reset() }} failAt={failAt} setFailAt={setFailAt} />
     <RunHeading run={run} steps={steps} />
-    <Split className="gallery-step-split">
+    {narrow ? <div className="stack-sm">
+      {/* No room for a second pane: the output goes under the selected row. */}
+      <StepList label="Create run steps" steps={steps.map(step => step.key === shown.key ? { ...step, detail: <Output step={shown} /> } : step)} selected={shown.key} onSelect={setPicked} />
+      {current && shown !== current && <Button size="sm" variant="ghost" onClick={() => setPicked(null)}>Back to {current.label}</Button>}
+    </div> : <Split className="gallery-step-split">
       <Pane className="gallery-step-pane">
         <StepList label="Create run steps" steps={steps} selected={shown.key} onSelect={setPicked} />
         {current && shown !== current && <Button size="sm" variant="ghost" onClick={() => setPicked(null)}>Back to {current.label}</Button>}
       </Pane>
       <Splitter defaultSize={36} aria-label="Resize the steps and output panes" />
       <Pane className="grow gallery-step-output">{shown && <Output step={shown} />}</Pane>
-    </Split>
+    </Split>}
     <p className="muted t-label">
       Selecting a step shows its output in the pane. The pane keeps its height while lines arrive; only the rail moves.
     </p>

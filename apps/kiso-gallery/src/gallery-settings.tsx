@@ -23,8 +23,11 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   const heading = useRef<HTMLHeadingElement>(null);
   const manualOpen = useRef(false);
   const returnFocus = useRef(false);
+  // Demo options open beside the page on a desktop. Below 1200px the panel
+  // is a modal drawer, so it waits for the options link instead of covering
+  // the demo the person just opened.
   const register = useCallback((title: string | null) => {
-    if (title) setOpen(true);
+    if (title && matchMedia("(min-width: 1200px)").matches) setOpen(true);
   }, []);
   const [revision, setRevision] = useState(0);
   const show = useCallback(() => {

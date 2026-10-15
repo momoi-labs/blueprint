@@ -443,7 +443,9 @@ for (const width of [320, 390]) test(`Small screens use a dismissible settings d
   const page = await open("components/table", width);
   try {
     const panel = await page.getByRole("dialog", { name: "Appearance", exact: true });
-    await panel.waitFor();
+    await page.getByRole("button", { name: /work_mem/ }).waitFor();
+    assert.equal(await panel.isVisible(), false, "Demo options wait for the person instead of covering the demo");
+    await settings(page);
     assert.equal(await panel.getAttribute("aria-modal"), "true");
     await panel.getByRole("combobox", { name: /^Density/ }).selectOption("compact");
     await page.keyboard.press("Escape");

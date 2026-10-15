@@ -4,6 +4,7 @@ import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo
 import { AlertDemo } from "./alert-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
+import { useNarrow } from "./use-narrow";
 import { InlineFieldsDemo } from "./inline-fields-demo";
 import { TableDemo } from "./table-demo";
 import { PaneGridDemo } from "./pane-grid-demo";
@@ -972,6 +973,57 @@ function PageHeaderDemo({ onAction }: { onAction: () => void }) {
   );
 }
 
+function SplitDemo() {
+  const narrow = useNarrow();
+  const list = <>
+    <p className="t-caps">Projects</p>
+    <nav aria-label="Example split list">
+      <a className="nav-item" href="#components/sidebar" aria-current="page">
+        <Dot variant="success" />
+        Website
+      </a>
+      <a className="nav-item" href="#components/split">
+        <Dot variant="warning" />
+        Brand guide
+      </a>
+    </nav>
+  </>;
+  const detail = <>
+    <p className="t-caps">Detail</p>
+    <KV>
+      <KVKey>Owner</KVKey>
+      <KVValue>Alex Morgan</KVValue>
+      <KVKey>Tasks</KVKey>
+      <KVValue>18 / 24</KVValue>
+    </KV>
+  </>;
+  // Two panes do not fit a phone; the product shows them one above the other.
+  if (narrow) return (
+    <div className="stack-sm">
+      <div className="gallery-split-preview gallery-split-stacked">
+        <div className="gallery-split-pane">{list}</div>
+        <div className="gallery-split-pane">{detail}</div>
+      </div>
+      <p className="muted t-label">Below 700px the panes stack, without a divider.</p>
+    </div>
+  );
+  return (
+    <div className="stack-sm">
+      <Split className="gallery-split-preview">
+        <Pane className="gallery-split-pane">{list}</Pane>
+        <Splitter
+          defaultSize={42}
+          aria-label="Resize the list and detail panes"
+        />
+        <Pane className="gallery-split-pane grow">{detail}</Pane>
+      </Split>
+      <p className="muted t-label">
+        Drag the divider, or focus it and use the arrow keys.
+      </p>
+    </div>
+  );
+}
+
 function AppShellDemo() {
   const [togglePlacement, setTogglePlacement] = useState<"sidebar" | "header">("sidebar");
   return (
@@ -1802,41 +1854,7 @@ const Demo = memo(function Demo({
     case "app-shell":
       return <AppShellDemo />;
     case "split":
-      return (
-        <div className="stack-sm">
-          <Split className="gallery-split-preview">
-            <Pane className="gallery-split-pane">
-              <p className="t-caps">Projects</p>
-              <nav aria-label="Example split list">
-                <a className="nav-item" href="#components/sidebar" aria-current="page">
-                  <Dot variant="success" />
-                  Website
-                </a>
-                <a className="nav-item" href="#components/split">
-                  <Dot variant="warning" />
-                  Brand guide
-                </a>
-              </nav>
-            </Pane>
-            <Splitter
-              defaultSize={42}
-              aria-label="Resize the list and detail panes"
-            />
-            <Pane className="gallery-split-pane grow">
-              <p className="t-caps">Detail</p>
-              <KV>
-                <KVKey>Owner</KVKey>
-                <KVValue>Alex Morgan</KVValue>
-                <KVKey>Tasks</KVKey>
-                <KVValue>18 / 24</KVValue>
-              </KV>
-            </Pane>
-          </Split>
-          <p className="muted t-label">
-            Drag the divider, or focus it and use the arrow keys.
-          </p>
-        </div>
-      );
+      return <SplitDemo />;
     case "separator":
       return (
         <div className="stack-sm">
@@ -2096,7 +2114,8 @@ export function ComponentGallery({
     >
       <Sidebar
         id="component-navigation"
-        hidden={desktop && navigationCollapsed}
+        // A closed narrow menu is hidden too, so the shell gives it no row.
+        hidden={desktop ? navigationCollapsed : !menuOpen}
         className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
       >
         <SidebarHeader>
