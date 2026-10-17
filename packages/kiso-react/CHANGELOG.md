@@ -1,5 +1,22 @@
 # @momoi-labs/kiso-react
 
+## 0.17.0
+
+### Minor Changes
+
+- 9b24980: Add `ImagePreview`, `AudioPreview` and `DetailOption`. An option can now show
+  an image thumbnail or a sound that plays from a button, and `DetailOption`
+  lays out an illustrated option in a list the product owns, such as an
+  autocomplete. In DetailSelect, Ctrl+Enter or Cmd+Enter plays the focused
+  option's audio without choosing it; `isPlayPreviewKey` and
+  `toggleAudioPreview` give other lists the same key. Previews never play by
+  themselves, and one plays at a time.
+
+### Patch Changes
+
+- Updated dependencies [9b24980]
+  - @momoi-labs/kiso@0.21.0
+
 ## 0.16.2
 
 ### Patch Changes

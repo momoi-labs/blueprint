@@ -1,6 +1,6 @@
 {
   "name": "@momoi-labs/kiso",
-  "version": "0.20.4",
+  "version": "0.21.0",
   "description": "Kiso design-system contracts and generated design tokens",
   "license": "MIT",
   "repository": {
