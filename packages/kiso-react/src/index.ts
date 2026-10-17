@@ -36,6 +36,7 @@ export * from "./popover.js";
 export * from "./search.js";
 export * from "./select.js";
 export * from "./detail-select.js";
+export * from "./media-preview.js";
 export type { ChartStyle } from "./chart-style.js";
 export * from "./separator.js";
 export * from "./sidebar.js";

@@ -13,6 +13,7 @@ import { PaneGridDemo } from "./pane-grid-demo";
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { FilterInputDemo } from "./filter-input-demo";
 import { DetailSelectDemo } from "./detail-select-demo";
+import { MediaPreviewDemo } from "./media-preview-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { DiagramDemo } from "./diagram-demo";
@@ -198,6 +199,7 @@ const catalog = [
     "Single selection with keyboard navigation.",
   ],
   ["detail-select", "DetailSelect", "Controls", "Illustrated options with rich descriptions in a bounded overlay."],
+  ["media-preview", "MediaPreview", "Controls", "Image thumbnails and audio you can play inside an option."],
   [
     "checkbox",
     "Checkbox",
@@ -348,6 +350,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "file-dropzone": "wide",
   select: "wide",
   "detail-select": "wide",
+  "media-preview": "wide",
   "chip-input": "wide",
   "filter-input": "wide",
   "time-range-control": "wide",
@@ -409,6 +412,7 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
   select:
     '<Select defaultValue="English" onValueChange={setLanguage}>\n  <SelectTrigger aria-label="Language"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="English">English</SelectItem>\n  </SelectContent>\n</Select>',
   "detail-select": '<DetailSelect\n  label="Definition"\n  value={definition}\n  onValueChange={setDefinition}\n  options={[{\n    value: "image",\n    label: "Container image",\n    icon: <TerminalIcon />,\n    illustration: <ImageDiagram />,\n    description: <><p>Run a published image.</p><a href="/docs/images">Read the guide</a></>,\n  }]}\n/>',
+  "media-preview": '<DetailSelect label="Voice" value={voice} onValueChange={setVoice}\n  options={voices.map(voice => ({\n    value: voice.name, label: voice.name, description: voice.about,\n    illustration: <AudioPreview src={voice.url} label={voice.name} />,\n  }))} />\n\n<div role="listbox" aria-activedescendant={activeId} onKeyDown={event => {\n  if (isPlayPreviewKey(event)) toggleAudioPreview(document.getElementById(activeId))\n}}>\n  <DetailOption role="option" size="sm" aria-selected label="dawn"\n    illustration={<ImagePreview src="/library/dawn.png" alt="" />} />\n</div>',
   checkbox:
     '<Checkbox id="platform" checked={checked} onCheckedChange={setChecked} />\n<Label htmlFor="platform">Show platform services</Label>',
   switch:
@@ -1326,6 +1330,8 @@ const Demo = memo(function Demo({
       );
     case "detail-select":
       return <DetailSelectDemo />;
+    case "media-preview":
+      return <MediaPreviewDemo />;
     case "checkbox":
       return (
         <div className="stack">

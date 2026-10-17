@@ -4,6 +4,7 @@ import * as React from "react"
 import { clsx as cn } from "clsx"
 import { Check } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover.js"
+import { isPlayPreviewKey, toggleAudioPreview } from "./media-preview.js"
 
 export type DetailSelectOption = {
   value: string
@@ -81,6 +82,11 @@ export function DetailSelect({ label, options, value, defaultValue, onValueChang
                 ref={element => { buttons.current[index] = element }} disabled={option.disabled}
                 aria-pressed={option.value === selected} aria-describedby={`${triggerId}-description-${index}`}
                 onClick={() => choose(option)} onKeyDown={event => {
+                  if (isPlayPreviewKey(event)) {
+                    event.preventDefault()
+                    toggleAudioPreview(event.currentTarget.closest(".detail-select-option"))
+                    return
+                  }
                   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return
                   const enabled = options.map((option, index) => ({ option, button: buttons.current[index] }))
                     .filter(item => item.button && !item.option.disabled)

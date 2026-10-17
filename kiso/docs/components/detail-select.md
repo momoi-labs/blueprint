@@ -59,10 +59,19 @@ remain accessible.
 - Enter or Space on a selection button selects that option and closes the panel.
 - Escape dismisses the panel and restores focus to the trigger, keeping the
   current selection.
+- Ctrl+Enter, or Cmd+Enter on macOS, on a selection button plays or pauses the
+  option's [AudioPreview](media-preview.md) without selecting it. On an option
+  without one the key does nothing.
+
+An AudioPreview in an illustration is a separate button that Tab also reaches.
+Pressing it plays the sound and does not select the option.
 
 The trigger icon is decorative. Give meaningful illustrations their own
 accessible description; hide decorative illustrations from assistive technology.
 Keep essential explanation text in the description rather than inside an image.
+Use an [ImagePreview or AudioPreview](media-preview.md) as the illustration to
+show what a media item looks or sounds like. Use [DetailOption](detail-option.md)
+for the same layout in a list the product owns.
 
 ## Tokens and appearance
 

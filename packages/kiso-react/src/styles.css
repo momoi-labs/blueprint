@@ -364,6 +364,31 @@
   .detail-select-choice { min-height: var(--size-touch-min); }
   .detail-select-description a { display: inline-block; min-height: var(--size-touch-min); align-content: center; }
 }
+.media-preview { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); background-color: var(--color-muted); }
+.audio-preview { flex: none; }
+.detail-option { display: grid; grid-template-columns: minmax(min-content, 8rem) minmax(0, 1fr); gap: var(--spacing-lg); padding: var(--spacing-md); color: var(--color-foreground); }
+.detail-option:not(:has(> .detail-option-illustration)) { grid-template-columns: minmax(0, 1fr); }
+.detail-option-illustration { min-width: 0; align-self: start; }
+.detail-option-illustration :is(img, svg, video) { max-width: 100%; }
+.detail-option-body { min-width: 0; align-self: center; overflow-wrap: anywhere; }
+.detail-option-label { font-size: var(--type-size-body); font-weight: var(--type-weight-medium); }
+.detail-option-description { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
+.detail-option[data-size="sm"] { grid-template-columns: var(--size-control-sm) minmax(0, 1fr); align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) var(--spacing-sm); }
+.detail-option[data-size="sm"]:not(:has(> .detail-option-illustration)) { grid-template-columns: minmax(0, 1fr); }
+.detail-option[data-size="sm"] .detail-option-illustration { align-self: center; }
+.detail-option[data-size="sm"] .detail-option-label { font-size: var(--type-size-label); }
+.detail-option[data-size="sm"] .media-preview { aspect-ratio: 1; }
+@media (hover: hover) {
+  .detail-option:where([role="option"]:not([aria-disabled="true"]):hover) { background-color: var(--color-accent-surface-hover); }
+}
+.detail-option:where([aria-selected="true"]) { background-color: var(--color-selected); color: var(--color-selected-foreground); }
+.detail-option:where([aria-selected="true"]) .detail-option-description { color: inherit; }
+@media (forced-colors: active) {
+  .detail-option:where([aria-selected="true"]) { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+@media (max-width: 480px) {
+  .detail-option:not([data-size="sm"]) { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); gap: var(--spacing-sm); padding: var(--spacing-sm); }
+}
 /* When frames include controls, these surfaces take the control shape, as
    the control-sized surfaces in ui.css do. */
 :where([data-frame-scope="all"]) :is(.kiso-react-popover, .theme-buttons, .accent-preview) {
