@@ -20,7 +20,7 @@ try {
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
       ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/media-preview.js', 'dist/media-preview.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -83,10 +83,19 @@ try {
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
-      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel, CodeEditor } from '@momoi-labs/kiso-react';
+      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel, CodeEditor,
+      AudioPreview, DetailOption, ImagePreview, isPlayPreviewKey } from '@momoi-labs/kiso-react';
     for (const component of [DetailSelect, Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
     assert.match(render(h(Alert, { appearance: 'rail', variant: 'warning', role: 'note' })), /role="note"/);
+    const option = render(h(DetailOption, { id: 'voice', role: 'option', size: 'sm', label: 'Aiko', description: 'Calm',
+      illustration: h(AudioPreview, { src: '/aiko.wav', label: 'Aiko' }) }));
+    for (const part of ['aria-labelledby="voice-label"', 'aria-describedby="voice-description"', 'data-size="sm"',
+      'aria-label="Play Aiko"', 'data-state="paused"']) assert(option.includes(part), part);
+    assert.match(render(h(ImagePreview, { src: '/dawn.png', alt: '' })), /loading="lazy"/);
+    assert(isPlayPreviewKey({ key: 'Enter', ctrlKey: true, metaKey: false, altKey: false, shiftKey: false }));
+    assert(!isPlayPreviewKey({ key: 'Enter', ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }));
+    assert(isPlayPreviewKey({ key: 'Enter', ctrlKey: false, metaKey: true, altKey: false, shiftKey: false }));
     assert.match(render(h(Alert, { appearance: 'rail' })), /alert-rail/);
     const table = render(h(TableFrame, { frame: 'none' }, h(Table, { density: 'spacious', header: 'plain' })));
     assert.match(table, /data-frame="none"/);

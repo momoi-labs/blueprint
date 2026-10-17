@@ -27,6 +27,8 @@ behavioral reference where one exists.
 - [Link](link.md): Navigates to a URL while preserving native link behavior.
 - [Select](select.md): Chooses one value from a predefined set of options.
 - [DetailSelect](detail-select.md): Chooses one value from illustrated options with rich explanations.
+- [DetailOption](detail-option.md): Lays out an illustrated option in a list the product owns, such as an autocomplete.
+- [MediaPreview](media-preview.md): Shows an image thumbnail or plays a short sound inside an option.
 - [Skeleton](skeleton.md): Preserves known layout while its content is loading.
 - [Spinner](spinner.md): Signals indeterminate work when the final layout is not represented.
 - [Switch](switch.md): Changes one immediately applied boolean setting.
