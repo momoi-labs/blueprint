@@ -63,10 +63,12 @@ const statuses: Record<DiagramStatus, { label: string; tone: StatusTone }> = {
 const RADIUS = 8
 
 /* An edge is two paths. The trunk is the horizontal run out of the source,
-   shared by every edge that leaves it, so it is always drawn solid and
-   neutral: two styles on one line would paint over each other. The branch
-   is the rest, the turn onto the merge column, the vertical run and the
-   straight run into the target, and it carries the edge's line and tone. */
+   shared by every edge that leaves it. It carries their line and tone when
+   they all agree, so a single dotted edge is dotted end to end; when they
+   differ it stays solid and neutral, since two styles on one line would
+   paint over each other. The branch is the rest, the turn onto the merge
+   column, the vertical run and the straight run into the target, and it
+   carries the edge's line and tone. */
 function elbow(sx: number, sy: number, tx: number, ty: number, mid: number) {
   const dy = ty - sy
   if (Math.abs(dy) < 1) return { trunk: `M ${sx} ${sy} H ${mid}`, branch: `M ${mid} ${sy} H ${tx}` }
@@ -161,7 +163,10 @@ function Diagram({ label, background, strength, borderStyle, cornerStyle, corner
       // labels never land on the same spot. One edge enters at the middle.
       const measured = edges.flatMap((edge) => {
         const target = box(edge.to)
-        const sources = edge.from.map(box).filter((b) => b !== null)
+        const sources = edge.from.flatMap((id) => {
+          const found = box(id)
+          return found ? [{ ...found, id }] : []
+        })
         return target && sources.length ? [{ edge, target, sources }] : []
       })
       const entries = new Map<EdgeSpec, number>()
@@ -172,6 +177,12 @@ function Diagram({ label, background, strength, borderStyle, cornerStyle, corner
           entries.set(item.edge, item.target.top + (item.target.height * (index + 1)) / (group.length + 1))
         })
       }
+      const leaving = new Map<string, EdgeSpec[]>()
+      for (const edge of edges) for (const id of edge.from) leaving.set(id, [...(leaving.get(id) ?? []), edge])
+      const trunkStyle = (id: string) => {
+        const [first, ...rest] = leaving.get(id) ?? []
+        return first && rest.every((edge) => edge.line === first.line && edge.tone === first.tone) ? { line: first.line, tone: first.tone } : {}
+      }
       const next: Drawn = { paths: [], labels: [] }
       for (const { edge, target, sources } of measured) {
         const ty = entries.get(edge) ?? target.y
@@ -179,7 +190,7 @@ function Diagram({ label, background, strength, borderStyle, cornerStyle, corner
         const mid = (start + target.left) / 2
         sources.forEach((source, index) => {
           const { trunk, branch } = elbow(source.right, source.y, target.left, ty, mid)
-          next.paths.push({ key: `${edge.key}:${index}:trunk`, d: trunk, arrow: false })
+          next.paths.push({ key: `${edge.key}:${index}:trunk`, d: trunk, arrow: false, ...trunkStyle(source.id) })
           next.paths.push({ key: `${edge.key}:${index}`, d: branch, line: edge.line, tone: edge.tone, arrow: true })
         })
         // The label sits on the edge's own run into the target, above the line.
