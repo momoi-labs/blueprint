@@ -1,5 +1,11 @@
 # @momoi-labs/kiso-react
 
+## 0.16.2
+
+### Patch Changes
+
+- 941ec52: Draw a diagram edge's trunk in the edge's line and tone when every edge that leaves the source agrees, so a single dotted edge is dotted end to end.
+
 ## 0.16.1
 
 ### Patch Changes
