@@ -1,0 +1,20 @@
+{
+  "name": "momoi-labs-blueprint",
+  "description": "Agent skills for Kiso, the Momoi Labs design system.",
+  "owner": {
+    "name": "Momoi Labs"
+  },
+  "plugins": [
+    {
+      "name": "kiso",
+      "displayName": "Momoi Labs: Kiso",
+      "source": "./",
+      "description": "Skills for products that use Kiso: adopt it and build screens against its contracts.",
+      "skills": [
+        "./skills/kiso-adopt",
+        "./skills/kiso-page"
+      ],
+      "version": "0.1.0"
+    }
+  ]
+}
