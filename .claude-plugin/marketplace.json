@@ -12,7 +12,9 @@
       "description": "Skills for products that use Kiso: adopt it and build screens against its contracts.",
       "skills": [
         "./skills/kiso-adopt",
-        "./skills/kiso-page"
+        "./skills/kiso-page",
+        "./skills/kiso-propose",
+        "./skills/kiso-review"
       ],
       "version": "0.1.0"
     }

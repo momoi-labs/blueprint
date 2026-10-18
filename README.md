@@ -36,11 +36,13 @@ product patterns, data-interface guidance, and cross-layer accessibility rules.
 
 ### Agent skills for Kiso products
 
-Products that use Kiso install two agent skills from this repository:
+Products that use Kiso install four agent skills from this repository:
 
 - `kiso-adopt` connects a project to Kiso and creates its `docs/kiso.md`.
 - `kiso-page` builds or checks a screen against the installed contracts and
   the project's `docs/kiso.md`.
+- `kiso-review` reviews a diff or a product against the same contracts.
+- `kiso-propose` turns a gap in Kiso into an issue here.
 
 ```bash
 npx skills@latest add momoi-labs/blueprint
