@@ -43,11 +43,24 @@ Products that use Kiso install two agent skills from this repository:
   the project's `docs/kiso.md`.
 
 ```bash
-npx skills@latest add momoi-labs/blueprint --skill kiso-adopt --skill kiso-page
+npx skills@latest add momoi-labs/blueprint
 ```
 
-Name the skills. Without `--skill`, the CLI also offers
-`validate-kiso-component`, which is for Kiso maintainers.
+They are also the `kiso` plugin. In Claude Code:
+
+```bash
+/plugin install kiso --marketplace momoi-labs/blueprint
+```
+
+Plugin skills carry the plugin name as a prefix, such as `/kiso:kiso-page`.
+
+The repository also has an internal skill for Kiso maintainers,
+`validate-kiso-component`. Agents working here load it from `.agents/skills/`.
+The skills CLI hides it. To install it elsewhere:
+
+```bash
+INSTALL_INTERNAL_SKILLS=1 npx skills@latest add momoi-labs/blueprint --skill validate-kiso-component
+```
 
 ## Architecture patterns
 

@@ -1,6 +1,8 @@
 ---
 name: validate-kiso-component
 description: Validate a Kiso component against its contract, accessibility rules, packaged behavior, and real consumer compositions. Use for deep component audits, release-readiness reviews, or a requested catalog-wide validation.
+metadata:
+  internal: true
 ---
 
 # Validate Kiso component
