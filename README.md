@@ -34,6 +34,21 @@ product patterns, data-interface guidance, and cross-layer accessibility rules.
 - Neutrals carry the interface; one accent carries attention
 - Inter for interface text, JetBrains Mono for code
 
+### Agent skills for Kiso products
+
+Products that use Kiso install two agent skills from this repository:
+
+- `kiso-adopt` connects a project to Kiso and creates its `docs/kiso.md`.
+- `kiso-page` builds or checks a screen against the installed contracts and
+  the project's `docs/kiso.md`.
+
+```bash
+npx skills@latest add momoi-labs/blueprint --skill kiso-adopt --skill kiso-page
+```
+
+Name the skills. Without `--skill`, the CLI also offers
+`validate-kiso-component`, which is for Kiso maintainers.
+
 ## Architecture patterns
 
 Default architecture choices, recorded once so projects do not make them
