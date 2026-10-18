@@ -43,7 +43,8 @@ holds no rules of its own.
 
 Stop and ask before you add or change a token, a component contract or a
 pattern. The decision boundary in `kiso/AGENTS.md` lists what you may decide
-alone. A one-off break needs a row in Exceptions and a blueprint issue.
+alone. A one-off break needs a row in Exceptions and a blueprint issue. Use
+the `kiso-propose` skill to write that issue.
 
 ## 4. Update docs/kiso.md
 
