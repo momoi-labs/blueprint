@@ -7,8 +7,8 @@ service, on twelve columns, and lets the reader change that arrangement. A
 pane is resized at its end edge and moved by its title. The product saves the
 result and restores it next time.
 
-[DashboardGrid](dashboard-grid.md) owns a fixed layout the product designed.
-PaneGrid owns a layout the reader designs. [Split](split.md) allocates width
+[DashboardGrid](dashboard-grid.md) is a PaneGrid for metric panels.
+[Split](split.md) allocates width
 between two panes of one workspace; PaneGrid places many panes on rows.
 
 ## Anatomy
@@ -104,7 +104,7 @@ aligned with the rows above and below it.
 
 ## Responsive behavior
 
-PaneGrid follows its own width, at DashboardGrid's breakpoints. A grid beside
+PaneGrid follows its own width. A grid beside
 a sidebar or an open panel gets the columns its space allows, not the ones the
 viewport would.
 
@@ -158,7 +158,8 @@ between rows uses `--color-border-strong`. The pane is a Card and follows
 every appearance setting.
 
 Compose under the [Dashboard pattern](../patterns/dashboard.md) for an
-object's summary. Give the section an `aria-label` or a `title`.
+object's summary. Use [DashboardGrid](dashboard-grid.md) for metric panels.
+Give the section an `aria-label` or a `title`.
 
 ## When to use
 
@@ -167,7 +168,6 @@ object's summary. Give the section an `aria-label` or a `title`.
 
 ## When NOT to use
 
-- A fixed overview the product designs. Use [DashboardGrid](dashboard-grid.md).
 - Two panes that share one workspace. Use [Split](split.md).
 - A list of records. Use [Table](table.md).
 

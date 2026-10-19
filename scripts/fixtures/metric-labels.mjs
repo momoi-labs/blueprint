@@ -1,6 +1,6 @@
 import { createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BarGauge, Card, CardContent, DashboardGrid, DashboardPanel, Meter, Progress } from '@momoi-labs/kiso-react';
+import { BarGauge, DashboardGrid, DashboardPanel, Meter, Progress } from '@momoi-labs/kiso-react';
 import '@momoi-labs/kiso-react/styles.css';
 
 const params = new URLSearchParams(location.search);
@@ -22,6 +22,6 @@ const metrics = component === 'BarGauge'
 createRoot(document.getElementById('root')).render(h('main', { className: 'stack' },
   h('h1', { className: 't-h3' }, component),
   params.has('panel')
-    ? h(DashboardGrid, null, h(DashboardPanel, { span: 12 }, h(Card, null, h(CardContent, null, metrics))))
+    ? h(DashboardGrid, null, h(DashboardPanel, { id: 'metrics', title: component, size: 12 }, metrics))
     : metrics,
 ));

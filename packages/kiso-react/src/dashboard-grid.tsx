@@ -1,12 +1,19 @@
 import * as React from "react"
 import { clsx as cn } from "clsx"
 
-export function DashboardGrid({ className, ...props }: React.ComponentProps<"div">) {
-  return <div {...props} data-slot="dashboard-grid" className={cn("dashboard-grid", className)} />
+import { GridPane, PaneGrid, type GridPaneProps, type PaneGridProps } from "./pane-grid.js"
+
+/* A dashboard is a PaneGrid: the product seeds each panel's size and row, and
+   the reader moves and resizes panels. The product persists the layout. */
+
+export type DashboardGridProps = PaneGridProps
+export function DashboardGrid({ className, ...props }: DashboardGridProps) {
+  return <PaneGrid data-slot="dashboard-grid" className={cn("dashboard-grid", className)} {...props} />
 }
 
-export type DashboardPanelProps = React.ComponentProps<"div"> & { span?: 3 | 4 | 6 | 8 | 12 }
-export function DashboardPanel({ span = 6, className, style, ...props }: DashboardPanelProps) {
-  return <div {...props} data-slot="dashboard-panel" data-span={span} className={cn("dashboard-panel", className)}
-    style={{ "--dashboard-span": span, ...style } as React.CSSProperties} />
+/* PaneGrid reads `id`, `size`, `min` and `newRow` from its children, so a
+   panel takes the same props as a GridPane. */
+export type DashboardPanelProps = GridPaneProps
+export function DashboardPanel({ className, ...props }: DashboardPanelProps) {
+  return <GridPane data-slot="dashboard-panel" className={cn("dashboard-panel", className)} {...props} />
 }
