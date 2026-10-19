@@ -28,5 +28,5 @@ Use Meter's track and fill tokens, `--spacing-md` between rows, and
 `--spacing-sm` within each row. No separate charting or Radix primitive is
 required. The old `.bars` vertical mini-bars are unrelated and stay compatible.
 
-Rows inherit the four `data-chart-style` treatments from Meter. A treatment
-changes the fill and ends, while measured widths and values stay the same.
+Rows inherit the chart line and fill from Meter. They change the track and
+ends, while measured widths and values stay the same.

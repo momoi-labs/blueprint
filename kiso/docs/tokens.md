@@ -329,6 +329,10 @@ No gallery CSS or JavaScript is required.
 | --- | --- | --- |
 | `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset`, `manga`, `brush` | Solid outline |
 | `data-chart-style` | `solid`, `pixel`, `halftone`, `rounded` | Solid chart treatment |
+| `data-chart-line` | `straight`, `stepped`, `curved` | The chart style's line, otherwise `straight` |
+| `data-chart-fill` | `none`, `dots`, `tint`, `squares`, `scanlines` | The chart style's fill, otherwise `none` |
+| `data-chart-layout` | `standard`, `compact`, `split` | `standard` |
+| `data-chart-legend` | `table`, `inline`, `sidebar` | `table` |
 | `data-corner-style` | `square`, `rounded`, `asym`, `pixel` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `diagonal`, `dots` | `ticks` |
@@ -360,14 +364,21 @@ Side rail and Weighted base paint a 3px band inside the panel edge, and Offset
 outline paints the same 3px shadow outside it. The outer inset frame follows
 its own corner style, including `data-outer-corner-style`.
 
-Chart treatment is independent of border and corner choices. It changes
-Chart and Sparkline paths, ChartLegend line ends, and Meter, Progress,
-BarGauge, and StepBar tracks. Solid uses straight segments. Pixel uses
-small stairs and square ends. Halftone adds dotted fills. Rounded uses
-bounded curves for line charts and round ends. Colors, gaps, sample positions,
-and measured lengths stay the same. Set the attribute on `html` or a containing
-element; React charts follow live changes. A Chart or Sparkline's `chartStyle`
-prop overrides the inherited treatment for that component.
+Chart treatment is independent of border and corner choices, and has two
+axes. The line changes Chart and Sparkline paths, ChartLegend line ends, and
+gauge ends: straight segments, stepped stairs with square ends, or curved
+lines with round ends. The fill changes the area under a line and the empty
+part of Meter, Progress, BarGauge, and StepBar tracks: none, dots, a tint,
+squares, or scanlines. A gauge value stays solid; tint leaves the track plain.
+
+`data-chart-style` is a preset of both: Solid is straight and none, Pixel is
+stepped and none, Halftone is straight and dots, and Rounded is curved and
+none. `data-chart-line` and `data-chart-fill` override one axis, on the same
+element or a containing one. Colors, gaps, sample positions, and measured
+lengths stay the same. Set the attributes on `html` or a containing element;
+React charts follow live changes. A Chart or Sparkline's `chartStyle`,
+`chartLine` and `chartFill` props override the inherited treatment for that
+component.
 
 | Corner shape | Panel radius | Control radius |
 | --- | --- | --- |

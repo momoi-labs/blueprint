@@ -36,7 +36,9 @@ Meter fill uses `--color-secondary-foreground`; Progress uses `--color-chart-1`.
 `--color-foreground`. Unknown tracks use the existing hatch tokens. This
 contract adds `.meter-track`; legacy `.progress` rules remain compatible.
 
-`data-chart-style` controls track appearance independently of borders. Solid
-keeps the thin track, Pixel has square ends, Halftone dots the measured fill,
-and Rounded has round ends. Filled widths, labels, ARIA values, and unknown
+The chart line and fill control track appearance independently of borders.
+A straight line keeps slightly rounded ends, stepped has square ends, and
+curved has round ends. Dots, squares and scanlines texture the empty part of
+the track and make it 8 pixels tall; the measured value stays solid. None and
+tint keep the plain, thin track. Filled widths, labels, ARIA values, and unknown
 hatches keep their existing meaning.

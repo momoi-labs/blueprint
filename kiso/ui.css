@@ -2736,16 +2736,37 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .chart .area { fill: currentColor; fill-opacity: 0.12; }
 .chart-axis { display: flex; justify-content: space-between; font-size: var(--type-size-metadata); color: var(--color-muted-foreground); margin-block-start: var(--spacing-sm); }
 
-/* Chart paint is independent of borders and corners. Geometry reads this
-   inherited property in Chart and Sparkline. An explicit Solid resets a region. */
-[data-chart-style="solid"] { --chart-style: solid; --chart-track-radius: var(--radius-xs); --chart-fill-radius: 0px; --chart-track-mask: none; --chart-line-cap: butt; }
-[data-chart-style="pixel"] { --chart-style: pixel; --chart-track-radius: 0px; --chart-fill-radius: 0px; --chart-track-mask: none; --chart-line-cap: butt; }
-[data-chart-style="halftone"] { --chart-style: halftone; --chart-track-radius: var(--radius-xs); --chart-fill-radius: 0px; --chart-track-mask: radial-gradient(circle, #000 1px, transparent 1.4px); --chart-line-cap: butt; }
-[data-chart-style="rounded"] { --chart-style: rounded; --chart-track-radius: var(--radius-full); --chart-fill-radius: var(--radius-full); --chart-track-mask: none; --chart-line-cap: round; }
+/* Chart paint is independent of borders and corners, and has two axes. The
+   line sets the stroke shape and gauge ends; the fill sets the area under a
+   line and the empty part of a gauge track. Chart and Sparkline read
+   --chart-line and --chart-fill for geometry. data-chart-style is a preset of
+   both; data-chart-line and data-chart-fill come later, so on one element they
+   override the preset's axis. An explicit Solid resets a region. */
+[data-chart-style="solid"] { --chart-line: straight; --chart-track-radius: var(--radius-xs); --chart-fill-radius: 0px; --chart-line-cap: butt; --chart-fill: none; --chart-track-mask: none; --chart-track-image: none; --chart-track-height: initial; }
+[data-chart-style="pixel"] { --chart-line: stepped; --chart-track-radius: 0px; --chart-fill-radius: 0px; --chart-line-cap: butt; --chart-fill: none; --chart-track-mask: none; --chart-track-image: none; --chart-track-height: initial; }
+[data-chart-style="halftone"] { --chart-line: straight; --chart-track-radius: var(--radius-xs); --chart-fill-radius: 0px; --chart-line-cap: butt; --chart-fill: dots; --chart-track-mask: radial-gradient(circle, #000 1px, transparent 1.4px); --chart-track-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1.4px); --chart-track-size: 4px 4px; --chart-track-height: 8px; }
+[data-chart-style="rounded"] { --chart-line: curved; --chart-track-radius: var(--radius-full); --chart-fill-radius: var(--radius-full); --chart-line-cap: round; --chart-fill: none; --chart-track-mask: none; --chart-track-image: none; --chart-track-height: initial; }
+[data-chart-line="straight"] { --chart-line: straight; --chart-track-radius: var(--radius-xs); --chart-fill-radius: 0px; --chart-line-cap: butt; }
+[data-chart-line="stepped"] { --chart-line: stepped; --chart-track-radius: 0px; --chart-fill-radius: 0px; --chart-line-cap: butt; }
+[data-chart-line="curved"] { --chart-line: curved; --chart-track-radius: var(--radius-full); --chart-fill-radius: var(--radius-full); --chart-line-cap: round; }
+/* Tint has no gauge texture: the track keeps its plain surface. */
+[data-chart-fill="none"] { --chart-fill: none; --chart-track-mask: none; --chart-track-image: none; --chart-track-height: initial; }
+[data-chart-fill="tint"] { --chart-fill: tint; --chart-track-mask: none; --chart-track-image: none; --chart-track-height: initial; }
+[data-chart-fill="dots"] { --chart-fill: dots; --chart-track-mask: radial-gradient(circle, #000 1px, transparent 1.4px); --chart-track-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1.4px); --chart-track-size: 4px 4px; --chart-track-height: 8px; }
+[data-chart-fill="squares"] { --chart-fill: squares; --chart-track-mask: conic-gradient(at 2px 2px, transparent 270deg, #000 0); --chart-track-image: conic-gradient(at 2px 2px, transparent 270deg, var(--color-border-strong) 0); --chart-track-size: 4px 4px; --chart-track-height: 8px; }
+[data-chart-fill="scanlines"] { --chart-fill: scanlines; --chart-track-mask: linear-gradient(#000 1px, transparent 0); --chart-track-image: linear-gradient(var(--color-border-strong) 1px, transparent 0); --chart-track-size: 4px 3px; --chart-track-height: 8px; }
+/* Chart layout and legend placement, read by Chart. A prop overrides them. */
+[data-chart-layout="standard"] { --chart-layout: standard; }
+[data-chart-layout="compact"] { --chart-layout: compact; }
+[data-chart-layout="split"] { --chart-layout: split; }
+[data-chart-legend="table"] { --chart-legend: table; }
+[data-chart-legend="inline"] { --chart-legend: inline; }
+[data-chart-legend="sidebar"] { --chart-legend: sidebar; }
 .chart-series-swatch { overflow: visible; }
 .chart-series-swatch path { stroke-linecap: var(--chart-line-cap, butt); }
-[data-chart-treatment="rounded"] { --chart-line-cap: round; }
-[data-chart-treatment="solid"], [data-chart-treatment="pixel"], [data-chart-treatment="halftone"] { --chart-line-cap: butt; }
+/* A Chart or Sparkline with its own chartLine prop sets its swatch ends. */
+:is([data-slot="chart"], [data-slot="sparkline"])[data-line="curved"] { --chart-line-cap: round; }
+:is([data-slot="chart"], [data-slot="sparkline"]):is([data-line="straight"], [data-line="stepped"]) { --chart-line-cap: butt; }
 
 /* Sparkline — one metric series at cell size (issue #84). No axis, no grid,
    no legend, no tooltip: the number beside the line carries the precision,
@@ -2761,6 +2782,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 
 /* Metrics dashboard, issue #93. Series colors encode identity, not status. */
 .framed-chart { margin: 0; display: grid; gap: var(--spacing-sm); min-width: 0; }
+/* A pane's title already names the chart it holds. The caption stays for
+   assistive technology. */
+.grid-pane-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-plot { width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
 .chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
@@ -2781,11 +2805,12 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .meter-label { display: flex; justify-content: space-between; gap: var(--spacing-md); font-size: var(--type-size-label); }
 .meter-label > :first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .meter-label > :last-child { max-width: 50%; overflow-wrap: anywhere; text-align: end; font-variant-numeric: tabular-nums; }
-.meter-track { height: calc(var(--spacing-xs) + var(--spacing-2xs)); border-radius: var(--chart-track-radius, var(--radius-xs)); background-color: var(--color-secondary); overflow: hidden; }
-/* A pane's title already names the chart it holds. The caption stays for
-   assistive technology. */
-.grid-pane-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.meter-track > span { display: block; height: 100%; background: var(--color-secondary-foreground); border-radius: var(--chart-fill-radius, 0px); mask-image: var(--chart-track-mask, none); mask-size: 4px 4px; }
+.meter-track { height: var(--chart-track-height, calc(var(--spacing-xs) + var(--spacing-2xs))); border-radius: var(--chart-track-radius, var(--radius-xs)); background-color: var(--color-secondary); overflow: hidden; }
+.meter-track > span { display: block; height: 100%; background: var(--color-secondary-foreground); border-radius: var(--chart-fill-radius, 0px); }
+/* A textured fill dots the empty track and leaves the value solid: a textured
+   value reads as a rendering fault. The track keeps its surface so both ends
+   show, grows to two full rows of texture, and `round` fits whole cells. */
+.meter-track:not(.hatch) { background-image: var(--chart-track-image, none); background-size: var(--chart-track-size, auto); background-repeat: round; }
 .disclosure { min-width: 0; }
 .disclosure > summary { padding: var(--spacing-sm) 0; cursor: pointer; font-weight: var(--type-weight-medium); }
 .disclosure > summary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
@@ -2841,7 +2866,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 .step-bar { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--spacing-2xs); height: var(--spacing-xs); min-width: 0; }
-.step-bar > span { border-radius: var(--chart-track-radius, var(--radius-xs)); background: var(--color-secondary); mask-image: var(--chart-track-mask, none); mask-size: 4px 4px; }
+.step-bar > span { border-radius: var(--chart-track-radius, var(--radius-xs)); background: var(--color-secondary); mask-image: var(--chart-track-mask, none); mask-size: var(--chart-track-size, 4px 4px); }
 .step-bar > span[data-state="done"] { background: var(--color-success); }
 .step-bar > span[data-state="running"] { background: linear-gradient(90deg, var(--color-success) 0 var(--step-progress, 100%), var(--color-success-surface) var(--step-progress, 100%) 100%); }
 .step-bar > span[data-state="skipped"] { background: repeating-linear-gradient(45deg, var(--color-success) 0 2px, transparent 2px 5px); }

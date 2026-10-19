@@ -35,8 +35,6 @@ const percent = (value: number) => `${value.toFixed(1)}%`
 
 function ChartOptionsDemo() {
   const [variant, setVariant] = useState<NonNullable<ChartProps["variant"]>>("line")
-  const [layout, setLayout] = useState<NonNullable<ChartProps["layout"]>>("compact")
-  const [legend, setLegend] = useState<NonNullable<ChartProps["legend"]>>("inline")
   const [highlight, setHighlight] = useState<string | null>(null)
   const [range, setRange] = useState(bounds)
   const filtered = data.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to)
@@ -44,9 +42,7 @@ function ChartOptionsDemo() {
   label="CPU by state (%)"
   data={samples}
   series={series}
-  variant="${variant}"
-  layout="${layout}"
-  legend="${legend}"${highlight ? `
+  variant="${variant}"${highlight ? `
   highlightSeries="${highlight}"` : ""}
 />`
   return <div className="stack">
@@ -54,17 +50,7 @@ function ChartOptionsDemo() {
       <div className="field"><span id="chart-option-variant">Variant</span>
         <Select value={variant} onValueChange={value => { if (value === "line" || value === "stacked-area") setVariant(value) }}>
           <SelectTrigger aria-labelledby="chart-option-variant"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="line">line</SelectItem><SelectItem value="stacked-area" disabled={layout === "split"}>stacked-area</SelectItem></SelectContent>
-        </Select></div>
-      <div className="field"><span id="chart-option-layout">Layout</span>
-        <Select value={layout} onValueChange={value => { if (value === "standard" || value === "compact" || value === "split") setLayout(value) }}>
-          <SelectTrigger aria-labelledby="chart-option-layout"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="compact">compact</SelectItem><SelectItem value="standard">standard</SelectItem><SelectItem value="split" disabled={variant === "stacked-area"}>split</SelectItem></SelectContent>
-        </Select></div>
-      <div className="field"><span id="chart-option-legend">Legend</span>
-        <Select value={legend} onValueChange={value => { if (value === "inline" || value === "table" || value === "sidebar") setLegend(value) }}>
-          <SelectTrigger aria-labelledby="chart-option-legend"><SelectValue /></SelectTrigger>
-          <SelectContent>{["inline", "table", "sidebar"].map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
+          <SelectContent><SelectItem value="line">line</SelectItem><SelectItem value="stacked-area">stacked-area</SelectItem></SelectContent>
         </Select></div>
       <div className="field"><span id="chart-option-highlight">Highlight series</span>
         <Select value={highlight ?? "none"} onValueChange={value => setHighlight(value === "none" ? null : value)}>
@@ -72,18 +58,18 @@ function ChartOptionsDemo() {
           <SelectContent><SelectItem value="none">None</SelectItem>{series.map(item => <SelectItem key={item.key} value={item.key}>{item.key}</SelectItem>)}</SelectContent>
         </Select></div>
     </div>
-    <p className="muted t-label">Split separates series on a shared scale and requires line charts.</p>
+    <p className="muted t-label">Layout and legend follow Appearance, under Charts. Split applies to line charts only.</p>
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Card><CardContent><Chart label="CPU by state (%)" data={filtered} series={series}
-      variant={variant} layout={layout} legend={legend} highlightSeries={highlight}
+      variant={variant} highlightSeries={highlight}
       onHighlightSeriesChange={setHighlight} min={0} max={100} formatTime={time} formatValue={percent} /></CardContent></Card>
-  const layout = usePaneLayout("kiso-gallery-dashboard-layout")
     <pre><code>{code}</code></pre>
   </div>
 }
 
 export function MetricsDemo({ component = "chart" }: { component?: string }) {
   const [range, setRange] = useState(bounds)
+  const layout = usePaneLayout("kiso-gallery-dashboard-layout")
   const filtered = data.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to)
   if (component === "chart") return <ChartOptionsDemo />
   if (component === "meter") return <div className="stack">

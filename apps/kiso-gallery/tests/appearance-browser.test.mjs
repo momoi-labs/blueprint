@@ -81,23 +81,24 @@ for (const width of [390, 1440]) test(`DetailSelect selects the last option by c
 for (const width of [390, 1440]) test(`Chart treatments select, persist and export without page growth at ${width}px`, async () => {
   const page = await open('components/chart', width);
   try {
-    for (const [label, chartStyle] of [['Solid', 'solid'], ['Pixel', 'pixel'], ['Halftone', 'halftone'], ['Rounded', 'rounded']]) {
+    for (const [select, label, attribute, value] of [['Chart line', 'Stepped', 'chartLine', 'stepped'], ['Chart line', 'Curved', 'chartLine', 'curved'],
+      ['Chart fill', 'Dots', 'chartFill', 'dots'], ['Chart fill', 'Scanlines', 'chartFill', 'scanlines']]) {
       const panel = await settings(page);
       await tab(panel, 'Charts');
-      const trigger = panel.locator('.detail-select-trigger');
+      const trigger = panel.locator('.detail-select-trigger').nth(select === 'Chart line' ? 0 : 1);
       const baseline = await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]);
       await trigger.click();
-      const options = page.getByRole('dialog', { name: 'Chart style: options' });
+      const options = page.getByRole('dialog', { name: `${select}: options` });
       const bounds = await options.boundingBox();
       assert(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 901);
       assert.deepEqual(await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]), baseline);
       await options.getByRole('button', { name: label, exact: true }).click();
-      await page.waitForFunction(style => document.documentElement.dataset.chartStyle === style, chartStyle);
-      assert.equal(await page.locator('[data-slot="chart"]').getAttribute('data-chart-treatment'), chartStyle);
+      await page.waitForFunction(([key, expected]) => document.documentElement.dataset[key] === expected, [attribute, value]);
+      await page.waitForFunction(([key, expected]) => document.querySelector('[data-slot="chart"]')?.dataset[key === 'chartLine' ? 'line' : 'fill'] === expected, [attribute, value]);
       await page.reload();
-      assert.equal(await page.evaluate(() => document.documentElement.dataset.chartStyle), chartStyle);
+      assert.equal(await page.evaluate(key => document.documentElement.dataset[key], attribute), value);
       const saved = await page.evaluate(() => window.kisoAppearance.read());
-      assert(appearanceCode(saved).html.includes(`data-chart-style="${chartStyle}"`));
+      assert(appearanceCode(saved).html.includes(`data-chart-${attribute === 'chartLine' ? 'line' : 'fill'}="${value}"`));
       assert.equal(saved.cornerStyle, 'pixel', 'Chart choice keeps the independent corner preference');
     }
   } finally { await page.close(); }

@@ -51,6 +51,13 @@ test("a newer version still applies what is valid and says so", () => {
   assert.equal(result.skipped.length, 1);
 });
 
+test("a link from before the chart split keeps its look", () => {
+  const result = readShare(JSON.stringify({ v: 1, s: { chartStyle: "halftone", chartLine: "curved" } }), kit);
+  assert.equal(result.settings.chartLine, "curved");
+  assert.equal(result.settings.chartFill, "dots");
+  assert.deepEqual(result.skipped, []);
+});
+
 test("a malformed code never throws and applies nothing", () => {
   for (const input of ["", "   ", "%%%", "not base64!", "e30", "W10", "bnVsbA", "{", '{"v":1}', '{"v":1,"s":[]}', "?appearance=%E0%A4%A", "https://x.test/?appearance=@@"]) {
     const result = readShare(input, kit);

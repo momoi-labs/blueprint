@@ -95,16 +95,23 @@ uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 | Prop | Values | Default |
 | --- | --- | --- |
 | `variant` | `line`, `stacked-area` | `line` |
-| `layout` | `standard`, `compact`, `split` | `standard` |
-| `legend` | `table`, `inline`, `sidebar` | `table` |
+| `layout` | `standard`, `compact`, `split` | Inherited `data-chart-layout`, otherwise `standard` |
+| `legend` | `table`, `inline`, `sidebar` | Inherited `data-chart-legend`, otherwise `table` |
 | `chartStyle` | `solid`, `pixel`, `halftone`, `rounded` | Inherited `data-chart-style`, otherwise `solid` |
+| `chartLine` | `straight`, `stepped`, `curved` | `chartStyle`'s line, or the inherited `data-chart-line` |
+| `chartFill` | `none`, `dots`, `tint`, `squares`, `scanlines` | `chartStyle`'s fill, or the inherited `data-chart-fill` |
 | `highlightSeries` | A series key or null | Local selection |
 
 Standard uses a 200-pixel plot; compact uses 165 pixels and tighter spacing.
 Split gives each series a labelled 90-pixel lane on one shared numeric scale,
 with synchronized timestamps. Explicit `height` overrides the plot or lane
-height. Split accepts only line charts; combining it with stacked-area throws
-an error because a stack must retain one common plot.
+height. Split accepts only line charts; passing it with stacked-area throws
+an error because a stack must retain one common plot. An inherited split
+leaves a stacked chart on one standard plot.
+
+`data-chart-layout` and `data-chart-legend` on `html` or a containing element
+set the layout and legend for every Chart inside. The `layout` and `legend`
+props override them for one chart.
 
 Table keeps min, max, average, and current visible. Inline shows current values
 in a wrapping legend. Sidebar shows current values at rest and the inspected
@@ -122,12 +129,18 @@ description instead of taking permanent space above every plot.
 
 ## Chart appearance
 
-Solid keeps thin, straight segments. Pixel draws small horizontal and vertical
-stairs between the same sample positions, with square inspection and isolated
-sample markers. Halftone keeps continuous lines and adds a dotted area in each
-series' own color. Rounded uses monotone curves between neighboring samples
-and round line ends and markers. Stacked boundaries stay linear in Rounded
-so their contributions retain the same geometry.
+Appearance has two axes, set by `data-chart-line` and `data-chart-fill` or
+by the `data-chart-style` preset.
+
+The line: straight keeps thin, straight segments. Stepped draws small
+horizontal and vertical stairs between the same sample positions, with square
+inspection and isolated sample markers. Curved uses monotone curves between
+neighboring samples and round line ends and markers. Stacked boundaries stay
+linear with a curved line, so their contributions retain the same geometry.
+
+The fill sits under each line in the series' own color: none, a dot screen,
+a light tint, a screen of small squares, or horizontal scanlines. A stacked
+area always has an area, so with no fill it uses the tint.
 
 Every treatment preserves gaps, the palette, highlight behavior, scales,
 and exact values. Chart treatment is independent of panel borders. Floating
