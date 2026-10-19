@@ -48,7 +48,7 @@ assert.throws(() => render(h(Meter, { label: 'Invalid', value: 0, min: 1, max: 1
 assert.throws(() => render(h(BarGauge, { label: 'Invalid', rows: [], max: 0 })), /positive/);
 assert.match(render(h(BarGauge, { label: 'Memory', rows: [{ key: 'db', label: 'Database', value: 0 }], max: 100 })), /aria-valuenow="0"/);
 assert.match(render(h(Disclosure, { summary: 'System', open: true }, 'CPU')), /<details[^>]*open=""[^>]*><summary>System/);
-assert.match(render(h(DashboardGrid, null, h(DashboardPanel, { span: 12 }, 'Metrics'))), /data-span="12"/);
+assert.match(render(h(DashboardGrid, null, h(DashboardPanel, { id: 'cpu', title: 'CPU', size: 12 }, 'Metrics'))), /data-slot="dashboard-panel"[^>]*--s:12/);
 const bounds = { from: 1000, to: 10000 };
 assert.match(render(h(TimeRangeControl, { value: bounds, bounds, onValueChange() {} })), /UTC/);
 assert.throws(() => render(h(TimeRangeControl, { value: { from: 0, to: 9000 }, bounds, onValueChange() {} })), /contained/);

@@ -23,8 +23,8 @@ export type PaneGridOverflow = "wrap" | "scroll"
 const COLUMNS = 12
 /* A drag ends on release, on cancellation, or when capture is lost. */
 const RELEASE = ["pointerup", "pointercancel", "lostpointercapture"] as const
-/* DashboardGrid's breakpoints, measured on the grid's own width so a grid
-   beside a sidebar or panel gets the columns its space allows: above 1024px
+/* Breakpoints measured on the grid's own width, so a grid beside a sidebar
+   or panel gets the columns its space allows: above 1024px
    twelve columns, above 640px six, then one. Unmeasured grids use twelve. */
 const pickColumns = (width: number) => !width ? COLUMNS : width <= 640 ? 1 : width <= 1024 ? 6 : COLUMNS
 

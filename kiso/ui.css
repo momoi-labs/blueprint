@@ -2782,6 +2782,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .meter-label > :first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .meter-label > :last-child { max-width: 50%; overflow-wrap: anywhere; text-align: end; font-variant-numeric: tabular-nums; }
 .meter-track { height: calc(var(--spacing-xs) + var(--spacing-2xs)); border-radius: var(--chart-track-radius, var(--radius-xs)); background-color: var(--color-secondary); overflow: hidden; }
+/* A pane's title already names the chart it holds. The caption stays for
+   assistive technology. */
+.grid-pane-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .meter-track > span { display: block; height: 100%; background: var(--color-secondary-foreground); border-radius: var(--chart-fill-radius, 0px); mask-image: var(--chart-track-mask, none); mask-size: 4px 4px; }
 .disclosure { min-width: 0; }
 .disclosure > summary { padding: var(--spacing-sm) 0; cursor: pointer; font-weight: var(--type-weight-medium); }
@@ -2793,16 +2796,6 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-presets > button { height: auto; min-height: var(--size-touch-min); display: flex; align-items: flex-start; flex-direction: column; text-align: start; }
 .time-range-presets small { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
-.dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--presentation-grid-gap); }
-.dashboard-panel { grid-column: span var(--dashboard-span, 6); min-width: 0; display: grid; } /* the panel is a grid so its single child stretches to the row */
-@media (max-width: 1024px) {
-  .dashboard-panel { grid-column: span 6; }
-  .dashboard-panel[data-span="12"] { grid-column: span 12; }
-}
-@media (max-width: 640px) {
-  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
-  .dashboard-panel, .dashboard-panel[data-span="12"] { grid-column: 1; }
-}
 @media (pointer: coarse) {
   .time-range-trigger { min-height: var(--size-touch-min); }
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }

@@ -1,6 +1,7 @@
 import { useState } from "react"
+import { usePaneLayout } from "./use-pane-layout"
 import { BarGauge, Card, CardContent, Chart, ChartLegend, DashboardGrid, DashboardPanel,
-  Disclosure, Meter, Progress, Sparkline, Stat, StatLabel, StatValue, StatFoot, TimeRangeControl, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries } from "@momoi-labs/kiso-react"
+  Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries } from "@momoi-labs/kiso-react"
 
 const start = Date.UTC(2026, 8, 12, 9)
 const bounds = { from: start, to: start + 179 * 10_000 }
@@ -68,6 +69,7 @@ function ChartOptionsDemo() {
     <Card><CardContent><Chart label="CPU by state (%)" data={filtered} series={series}
       variant={variant} layout={layout} legend={legend} highlightSeries={highlight}
       onHighlightSeriesChange={setHighlight} min={0} max={100} formatTime={time} formatValue={percent} /></CardContent></Card>
+  const layout = usePaneLayout("kiso-gallery-dashboard-layout")
     <pre><code>{code}</code></pre>
   </div>
 }
@@ -112,32 +114,36 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
   return <div className="stack">
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Disclosure summary="Operating system" open>
-      <DashboardGrid>
-        <DashboardPanel span={8}><Card><CardContent>
+      <DashboardGrid aria-label="Operating system metrics" {...layout}>
+        <DashboardPanel id="cpu" title="CPU by state (%)" size={8} min={4}>
           <Chart label="CPU by state (%)" data={filtered} series={series} variant="stacked-area" layout="compact" legend="inline"
             formatTime={time} formatValue={percent} min={0} max={100} syncId="metrics-demo" />
-        </CardContent></Card></DashboardPanel>
-        <DashboardPanel span={4}><Card><Stat>
-          <StatLabel>CPU user</StatLabel><StatValue>{filtered.at(-1)?.values.user == null ? "Not collected" : percent(filtered.at(-1)!.values.user!)}</StatValue>
+        </DashboardPanel>
+        <DashboardPanel id="cpu-user" title="CPU user" size={4} min={3}>
+          <Stat><StatValue>{filtered.at(-1)?.values.user == null ? "Not collected" : percent(filtered.at(-1)!.values.user!)}</StatValue>
           <Sparkline values={filtered.map(sample => sample.values.user)} height={48} min={0} max={100} tone="primary" label="CPU user trend in the selected window" />
-          <StatFoot>Selected window, gaps indicate missing samples</StatFoot>
-        </Stat></Card></DashboardPanel>
-        <DashboardPanel span={4}><Card><CardContent><Meter label="Connections" value={64} max={100} /></CardContent></Card></DashboardPanel>
-        <DashboardPanel span={8}><Card><CardContent><MetricsDemo component="bar-gauge" /></CardContent></Card></DashboardPanel>
-        <DashboardPanel span={6}><Card><CardContent>
+          <StatFoot>Selected window, gaps indicate missing samples</StatFoot></Stat>
+        </DashboardPanel>
+        <DashboardPanel id="connections" title="Connections" size={4} min={3} newRow>
+          <Meter label="Connections" value={64} max={100} />
+        </DashboardPanel>
+        <DashboardPanel id="memory" title="Memory by process" size={8} min={4}>
+          <MetricsDemo component="bar-gauge" />
+        </DashboardPanel>
+        <DashboardPanel id="single-sample" title="Single sample (%)" size={6} min={4} newRow>
           <Chart label="Single sample (%)" data={[data[0]!]} series={[series[0]!]} legend="inline"
             formatTime={time} formatValue={percent} />
-        </CardContent></Card></DashboardPanel>
-        <DashboardPanel span={6}><Card><CardContent>
+        </DashboardPanel>
+        <DashboardPanel id="empty-window" title="Empty window (%)" size={6} min={4}>
           <Chart label="Empty window (%)" data={[]} series={[series[0]!]} legend="inline"
             formatTime={time} formatValue={percent} />
-        </CardContent></Card></DashboardPanel>
-        <DashboardPanel span={12}><Card><CardContent>
+        </DashboardPanel>
+        <DashboardPanel id="unavailable" title="Unavailable collector (%)" size={12} min={6} newRow>
           <Chart label="Unavailable collector (%)" data={data.map(sample => ({ ...sample, values: { user: null } }))}
             series={[series[0]!]} legend="inline" formatTime={time} formatValue={percent} />
           <p>Sparkline with a collection gap</p>
           <Sparkline values={[10, 20, 15, null, null, 35, 20, 25]} height={28} label="CPU trend with a gap" />
-        </CardContent></Card></DashboardPanel>
+        </DashboardPanel>
       </DashboardGrid>
     </Disclosure>
   </div>
