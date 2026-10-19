@@ -11,6 +11,10 @@ const series: ChartSeries[] = [
   { key: "iowait", label: "I/O wait", slot: 3 },
   { key: "steal", label: "Steal", slot: 4 },
   { key: "other", label: "Other", slot: 5 },
+  { key: "nice", label: "Nice", slot: 6 },
+  { key: "irq", label: "IRQ", slot: 7 },
+  { key: "softirq", label: "Soft IRQ", slot: 8 },
+  { key: "guest", label: "Guest", slot: 9 },
 ]
 const data = Array.from({ length: 180 }, (_, index) => ({
   timestamp: start + index * 10_000,
@@ -20,6 +24,10 @@ const data = Array.from({ length: 180 }, (_, index) => ({
     iowait: index > 70 && index < 80 ? null : index > 105 && index < 120 ? 15 : 3,
     steal: index > 70 && index < 80 ? null : 2,
     other: index > 70 && index < 80 ? null : 1,
+    nice: index > 70 && index < 80 ? null : Math.round(3 + Math.cos(index / 9) * 2),
+    irq: index > 70 && index < 80 ? null : 1,
+    softirq: index > 70 && index < 80 ? null : Math.round(2 + Math.sin(index / 5)),
+    guest: index > 70 && index < 80 ? null : index > 140 ? 4 : 0,
   },
 }))
 const time = (value: number) => new Date(value).toISOString().slice(11, 19)

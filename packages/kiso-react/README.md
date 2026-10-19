@@ -329,7 +329,7 @@ code retains its upstream MIT notice in `SHADCN-LICENSE`.
 
 ## Metrics dashboards
 
-Chart supports `line` and `stacked-area`, one to five named series, null gaps,
+Chart supports `line` and `stacked-area`, any number of named series, null gaps,
 UTC timestamps, synchronized inspection through `syncId`, a summary legend,
 and a disclosure containing every exact sample. Pass the same timestamp grid
 to synchronized panels. Put the common unit in `label`.

@@ -8,23 +8,36 @@ export type ChartSeries = {
   key: string
   label: string
   /** Stable identity across panels. Defaults to its position, starting at 1. */
-  slot?: 1 | 2 | 3 | 4 | 5
+  slot?: number
 }
 
 export const chartStrokes = [undefined, "8 4", "2 3", "8 3 2 3", "12 3 2 3 2 3"] as const
 export const chartSlot = (series: ChartSeries, index: number) => series.slot ?? index + 1
-export const chartColor = (slot: number) => `var(--color-chart-${slot})`
+/* Slots 1 to 5 use the validated palette. Later slots get a generated
+   color in the palette's lightness band for each theme. The first four take
+   the hues between the palette's own (magenta, teal, lime, orange); after
+   that the hue turns by the golden angle and the lightness alternates.
+   Generated colors are not checked for color-vision deficiency, so the
+   numbered label and exact values carry identity. */
+const gapHues = [330, 195, 115, 50]
+export const chartColor = (slot: number) => {
+  if (slot <= 5) return `var(--color-chart-${slot})`
+  const extra = slot - 6
+  const hue = gapHues[extra] ?? Math.round((gapHues[0]! + extra * 137.508) % 360)
+  const shift = extra >= gapHues.length && extra % 2 ? 0.08 : 0
+  return `light-dark(oklch(${0.55 - shift} 0.13 ${hue}), oklch(${0.8 + shift} 0.12 ${hue}))`
+}
 export const measured = (value: number | null | undefined): value is number =>
   typeof value === "number" && Number.isFinite(value)
 
 export function validateChart(data: readonly ChartSample[], series: readonly ChartSeries[]) {
-  if (series.length < 1 || series.length > 5) throw new RangeError("Charts require one to five series.")
+  if (series.length < 1) throw new RangeError("Charts require at least one series.")
   const keys = new Set<string>()
   const slots = new Set<number>()
   series.forEach((item, index) => {
     const slot = chartSlot(item, index)
-    if (!item.key || !item.label || keys.has(item.key) || slots.has(slot) || slot < 1 || slot > 5 || !Number.isInteger(slot)) {
-      throw new RangeError("Chart series require unique keys, slots from 1 to 5, and labels.")
+    if (!item.key || !item.label || keys.has(item.key) || slots.has(slot) || slot < 1 || !Number.isInteger(slot)) {
+      throw new RangeError("Chart series require unique keys, positive integer slots, and labels.")
     }
     keys.add(item.key)
     slots.add(slot)

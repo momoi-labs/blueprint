@@ -14,10 +14,15 @@ readout, [ChartLegend](chart-legend.md), and a disclosure of exact samples.
 `line` is the default. `stacked-area` shows nonnegative contributions to a
 total. No gradients, curves that overshoot observations, or animation.
 
-One to five series share a unit and timestamp axis. Put the unit in the figure
-label, such as "CPU by state (%)". Give each series a unique key and label.
-An optional slot from 1 to 5 fixes its color and numbered label across
-panels. Slots must be unique within a chart. Keep ascending slot order in stacks. Never encode health with a slot.
+Any number of series share a unit and timestamp axis. Put the unit in the
+figure label, such as "CPU by state (%)". Give each series a unique key and
+label. An optional slot, a positive integer, fixes its color and numbered
+label across panels. Slots must be unique within a chart. Slots 1 to 5 use
+the validated palette. Slot 6 and later get a generated color: the first four
+fill the hues between the palette's own, then the hue turns by the golden
+angle. Generated colors are not checked for color-vision deficiency, so the
+numbered label and exact values carry identity. Prefer five series or fewer
+when the reader must tell lines apart at a glance. Keep ascending slot order in stacks. Never encode health with a slot.
 
 In standard layout, `height` defaults to 200 pixels. Width follows the parent. Axes and their labels
 remain visible. `min` and `max` establish comparable scales across panels;
@@ -79,7 +84,8 @@ announcement on every background refresh. Keep series labels descriptive.
 ## Tokens and implementation
 
 Series use `--color-chart-1`, `--color-chart-2`, `--color-chart-3`,
-`--color-chart-4`, and `--color-chart-5`. Axes use
+`--color-chart-4`, and `--color-chart-5`; later slots use a generated
+`light-dark(oklch(…))` color in the same lightness band. Axes use
 `--color-muted-foreground`; grid lines use `--color-border`; the crosshair
 uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 `--color-elevated-surface`, `--color-foreground`, and `--shadow-md`.
