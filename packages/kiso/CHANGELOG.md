@@ -1,5 +1,39 @@
 # @momoi-labs/kiso
 
+## 0.22.0
+
+### Minor Changes
+
+- 99b05a4: Chart treatment splits into a line and a fill, so a curved line can keep the
+  dot screen. `data-chart-line` takes `straight`, `stepped` or `curved`.
+  `data-chart-fill` takes `none`, `dots`, `tint`, `squares` or `scanlines`.
+  `data-chart-style` stays as a preset of both, and the new attributes override
+  one axis. Chart and Sparkline add `chartLine` and `chartFill` props. Chart and
+  Sparkline now mark their treatment with `data-line` and `data-fill` instead of
+  `data-chart-treatment`. A gauge keeps a solid value with any fill, and its
+  track is plain with none or tint.
+  
+  Chart layout and legend placement are inheritable too. `data-chart-layout`
+  takes `standard`, `compact` or `split`, and `data-chart-legend` takes `table`,
+  `inline` or `sidebar`. The `layout` and `legend` props override them. An
+  inherited split leaves a stacked chart on one plot.
+- f9291d2: DashboardGrid is now a PaneGrid, so readers can move and resize dashboard
+  panels. DashboardPanel is a GridPane and needs an `id` and a `title`. Its
+  `size` replaces `span`, and the panel is the Card, so put the widget in it
+  directly. DashboardGrid takes PaneGrid's `layout`, `defaultLayout` and
+  `onLayoutChange`, so the product can save the layout. The `.dashboard-grid`
+  and `.dashboard-panel` CSS no longer sets columns. A Chart inside a pane
+  hides its caption visually, since the pane title names it.
+
+### Patch Changes
+
+- c52ea50: Chart and ChartLegend accept any number of series. Slots 1 to 5 keep the
+  validated palette. Slot 6 and later get a generated color in the same
+  lightness band for each theme, starting with the hues between the palette's
+  own. Generated colors are not checked for color-vision deficiency, so the
+  numbered label and exact values carry identity.
+- 99b05a4: Halftone meters and bar gauges draw the value as a solid fill on a dotted track. The dotted fill was hard to read and looked like a rendering fault.
+
 ## 0.21.0
 
 ### Minor Changes
