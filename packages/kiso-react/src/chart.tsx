@@ -7,7 +7,7 @@ import { ChartLegend, ChartSeriesLabel } from "./chart-legend.js"
 import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
 import { useChartFill } from "./chart-fill.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
-  validateChart, type ChartSample, type ChartSeries } from "./chart-data.js"
+  validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 import type { TimeRange } from "./time-range-control.js"
 
 export type { ChartSample, ChartSeries } from "./chart-data.js"
@@ -20,6 +20,8 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   layout?: ChartLayout
   /** Overrides the inherited data-chart-legend, otherwise table. */
   legend?: ChartLegendPlacement
+  /** Columns of the table legend, in order. Default min, max, avg and current. */
+  summary?: readonly ChartSummaryStat[]
   /** A controlled highlight. Pass null to clear it, or omit for local selection. */
   highlightSeries?: string | null
   onHighlightSeriesChange?: (key: string | null) => void
@@ -35,7 +37,7 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   onRangeSelect?: (range: TimeRange) => void
 } & ChartTreatmentProps
 
-export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp,
+export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp, summary,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
   formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect,
   chartStyle, chartLine, chartFill, ref, className, ...props }: ChartProps) {
@@ -185,7 +187,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     {rangeHandlers && <div className="chart-range-band" hidden aria-hidden="true" />}
   </div>
   const legendContent = <ChartLegend data={data} series={series} label={`${label}: summary`}
-    variant={legend} formatValue={formatValue} formatTime={formatTime}
+    variant={legend} summary={summary} formatValue={formatValue} formatTime={formatTime}
     activeTimestamp={legend === "sidebar" && hasData ? activeTimestamp : null}
     highlightSeries={highlighted} onHighlightSeriesChange={highlight} />
   return <figure {...props} ref={element => {

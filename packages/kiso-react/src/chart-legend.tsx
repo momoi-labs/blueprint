@@ -2,8 +2,10 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { chartColor, chartSlot, formatChartTime, formatChartValue, measured, seriesSummary, validateChart,
-  type ChartSample, type ChartSeries } from "./chart-data.js"
+import { chartColor, chartSlot, chartSummaryLabel, defaultChartSummary, formatChartTime, formatChartValue,
+  measured, seriesSummary, validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
+
+export type { ChartSummaryStat } from "./chart-data.js"
 
 export type ChartLegendProps = React.ComponentProps<"div"> & {
   data: readonly ChartSample[]
@@ -11,6 +13,8 @@ export type ChartLegendProps = React.ComponentProps<"div"> & {
   label: string
   formatValue?: (value: number) => string
   variant?: "table" | "inline" | "sidebar"
+  /** Columns of the table legend, in order. The inline and sidebar legends ignore it. */
+  summary?: readonly ChartSummaryStat[]
   activeTimestamp?: number | null
   formatTime?: (timestamp: number) => string
   highlightSeries?: string | null
@@ -28,7 +32,7 @@ export function ChartSeriesLabel({ series, index }: { series: ChartSeries; index
 }
 
 export function ChartLegend({ data, series, label, formatValue = formatChartValue,
-  variant = "table", activeTimestamp, formatTime = formatChartTime,
+  variant = "table", summary: stats = defaultChartSummary, activeTimestamp, formatTime = formatChartTime,
   highlightSeries, onHighlightSeriesChange, className, ...props }: ChartLegendProps) {
   validateChart(data, series)
   const seriesLabel = (item: ChartSeries, index: number) => onHighlightSeriesChange
@@ -53,11 +57,11 @@ export function ChartLegend({ data, series, label, formatValue = formatChartValu
   return <div {...props} data-slot="chart-legend" data-variant="table" className={cn("chart-table-scroll", className)}>
     <table className="chart-table">
       <caption>{label}</caption>
-      <thead><tr><th scope="col">Series</th>{["Min", "Max", "Avg", "Current"].map(name => <th scope="col" key={name}>{name}</th>)}</tr></thead>
+      <thead><tr><th scope="col">Series</th>{stats.map(stat => <th scope="col" key={stat}>{chartSummaryLabel(stat)}</th>)}</tr></thead>
       <tbody>{series.map((item, index) => {
-        const summary = seriesSummary(data, item.key)
+        const summary = seriesSummary(data, item.key, stats)
         return <tr key={item.key}><th scope="row">{seriesLabel(item, index)}</th>
-          {(["min", "max", "avg", "current"] as const).map(stat => <td key={stat}>
+          {stats.map(stat => <td key={stat}>
             {summary[stat] === null ? "Not collected" : formatValue(summary[stat])}
           </td>)}
         </tr>
