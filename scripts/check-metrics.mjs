@@ -19,7 +19,11 @@ assert.throws(() => validateChart([data[0], data[0]], series), /strictly increas
 assert.throws(() => validateChart([{ timestamp: 1e20, values: {} }], series), /timestamps/);
 assert.throws(() => render(h(Chart, { label: 'CPU', data, series, min: 10, max: 0 })), /ordered/);
 assert.throws(() => validateChart(data, [...series, ...series]), /unique keys/);
-assert.throws(() => validateChart(data, []), /one to five/);
+assert.throws(() => validateChart(data, []), /at least one/);
+const many = Array.from({ length: 8 }, (_, index) => ({ key: `s${index}`, label: `Series ${index + 1}` }));
+const manyChart = render(h(Chart, { label: 'Many', data: [{ timestamp: 0, values: {} }], series: many, legend: 'inline' }));
+assert.match(manyChart, /8\. Series 8/);
+assert.match(manyChart, /stroke="light-dark\(oklch/);
 assert.throws(() => render(h(Chart, { label: 'CPU', data: [{ timestamp: 0, values: { cpu: -1 } }], series, variant: 'stacked-area' })), /nonnegative/);
 const chart = render(h(Chart, { label: 'CPU (%)', data, series }));
 assert.match(chart, /<figure[^>]*aria-labelledby=/);
