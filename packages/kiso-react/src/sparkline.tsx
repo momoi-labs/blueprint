@@ -6,7 +6,7 @@
 import * as React from "react"
 import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts"
 import { clsx as cn } from "clsx"
-import { ChartPattern, pixelCurve, useChartStyle, type ChartStyle } from "./chart-style.js"
+import { ChartPattern, pixelCurve, useChartStyle, type ChartTreatmentProps } from "./chart-style.js"
 
 export type SparklineProps = Omit<React.ComponentProps<"div">, "ref"> & {
   values: readonly (number | null)[]
@@ -17,8 +17,7 @@ export type SparklineProps = Omit<React.ComponentProps<"div">, "ref"> & {
   max?: number
   label?: string
   ref?: React.Ref<HTMLDivElement>
-  chartStyle?: ChartStyle
-}
+} & ChartTreatmentProps
 
 function Sparkline({
   values,
@@ -32,6 +31,8 @@ function Sparkline({
   style,
   ref,
   chartStyle,
+  chartLine,
+  chartFill,
   ...props
 }: SparklineProps) {
   const id = React.useId()
@@ -39,7 +40,10 @@ function Sparkline({
   // Below two samples there is no shape to show, and a flat rule across a
   // cell reads as a border rather than as a measurement.
   const known = values.filter((value): value is number => value !== null && Number.isFinite(value))
-  const treatment = useChartStyle(frame, chartStyle, known.length >= 2)
+  const { line, fill: texture } = useChartStyle(frame, { chartStyle, chartLine, chartFill }, known.length >= 2)
+  const textured = texture === "dots" || texture === "squares" || texture === "scanlines"
+  // The `fill` prop asks for a tint when the treatment has none.
+  const tinted = texture === "tint" || (fill && texture === "none")
   if (known.length < 2) return null
 
   // Default domain is the data's own extent; pass min and max to make
@@ -58,7 +62,8 @@ function Sparkline({
         if (ref) ref.current = element
       }}
       data-slot="sparkline"
-      data-chart-treatment={treatment}
+      data-line={line}
+      data-fill={texture}
       data-tone={tone}
       role={label ? "img" : undefined}
       aria-label={label}
@@ -72,18 +77,18 @@ function Sparkline({
           data={values.map((value) => ({ value: value !== null && Number.isFinite(value) ? value : null }))}
           margin={{ top: 2, right: 0, bottom: 2, left: 0 }}
         >
-          <defs><ChartPattern id={`${id}-halftone`} color="currentColor" /></defs>
+          <defs><ChartPattern id={`${id}-fill`} color="currentColor" fill={texture} /></defs>
           <YAxis hide domain={[lo, hi]} />
           <Area
-            type={treatment === "pixel" ? pixelCurve : treatment === "rounded" ? "monotone" : "linear"}
+            type={line === "stepped" ? pixelCurve : line === "curved" ? "monotone" : "linear"}
             connectNulls={false}
             dataKey="value"
             stroke="currentColor"
-            strokeWidth={treatment === "pixel" || treatment === "rounded" ? 2 : 1.5}
-            strokeLinecap={treatment === "rounded" ? "round" : "butt"}
-            strokeLinejoin={treatment === "rounded" ? "round" : "miter"}
-            fill={treatment === "halftone" ? `url(#${id}-halftone)` : fill ? "currentColor" : "none"}
-            fillOpacity={treatment === "halftone" ? 0.3 : fill ? 0.12 : 0}
+            strokeWidth={line === "stepped" || line === "curved" ? 2 : 1.5}
+            strokeLinecap={line === "curved" ? "round" : "butt"}
+            strokeLinejoin={line === "curved" ? "round" : "miter"}
+            fill={textured ? `url(#${id}-fill)` : tinted ? "currentColor" : "none"}
+            fillOpacity={textured ? 0.3 : tinted ? 0.12 : 0}
             isAnimationActive={false}
             dot={false}
             activeDot={false}

@@ -26,7 +26,7 @@ function boot(values = {}, blocked = false, phone = false) {
 test("new visits use the approved Pixel everywhere settings before React starts", () => {
   const { api, dataset } = boot();
   const expected = {
-    theme: "system", accent: "violet", chartStyle: "solid", borderStyle: "solid", cornerStyle: "pixel",
+    theme: "system", accent: "violet", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", borderStyle: "solid", cornerStyle: "pixel",
     cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
     appShell: "inset", appShellOuter: "auto", frameScope: "all", markScope: "panels", markClearance: "normal",
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
@@ -219,16 +219,25 @@ test("restores bright and red accents in both themes before React starts", () =>
   }
 });
 
-for (const chartStyle of ["solid", "pixel", "halftone", "rounded"]) test(`persists ${chartStyle} charts independently of borders`, () => {
+for (const [chartLine, chartFill] of [["straight", "none"], ["stepped", "squares"], ["curved", "dots"], ["curved", "scanlines"], ["straight", "tint"]]) test(`persists ${chartLine} ${chartFill} charts independently of borders`, () => {
   const { api, storage } = boot();
-  api.save({ ...api.defaults, chartStyle, cornerStyle: "square", borderStyle: "brush" });
+  api.save({ ...api.defaults, chartLine, chartFill, cornerStyle: "square", borderStyle: "brush" });
   const { dataset } = boot(Object.fromEntries(storage));
-  assert.equal(dataset.chartStyle, chartStyle);
+  assert.equal(dataset.chartLine, chartLine);
+  assert.equal(dataset.chartFill, chartFill);
   assert.equal(dataset.borderStyle, "brush");
   assert.equal(dataset.cornerStyle, "square");
 });
 
-test("unknown chart styles fall back to Solid", () => {
-  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ chartStyle: "unknown" }) });
-  assert.equal(dataset.chartStyle, "solid");
+test("unknown chart treatments fall back to a straight line without fill", () => {
+  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ chartStyle: "unknown", chartFill: "unknown" }) });
+  assert.equal(dataset.chartLine, "straight");
+  assert.equal(dataset.chartFill, "none");
+});
+
+test("a saved chart style becomes its line and fill", () => {
+  const { dataset } = boot({ "kiso-gallery-appearance": JSON.stringify({ chartStyle: "halftone" }) });
+  assert.equal(dataset.chartLine, "straight");
+  assert.equal(dataset.chartFill, "dots");
+  assert.equal(dataset.chartStyle, undefined);
 });

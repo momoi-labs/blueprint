@@ -257,7 +257,9 @@ for (const style of ['solid', 'pixel', 'halftone', 'rounded']) test(`${style} pr
       assert(Math.abs(ratio - 0.37) < 0.001, 'Appearance keeps the exact measured width');
     }
     const fill = page.getByRole('meter', { name: 'Connections' }).locator('span');
-    assert.equal(await fill.evaluate(e => getComputedStyle(e).maskImage === 'none'), style !== 'halftone');
+    // Halftone keeps the value solid and dots the empty track.
+    assert.equal(await fill.evaluate(e => getComputedStyle(e).maskImage), 'none');
+    assert.equal(await page.getByRole('meter', { name: 'Connections' }).evaluate(e => getComputedStyle(e).backgroundImage.startsWith('radial-gradient')), style === 'halftone');
     assert.equal(await fill.evaluate(e => getComputedStyle(e).borderTopLeftRadius), style === 'rounded' ? '9999px' : '0px');
     assert.equal(await page.getByRole('progressbar', { name: 'Waiting' }).getAttribute('aria-valuenow'), null);
     assert.equal(await page.locator('.step-bar > span').count(), 4);
@@ -272,14 +274,29 @@ test('Live scoped appearance and late samples update geometry independently of b
     const chart = page.locator('[data-slot="chart"]');
     await chart.locator('.recharts-area-area').first().waitFor();
     await page.getByRole('button', { name: 'Load samples' }).click();
-    await page.waitForFunction(() => document.querySelector('[aria-label="Loaded trend"]')?.dataset.chartTreatment === 'halftone');
-    assert.equal(await page.getByRole('img', { name: 'Scoped trend' }).getAttribute('data-chart-treatment'), 'pixel');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Loaded trend"]')?.dataset.fill === 'dots');
+    assert.equal(await page.getByRole('img', { name: 'Scoped trend' }).getAttribute('data-line'), 'stepped');
     await page.evaluate(() => document.documentElement.dataset.chartStyle = 'rounded');
-    await page.waitForFunction(() => document.querySelector('[data-slot="chart"]').dataset.chartTreatment === 'rounded');
-    assert.equal(await page.getByRole('img', { name: 'Scoped trend' }).getAttribute('data-chart-treatment'), 'pixel');
-    assert.equal(await page.getByRole('img', { name: 'Loaded trend' }).getAttribute('data-chart-treatment'), 'rounded');
+    await page.waitForFunction(() => document.querySelector('[data-slot="chart"]').dataset.line === 'curved');
+    assert.equal(await page.getByRole('img', { name: 'Scoped trend' }).getAttribute('data-line'), 'stepped');
+    assert.equal(await page.getByRole('img', { name: 'Loaded trend' }).getAttribute('data-line'), 'curved');
     await page.evaluate(() => document.getElementById('scoped').dataset.chartStyle = 'solid');
-    await page.waitForFunction(() => document.getElementById('scoped').firstElementChild.dataset.chartTreatment === 'solid');
+    await page.waitForFunction(() => document.getElementById('scoped').firstElementChild.dataset.line === 'straight');
+    // Line and fill are separate axes: a curved line can keep the dot screen.
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { chartStyle: 'halftone', chartLine: 'curved' }));
+    await page.waitForFunction(() => document.querySelector('[data-slot="chart"]').dataset.line === 'curved');
+    assert.equal(await page.locator('[data-slot="chart"]').getAttribute('data-fill'), 'dots');
+    assert(await page.locator('[data-slot="chart"] .recharts-area-area[fill^="url("]').count() > 0);
+    const track = page.getByRole('meter', { name: 'Connections' });
+    assert(await track.evaluate(e => getComputedStyle(e).backgroundImage.startsWith('radial-gradient')));
+    assert.equal(await track.locator('span').evaluate(e => getComputedStyle(e).borderTopRightRadius), '9999px');
+    await page.evaluate(() => document.documentElement.dataset.chartFill = 'scanlines');
+    await page.waitForFunction(() => document.querySelector('[data-slot="chart"]').dataset.fill === 'scanlines');
+    assert(await track.evaluate(e => getComputedStyle(e).backgroundImage.startsWith('linear-gradient')));
+    // Layout and legend placement follow the inherited attributes too.
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { chartLayout: 'compact', chartLegend: 'sidebar' }));
+    await page.waitForFunction(() => document.querySelector('[data-slot="chart"]').dataset.legend === 'sidebar');
+    assert.equal(await page.locator('[data-slot="chart"]').getAttribute('data-layout'), 'compact');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), 'pixel');
   } finally { await page.close(); }
 });
@@ -315,6 +332,6 @@ test('Chart readouts inherit control corners without changing series treatment',
       await page.evaluate(borderStyle => document.documentElement.dataset.borderStyle = borderStyle, borderStyle);
       assert((await readout.evaluate(e => getComputedStyle(e).clipPath)).startsWith('polygon('));
     }
-    assert.equal(await chart.getAttribute('data-chart-treatment'), 'solid');
+    assert.equal(await chart.getAttribute('data-line'), 'straight');
   } finally { await page.close(); }
 });

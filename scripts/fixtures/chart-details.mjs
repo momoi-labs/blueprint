@@ -24,7 +24,7 @@ function Fixture() {
       h(DetailSelect, { label: 'Definition', value, onValueChange: next => { setValue(next); setChanges(n => n + 1); }, options: q.has('empty') ? [] : options, disabled: q.has('disabled') }),
       h('output', { 'aria-label': 'Selected' }, value), h('output', { 'aria-label': 'Changes' }, changes), h('output', { 'aria-label': 'Links' }, links)));
   return h('main', { className: 'stack', style: { maxWidth: 800 } },
-    h(Chart, { label: 'CPU (%)', data, series, min: 0, max: 100, variant: q.get('variant') || 'line', layout: q.get('layout') || 'standard' }),
+    h(Chart, { label: 'CPU (%)', data, series, min: 0, max: 100, variant: q.get('variant') || 'line', layout: q.get('layout') || undefined }),
     h('div', { id: 'scoped', 'data-chart-style': 'pixel' }, h(Sparkline, { values, label: 'Scoped trend', height: 64 })),
     h(Sparkline, { values: loaded ? values : [], label: 'Loaded trend', height: 64 }),
     h('button', { onClick: () => setLoaded(true) }, 'Load samples'),

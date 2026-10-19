@@ -1,6 +1,6 @@
 import { Fragment, useId, type ReactNode } from "react";
-import { AccentSelector, Button, DetailSelect, Disclosure, ThemeSelector, type ChartStyle } from "@momoi-labs/kiso-react";
-import { chartStyleOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
+import { AccentSelector, Button, DetailSelect, Disclosure, ThemeSelector, type ChartFill, type ChartLayout, type ChartLegendPlacement, type ChartLine } from "@momoi-labs/kiso-react";
+import { chartFillOptions, chartLayoutOptions, chartLegendOptions, chartLineOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 import { randomAppearance } from "./appearance-settings";
 import { BackgroundPreview, PanelPreview, PlacementPreview, ScopePreview } from "./appearance-previews";
@@ -272,8 +272,14 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     </fieldset>
   </AppearanceSection>,
   charts: <AppearanceSection title="Charts" collapsed={collapsed.includes("charts")}>
-    <DetailSelect label="Chart style" value={settings.chartStyle} options={chartStyleOptions}
-      onValueChange={chartStyle => onChange({ chartStyle: chartStyle as ChartStyle })} />
+    <DetailSelect label="Chart line" value={settings.chartLine} options={chartLineOptions}
+      onValueChange={chartLine => onChange({ chartLine: chartLine as ChartLine })} />
+    <DetailSelect label="Chart fill" value={settings.chartFill} options={chartFillOptions}
+      onValueChange={chartFill => onChange({ chartFill: chartFill as ChartFill })} />
+    <DetailSelect label="Chart layout" value={settings.chartLayout} options={chartLayoutOptions}
+      onValueChange={chartLayout => onChange({ chartLayout: chartLayout as ChartLayout })} />
+    <DetailSelect label="Chart legend" value={settings.chartLegend} options={chartLegendOptions}
+      onValueChange={chartLegend => onChange({ chartLegend: chartLegend as ChartLegendPlacement })} />
   </AppearanceSection>,
   main: <AppearanceSection title="Main style" collapsed={collapsed.includes("main")}>
     <p className="muted t-label">Panels and controls use this style. The outer frame follows it unless customized below.</p>

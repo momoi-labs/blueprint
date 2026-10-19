@@ -1,5 +1,12 @@
 import type { AppearanceSettings } from "./appearance-settings";
 
+const chartPresets: Record<string, { line: string; fill: string }> = {
+  solid: { line: "straight", fill: "none" },
+  pixel: { line: "stepped", fill: "none" },
+  halftone: { line: "straight", fill: "dots" },
+  rounded: { line: "curved", fill: "none" },
+};
+
 // A shared look is `{ v: 1, s: { ...settings that differ from the defaults } }`.
 // A link carries it as base64url JSON in the `appearance` query parameter.
 // The hash already holds the gallery route, so the code cannot live there.
@@ -61,7 +68,15 @@ export function readShare(input: string, { defaults, options }: Source): ShareRe
   const skipped: string[] = [];
   if (v !== shareVersion) skipped.push("version (made by another release)");
   const settings = { ...defaults } as Record<string, string>;
-  for (const [key, value] of Object.entries(s)) {
+  const entries = Object.entries(s);
+  // Links made before line and fill were split carry one chart style preset.
+  const preset = chartPresets[(s as Record<string, unknown>).chartStyle as string];
+  if (preset) {
+    entries.splice(entries.findIndex(([key]) => key === "chartStyle"), 1);
+    if (!Object.hasOwn(s, "chartLine")) entries.push(["chartLine", preset.line]);
+    if (!Object.hasOwn(s, "chartFill")) entries.push(["chartFill", preset.fill]);
+  }
+  for (const [key, value] of entries) {
     const values = Object.hasOwn(options, key) ? options[key as keyof AppearanceSettings] : undefined;
     if (!values) skipped.push(`${key} (unknown setting)`);
     else if (typeof value !== "string" || !values.includes(value)) skipped.push(`${key} (invalid value)`);

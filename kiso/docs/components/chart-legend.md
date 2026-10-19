@@ -1,7 +1,7 @@
 # ChartLegend
 
-Line swatches inherit `data-chart-style`. Rounded has round line ends; the
-other treatments keep square ends. Series colors and numbered labels do not
+Line swatches inherit the chart line. Curved has round line ends; straight
+and stepped keep square ends. Series colors and numbered labels do not
 change with chart appearance.
 
 ## Purpose and anatomy
