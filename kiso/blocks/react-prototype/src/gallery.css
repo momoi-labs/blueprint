@@ -114,6 +114,16 @@
 .catalog-preview .check-label label {
   cursor: pointer;
 }
+.catalog-preview fieldset.field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.catalog-preview fieldset.field > legend {
+  margin-block-end: var(--spacing-xs);
+  padding: 0;
+}
 .catalog-preview .tabs,
 .catalog-preview pre {
   overflow-x: auto;

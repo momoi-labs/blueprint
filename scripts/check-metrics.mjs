@@ -14,6 +14,12 @@ const data = [
 ];
 assert.deepEqual(seriesSummary(data, 'cpu'), { min: 0, max: 10, avg: 5, current: null });
 assert.deepEqual(seriesSummary([], 'cpu'), { min: null, max: null, avg: null, current: null });
+const spread = [0, 10, 20, 30, 40].map((cpu, index) => ({ timestamp: index * 1000, values: { cpu } }));
+assert.deepEqual(seriesSummary(spread, 'cpu', ['p50', 'p75', 'p95', 'p99', 'current']),
+  { p50: 20, p75: 30, p95: 38, p99: 39.6, current: 40 });
+assert.deepEqual(seriesSummary(data, 'cpu', ['p50']), { p50: 5 });
+assert.deepEqual(seriesSummary([], 'cpu', ['p95']), { p95: null });
+assert.throws(() => seriesSummary(data, 'cpu', ['p42']), /Unknown chart summary column/);
 assert.throws(() => validateChart([data[1], data[0]], series), /strictly increasing/);
 assert.throws(() => validateChart([data[0], data[0]], series), /strictly increasing/);
 assert.throws(() => validateChart([{ timestamp: 1e20, values: {} }], series), /timestamps/);
@@ -39,6 +45,10 @@ assert.match(empty, /<caption>CPU: summary/);
 const legend = render(h(ChartLegend, { label: 'CPU summary', data, series }));
 assert.match(legend, /<th scope="col">Current/);
 assert.match(legend, /<td>5<\/td><td>Not collected/);
+const percentiles = render(h(Chart, { label: 'CPU', data: spread, series, summary: ['p50', 'p95', 'current'] }));
+assert.match(percentiles, /<th scope="col">p50<\/th><th scope="col">p95<\/th><th scope="col">Current<\/th>/);
+assert.match(percentiles, /<td>20<\/td><td>38<\/td><td>40<\/td>/);
+assert.doesNotMatch(percentiles, /<th scope="col">Max/);
 const meter = render(h(Meter, { label: 'Capacity', value: 120, max: 100 }));
 assert.match(meter, /role="meter"/);
 assert.match(meter, /aria-valuenow="100"/);

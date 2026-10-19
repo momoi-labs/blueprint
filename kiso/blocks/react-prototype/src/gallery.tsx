@@ -242,7 +242,7 @@ const catalog = [
   ["stat", "Stat", "Data", "One figure and how it is moving."],
   ["sparkline", "Sparkline", "Data", "One metric's shape at cell size."],
   ["chart", "Chart", "Data", "Lines, stacked areas, gaps, and synchronized inspection."],
-  ["chart-legend", "ChartLegend", "Data", "Per-series minimum, maximum, average, and current."],
+  ["chart-legend", "ChartLegend", "Data", "Per-series summary: minimum, maximum, average, current, or percentiles."],
   ["meter", "Meter / Progress", "Feedback", "Measured ratios and task completion."],
   ["bar-gauge", "BarGauge", "Data", "Labelled bars on a shared scale."],
   ["disclosure", "Disclosure", "Structure", "Native collapsible sections."],

@@ -49,14 +49,35 @@ export function validateChart(data: readonly ChartSample[], series: readonly Cha
   })
 }
 
-export function seriesSummary(data: readonly ChartSample[], key: string) {
+export type ChartSummaryStat = "min" | "max" | "avg" | "current" | "p50" | "p75" | "p90" | "p95" | "p99"
+export const chartSummaryStats: readonly ChartSummaryStat[] = ["min", "max", "avg", "current", "p50", "p75", "p90", "p95", "p99"]
+export const defaultChartSummary: readonly ChartSummaryStat[] = ["min", "max", "avg", "current"]
+export const chartSummaryLabel = (stat: ChartSummaryStat) =>
+  stat.startsWith("p") ? stat : stat[0].toUpperCase() + stat.slice(1)
+
+/** Linear interpolation between the closest ranks of sorted values. */
+function percentile(sorted: readonly number[], fraction: number) {
+  const rank = (sorted.length - 1) * fraction
+  const low = Math.floor(rank)
+  const high = Math.ceil(rank)
+  return sorted[low] + (sorted[high] - sorted[low]) * (rank - low)
+}
+
+export function seriesSummary(data: readonly ChartSample[], key: string,
+  stats: readonly ChartSummaryStat[] = defaultChartSummary) {
+  const unknown = stats.find(stat => !chartSummaryStats.includes(stat))
+  if (unknown) throw new Error(`Unknown chart summary column: ${unknown}`)
   const values = data.map(sample => sample.values[key]).filter(measured)
-  return {
-    min: values.length ? Math.min(...values) : null,
-    max: values.length ? Math.max(...values) : null,
-    avg: values.length ? values.reduce((sum, value) => sum + value / values.length, 0) : null,
-    current: measured(data.at(-1)?.values[key]) ? data.at(-1)!.values[key]! : null,
+  const sorted = [...values].sort((a, b) => a - b)
+  const value = (stat: ChartSummaryStat): number | null => {
+    if (stat === "current") return measured(data.at(-1)?.values[key]) ? data.at(-1)!.values[key]! : null
+    if (!values.length) return null
+    if (stat === "min") return sorted[0]
+    if (stat === "max") return sorted.at(-1)!
+    if (stat === "avg") return values.reduce((sum, item) => sum + item / values.length, 0)
+    return percentile(sorted, Number(stat.slice(1)) / 100)
   }
+  return Object.fromEntries(stats.map(stat => [stat, value(stat)])) as Record<ChartSummaryStat, number | null>
 }
 
 export const formatChartTime = (timestamp: number) => new Date(timestamp).toISOString()

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { usePaneLayout } from "./use-pane-layout"
-import { BarGauge, Card, CardContent, Chart, ChartLegend, DashboardGrid, DashboardPanel,
-  Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries } from "@momoi-labs/kiso-react"
+import { BarGauge, Card, CardContent, Chart, ChartLegend, Checkbox, Label, DashboardGrid, DashboardPanel,
+  Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries, type ChartSummaryStat } from "@momoi-labs/kiso-react"
 
 const start = Date.UTC(2026, 8, 12, 9)
 const bounds = { from: start, to: start + 179 * 10_000 }
@@ -32,10 +32,14 @@ const data = Array.from({ length: 180 }, (_, index) => ({
 }))
 const time = (value: number) => new Date(value).toISOString().slice(11, 19)
 const percent = (value: number) => `${value.toFixed(1)}%`
+const summaryColumns: ChartSummaryStat[] = ["min", "max", "avg", "current", "p50", "p75", "p90", "p95", "p99"]
 
 function ChartOptionsDemo() {
   const [variant, setVariant] = useState<NonNullable<ChartProps["variant"]>>("line")
   const [highlight, setHighlight] = useState<string | null>(null)
+  const [summary, setSummary] = useState<ChartSummaryStat[]>(["min", "max", "avg", "current"])
+  const toggleColumn = (column: ChartSummaryStat, checked: boolean) =>
+    setSummary(current => summaryColumns.filter(item => item === column ? checked : current.includes(item)))
   const [range, setRange] = useState(bounds)
   const filtered = data.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to)
   const code = `<Chart
@@ -44,6 +48,7 @@ function ChartOptionsDemo() {
   series={series}
   variant="${variant}"${highlight ? `
   highlightSeries="${highlight}"` : ""}
+  summary={${JSON.stringify(summary).replaceAll(",", ", ")}}
 />`
   return <div className="stack">
     <div className="demo-row">
@@ -58,11 +63,19 @@ function ChartOptionsDemo() {
           <SelectContent><SelectItem value="none">None</SelectItem>{series.map(item => <SelectItem key={item.key} value={item.key}>{item.key}</SelectItem>)}</SelectContent>
         </Select></div>
     </div>
+    <fieldset className="field"><legend>Legend columns</legend>
+      <div className="demo-row">{summaryColumns.map(column => <span className="check-label" key={column}>
+        <Checkbox id={`chart-option-summary-${column}`} checked={summary.includes(column)}
+          disabled={summary.length === 1 && summary[0] === column}
+          onCheckedChange={next => toggleColumn(column, next === true)} />
+        <Label htmlFor={`chart-option-summary-${column}`}>{column}</Label>
+      </span>)}</div>
+    </fieldset>
     <p className="muted t-label">Layout and legend follow Appearance, under Charts. Split applies to line charts only.</p>
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Card><CardContent><Chart label="CPU by state (%)" data={filtered} series={series}
       variant={variant} highlightSeries={highlight}
-      onHighlightSeriesChange={setHighlight} min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} /></CardContent></Card>
+      onHighlightSeriesChange={setHighlight} summary={summary} min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} /></CardContent></Card>
     <pre><code>{code}</code></pre>
   </div>
 }

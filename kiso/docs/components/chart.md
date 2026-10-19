@@ -105,6 +105,7 @@ uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 | `variant` | `line`, `stacked-area` | `line` |
 | `layout` | `standard`, `compact`, `split` | Inherited `data-chart-layout`, otherwise `standard` |
 | `legend` | `table`, `inline`, `sidebar` | Inherited `data-chart-legend`, otherwise `table` |
+| `summary` | Ordered columns from `min`, `max`, `avg`, `current`, `p50`, `p75`, `p90`, `p95`, `p99` | `min`, `max`, `avg`, `current`. See [ChartLegend](chart-legend.md#summary-columns) |
 | `chartStyle` | `solid`, `pixel`, `halftone`, `rounded` | Inherited `data-chart-style`, otherwise `solid` |
 | `chartLine` | `straight`, `stepped`, `curved` | `chartStyle`'s line, or the inherited `data-chart-line` |
 | `chartFill` | `none`, `dots`, `tint`, `squares`, `scanlines` | `chartStyle`'s fill, or the inherited `data-chart-fill` |

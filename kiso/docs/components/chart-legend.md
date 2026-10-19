@@ -7,13 +7,25 @@ change with chart appearance.
 ## Purpose and anatomy
 
 A native summary table for a [Chart](chart.md), available without hovering.
-Each row has the series' numbered label and stroke sample, then min, max,
-arithmetic average, and current. The visible caption names the metric and unit.
+Each row has the series' numbered label and stroke sample, then one cell per
+summary column. The visible caption names the metric and unit.
+
+## Summary columns
+
+`summary` lists the table's columns in order. The default is `min`, `max`,
+`avg`, `current`. The other columns are `p50`, `p75`, `p90`, `p95` and `p99`.
+An unknown column throws an error. The inline and sidebar legends show one
+value per series and ignore `summary`.
+
+Choose percentiles for latency, cost and other spiky measures, where one
+outlier sets the max and moves the average: `["p50", "p75", "p95", "p99",
+"current"]`. A percentile interpolates linearly between the two closest ranks
+of the sorted measurements, so p50 of 0 and 10 is 5.
 
 ## Data and states
 
 Accept the same `data` and `series` as the chart. Keep ordering and slots
-identical. Min, max, and average use finite measurements only. Current is the
+identical. Min, max, average, and percentiles use finite measurements only. Current is the
 measurement at the final timestamp. Missing statistics read "Not collected";
 zero remains zero. An empty window retains the named series and headers.
 
