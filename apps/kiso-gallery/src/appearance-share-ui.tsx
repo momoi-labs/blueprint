@@ -1,6 +1,6 @@
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, useToast, type ToastNotify } from "@momoi-labs/kiso-react";
 import type { AppearanceSettings } from "./appearance-settings";
-import { readShare, shareLink, shareText, type ShareResult } from "./appearance-share";
+import { readShare, settingsText, shareLink, type ShareResult } from "./appearance-share";
 
 export function announceShare(result: ShareResult, notify: ToastNotify) {
   if (!result.settings) {
@@ -42,7 +42,7 @@ export function AppearanceShare({ settings, onApply }: {
       <DropdownMenuTrigger asChild><Button size="sm">Share</Button></DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuItem onSelect={() => void copy(shareLink(settings, window.kisoAppearance), "Link copied")}>Copy link</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => void copy(shareText(settings, window.kisoAppearance), "Settings copied")}>Copy settings</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void copy(settingsText(settings), "Settings copied")}>Copy settings</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void paste()}>Paste settings</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

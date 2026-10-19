@@ -5,7 +5,7 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { preview } from "vite";
-import { shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
+import { settingsText, shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
 
 const source = readFileSync(new URL("../public/appearance-init.js", import.meta.url), "utf8");
 const window = { matchMedia: () => ({ matches: false, addEventListener() {} }) };
@@ -20,11 +20,17 @@ test("a share code holds only the settings that differ from the defaults", () =>
   assert.match(shareCode({ ...defaults, accent: "teal" }, kit), /^[A-Za-z0-9_-]+$/);
 });
 
+test("copied settings carry every value, defaults included", () => {
+  const copied = JSON.parse(settingsText(defaults));
+  assert.equal(copied.s.cornerSize, defaults.cornerSize);
+  assert.deepEqual(Object.keys(copied.s).sort(), Object.keys(defaults).sort());
+});
+
 test("a look round-trips through a link, a code and copied JSON, phone overrides included", () => {
   const look = { ...defaults, theme: "dark", accent: "gold", borderStyle: "manga", phoneBackgroundStyle: "grid", phoneCornerStyle: "rounded", phonePanelFill: "translucent" };
   const link = shareLink(look, kit, "https://example.test/gallery/?x=1#components/button");
   assert.equal(new URL(link).hash, "#components/button");
-  for (const input of [link, shareCode(look, kit), shareText(look, kit)]) {
+  for (const input of [link, shareCode(look, kit), shareText(look, kit), settingsText(look)]) {
     const result = readShare(input, kit);
     assert.deepEqual(plain(result.settings), look);
     assert.deepEqual(result.skipped, []);
@@ -45,17 +51,17 @@ test("an unknown key is skipped and the rest applies", () => {
   assert.deepEqual(result.skipped, ["sparkle (unknown setting)", "toString (unknown setting)"]);
 });
 
-test("a newer version still applies what is valid and says so", () => {
-  const result = readShare(JSON.stringify({ v: 9, s: { accent: "lime" } }), kit);
-  assert.equal(result.settings.accent, "lime");
-  assert.equal(result.skipped.length, 1);
-});
-
 test("a link from before the chart split keeps its look", () => {
   const result = readShare(JSON.stringify({ v: 1, s: { chartStyle: "halftone", chartLine: "curved" } }), kit);
   assert.equal(result.settings.chartLine, "curved");
   assert.equal(result.settings.chartFill, "dots");
   assert.deepEqual(result.skipped, []);
+});
+
+test("a newer version still applies what is valid and says so", () => {
+  const result = readShare(JSON.stringify({ v: 9, s: { accent: "lime" } }), kit);
+  assert.equal(result.settings.accent, "lime");
+  assert.equal(result.skipped.length, 1);
 });
 
 test("a malformed code never throws and applies nothing", () => {
@@ -140,6 +146,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
       await menu.click();
       await page.getByRole("menuitem", { name: "Copy settings" }).click();
       await page.getByText("Settings copied", { exact: true }).waitFor();
+      assert.equal(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).s.cornerSize, "small", "Copied settings include values equal to the defaults");
       await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{"accent":"red","bogus":"x"}}'));
       await menu.click();
       await page.getByRole("menuitem", { name: "Paste settings" }).click();

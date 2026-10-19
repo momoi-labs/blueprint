@@ -36,6 +36,12 @@ export function shareText(settings: AppearanceSettings, { defaults }: Source) {
   return JSON.stringify({ v: shareVersion, s: changed });
 }
 
+// Copied settings leave the gallery, where its defaults are unknown and Kiso's
+// own defaults differ (cornerSize is medium there), so they carry every value.
+export function settingsText(settings: AppearanceSettings) {
+  return JSON.stringify({ v: shareVersion, s: settings });
+}
+
 export function shareCode(settings: AppearanceSettings, source: Source) {
   return toBase64Url(shareText(settings, source));
 }
