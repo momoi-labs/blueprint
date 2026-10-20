@@ -55,8 +55,8 @@ selected timestamp and every series, including "Not collected" values.
 Pass `onRangeSelect` to zoom by dragging. Press on the plot with a mouse or
 pen and drag to another sample; a tinted band marks the selection. Release
 calls `onRangeSelect` with `{ from, to }`, the ordered timestamps of the
-samples at both ends. A click without a drag, or Escape before release,
-selects nothing. The product applies the range, usually as the value of its
+samples at both ends. Escape before release cancels the drag. A click
+without a drag selects no range; it pins the timestamp, as described below. The product applies the range, usually as the value of its
 [TimeRangeControl](time-range-control.md), which stays the keyboard and touch
 path and the way back to the entire run.
 
@@ -64,6 +64,19 @@ Pass the same `syncId` to related charts to synchronize by timestamp. Products
 must supply the same expected timestamp grid and window to that group. Array
 positions alone do not establish correspondence. Panels retain their own
 series and scales.
+
+Only the inspected chart shows the floating readout and the crosshair. The
+other charts in the group draw a dashed line and a dot on each series at the
+same timestamp. A chart without a sample at that timestamp draws nothing.
+Kiso shares the timestamp itself instead of Recharts' `syncId`, so a page with
+many synchronized panels stays responsive on every pointer move.
+
+A click or tap on a plot without a drag pins that timestamp across the group.
+Each chart draws a solid line and a readout with the values at that time; a
+sidebar legend shows them instead. Inspecting another sample keeps the pin.
+Click or tap any plot in the group again to clear it. On the keyboard, Enter
+or Space on a focused plot pins the sample Left and Right inspect, and Escape
+clears the pin. A chart without `syncId` pins on its own.
 
 Series use continuous strokes. Numbered labels, per-series highlighting,
 and the exact table provide identification beyond color. Select a legend

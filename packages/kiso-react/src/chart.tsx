@@ -2,10 +2,13 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { createPortal } from "react-dom"
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  usePlotArea, useXAxisInverseDataSnapScale, useXAxisScale, useYAxisScale } from "recharts"
 import { ChartLegend, ChartSeriesLabel } from "./chart-legend.js"
-import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
+import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLine, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
 import { useChartFill } from "./chart-fill.js"
+import { chartPinned, clearChartPin, setChartHover, toggleChartPin, useChartSync } from "./chart-sync.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 import type { TimeRange } from "./time-range-control.js"
@@ -40,7 +43,7 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
 export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp, summary,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
   formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect,
-  chartStyle, chartLine, chartFill, ref, className, ...props }: ChartProps) {
+  chartStyle, chartLine, chartFill, ref, className, onKeyDown, ...props }: ChartProps) {
   const id = React.useId()
   const frame = React.useRef<HTMLElement>(null)
   const { line, fill } = useChartStyle(frame, { chartStyle, chartLine, chartFill })
@@ -54,7 +57,18 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   const height = heightProp ?? expanded.height ?? defaultHeight
   const bold = line === "stepped" || line === "curved"
   const [localHighlight, setLocalHighlight] = React.useState<string | null>(null)
-  const [activeTimestamp, setActiveTimestamp] = React.useState<number | null>(null)
+  // Charts with the same syncId share the inspected and pinned timestamps
+  // through a Kiso store, not Recharts' syncId. An expanded Chart, or one
+  // without a syncId, keeps a group of its own.
+  const group = (expanded.fill ? undefined : syncId) ?? id
+  const [source] = React.useState(() => ({}))
+  const inspected = React.useRef<number | null>(null)
+  const pick = React.useRef<ChartPick | null>(null)
+  const inspect = React.useCallback((timestamp: number | null) => {
+    inspected.current = timestamp
+    setChartHover(group, source, timestamp)
+  }, [group, source])
+  React.useEffect(() => () => setChartHover(group, source, null), [group, source])
   // A drag moves the band in the DOM. Rendering the Chart on every pointer
   // move is far too slow for a stack of many series.
   const drag = React.useRef<{ from: number; to: number; x1: number; x2: number } | null>(null)
@@ -103,17 +117,28 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   const sampleAt = (index: unknown) => typeof index === "number" ? plot[index]?.timestamp
     : typeof index === "string" && index !== "" ? plot[Number(index)]?.timestamp : undefined
   type Pointer = { activeTooltipIndex?: unknown; activeCoordinate?: { x: number } }
-  const rangeHandlers = onRangeSelect && plot.length > 1 ? {
+  const selectRange = onRangeSelect && plot.length > 1 ? onRangeSelect : undefined
+  // A press that ends on the same sample is a click and pins that timestamp.
+  // A press that moves to another sample is a drag and selects a range.
+  const pointerHandlers = {
     onMouseDown: (state: Pointer, event: React.SyntheticEvent) => {
-      const at = sampleAt(state.activeTooltipIndex), x = state.activeCoordinate?.x
-      if (at === undefined || x === undefined || (event as React.MouseEvent).button !== 0) return
+      const mouse = event as React.MouseEvent
+      // A tap, or a click right after the pointer arrives, comes before
+      // Recharts reads the pointer, so find the sample under it here.
+      const active = sampleAt(state.activeTooltipIndex)
+      const picked = active === undefined && mouse.currentTarget instanceof Element
+        ? pick.current?.(mouse.clientX - mouse.currentTarget.getBoundingClientRect().left) : undefined
+      const at = active ?? picked?.at, x = picked ? picked.x : state.activeCoordinate?.x
+      if (at === undefined || x === undefined || mouse.button !== 0) return
       stopDrag.current?.()
       drag.current = { from: at, to: at, x1: x, x2: x }
       // The drag may end outside the plot, and Escape cancels it.
       const end = () => {
         const range = drag.current
         stop()
-        if (range && range.from !== range.to) onRangeSelect({ from: Math.min(range.from, range.to), to: Math.max(range.from, range.to) })
+        if (!range) return
+        if (range.from === range.to) toggleChartPin(group, range.from)
+        else selectRange?.({ from: Math.min(range.from, range.to), to: Math.max(range.from, range.to) })
       }
       const cancel = (key: KeyboardEvent) => { if (key.key === "Escape") { key.preventDefault(); stop() } }
       const stop = () => {
@@ -131,15 +156,15 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
       const at = sampleAt(state.activeTooltipIndex), x = state.activeCoordinate?.x
       if (!drag.current || at === undefined || x === undefined || at === drag.current.to) return
       drag.current = { ...drag.current, to: at, x2: x }
-      paintDrag()
+      if (selectRange) paintDrag()
     },
-  } : undefined
+  }
   const renderPlot = (indices: number[], lane?: ChartSeries) => <div className="chart-plot" style={{ height }}
-    data-range-select={rangeHandlers ? "" : undefined}>
+    data-range-select={selectRange ? "" : undefined}>
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={plot} syncId={(expanded.fill ? undefined : syncId) ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
+      <ComposedChart data={plot} syncId={layout === "split" ? id : undefined} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
-        margin={{ top: 8, right: 20, bottom: 0, left: 0 }} {...rangeHandlers}>
+        margin={{ top: 8, right: 20, bottom: 0, left: 0 }} {...pointerHandlers}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-fill-${index}`}
           color={chartColor(chartSlot(series[index]!, index))} fill={fill} />)}</defs>
         <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />
@@ -155,7 +180,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
           content={({ active, label: timestamp }) => <ChartReadout active={active}
             timestamp={Number(timestamp)} data={data} series={series} formatTime={formatTime}
             displayValue={displayValue} sidebar={legend === "sidebar"}
-            onInspect={legend === "sidebar" && (!lane || indices[0] === 0) ? setActiveTimestamp : undefined} />} />
+            onInspect={!lane || indices[0] === 0 ? inspect : undefined} />} />
         {indices.map(index => {
           const item = series[index]!
           const slot = chartSlot(item, index)
@@ -182,22 +207,38 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
                 fillOpacity={dimmed ? 0.06 : 0.2} />
             : <Line key={item.key} {...common} type={curve} />
         })}
+        <ChartSyncMarker group={group} source={source} plot={plot} data={data} series={series} indices={indices}
+          stacked={variant === "stacked-area"} line={line} highlighted={highlighted} pick={!lane || indices[0] === 0 ? pick : undefined}
+          readout={legend !== "sidebar" && (!lane || indices[0] === 0)} formatTime={formatTime} displayValue={displayValue} />
       </ComposedChart>
     </ResponsiveContainer>
-    {rangeHandlers && <div className="chart-range-band" hidden aria-hidden="true" />}
+    {selectRange && <div className="chart-range-band" hidden aria-hidden="true" />}
   </div>
-  const legendContent = <ChartLegend data={data} series={series} label={`${label}: summary`}
-    variant={legend} summary={summary} formatValue={formatValue} formatTime={formatTime}
-    activeTimestamp={legend === "sidebar" && hasData ? activeTimestamp : null}
-    highlightSeries={highlighted} onHighlightSeriesChange={highlight} />
+  const legendProps = { data, series, label: `${label}: summary`, variant: legend, summary, formatValue, formatTime,
+    highlightSeries: highlighted, onHighlightSeriesChange: highlight }
+  // Only a sidebar follows the inspected timestamp, so only it subscribes.
+  const legendContent = legend === "sidebar"
+    ? <ChartSidebarLegend group={group} {...legendProps} />
+    : <ChartLegend {...legendProps} />
   return <figure {...props} ref={element => {
     frame.current = element
     if (typeof ref === "function") return ref(element)
     if (ref) ref.current = element
   }} data-slot="chart" data-layout={layout} data-legend={legend} data-line={line} data-fill={fill}
-    className={cn("framed-chart", className)} aria-labelledby={`${id}-title`}>
+    className={cn("framed-chart", className)} aria-labelledby={`${id}-title`} onKeyDown={event => {
+      onKeyDown?.(event)
+      if (event.defaultPrevented || drag.current) return
+      if (event.key === "Escape" && chartPinned(group) !== null) {
+        event.preventDefault()
+        clearChartPin(group)
+      } else if ((event.key === "Enter" || event.key === " ") && inspected.current !== null
+        && event.target instanceof Element && event.target.closest(".chart-plot")) {
+        event.preventDefault()
+        toggleChartPin(group, inspected.current)
+      }
+    }}>
     <figcaption id={`${id}-title`} className="t-h3">{label}</figcaption>
-    <p id={`${id}-help`} className="chart-help">Focus the chart and use Left and Right to inspect samples. Select a series in the legend to highlight it. Exact values are available below.</p>
+    <p id={`${id}-help`} className="chart-help">Focus the chart and use Left and Right to inspect samples. Press Enter to mark the inspected sample in every synchronized chart, and Escape to clear it. Select a series in the legend to highlight it. Exact values are available below.</p>
     <div className="chart-body">
       <div className="chart-plots">
         {hasData ? layout === "split" ? series.map((item, index) => <div className="chart-lane" key={item.key}>
@@ -239,10 +280,93 @@ function ChartReadout({ active, timestamp, data, series, formatTime, displayValu
   const inspectedTimestamp = sample?.timestamp ?? null
   React.useEffect(() => { onInspect?.(inspectedTimestamp) }, [onInspect, inspectedTimestamp])
   if (!sample || sidebar) return null
-  return <div className="chart-inspection" role="status">
+  return <ChartInspection role="status" sample={sample} series={series} formatTime={formatTime} displayValue={displayValue} />
+}
+
+function ChartInspection({ sample, series, formatTime, displayValue, className, ...props }: React.ComponentProps<"div"> & {
+  sample: ChartSample
+  series: readonly ChartSeries[]
+  formatTime: (timestamp: number) => string
+  displayValue: (value: number | null | undefined) => string
+}) {
+  return <div {...props} className={cn("chart-inspection", className)}>
     <strong>{formatTime(sample.timestamp)}</strong>
     <dl>{series.map((item, index) => <React.Fragment key={item.key}>
       <dt><ChartSeriesLabel series={item} index={index} /></dt><dd>{displayValue(sample.values[item.key])}</dd>
     </React.Fragment>)}</dl>
   </div>
+}
+
+type PlotSample = { timestamp: number; values: (number | null | undefined)[] }
+type ChartPick = (x: number) => { at: number; x: number } | undefined
+
+// The other Charts of a group mark the inspected timestamp with a line and
+// dots, and a pinned timestamp with a solid line and its values. This
+// subtree alone renders on hover; the plot, legend, and tables do not.
+function ChartSyncMarker({ group, source, plot, data, series, indices, stacked, line, highlighted, pick, readout, formatTime, displayValue }: {
+  group: string
+  source: object
+  plot: readonly PlotSample[]
+  data: readonly ChartSample[]
+  series: readonly ChartSeries[]
+  indices: readonly number[]
+  stacked: boolean
+  line: ChartLine
+  highlighted: string | null
+  pick?: React.RefObject<ChartPick | null>
+  readout: boolean
+  formatTime: (timestamp: number) => string
+  displayValue: (value: number | null | undefined) => string
+}) {
+  const { hover, source: hovering, pinned } = useChartSync(group)
+  const xScale = useXAxisScale(), yScale = useYAxisScale(), area = usePlotArea(), snap = useXAxisInverseDataSnapScale()
+  React.useLayoutEffect(() => {
+    if (!pick) return
+    pick.current = x => {
+      const at = area && x >= area.x && x <= area.x + area.width ? snap?.(x) : undefined
+      const snapped = typeof at === "number" ? xScale?.(at) : undefined
+      return typeof at === "number" && snapped !== undefined ? { at, x: snapped } : undefined
+    }
+  }, [pick, area, snap, xScale])
+  const mark = React.useRef<SVGGElement>(null)
+  const [layer, setLayer] = React.useState<HTMLElement | null>(null)
+  React.useLayoutEffect(() => setLayer(mark.current?.closest<HTMLElement>(".chart-plot") ?? null), [])
+  const place = (timestamp: number | null) => {
+    if (timestamp === null || !xScale || !area) return undefined
+    const sample = plot.find(item => item.timestamp === timestamp)
+    const x = sample && xScale(timestamp)
+    return sample && x !== undefined && Number.isFinite(x) ? { sample, x } : undefined
+  }
+  const drawn = place(hovering === source ? null : hover), held = place(pinned)
+  const marker = (at: { sample: PlotSample; x: number }, dash?: string) => <g>
+    <line x1={at.x} x2={at.x} y1={area!.y} y2={area!.y + area!.height} stroke="var(--color-border-strong)"
+      strokeWidth={dash ? 1 : 1.5} strokeDasharray={dash} />
+    {yScale && indices.map(index => {
+      const value = at.sample.values[index]
+      if (!measured(value)) return null
+      const total = stacked ? at.sample.values.slice(0, index + 1).reduce<number>((sum, item) => sum + (item ?? 0), 0) : value
+      const y = yScale(total)
+      const item = series[index]!
+      return y === undefined ? null : <ChartDot key={item.key} cx={at.x} cy={y} line={line} fill={chartColor(chartSlot(item, index))}
+        opacity={highlighted !== null && item.key !== highlighted ? 0.3 : 1} />
+    })}
+  </g>
+  // The hovered Chart shows its own readout, so its pinned one steps aside.
+  const pinnedSample = readout && held && !(hovering === source && hover !== null)
+    ? data.find(item => item.timestamp === held.sample.timestamp) : undefined
+  const flip = held && area ? held.x > area.x + area.width / 2 : false
+  return <g ref={mark} className="chart-sync-marker" pointerEvents="none">
+    {held && marker(held)}
+    {drawn && marker(drawn, "3 3")}
+    {layer && pinnedSample && held && area && createPortal(<ChartInspection className="chart-pin-readout" sample={pinnedSample}
+      series={series} formatTime={formatTime} displayValue={displayValue}
+      style={{ top: area.y, left: flip ? held.x - 12 : held.x + 12, translate: flip ? "-100%" : undefined }} />, layer)}
+  </g>
+}
+
+function ChartSidebarLegend({ group, data, ...props }: React.ComponentProps<typeof ChartLegend> & { group: string }) {
+  const { hover, pinned } = useChartSync(group)
+  const activeTimestamp = [hover, pinned].find(timestamp => timestamp !== null
+    && data.some(sample => sample.timestamp === timestamp)) ?? null
+  return <ChartLegend {...props} data={data} activeTimestamp={activeTimestamp} />
 }
