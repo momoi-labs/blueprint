@@ -2788,6 +2788,11 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-plot { width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
 .chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* A plot that selects a range on drag. The ticks are not text to select. */
+.chart-plot[data-range-select] { position: relative; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+/* The band spans the plot area: Chart's top margin and the time axis below. */
+.chart-range-band { position: absolute; inset-block: 8px 30px; pointer-events: none; background: color-mix(in oklab, var(--color-primary) 12%, transparent); border-inline: 1px solid var(--color-primary); }
+.chart-range-band[hidden] { display: none; }
 .chart-empty { display: grid; place-items: center; padding: var(--spacing-md); color: var(--color-muted-foreground); }
 .chart-table-scroll { max-width: 100%; overflow-x: auto; }
 .chart-table { width: 100%; border-collapse: collapse; font-size: var(--type-size-label); font-variant-numeric: tabular-nums; }

@@ -12,7 +12,9 @@ artifact's timestamps, not a live polling schedule or date-only calendar.
 `bounds` and controlled `value` are `{ from, to }` epoch-millisecond pairs.
 Both must be finite, valid dates with start before end; value must fit inside
 bounds. `onValueChange` receives an applied range. The consumer filters panels
-and recalculates their summaries from that interval.
+and recalculates their summaries from that interval. A Chart's
+`onRangeSelect` can set the same value, so a reader can drag across a plot
+to zoom in.
 
 Presets default to the last 5, 15, and 30 minutes relative to the end of the
 run. Durations are positive milliseconds; clip their start to the run start.

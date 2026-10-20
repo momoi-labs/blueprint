@@ -52,6 +52,14 @@ Left and Right inspect adjacent samples through Recharts' accessibility layer.
 Pointer hover and touch inspect the same readout. The floating readout or sidebar names the
 selected timestamp and every series, including "Not collected" values.
 
+Pass `onRangeSelect` to zoom by dragging. Press on the plot with a mouse or
+pen and drag to another sample; a tinted band marks the selection. Release
+calls `onRangeSelect` with `{ from, to }`, the ordered timestamps of the
+samples at both ends. A click without a drag, or Escape before release,
+selects nothing. The product applies the range, usually as the value of its
+[TimeRangeControl](time-range-control.md), which stays the keyboard and touch
+path and the way back to the entire run.
+
 Pass the same `syncId` to related charts to synchronize by timestamp. Products
 must supply the same expected timestamp grid and window to that group. Array
 positions alone do not establish correspondence. Panels retain their own
