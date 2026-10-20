@@ -103,6 +103,11 @@ uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 | `highlightSeries` | A series key or null | Local selection |
 
 Standard uses a 200-pixel plot; compact uses 165 pixels and tighter spacing.
+In an expanded [DashboardPanel](dashboard-grid.md#expand), the plot takes the
+height the dialog leaves after the legend and the exact-values summary, and
+never less than its layout's height. Opening the exact values scrolls the
+dialog instead of shrinking the plot. An expanded Chart ignores `syncId`, so
+inspecting it does not move the Charts left on the grid.
 Split gives each series a labelled 90-pixel lane on one shared numeric scale,
 with synchronized timestamps. Explicit `height` overrides the plot or lane
 height. Split accepts only line charts; passing it with stacked-area throws

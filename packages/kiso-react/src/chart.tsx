@@ -5,6 +5,7 @@ import { clsx as cn } from "clsx"
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { ChartLegend, ChartSeriesLabel } from "./chart-legend.js"
 import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
+import { useChartFill } from "./chart-fill.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries } from "./chart-data.js"
 
@@ -41,7 +42,10 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   const legend = presentation.legend
   // An inherited split cannot hold a stack, so a stacked chart keeps one plot.
   const layout = !layoutProp && presentation.layout === "split" && variant === "stacked-area" ? "standard" : presentation.layout
-  const height = heightProp ?? (layout === "compact" ? 165 : layout === "split" ? 90 : 200)
+  const defaultHeight = layout === "compact" ? 165 : layout === "split" ? 90 : 200
+  // In an expanded DashboardPanel the plot takes the room the dialog leaves.
+  const expanded = useChartFill(frame, `${label}|${layout}|${legend}`, defaultHeight)
+  const height = heightProp ?? expanded.height ?? defaultHeight
   const bold = line === "stepped" || line === "curved"
   const [localHighlight, setLocalHighlight] = React.useState<string | null>(null)
   const [activeTimestamp, setActiveTimestamp] = React.useState<number | null>(null)
@@ -80,7 +84,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   }
   const renderPlot = (indices: number[], lane?: ChartSeries) => <div className="chart-plot" style={{ height }}>
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={plot} syncId={syncId ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
+      <ComposedChart data={plot} syncId={(expanded.fill ? undefined : syncId) ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
         margin={{ top: 8, right: 20, bottom: 0, left: 0 }}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-fill-${index}`}

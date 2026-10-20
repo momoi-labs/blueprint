@@ -42,7 +42,9 @@ exploratory metrics. Share a timestamp grid, time range, and syncId across
 related panels. Compose [DashboardGrid](../components/dashboard-grid.md) and
 [Disclosure](../components/disclosure.md) for panel groups the reader can
 move and resize, and persist the layout. DashboardGrid is a
-[PaneGrid](../components/pane-grid.md).
+[PaneGrid](../components/pane-grid.md). Make a chart panel expandable so the
+reader can study it full viewport with `V`; see
+[Expand](../components/dashboard-grid.md#expand).
 
 ## Flow
 

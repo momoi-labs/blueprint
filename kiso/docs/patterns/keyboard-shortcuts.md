@@ -66,6 +66,9 @@ are findable without reading documentation.
 │  r     Refresh current view                  │
 │  ⌘S   Save (in an editor)                    │
 │                                              │
+│  Dashboards                                  │
+│  v     Expand the focused panel              │
+│                                              │
 │  Tables                                      │
 │  ↑ ↓  Move between rows                      │
 │  j k  Move between rows (vim)                │

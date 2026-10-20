@@ -109,7 +109,7 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Disclosure summary="Operating system" open>
       <DashboardGrid aria-label="Operating system metrics" {...layout}>
-        <DashboardPanel id="cpu" title="CPU by state (%)" size={8} min={4}>
+        <DashboardPanel id="cpu" title="CPU by state (%)" size={8} min={4} expandable>
           <Chart label="CPU by state (%)" data={filtered} series={series} variant="stacked-area" layout="compact" legend="inline"
             formatTime={time} formatValue={percent} min={0} max={100} syncId="metrics-demo" />
         </DashboardPanel>
@@ -124,15 +124,15 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
         <DashboardPanel id="memory" title="Memory by process" size={8} min={4}>
           <MetricsDemo component="bar-gauge" />
         </DashboardPanel>
-        <DashboardPanel id="single-sample" title="Single sample (%)" size={6} min={4} newRow>
+        <DashboardPanel id="single-sample" title="Single sample (%)" size={6} min={4} newRow expandable>
           <Chart label="Single sample (%)" data={[data[0]!]} series={[series[0]!]} legend="inline"
             formatTime={time} formatValue={percent} />
         </DashboardPanel>
-        <DashboardPanel id="empty-window" title="Empty window (%)" size={6} min={4}>
+        <DashboardPanel id="empty-window" title="Empty window (%)" size={6} min={4} expandable>
           <Chart label="Empty window (%)" data={[]} series={[series[0]!]} legend="inline"
             formatTime={time} formatValue={percent} />
         </DashboardPanel>
-        <DashboardPanel id="unavailable" title="Unavailable collector (%)" size={12} min={6} newRow>
+        <DashboardPanel id="unavailable" title="Unavailable collector (%)" size={12} min={6} newRow expandable>
           <Chart label="Unavailable collector (%)" data={data.map(sample => ({ ...sample, values: { user: null } }))}
             series={[series[0]!]} legend="inline" formatTime={time} formatValue={percent} />
           <p>Sparkline with a collection gap</p>

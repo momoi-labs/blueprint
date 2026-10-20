@@ -135,6 +135,13 @@
   border-radius: var(--radius-lg);
   background: var(--color-background);
 }
+.catalog-shortcuts {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+.catalog-shortcuts h2 { margin: 0; }
+/* Actions are prose, not values. */
+.catalog-shortcuts dd { font-family: var(--font-body); }
 .catalog-code summary {
   font-size: var(--type-size-label);
   color: var(--color-muted-foreground);
