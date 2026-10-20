@@ -1,5 +1,12 @@
 # @momoi-labs/kiso-react
 
+## 0.19.1
+
+### Patch Changes
+
+- Updated dependencies [ffa0947]
+  - @momoi-labs/kiso@0.24.0
+
 ## 0.19.0
 
 ### Minor Changes
