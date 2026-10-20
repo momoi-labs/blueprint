@@ -6,6 +6,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "tokens/**"
+      - "crates/**"
       - "kiso/docs/components/**"
       - "style-dictionary.config.*"
       - "scripts/**"
@@ -34,9 +35,19 @@ jobs:
           test -s tokens/build/tokens.json
           test -s tokens/build/tokens.d.ts
           test -s tokens/build/tokens.scss
-          git diff --exit-code -- tokens/build/
+          test -s crates/kiso-tokens/src/tokens.rs
+          git diff --exit-code -- tokens/build/ crates/kiso-tokens/src/tokens.rs
       - name: Check component token references
         run: node scripts/check-component-token-refs.mjs
+
+  rust:
+    name: Test Rust tokens
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test kiso-tokens
+        run: cargo test --manifest-path crates/kiso-tokens/Cargo.toml
 
   contrast:
     name: Check AA contrast

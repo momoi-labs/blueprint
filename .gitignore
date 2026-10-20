@@ -14,3 +14,6 @@ packages/kiso-react/dist/
 
 # Local review screenshots and temporary prototypes.
 /artifacts/
+
+# Cargo build output.
+/crates/kiso-tokens/target/
