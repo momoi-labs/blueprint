@@ -436,6 +436,32 @@
 [data-slot="toast"][data-variant="warning"] { border-color: var(--color-warning-border); }
 [data-slot="toast"][data-variant="error"] { border-color: var(--color-danger-border); }
 
+/* An expanded DashboardPanel: the dialog surface fills the viewport less a
+   margin, and edge to edge on a phone. The body gives its Chart the height
+   left after the head. */
+.kiso-react-dialog.dashboard-panel-dialog {
+  inset: var(--spacing-lg);
+  transform: none;
+  width: auto;
+  max-height: none;
+}
+.kiso-react-dialog .dialog-header.dashboard-panel-dialog-head {
+  display: flex; align-items: center; gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+.dashboard-panel-dialog-head > h2 { flex: 1 1 0; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kiso-react-dialog .dialog-body.dashboard-panel-dialog-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start;
+  padding: var(--spacing-lg);
+}
+/* The dialog title names the chart, as the pane title does on the grid. */
+.dashboard-panel-dialog-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 640px) {
+  .kiso-react-dialog.dashboard-panel-dialog { inset: 0; border: 0; border-radius: 0; }
+  .kiso-react-dialog .dialog-body.dashboard-panel-dialog-body { padding: var(--spacing-md); }
+}
+
 /* A Drawer is the dialog surface moved to an edge. */
 .kiso-react-drawer {
   position: fixed;

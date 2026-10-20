@@ -67,7 +67,7 @@ behavioral reference where one exists.
 
 - [Disclosure](disclosure.md): Native collapsible sections.
 - [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.
-- [DashboardGrid](dashboard-grid.md): Metric panels the reader moves and resizes, on PaneGrid.
+- [DashboardGrid](dashboard-grid.md): Metric panels the reader moves, resizes and expands, on PaneGrid.
 - [PaneGrid / GridPane](pane-grid.md): Summary panes on twelve columns that the reader resizes and moves, saved by the product.
 
 - [AppShell / ApplicationShell](app-shell.md): Provides columns, an optional AppShellPanel with a header or floating toggle, or the complete shared application frame.

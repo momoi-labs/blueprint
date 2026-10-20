@@ -19,7 +19,7 @@ import { MetricsDemo } from "./metrics-demo";
 import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
-import { memo, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Fragment, memo, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AccentSelector,
   type Accent,
@@ -376,6 +376,14 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "modal-dialog": "wide",
   drawer: "wide",
   "command-palette": "wide",
+};
+
+// Keyboard shortcuts a component adds, listed under its demo.
+const shortcuts: Record<string, readonly (readonly [keys: string[], action: string])[]> = {
+  "dashboard-grid": [
+    [["V"], "Expand the focused panel, or the one under the pointer"],
+    [["Esc", "V"], "Close the expanded panel"],
+  ],
 };
 
 const snippets: Record<string, string> = {
@@ -2373,6 +2381,17 @@ export function ComponentGallery({
                 />
                 </DemoSettingsContext.Provider>
               </div>
+              {!browsing && shortcuts[id] && (
+                <section className="catalog-shortcuts" aria-labelledby={`${id}-shortcuts`}>
+                  <h2 id={`${id}-shortcuts`} className="t-h3">Shortcuts</h2>
+                  <dl className="kv">
+                    {shortcuts[id].map(([keys, action]) => <Fragment key={action}>
+                      <dt>{keys.map((key, index) => <Fragment key={key}>{index > 0 && " or "}<kbd className="kbd">{key}</kbd></Fragment>)}</dt>
+                      <dd>{action}</dd>
+                    </Fragment>)}
+                  </dl>
+                </section>
+              )}
               {!browsing && snippets[id] && (
                 <details className="catalog-code">
                   <summary>Usage example</summary>
