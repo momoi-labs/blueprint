@@ -177,6 +177,63 @@ StyleDictionary.registerFormat({
   }
 });
 
+// A terminal cannot read CSS custom properties, so the Rust crate gets every
+// theme resolved to plain sRGB: the default accent and each accent.<name>, in
+// both modes. Resolution follows the CSS cascade: under an accent, a
+// semantic.<role> or color.accent.<step> reference takes the accent's
+// override when it has one. Roles with alpha are left out, because a terminal
+// cell cannot blend.
+StyleDictionary.registerFormat({
+  name: 'rust/kiso-themes',
+  format: ({ dictionary }) => {
+    const byPath = new Map();
+    for (const { path, token } of walk(dictionary.tokens)) byPath.set(path.join('.'), token.original || token);
+    const lookup = (key) => byPath.get(key) ?? fail('unknown token ' + key);
+
+    const resolve = (key, mode, accent) => {
+      const path = key.split('.');
+      if (accent && path[0] === 'semantic' && byPath.has(['accent', accent, path[1]].join('.'))) {
+        key = ['accent', accent, path[1]].join('.');
+      } else if (accent && path[0] === 'color' && path[1] === 'accent' && byPath.has(['accent', accent, 'accent', path[2]].join('.'))) {
+        key = ['accent', accent, 'accent', path[2]].join('.');
+      }
+      const value = valueForMode(lookup(key), mode);
+      return isRef(value) ? resolve(value.replace(/[{}]/g, '').trim(), mode, accent) : value;
+    };
+
+    const rgb = (c) => {
+      if (c.hex && c.hex.length === 7) return [1, 3, 5].map((i) => parseInt(c.hex.slice(i, i + 2), 16));
+      return c.components.map((n) => Math.round(n * 255));
+    };
+    const opaque = (c) => c && typeof c === 'object' && (c.alpha === undefined || c.alpha === 1);
+
+    const accents = Object.keys(dictionary.tokens.accent ?? {});
+    const themes = [{ name: '', accent: undefined }, ...accents.map((name) => ({ name, accent: name }))]
+      .flatMap((t) => MODES.map((mode) => ({ ...t, mode })));
+
+    const roles = Object.keys(dictionary.tokens.semantic)
+      .filter((role) => themes.every((t) => opaque(resolve('semantic.' + role, t.mode, t.accent))));
+
+    const field = (role) => role.replace(/-/g, '_');
+    const constName = (t) => [t.name, t.mode].filter(Boolean).join('_').toUpperCase();
+    const hex = (n) => '0x' + n.toString(16).padStart(2, '0');
+    const doc = (text, indent) => text ? indent + '/// ' + text + '\n' : '';
+
+    const struct = roles.map((role) => doc(lookup('semantic.' + role).$description, '    ') + '    pub ' + field(role) + ': Rgb,').join('\n');
+    const consts = themes.map((t) => {
+      const what = (t.name ? 'The ' + t.name + ' accent' : 'The default accent') + ', ' + t.mode + ' mode.';
+      const body = roles.map((role) => '    ' + field(role) + ': [' + rgb(resolve('semantic.' + role, t.mode, t.accent)).map(hex).join(', ') + '],').join('\n');
+      return '/// ' + what + '\npub const ' + constName(t) + ': Theme = Theme {\n' + body + '\n};';
+    });
+
+    return [
+      '// Kiso design tokens, generated from tokens/tokens.json. Do not edit.',
+      '/// The opaque semantic colors of one Kiso theme, as sRGB.\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub struct Theme {\n' + struct + '\n}',
+      ...consts
+    ].join('\n\n') + '\n';
+  }
+});
+
 const buildPath = 'tokens/build/';
 const webValueTransforms = [
   'attribute/cti',
@@ -212,6 +269,11 @@ export default {
       transforms: ['name/kebab', ...webValueTransforms],
       buildPath,
       files: [{ destination: 'tokens.scss', format: 'scss/variables' }]
+    },
+    rust: {
+      transforms: ['attribute/cti'],
+      buildPath: 'crates/kiso-tokens/src/',
+      files: [{ destination: 'tokens.rs', format: 'rust/kiso-themes' }]
     }
   }
 };

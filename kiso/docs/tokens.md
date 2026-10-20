@@ -14,7 +14,9 @@ npm run build
 ```
 
 The build emits `tokens/build/tokens.css`, `tokens.json`, `tokens.d.ts`, and
-`tokens.scss`.
+`tokens.scss`. It also emits `crates/kiso-tokens/src/tokens.rs` for the
+`kiso-tokens` Rust crate. That file holds every accent and mode resolved to
+sRGB, for terminal and native UIs that cannot load CSS.
 
 Each custom property is declared **once**, in `:root`. A role whose two themes
 differ is emitted as CSS `light-dark()`, and the theme is chosen by
@@ -647,6 +649,7 @@ artifacts directly consumable without requiring downstream projects to install
 Style Dictionary. Do not edit them: change `tokens/tokens.json` or the build
 configuration and regenerate. CI rebuilds the artifacts and fails if the
 committed output has drifted, so `tokens/build/` is intentionally not ignored.
+The same rule applies to `crates/kiso-tokens/src/tokens.rs`.
 
 Published releases expose the artifacts as `@momoi-labs/kiso/tokens.css`,
 `@momoi-labs/kiso/tokens.json`, `@momoi-labs/kiso/tokens.scss`, and
