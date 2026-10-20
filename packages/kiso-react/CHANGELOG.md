@@ -1,5 +1,34 @@
 # @momoi-labs/kiso-react
 
+## 0.19.0
+
+### Minor Changes
+
+- 543ea7e: The table legend takes a `summary` prop on `Chart` and `ChartLegend` that
+  lists its columns in order. Besides `min`, `max`, `avg` and `current`, it
+  offers `p50`, `p75`, `p90`, `p95` and `p99`, so spiky measures such as
+  latency can show percentiles instead of a max set by one outlier. The
+  default columns do not change.
+- d5d0243: Chart takes `onRangeSelect`. A reader drags across the plot with a mouse or
+  pen, and a tinted band marks the samples between both ends. Release calls
+  `onRangeSelect` with the ordered `{ from, to }` timestamps. A click or Escape
+  selects nothing. The product applies the range, usually through
+  TimeRangeControl, which stays the keyboard and touch path. The plot shows a
+  crosshair cursor while a range can be selected.
+- 93ac35a: DashboardPanel takes `expandable`. The panel gets an Expand control with a
+  maximize icon, and `V` opens the focused panel, or the one under the pointer,
+  in a dialog that fills the viewport. `Escape`, `V` or Close returns focus to
+  where it was. A Chart in the expanded panel takes the height the dialog leaves
+  and stops synchronizing with the Charts on the grid. Expanding never writes to
+  the layout.
+
+### Patch Changes
+
+- Updated dependencies [543ea7e]
+- Updated dependencies [d5d0243]
+- Updated dependencies [93ac35a]
+  - @momoi-labs/kiso@0.23.0
+
 ## 0.18.0
 
 ### Minor Changes
