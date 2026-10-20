@@ -1,9 +1,10 @@
 [package]
 name = "kiso-tokens"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Kiso design tokens as sRGB themes for terminal and native UIs"
 license = "MIT"
+homepage = "https://kiso.momoi-labs.dev"
 repository = "https://github.com/momoi-labs/blueprint"
 rust-version = "1.85"
 keywords = ["design-tokens", "kiso", "theme", "terminal"]
