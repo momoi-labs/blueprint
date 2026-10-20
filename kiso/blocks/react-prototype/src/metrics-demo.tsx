@@ -62,7 +62,7 @@ function ChartOptionsDemo() {
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Card><CardContent><Chart label="CPU by state (%)" data={filtered} series={series}
       variant={variant} highlightSeries={highlight}
-      onHighlightSeriesChange={setHighlight} min={0} max={100} formatTime={time} formatValue={percent} /></CardContent></Card>
+      onHighlightSeriesChange={setHighlight} min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} /></CardContent></Card>
     <pre><code>{code}</code></pre>
   </div>
 }
@@ -111,7 +111,7 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
       <DashboardGrid aria-label="Operating system metrics" {...layout}>
         <DashboardPanel id="cpu" title="CPU by state (%)" size={8} min={4} expandable>
           <Chart label="CPU by state (%)" data={filtered} series={series} variant="stacked-area" layout="compact" legend="inline"
-            formatTime={time} formatValue={percent} min={0} max={100} syncId="metrics-demo" />
+            formatTime={time} formatValue={percent} min={0} max={100} syncId="metrics-demo" onRangeSelect={setRange} />
         </DashboardPanel>
         <DashboardPanel id="cpu-user" title="CPU user" size={4} min={3}>
           <Stat><StatValue>{filtered.at(-1)?.values.user == null ? "Not collected" : percent(filtered.at(-1)!.values.user!)}</StatValue>

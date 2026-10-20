@@ -8,6 +8,7 @@ import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle
 import { useChartFill } from "./chart-fill.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries } from "./chart-data.js"
+import type { TimeRange } from "./time-range-control.js"
 
 export type { ChartSample, ChartSeries } from "./chart-data.js"
 export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
@@ -29,11 +30,14 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   formatValue?: (value: number) => string
   min?: number
   max?: number
+  /** Drag across the plot with a mouse or pen to select samples from one
+      timestamp to another. TimeRangeControl stays the keyboard and touch path. */
+  onRangeSelect?: (range: TimeRange) => void
 } & ChartTreatmentProps
 
 export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
-  formatTime = formatChartTime, formatValue = formatChartValue, min, max,
+  formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect,
   chartStyle, chartLine, chartFill, ref, className, ...props }: ChartProps) {
   const id = React.useId()
   const frame = React.useRef<HTMLElement>(null)
@@ -49,6 +53,18 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   const bold = line === "stepped" || line === "curved"
   const [localHighlight, setLocalHighlight] = React.useState<string | null>(null)
   const [activeTimestamp, setActiveTimestamp] = React.useState<number | null>(null)
+  // A drag moves the band in the DOM. Rendering the Chart on every pointer
+  // move is far too slow for a stack of many series.
+  const drag = React.useRef<{ from: number; to: number; x1: number; x2: number } | null>(null)
+  const stopDrag = React.useRef<(() => void) | null>(null)
+  React.useEffect(() => () => stopDrag.current?.(), [])
+  const paintDrag = () => frame.current?.querySelectorAll<HTMLElement>(".chart-range-band").forEach(band => {
+    const range = drag.current
+    band.hidden = !range || range.from === range.to
+    if (!range) return
+    band.style.left = `${Math.min(range.x1, range.x2)}px`
+    band.style.width = `${Math.abs(range.x2 - range.x1)}px`
+  })
   const requestedHighlight = highlightSeries === undefined ? localHighlight : highlightSeries
   const highlighted = series.some(item => item.key === requestedHighlight) ? requestedHighlight : null
   const highlight = (key: string | null) => {
@@ -82,11 +98,46 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     if (max === undefined) splitMax += Math.max(1, Math.abs(splitMax) * 0.1)
     else splitMin -= Math.max(1, Math.abs(splitMin) * 0.1)
   }
-  const renderPlot = (indices: number[], lane?: ChartSeries) => <div className="chart-plot" style={{ height }}>
+  const sampleAt = (index: unknown) => typeof index === "number" ? plot[index]?.timestamp
+    : typeof index === "string" && index !== "" ? plot[Number(index)]?.timestamp : undefined
+  type Pointer = { activeTooltipIndex?: unknown; activeCoordinate?: { x: number } }
+  const rangeHandlers = onRangeSelect && plot.length > 1 ? {
+    onMouseDown: (state: Pointer, event: React.SyntheticEvent) => {
+      const at = sampleAt(state.activeTooltipIndex), x = state.activeCoordinate?.x
+      if (at === undefined || x === undefined || (event as React.MouseEvent).button !== 0) return
+      stopDrag.current?.()
+      drag.current = { from: at, to: at, x1: x, x2: x }
+      // The drag may end outside the plot, and Escape cancels it.
+      const end = () => {
+        const range = drag.current
+        stop()
+        if (range && range.from !== range.to) onRangeSelect({ from: Math.min(range.from, range.to), to: Math.max(range.from, range.to) })
+      }
+      const cancel = (key: KeyboardEvent) => { if (key.key === "Escape") { key.preventDefault(); stop() } }
+      const stop = () => {
+        drag.current = null
+        paintDrag()
+        document.removeEventListener("mouseup", end)
+        document.removeEventListener("keydown", cancel)
+        stopDrag.current = null
+      }
+      document.addEventListener("mouseup", end)
+      document.addEventListener("keydown", cancel)
+      stopDrag.current = stop
+    },
+    onMouseMove: (state: Pointer) => {
+      const at = sampleAt(state.activeTooltipIndex), x = state.activeCoordinate?.x
+      if (!drag.current || at === undefined || x === undefined || at === drag.current.to) return
+      drag.current = { ...drag.current, to: at, x2: x }
+      paintDrag()
+    },
+  } : undefined
+  const renderPlot = (indices: number[], lane?: ChartSeries) => <div className="chart-plot" style={{ height }}
+    data-range-select={rangeHandlers ? "" : undefined}>
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart data={plot} syncId={(expanded.fill ? undefined : syncId) ?? (layout === "split" ? id : undefined)} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
-        margin={{ top: 8, right: 20, bottom: 0, left: 0 }}>
+        margin={{ top: 8, right: 20, bottom: 0, left: 0 }} {...rangeHandlers}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-fill-${index}`}
           color={chartColor(chartSlot(series[index]!, index))} fill={fill} />)}</defs>
         <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />
@@ -131,6 +182,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
         })}
       </ComposedChart>
     </ResponsiveContainer>
+    {rangeHandlers && <div className="chart-range-band" hidden aria-hidden="true" />}
   </div>
   const legendContent = <ChartLegend data={data} series={series} label={`${label}: summary`}
     variant={legend} formatValue={formatValue} formatTime={formatTime}
