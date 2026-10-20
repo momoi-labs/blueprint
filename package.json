@@ -6,7 +6,8 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "kiso/blocks/react-prototype"
+    "kiso/blocks/react-prototype",
+    "crates/kiso-tokens"
   ],
   "scripts": {
     "gallery": "npm run build:packages && npm run dev --workspace=kiso-gallery",
@@ -15,7 +16,7 @@
     "prototype": "npm run build:packages && npm run dev --workspace=kiso-react-prototype",
     "build": "style-dictionary build --config style-dictionary.config.mjs",
     "check": "npm run build && npm run check:generated && npm run check:tokens",
-    "check:generated": "git diff --exit-code -- tokens/build/ crates/kiso-tokens/src/tokens.rs",
+    "check:generated": "git diff --exit-code -- tokens/build/ crates/kiso-tokens/src/tokens.rs && node scripts/sync-crate-version.mjs --check",
     "check:tokens": "node scripts/validate-dtcg.mjs && node scripts/check-contrast.mjs tokens/tokens.json && node scripts/check-chart-palette.mjs && node scripts/check-component-token-refs.mjs",
     "changeset": "changeset",
     "release": "npm run build:packages && changeset publish",
@@ -25,7 +26,7 @@
     "check:browser": "npm run build:packages && node scripts/run-browser-checks.mjs",
     "check:changed": "node scripts/check-changed.mjs",
     "check:changeset": "node scripts/check-changeset.mjs",
-    "version:packages": "changeset version && npm install --package-lock-only"
+    "version:packages": "changeset version && node scripts/sync-crate-version.mjs && npm install --package-lock-only"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

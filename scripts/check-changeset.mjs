@@ -9,6 +9,7 @@ const files = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { e
 const published = files.filter(file => (
   file.startsWith('packages/')
   || file.startsWith('tokens/')
+  || file.startsWith('crates/')
   || (file.startsWith('kiso/') && !file.startsWith('kiso/blocks/'))
 ));
 const changesets = files.filter(file => /^\.changeset\/(?!README\.md$).+\.md$/.test(file));

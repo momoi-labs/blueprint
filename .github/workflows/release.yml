@@ -30,6 +30,7 @@ jobs:
       - run: npm run check
       - run: npm run check:react
       - name: Open the version PR or publish merged versions
+        id: changesets
         # v2 reads the tag events Changesets 3 writes; v1 parsed the old CLI log.
         uses: changesets/action@v2.1.2
         with:
@@ -37,6 +38,27 @@ jobs:
           publish-script: npm run release
           pr-title: "chore: release kiso"
           commit-message: "chore: release kiso"
+      # Changesets only tags kiso-tokens. Publish a version crates.io lacks, once
+      # no changesets are pending, through crates.io trusted publishing.
+      - name: Check whether kiso-tokens has a new version
+        id: crate
+        if: steps.changesets.outputs['has-changesets'] == 'false'
+        run: |
+          version=$(node -p "require('./crates/kiso-tokens/package.json').version")
+          status=$(curl -s -o /dev/null -w '%{http_code}' -A 'momoi-labs/blueprint release' "https://crates.io/api/v1/crates/kiso-tokens/$version")
+          case "$status" in
+            200) echo "kiso-tokens $version is already on crates.io." ;;
+            404) echo "new=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "crates.io answered $status for kiso-tokens $version." && exit 1 ;;
+          esac
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: crates-io
+        if: steps.crate.outputs.new == 'true'
+      - name: Publish kiso-tokens
+        if: steps.crate.outputs.new == 'true'
+        run: cargo publish --manifest-path crates/kiso-tokens/Cargo.toml
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-io.outputs.token }}
       - name: Require a tag and release for every published version
         run: node scripts/check-release-tags.mjs
         env:
