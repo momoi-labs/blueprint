@@ -2786,7 +2786,7 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
    assistive technology. */
 .grid-pane-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.chart-plot { width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
+.chart-plot { position: relative; width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
 .chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 /* A plot that selects a range on drag. The ticks are not text to select. */
 .chart-plot[data-range-select] { position: relative; cursor: crosshair; user-select: none; -webkit-user-select: none; }
@@ -2805,6 +2805,8 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .chart-inspection { padding: var(--spacing-sm); border: 1px solid var(--color-border); background: var(--color-elevated-surface); color: var(--color-foreground); box-shadow: var(--shadow-md); font-size: var(--type-size-label); }
 .chart-inspection dl { display: grid; grid-template-columns: auto auto; gap: var(--spacing-xs) var(--spacing-md); margin-block: var(--spacing-xs) 0; }
 .chart-inspection dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }
+/* The values of a pinned timestamp, beside its marker line. */
+.chart-pin-readout { position: absolute; z-index: 1; pointer-events: none; }
 .meter, .bar-gauge { display: grid; gap: var(--spacing-sm); min-width: 0; }
 .bar-gauge { gap: var(--spacing-md); }
 .meter-label { display: flex; justify-content: space-between; gap: var(--spacing-md); font-size: var(--type-size-label); }

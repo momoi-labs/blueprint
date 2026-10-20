@@ -49,6 +49,7 @@ function ChartOptionsDemo() {
   variant="${variant}"${highlight ? `
   highlightSeries="${highlight}"` : ""}
   summary={${JSON.stringify(summary).replaceAll(",", ", ")}}
+  syncId="chart-demo"
 />`
   return <div className="stack">
     <div className="demo-row">
@@ -75,7 +76,11 @@ function ChartOptionsDemo() {
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <Card><CardContent><Chart label="CPU by state (%)" data={filtered} series={series}
       variant={variant} highlightSeries={highlight}
-      onHighlightSeriesChange={setHighlight} summary={summary} min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} /></CardContent></Card>
+      onHighlightSeriesChange={setHighlight} summary={summary} min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange}
+      syncId="chart-demo" /></CardContent></Card>
+    <p className="muted t-label">Both charts share a syncId. Hover one to mark the same time in the other. Click, or press Enter on a focused plot, to pin it; click again or press Escape to clear.</p>
+    <Card><CardContent><Chart label="I/O wait and steal (%)" data={filtered} series={series.slice(2, 4)} legend="inline"
+      min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} syncId="chart-demo" /></CardContent></Card>
     <pre><code>{code}</code></pre>
   </div>
 }
