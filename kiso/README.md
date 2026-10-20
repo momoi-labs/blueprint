@@ -28,6 +28,8 @@ Use this path through the system:
 5. Verify the cross-layer [accessibility rules](docs/accessibility.md).
 6. For dense technical products, also follow
    [data-interface guidance](docs/data-interfaces.md).
+7. For a terminal UI, also follow the
+   [terminal-interface rules](docs/terminal-interfaces.md).
 
 ## For humans
 
@@ -51,6 +53,7 @@ keyboard flow where relevant.
 | [`docs/components/`](docs/components/README.md) | Component contracts and catalog |
 | [`docs/patterns/`](docs/patterns/README.md) | Screen and behavior patterns |
 | [`docs/data-interfaces.md`](docs/data-interfaces.md) | Data-heavy interface rules |
+| [`docs/terminal-interfaces.md`](docs/terminal-interfaces.md) | How the contracts carry over to terminal UIs |
 | [`docs/accessibility.md`](docs/accessibility.md) | Accessibility requirements across all layers |
 | [`docs/evolution.md`](docs/evolution.md) | Deliberate deferrals and evidence-based growth |
 | [`blocks/`](blocks/README.md) | Reference screens built from `ui.css` (not published) |

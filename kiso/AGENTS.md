@@ -39,7 +39,8 @@ documented; it does not become Kiso by repetition or copy-paste.
 1. Identify the product task and required states.
 2. Choose the closest existing [pattern](docs/patterns/README.md).
 3. Compose it from documented [components](docs/components/README.md).
-4. Apply semantic [tokens](docs/tokens.md), not raw visual values.
+4. Apply semantic [tokens](docs/tokens.md), not raw visual values. A
+   terminal UI also follows [terminal interfaces](docs/terminal-interfaces.md).
 5. Apply [voice and tone](docs/voice-and-tone.md) and
    [accessibility](docs/accessibility.md) requirements.
 6. If no contract fits, describe the gap and propose an addition. Do not

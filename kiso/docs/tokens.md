@@ -16,7 +16,8 @@ npm run build
 The build emits `tokens/build/tokens.css`, `tokens.json`, `tokens.d.ts`, and
 `tokens.scss`. It also emits `crates/kiso-tokens/src/tokens.rs` for the
 `kiso-tokens` Rust crate. That file holds every accent and mode resolved to
-sRGB, for terminal and native UIs that cannot load CSS.
+sRGB, for terminal and native UIs that cannot load CSS. See
+[terminal interfaces](terminal-interfaces.md) for how a terminal uses it.
 
 Each custom property is declared **once**, in `:root`. A role whose two themes
 differ is emitted as CSS `light-dark()`, and the theme is chosen by
