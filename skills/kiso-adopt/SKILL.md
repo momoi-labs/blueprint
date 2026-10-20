@@ -45,8 +45,7 @@ brings it. Without it, the contracts path depends on npm hoisting.
 
 ## Terminal UI
 
-1. Add the tokens: `cargo add kiso-tokens`. Until the crate is on
-   crates.io, use `cargo add kiso-tokens --git https://github.com/momoi-labs/blueprint`.
+1. Add the tokens: `cargo add kiso-tokens`.
 2. Pick one accent: the web UI's if the project has one, else ask the user.
 3. Put every style in one palette module, built from one theme constant such
    as `kiso_tokens::GOLD_DARK`. The rest of the code takes styles from that
