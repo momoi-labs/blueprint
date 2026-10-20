@@ -1,6 +1,6 @@
 ---
 name: kiso-page
-description: Build, change or check a screen in a product that uses Kiso, the Momoi Labs design system. Use when adding or changing a page, view, list, detail, create, settings, dashboard or login screen, or when checking a screen against Kiso's patterns.
+description: Build, change or check a screen in a product that uses Kiso, the Momoi Labs design system, on the web or in a terminal UI. Use when adding or changing a page, view, list, detail, create, settings, dashboard or login screen, or when checking a screen against Kiso's patterns.
 ---
 
 # Build a Kiso screen
@@ -17,6 +17,7 @@ holds no rules of its own.
    installed contracts, never a blueprint checkout.
 3. Check that the version in Contracts matches `package-lock.json`. If not,
    say so and use the installed version.
+4. For a terminal view, also read `kiso/docs/terminal-interfaces.md`.
 
 ## 2. Choose the pattern
 
@@ -33,7 +34,8 @@ holds no rules of its own.
 1. Read each component contract the pattern links to.
 2. Reuse the Product components listed in `docs/kiso.md`.
 3. Build from `@momoi-labs/kiso-react` components and the `ui.css` classes.
-   Use semantic tokens, never raw colors, spacing or radius.
+   Use semantic tokens, never raw colors, spacing or radius. A terminal view
+   takes every style from the palette module in Paths instead.
 4. Apply Product rules and Exceptions from `docs/kiso.md`. An exception
    applies only where its row says.
 5. Put product CSS only in the paths listed in Paths. Name a class for what
@@ -63,7 +65,9 @@ Answer each question with yes or no. For a no, fix it or name the exception.
 5. Does the screen render the loading, empty and error states the pattern
    asks for?
 6. Does it handle a missing or null value without crashing?
-7. Does it work in both themes and at 390px, without sideways scroll?
+7. Does it work in both themes and at 390px, without sideways scroll? For a
+   terminal view, do the Verify steps in `kiso/docs/terminal-interfaces.md`
+   pass instead?
 8. Can a keyboard user reach and use every control, with visible focus?
 9. Do the Verify steps in `docs/kiso.md` pass, and did the screen load in the
    real app? A screenshot of a prototype is not evidence.

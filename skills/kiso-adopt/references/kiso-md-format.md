@@ -9,9 +9,11 @@ empty, so a reader knows it was checked.
 
 1. **Contracts.** The package, the installed Kiso version, and the path to
    the installed contracts. Compare against this version, not the blueprint
-   checkout.
+   checkout. A terminal UI also lists the `kiso-tokens` version and its
+   accent. Without a web package, the path is the GitHub tag.
 2. **Paths.** Where screens, product components and product CSS live, as
-   repository-relative paths. List every CSS file.
+   repository-relative paths. List every CSS file. A terminal UI lists its
+   views and its palette module.
 3. **Product components.** Exported components and helpers a new screen
    should reuse. Leave out private ones.
 4. **Product rules.** Product decisions on top of the contracts. Do not

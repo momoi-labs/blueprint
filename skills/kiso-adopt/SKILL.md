@@ -14,6 +14,9 @@ copies no rule into the project.
 - Find the web package: the directory with the `package.json` that builds the
   UI. Call it the package dir.
 - Check `package.json` for `@momoi-labs/kiso-react` and `@momoi-labs/kiso`.
+- Find the terminal UI, if any: a `Cargo.toml` that depends on a TUI library
+  such as ratatui. A project can have both. A project with only a terminal UI
+  skips steps 2 and 3 and follows "Terminal UI" below.
 - Check for an existing `docs/kiso.md`. If it exists, stop and say so. This
   skill does not rewrite it.
 - For a new app, the default stack is in the blueprint's
@@ -40,12 +43,26 @@ brings it. Without it, the contracts path depends on npm hoisting.
   the appearance attributes in `kiso/docs/tokens.md` before adding any.
 - Product CSS goes in its own file, imported after the Kiso stylesheet.
 
+## Terminal UI
+
+1. Add the tokens: `cargo add kiso-tokens`. Until the crate is on
+   crates.io, use `cargo add kiso-tokens --git https://github.com/momoi-labs/blueprint`.
+2. Pick one accent: the web UI's if the project has one, else ask the user.
+3. Put every style in one palette module, built from one theme constant such
+   as `kiso_tokens::GOLD_DARK`. The rest of the code takes styles from that
+   module and never names a color.
+4. Read `kiso/docs/terminal-interfaces.md` before step 5.
+
 ## 4. Read the contracts
 
 Read `<package dir>/node_modules/@momoi-labs/kiso/kiso/AGENTS.md`, then the
 pattern catalog in `kiso/docs/patterns/README.md`. Use them to fill Pattern
 choices. Never read the contracts from a blueprint checkout: the installed
 version is the one the project ships.
+
+A project with only a terminal UI has no installed contracts. Read them from
+GitHub at the newest `@momoi-labs/kiso@<version>` tag, and record that
+version in Contracts.
 
 ## 5. Write docs/kiso.md
 
@@ -74,6 +91,7 @@ the `kiso-page` skill to build or change one.
 ## 7. Verify and report
 
 1. Run the build from Verify. The app must load with the Kiso fonts and both
-   themes.
+   themes. A terminal UI must pass the Verify steps in
+   `kiso/docs/terminal-interfaces.md`.
 2. Report the installed versions, the files changed, and any break of a
    contract you found in existing code.
