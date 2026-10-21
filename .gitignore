@@ -17,3 +17,4 @@ packages/kiso-react/dist/
 
 # Cargo build output.
 /crates/kiso-tokens/target/
+/crates/tui-kiso/target/

@@ -1,7 +1,8 @@
 # Changesets
 
 Add a changeset for every change to published package sources (`packages/`,
-`kiso/` outside `blocks/`, `tokens/`, and `crates/`):
+`kiso/` outside `blocks/`, `tokens/`, and the crates under `crates/` that have
+a `package.json`):
 
 ```sh
 npm run changeset
