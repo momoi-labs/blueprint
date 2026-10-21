@@ -63,6 +63,19 @@ normal Link and IconButton keyboard behavior. Opening DropdownMenu moves focus
 according to its own roving-focus behavior; closing returns focus to its
 IconButton trigger.
 
+## Terminal
+
+In a terminal, Header is the top row: `tui-kiso` `Header`. It leads with
+the product name and version in bold `primary-foreground` on `primary`, so
+a screenshot says which tool and release produced it. The current view's
+title or breadcrumb follows on `background`. Earlier breadcrumb parts are
+`muted-foreground` with a `subtle-foreground` slash, and the current part
+is bold `foreground`.
+
+Header has no keys of its own. When the row runs out of width, the end of
+the breadcrumb is cut; the brand stays. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Persistent product identity, top-level destinations, and global actions.
