@@ -1,0 +1,19 @@
+[package]
+name = "tui-kiso"
+version = "0.1.0"
+edition = "2021"
+description = "Kiso components for ratatui terminal interfaces"
+license = "MIT"
+homepage = "https://kiso.momoi-labs.dev"
+repository = "https://github.com/momoi-labs/blueprint"
+rust-version = "1.88"
+keywords = ["kiso", "ratatui", "tui", "terminal", "design-system"]
+categories = ["command-line-interface"]
+publish = false
+
+[dependencies]
+kiso-tokens = { path = "../kiso-tokens", version = "0.2.0" }
+ratatui = { version = "0.30.2", default-features = false }
+
+[dev-dependencies]
+ratatui = { version = "0.30.2", features = ["crossterm"] }

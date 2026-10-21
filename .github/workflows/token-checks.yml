@@ -41,13 +41,21 @@ jobs:
         run: node scripts/check-component-token-refs.mjs
 
   rust:
-    name: Test Rust tokens
+    name: Test Rust crates
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test kiso-tokens
         run: cargo test --manifest-path crates/kiso-tokens/Cargo.toml
+      - name: Lint tui-kiso
+        run: cargo clippy --manifest-path crates/tui-kiso/Cargo.toml --all-targets -- -D warnings
+      - name: Test tui-kiso
+        run: cargo test --manifest-path crates/tui-kiso/Cargo.toml
+      - name: Draw the tui-kiso gallery without a terminal
+        run: |
+          cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --snapshot "$RUNNER_TEMP/tui-kiso"
+          test -s "$RUNNER_TEMP/tui-kiso/index.html"
 
   contrast:
     name: Check AA contrast

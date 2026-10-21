@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 // Fails when a change to published package sources lands without a changeset.
 // Usage: node scripts/check-changeset.mjs [base-ref]  (default: origin/main)
@@ -9,7 +10,8 @@ const files = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { e
 const published = files.filter(file => (
   file.startsWith('packages/')
   || file.startsWith('tokens/')
-  || file.startsWith('crates/')
+  // A crate is published when Changesets versions it through a package.json.
+  || (file.startsWith('crates/') && existsSync(`crates/${file.split('/')[1]}/package.json`))
   || (file.startsWith('kiso/') && !file.startsWith('kiso/blocks/'))
 ));
 const changesets = files.filter(file => /^\.changeset\/(?!README\.md$).+\.md$/.test(file));
