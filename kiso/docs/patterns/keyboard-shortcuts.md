@@ -151,6 +151,18 @@ are decorative; the accessible name of the item does not depend on them.
 - Do not make a shortcut the only way to perform an action. Every shortcut-
   accessible action has a visible control (button, menu item, link) as well.
 
+## Terminal
+
+In a terminal, the footer shows key hints: `tui-kiso` `KeyHints`. Each key
+is in `link` and its label in `muted-foreground`. The current view's label
+is bold `foreground`. Hints are in priority order, and `?` help and the `q`
+or `Esc` close hint come last. When the width runs out, the hints before
+them drop from the right, so those two always stay.
+
+The legend is a [Modal](../components/modal-dialog.md) opened with `?` or
+`F1`. See [terminal interfaces](../terminal-interfaces.md#keys) for the
+full key rules.
+
 ## Related patterns
 
 - [Command palette](command-palette.md) — `⌘K` / `Ctrl+K` is the flagship

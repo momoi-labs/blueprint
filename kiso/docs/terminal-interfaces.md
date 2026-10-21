@@ -6,8 +6,12 @@ cannot load `ui.css` or the token CSS, so this file says how the web
 contracts carry over. A product-specific exception must be recorded in the
 product's `docs/kiso.md`.
 
-The evidence is pg-probe: its `top` live view and its capture progress
-screen.
+The evidence is pg-probe (its `top` live view and its capture progress
+screen) and the `tui-kiso` gallery, which draws every terminal component.
+
+Rust products draw with the `tui-kiso` crate, built on ratatui and
+`kiso-tokens`. Each component's doc has a Terminal section with its
+terminal form.
 
 ## What carries over unchanged
 
@@ -42,12 +46,19 @@ screen.
 - Send 24-bit color only when `COLORTERM` is `truecolor` or `24bit`. Other
   terminals, such as tmux on many servers, read RGB codes as other
   attributes. Map each color to the nearest of the 256 xterm colors instead.
-- After the 256-color mapping, check `selected`. If it maps to a grey or to
-  the same index as `background`, keep only the cube colors within 25 degrees
-  of the accent's hue, then pick the nearest of those. Do not pick by
-  distance alone: for the gold accent, the nearest color is a dark red.
+- In 256 colors, `selected` keeps the accent's hue. Keep only the cube
+  colors within 25 degrees of its hue that differ from `background`, then
+  pick the nearest of those. Do not pick by distance alone: for the gold
+  accent, the nearest color is a grey, and the nearest cube color a dark
+  red.
 - Never fall back to the 16 named ANSI colors. The user's terminal theme
   redefines them.
+
+In `tui-kiso`, `Theme::new(kiso_tokens::GOLD_DARK)` applies these rules: it
+reads `COLORTERM`, maps colors and picks `selected`. `Theme::truecolor` and
+`Theme::xterm_256` fix the color depth, for tests and snapshots. The theme
+gives a ratatui style per role, such as `base`, `muted`, `bar`, `selected`
+and `danger`.
 
 ## Surfaces
 
@@ -56,7 +67,7 @@ screen.
 | Screen | `foreground` on `background` |
 | Brand in the header | Product name and version, bold `primary-foreground` on `primary` |
 | Table header row and section bar | Bold `foreground` on `muted` |
-| Selected row | `selected-foreground` on `selected` |
+| Selected row | `selected` background. Text keeps its role colors |
 | Inline panel, such as a preview under a list | `surface` fill, `border` frame |
 | Popup over a page | `elevated-surface` fill, `border` frame |
 | Panel and popup title | `foreground`, never the frame color |
@@ -66,6 +77,17 @@ screen.
 
 - The header leads with the product name and version, so a screenshot says
   which tool and release produced it.
+- A selected row changes only its background. Status marks and words keep
+  their colors, so a failed row stays red when selected.
+- Some roles miss their minimum on `selected`. In most dark accents,
+  `muted-foreground`, `link` and `danger-on-dark` fall below 4.5:1, and in
+  teal, cobalt and nocturne `subtle-foreground` falls below 3:1.
+  `foreground` passes in every accent. Gold and lime are the only accents
+  where every role passes.
+- On a selected row, a cell that misses its minimum takes `foreground`. The
+  minimum is 4.5:1 for text and 3:1 for a mark, such as ● or a sparkline. A
+  status word that loses its color turns bold. Check the ratio after the
+  256-color mapping, against the colors the terminal draws.
 - A full-screen view is a page. Draw it on `background`, with the same
   header, section bars and footer as the main view. A popup is for content
   that sits over a page and closes back to it.
@@ -83,11 +105,20 @@ screen.
 
 ## Keys
 
-- `?` opens a help screen that lists every key, grouped by where it works.
-  Any key closes it.
+- `?` opens help: a popup over the current layer that lists every key,
+  grouped by where it works. Any key closes it. `F1` opens it too, so help
+  stays reachable while a text input has focus.
 - `q` and `Esc` close the top layer, one layer at a time. `q` quits only
-  from the main view. `Esc` never quits. `Ctrl+C` quits from anywhere.
-- The footer shows the main keys of the current layer, and always `?`.
+  from the main view. `Esc` never quits.
+- `Ctrl+C` quits from anywhere, help included. While a job runs, it first
+  asks in a popup that says what stops and what stays done. A second
+  `Ctrl+C` quits without asking.
+- `:` opens the command palette. `Ctrl+K` is an alias, except in a text
+  input, where shells use it to delete to the end of the line.
+- The footer shows the keys of the current layer in priority order. `?`
+  (`F1` while typing) and `q` or `Esc` come last and always stay. When the
+  width runs out, drop the lowest-priority hints, from the right. A popup
+  puts its own keys in its bottom frame title.
 - Every action has a key on the help screen. The help screen is the
   terminal's visible control, so no action is hidden knowledge.
 
@@ -124,3 +155,10 @@ screen.
    `| cat`. It appends lines and does not redraw.
 5. Walk every layer with `q` and `Esc`. Each closes one layer, and only `q`
    on the main view quits.
+6. Compare with the gallery:
+   `cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery`.
+   Add `--accent <name>` to try another accent, or `--snapshot <dir>` to
+   write every page at 80 by 24 as HTML without a terminal.
+
+Some SSH sessions drop `COLORTERM`, so a truecolor terminal can get the
+256-color fallback over SSH. That is expected and safe.

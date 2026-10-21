@@ -69,6 +69,19 @@ focus to the first meaningful element, not always the close icon. `Tab` and
 safely be interrupted. Closing returns focus to the trigger or the next logical
 control. Clicking the overlay may close only when losing work is impossible.
 
+## Terminal
+
+In a terminal, Modal is `tui-kiso` `Modal`: a popup centered over the page.
+It clears the cells beneath it and has an `elevated-surface` fill, a
+`border` frame and a bold `foreground` title. Its own key hints sit in the
+bottom frame, key in `link` and label in `muted-foreground`. It fits in 80
+by 24.
+
+Use it for help and confirmations. Help opens with `?` or `F1`, and any key
+closes it. A confirmation shows its keys, such as `Enter` to confirm and
+`Esc` to cancel. `q` and `Esc` close one layer at a time, and `Ctrl+C`
+quits from anywhere. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A short focused task, confirmation, or decision that blocks page work.

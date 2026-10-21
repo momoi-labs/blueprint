@@ -51,6 +51,23 @@ Tones map to Badge variants and reuse their tokens. The pulse is Dot's
 <StatusBadge tone="neutral">Stopped</StatusBadge>
 ```
 
+## Terminal
+
+In a terminal, StatusBadge is `tui-kiso` `StatusBadge`: a mark and the
+label, both in the tone's color. It converts into a line or a table cell.
+
+| Tone | Mark | Color |
+| --- | --- | --- |
+| `success` | ● | `success-on-dark` |
+| `success`, pulse | ◐ | `success-on-dark` |
+| `danger` | ● | `danger-on-dark` |
+| `neutral` | ○ | `muted-foreground` |
+
+The terminal does not animate the pulse; ◐ marks work that is going. The
+label always names the state, so color never carries it alone. On a
+selected table row, a label that misses contrast takes bold `foreground`.
+StatusBadge has no keys.
+
 ## When to use
 
 - A record's state in a table cell or in a detail screen's Lifecycle row.

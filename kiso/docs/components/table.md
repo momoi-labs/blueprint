@@ -282,6 +282,24 @@ headings and `.num` cells too, so a wide table fits the sheet. A
 | Arrow keys | Within DropdownMenu / composite widgets per those specs. Optional grid navigation inside the table body is allowed when implemented as a composite; if so, document `aria-activedescendant` or roving tabindex and keep one tab stop into the grid. |
 | `Escape` | Closes an open row DropdownMenu; does not clear selection unless the product defines that. |
 
+## Terminal
+
+In a terminal, Table is `tui-kiso` `Table`: one line per row on
+`background`, with no frame. The header row is bold `foreground` on `muted`
+and spans the full width. Numeric columns align right, header included.
+Cells keep their role colors, such as `muted-foreground` for secondary text
+and a [StatusBadge](status-badge.md) for state.
+
+| State | Terminal form |
+| --- | --- |
+| default | No row is selected. |
+| selected | Only the background changes, to `selected`. A cell below 4.5:1 for text or 3:1 for a mark on `selected` takes `foreground`, and a status word that loses its color turns bold. |
+
+`↑` `↓` and `j` `k` move the selected row. The product owns other keys,
+such as `Enter` to open a row. See
+[terminal interfaces](../terminal-interfaces.md) for the 256-color rule
+for `selected`.
+
 ## When to use
 
 - Many similar records with comparable fields (user story #21).
