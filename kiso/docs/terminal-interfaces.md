@@ -36,14 +36,16 @@ screen.
 - Use one accent, the one the product's web UI uses, and record it in
   `docs/kiso.md`. In Rust that is one constant, such as
   `kiso_tokens::GOLD_DARK`.
-- Status text uses `warning-on-dark`, `danger-on-dark` and `info-on-dark`.
+- Status text uses `success-on-dark`, `warning-on-dark`, `danger-on-dark`
+  and `info-on-dark`.
   Categorical series use `chart-1` to `chart-5` in order.
 - Send 24-bit color only when `COLORTERM` is `truecolor` or `24bit`. Other
   terminals, such as tmux on many servers, read RGB codes as other
   attributes. Map each color to the nearest of the 256 xterm colors instead.
-- After the 256-color mapping, check that `selected` still differs from
-  `background`. If it does not, pick the nearest index in the accent's hue
-  that does.
+- After the 256-color mapping, check `selected`. If it maps to a grey or to
+  the same index as `background`, keep only the cube colors within 25 degrees
+  of the accent's hue, then pick the nearest of those. Do not pick by
+  distance alone: for the gold accent, the nearest color is a dark red.
 - Never fall back to the 16 named ANSI colors. The user's terminal theme
   redefines them.
 

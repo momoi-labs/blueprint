@@ -181,6 +181,7 @@
   --color-info-surface: light-dark(rgba(21, 85, 158, 0.1), rgba(117, 196, 250, 0.12));
   --color-info-border: light-dark(rgba(21, 85, 158, 0.3), rgba(117, 196, 250, 0.35));
   --color-danger-foreground: light-dark(var(--color-white), var(--color-dark-950));
+  --color-success-on-dark: #5bd295;
   --color-warning-on-dark: #efc05b;
   --color-danger-on-dark: #f5807f;
   --color-info-on-dark: #75c4fa;
