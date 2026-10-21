@@ -2,15 +2,13 @@ import * as React from "react"
 
 import { Badge } from "./badge.js"
 import { Dot } from "./dot.js"
+import type { StatusBadgeSpec, StatusTone } from "./generated/status-badge.js"
 
-/* Green is alive, red is failed, neutral is what is not happening. No fourth
-   colour: a status reads like a light on a device. */
-export type StatusTone = "success" | "danger" | "neutral"
+export type { StatusTone }
 
-export type StatusBadgeProps = Omit<React.ComponentProps<typeof Badge>, "variant" | "asChild"> & {
-  tone: StatusTone
-  pulse?: boolean
-}
+/* Props come from the spec in crates/kiso-core; the label is `children`. */
+export type StatusBadgeProps = Omit<React.ComponentProps<typeof Badge>, "variant" | "asChild"> &
+  Omit<StatusBadgeSpec, "label">
 
 /* The dot pulses while work is going, a run or a build; a thing that is
    merely up holds still. */

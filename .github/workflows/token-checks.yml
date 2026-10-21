@@ -48,6 +48,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test kiso-tokens
         run: cargo test --manifest-path crates/kiso-tokens/Cargo.toml
+      - name: Lint kiso-core
+        run: cargo clippy --manifest-path crates/kiso-core/Cargo.toml --all-targets -- -D warnings
+      - name: Test kiso-core and check its generated files
+        run: |
+          cargo test --manifest-path crates/kiso-core/Cargo.toml
+          git diff --exit-code -- crates/kiso-core/fixtures packages/kiso-react/src/generated
       - name: Lint tui-kiso
         run: cargo clippy --manifest-path crates/tui-kiso/Cargo.toml --all-targets -- -D warnings
       - name: Test tui-kiso
