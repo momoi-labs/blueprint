@@ -1,0 +1,17 @@
+[package]
+name = "kiso-core"
+version = "0.1.0"
+edition = "2021"
+description = "Kiso component specs: one contract for the React, HTML, text and ratatui outputs"
+license = "MIT"
+homepage = "https://kiso.momoi-labs.dev"
+repository = "https://github.com/momoi-labs/blueprint"
+rust-version = "1.88"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+ts-rs = { version = "12" }
+
+[dev-dependencies]
+serde_json = "1"

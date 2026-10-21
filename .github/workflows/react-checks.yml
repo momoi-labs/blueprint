@@ -5,6 +5,7 @@ on:
     paths:
       - 'package*.json'
       - 'packages/**'
+      - 'crates/kiso-core/**'
       - 'apps/kiso-gallery/**'
       - 'kiso/**'
       - 'tokens/**'
@@ -18,6 +19,7 @@ on:
     paths:
       - 'package*.json'
       - 'packages/**'
+      - 'crates/kiso-core/**'
       - 'apps/kiso-gallery/**'
       - 'kiso/**'
       - 'tokens/**'

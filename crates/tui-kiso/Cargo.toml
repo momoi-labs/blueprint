@@ -12,6 +12,7 @@ categories = ["command-line-interface"]
 publish = false
 
 [dependencies]
+kiso-core = { path = "../kiso-core", version = "0.1.0" }
 kiso-tokens = { path = "../kiso-tokens", version = "0.2.0" }
 ratatui = { version = "0.30.2", default-features = false }
 
