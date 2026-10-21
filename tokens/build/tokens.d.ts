@@ -265,6 +265,8 @@ export const semanticInfoSurface: string;
 export const semanticInfoBorder: string;
 /** Text and icons on a danger fill. Inverts with the fill, like primary-foreground: white on the light-theme red, near-black on the dark-theme salmon. */
 export const semanticDangerForeground: string;
+/** Success on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
+export const semanticSuccessOnDark: string;
 /** Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticWarningOnDark: string;
 /** Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */

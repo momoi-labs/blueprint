@@ -140,9 +140,10 @@ alpha. No status introduces a second hue.
 | `success-surface`, `warning-surface`, `danger-surface`, `info-surface` | status hue at 12% | status hue at 10% |
 | `success-border`, `warning-border`, `danger-border`, `info-border` | status hue at 35% | status hue at 30% |
 
-`warning-on-dark`, `danger-on-dark`, and `info-on-dark` are theme-invariant on
-purpose. They are for surfaces that stay dark in both themes — log views and
-terminals — which cannot follow `color-scheme`, so their text cannot either.
+`success-on-dark`, `warning-on-dark`, `danger-on-dark`, and `info-on-dark` are
+theme-invariant on purpose. They are for surfaces that stay dark in both
+themes — log views and terminals — which cannot follow `color-scheme`, so their
+text cannot either.
 
 Use `foreground` for default reading, `muted-foreground` when content is
 secondary but still needs normal-text contrast, and `subtle-foreground` only
