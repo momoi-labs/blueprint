@@ -1,5 +1,20 @@
 # @momoi-labs/kiso
 
+## 0.25.0
+
+### Minor Changes
+
+- 7448630: Synchronized charts no longer stall on pointer moves. Only the inspected
+  chart shows the floating readout and crosshair; the other charts with the
+  same `syncId` draw a dashed line and dots at the same timestamp. A click or
+  tap without a drag pins the timestamp across the group with its values, and
+  a second click or Escape clears it. Enter or Space on a focused plot pins the
+  sample inspected with the keyboard.
+- 4bc8010: Add `success-on-dark`, so a terminal or log view can show success in the same
+  dark-surface family as warning, danger and info. The terminal contract now
+  picks the 256-color selected row by the accent's hue first, because the
+  nearest color by distance turns gold into dark red.
+
 ## 0.24.0
 
 ### Minor Changes

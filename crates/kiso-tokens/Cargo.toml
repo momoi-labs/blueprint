@@ -1,6 +1,6 @@
 [package]
 name = "kiso-tokens"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "Kiso design tokens as sRGB themes for terminal and native UIs"
 license = "MIT"
