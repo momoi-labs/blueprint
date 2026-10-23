@@ -76,6 +76,21 @@ not strand focus in hidden content; move it to the collapse control. Keep DOM
 and visual order aligned. `Tab` moves among controls; `Enter`/`Space` toggles a
 focused disclosure; Links retain native behavior.
 
+## Terminal
+
+In a terminal, the sidebar is `tui-kiso` `Sidebar`, without a frame: a few
+lines on top, such as the brand and what the screen is about, then groups
+of items, each under a section rule. An item can have its key on the
+right in `subtle-foreground`, or a mark before it, such as a status `●`.
+Items are `muted-foreground`; the current one is bold `link`. While the
+sidebar has focus, the current item is filled with `primary` instead.
+
+It is as wide as its longest line, from 20 to 32 columns, and sits four
+columns from the page, on the left by default or on the right as a
+product option. It hides when the page would get fewer than 60 columns.
+`Tab` moves focus between the sidebar and the page, and `↑` `↓` choose. See
+[terminal interfaces](../terminal-interfaces.md#layout).
+
 ## When to use
 
 - Products with several stable top-level destinations or grouped sections.

@@ -59,6 +59,15 @@ appearing Toast. `F8` may move focus to the Toast viewport (Radix convention);
 the timer on hover, focus, and page blur. Never make Toast the only copy of an
 essential error, completed record, or required recovery step.
 
+## Terminal
+
+In a terminal, a toast is `tui-kiso` `Toast`: one row across the footer, in
+place of the key hints, for a few seconds after an action ends. It has a
+bold label, "DONE!" by default, and the message, on the `success-on-dark`
+fill with `background` text. Any key clears it. A failure is not a toast:
+say it on the page or in a [Modal](modal-dialog.md), where it stays. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## React interface
 
 Wrap the application in `Toasts`, then call `useToast` from any descendant.

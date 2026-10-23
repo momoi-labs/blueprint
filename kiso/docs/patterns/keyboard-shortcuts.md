@@ -154,8 +154,8 @@ are decorative; the accessible name of the item does not depend on them.
 ## Terminal
 
 In a terminal, the footer shows key hints: `tui-kiso` `KeyHints`. Each key
-is in `link` and its label in `muted-foreground`. The current view's label
-is bold `foreground`. Hints are in priority order, and `?` help and the `q`
+is in `foreground` and its label in `muted-foreground`, with a `•` in
+`border` between hints. The current view's label is bold `foreground`. Hints are in priority order, and `?` help and the `q`
 or `Esc` close hint come last. When the width runs out, the hints before
 them drop from the right, so those two always stay.
 

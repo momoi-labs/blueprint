@@ -72,6 +72,24 @@ Rail and marks use `--color-border-strong`, `--color-success`,
 column is `--spacing-xl` wide, room for the running mark's glow. Focus uses `--color-focus`. No Radix
 primitive is involved.
 
+## Terminal
+
+In a terminal, each step is a line from `tui-kiso` `step`, as Crush draws
+its tool calls: a tree branch in `subtle-foreground`, the state's mark,
+the step's name, then the detail in `muted-foreground`. Each state has its
+own mark, so color never carries it alone.
+
+| State | Mark and name |
+| --- | --- |
+| pending | `·` in `subtle-foreground`, the name in `muted-foreground` |
+| running | a braille spinner and the name in bold `success-on-dark` |
+| done | `✓` in `success-on-dark`, the name in `info-on-dark` |
+| skipped | `○` in `success-on-dark`, the name muted, the detail "Not needed" |
+| failed | `×` and the name in bold `danger-on-dark` |
+
+A run shows its steps as they go, and the screen says when it ends. See
+[terminal interfaces](../terminal-interfaces.md#state-and-output).
+
 ## When to use
 
 - A lifecycle action on a machine: create, update, or a bootstrap with a

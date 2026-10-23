@@ -69,6 +69,21 @@ Prefer automatic activation when panel changes are immediate; use
 `Enter`/`Space` for manual activation when loading is costly. Orientation
 determines the arrow-key axis.
 
+## Terminal
+
+In a terminal, tabs are `tui-kiso` `Tabs`: the views of a screen on one
+row. The current view is the [page title](page-header.md): its label in
+bold `foreground` in the middle of the title line, taking the free width.
+The others stay short: their number, which is their key, in
+`subtle-foreground`, then the label in `muted-foreground`. A label can end
+with a count, such as "Waiting 3". When the views do not fit, the ones
+farthest from the current one drop.
+
+On a detail page, the tabs replace the title: the current one reads as
+"laya · Summary", and `Tabs::numbered(false)` hides the numbers, because
+the number keys already open pages. `[` and `]` move between them. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Two or more peer panels within one page or object.

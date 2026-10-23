@@ -33,10 +33,18 @@ terminal form.
   crate. Never copy hex values by hand. For another language, propose a
   generator in the token build.
 - Use semantic roles only, never palette steps such as `dark.700`.
-- Use the dark theme in both OS themes, and paint `background` on every
-  cell. A terminal's own background, often light, breaks the dark values'
-  contrast. This is why `*-on-dark` roles exist (see
-  [tokens](tokens.md)).
+- Use the dark theme by default, in both OS themes. A light theme is fine
+  when the person picks it; state text then takes the light theme's state
+  colors in place of the `*-on-dark` roles.
+- Set the terminal's own background to `background` with OSC 11 and its
+  text color to `foreground` with OSC 10 when the view starts, and restore
+  both with OSC 111 and OSC 110 when it quits. Leave the cells unpainted,
+  so the terminal's transparency shows, and text without a color of its
+  own reads as `foreground`. A terminal's own
+  background, often light, breaks the dark values' contrast. This is why
+  `*-on-dark` roles exist (see [tokens](tokens.md)). A product that must
+  run where OSC 11 does not work paints `background` on every cell
+  instead.
 - Use one accent, the one the product's web UI uses, and record it in
   `docs/kiso.md`. In Rust that is one constant, such as
   `kiso_tokens::GOLD_DARK`.
@@ -57,28 +65,42 @@ terminal form.
 In `tui-kiso`, `Theme::new(kiso_tokens::GOLD_DARK)` applies these rules: it
 reads `COLORTERM`, maps colors and picks `selected`. `Theme::truecolor` and
 `Theme::xterm_256` fix the color depth, for tests and snapshots. The theme
-gives a ratatui style per role, such as `base`, `muted`, `bar`, `selected`
-and `danger`.
+gives a ratatui style per role, such as `base`, `muted`, `selected` and
+`danger`. `Accent::tokens` gives the tokens of a dark or light theme, and
+`set_background` and `set_foreground` send OSC 11 and OSC 10.
 
 ## Surfaces
 
+A page has no frames around its parts. A section is a title and a rule.
+Only the selection, code, buttons, notices and dialogs get a fill or a
+frame.
+
 | Element | Style |
 | --- | --- |
-| Screen | `foreground` on `background` |
-| Brand in the header | Product name and version, bold `primary-foreground` on `primary` |
-| Table header row and section bar | Bold `foreground` on `muted` |
-| Selected row | `selected` background. Text keeps its role colors |
-| Inline panel, such as a preview under a list | `surface` fill, `border` frame |
-| Popup over a page | `elevated-surface` fill, `border` frame |
-| Panel and popup title | `foreground`, never the frame color |
+| Screen | Unpainted: the terminal's background, set to `background` |
+| Brand | Product name and version, bold `primary-foreground` on `primary`, in the header or at the top of the sidebar |
+| Page title | The title in bold `foreground` in the middle of the title line across the page: a heavy `━` in `primary` |
+| Section | The title in `muted-foreground`, then the section rule to the edge: a thin `─` in `border`. A count can end the rule |
+| Column titles | `subtle-foreground`, no fill |
+| Selected row | A `primary` `▌` in the first column and the `selected` background. Text keeps its role colors |
+| Focused row of a plain list, such as the command palette | `primary-foreground` on `primary` |
+| Code block | `card` fill, with half a row of fill above and below |
+| Button | Two columns of padding and half a row of fill above and below. Focused: bold `primary-foreground` on `primary`, or on `danger` for a destructive action. Not focused: `foreground` on `muted` |
+| Dialog | A rounded `primary` frame on `background`, the title in bold `primary` in the top border and the dialog's keys in the bottom one. No shadow and no dimmed page |
+| Toast | A bold label and the message on `success-on-dark`, across the footer row |
 | Secondary text | `muted-foreground` |
-| Tree branches, rules and other non-text marks | `subtle-foreground` |
-| Key hint | Key in `link`, label in `muted-foreground`. The current view's label is bold `foreground` |
+| Tree branches, rules and other non-text marks | `subtle-foreground` or `border` |
+| Key hint | Key in `foreground`, label in `muted-foreground`, a `•` in `border` between hints. The current view's label is bold `foreground` |
 
-- The header leads with the product name and version, so a screenshot says
+- The brand leads with the product name and version, so a screenshot says
   which tool and release produced it.
-- A selected row changes only its background. Status marks and words keep
-  their colors, so a failed row stays red when selected.
+- The title line and the section rule are product options. `tui-kiso`
+  `Theme::with_look` picks the pattern, such as `━`, `─`, `░` or `╱`, and
+  the ink: `primary`, the `primary` to `chart-1` gradient, or `border`. The
+  table above gives the defaults.
+- A selected row changes only its background and gets the `▌`. Status
+  marks and words keep their colors, so a failed row stays red when
+  selected.
 - Some roles miss their minimum on `selected`. In most dark accents,
   `muted-foreground`, `link` and `danger-on-dark` fall below 4.5:1, and in
   teal, cobalt and nocturne `subtle-foreground` falls below 3:1.
@@ -86,16 +108,49 @@ and `danger`.
   where every role passes.
 - On a selected row, a cell that misses its minimum takes `foreground`. The
   minimum is 4.5:1 for text and 3:1 for a mark, such as ● or a sparkline. A
-  status word that loses its color turns bold. Check the ratio after the
+  status word in `success-on-dark`, `warning-on-dark`, `danger-on-dark` or
+  `info-on-dark` that loses its color turns bold. A neutral status is
+  `muted-foreground` text: it takes `foreground` like other secondary text,
+  and its `○` and word still name it. Check the ratio after the
   256-color mapping, against the colors the terminal draws.
-- A full-screen view is a page. Draw it on `background`, with the same
-  header, section bars and footer as the main view. A popup is for content
-  that sits over a page and closes back to it.
+- A full-screen view is a page. Draw it with the same header or sidebar,
+  section rules and footer as the main view. A dialog is for content that
+  sits over a page and closes back to it: help, a question, a picker, the
+  command palette or a short form.
 
 ## Layout
 
 - Design for an 80 by 24 terminal at minimum. The help screen and every
-  popup fit in 24 lines. Use a second column when a list does not fit.
+  dialog fit in 24 lines. Use a second column when a list does not fit.
+- Every row counts: the page starts on the first row and the key hints
+  take the last one. Keep two columns free at each side.
+- Put the navigation in a sidebar on the left, or on the right as a
+  product option. It is as wide as its longest line, from 20 to 32
+  columns, and sits four columns from the page. Hide it when the page
+  would get fewer than 60 columns.
+- A page longer than the screen scrolls, and the selection stays on
+  screen. The scrollbar has no arrows: a `│` track in `border` and a thumb
+  in `primary`, in the second column right of the page. The mouse wheel
+  scrolls too.
+- In a form, the label sits in a column on the left and the value on the
+  same row, as in a list. Focus is the selected row, and the field's hint
+  or error goes on the row under it. A short form, up to four fields, is a
+  dialog. A form that creates something is a page. Editing one section of
+  a detail page happens in place.
+- Filters are one select per facet, each on "All" until the person picks
+  something. While any facet filters the list, the row under the page's
+  description says which, with the keys to change them, and section counts
+  read "3 of 5". A row shows when it passes the search and every facet.
+- A record's details open as a page in place of the list, not as a side
+  panel, which would leave the list too narrow. Going back shows the list
+  as it was: the same search, filters, selected row and scroll.
+- A detail page with several views has tabs on its title line. The current
+  one reads as "laya · Summary" in the middle of the line; the others stay
+  short.
+- The actions of a row open in a small menu right under it, or above it
+  near the bottom of the screen: the terminal form of a `⋯` menu. A
+  destructive action is in `danger-on-dark`, and selected it takes the
+  `danger` fill.
 - Give spare width to the widest value, such as query text. A compact mode
   may merge columns (`user@database`) or shorten values (`act`, `txn`).
 - Spell out every abbreviation on the help screen, not on the main screen.
@@ -105,20 +160,44 @@ and `danger`.
 
 ## Keys
 
-- `?` opens help: a popup over the current layer that lists every key,
+- `?` opens help: a dialog over the current layer that lists every key,
   grouped by where it works. Any key closes it. `F1` opens it too, so help
   stays reachable while a text input has focus.
 - `q` and `Esc` close the top layer, one layer at a time. `q` quits only
-  from the main view. `Esc` never quits.
+  from the main view. `Esc` never quits. In a text field `q` is text, so
+  only `Esc` closes. A record's details are a layer: `q` and `Esc` go back
+  to the list.
+- Keys go to the top layer only, in this order: a dialog or menu, a form,
+  the search while typing, a record's details, then the page. On a list
+  page, `Esc` clears the search first, then the filters, then moves focus
+  to the sidebar.
 - `Ctrl+C` quits from anywhere, help included. While a job runs, it first
-  asks in a popup that says what stops and what stays done. A second
+  asks in a dialog that says what stops and what stays done. A second
   `Ctrl+C` quits without asking.
-- `:` opens the command palette. `Ctrl+K` is an alias, except in a text
-  input, where shells use it to delete to the end of the line.
+- `Ctrl+P` opens the command palette, as in Crush. `:` is an alias,
+  except in a text field. Do not use `Ctrl+K`: shells use it to delete to
+  the end of the line.
+- `/` searches the lists on the page as the person types. The matches are
+  marked, a section's count becomes "3 of 5", and a section with no match
+  hides. `Enter` keeps the search and `Esc` clears it.
+- `f` opens the filters, on a list page that has them. `↑` `↓` choose the
+  facet and `←` `→` its value, and the page follows each change. `Enter`
+  keeps the filters; `Esc` puts back the filters and the selected row from
+  before. The same key may mean something else on another layer, such as
+  the functions of a query in pg-probe.
+- `a` opens the actions of the selected row. `↑` `↓` and `Enter`, or an
+  action's own key, run one.
+- `[` and `]` move between the tabs of a detail page, where the number
+  keys already open pages.
+- In a form, `Tab` and `Shift+Tab` move between fields, and `↑` `↓` too,
+  except in a list of options. Typing edits the focused field, so `j`, `k`
+  and `q` are text there. `Enter` moves to the next field and submits from
+  the last one. `Ctrl+S` submits from any field. `Esc` cancels, and asks
+  first when something changed.
 - The footer shows the keys of the current layer in priority order. `?`
   (`F1` while typing) and `q` or `Esc` come last and always stay. When the
-  width runs out, drop the lowest-priority hints, from the right. A popup
-  puts its own keys in its bottom frame title.
+  width runs out, drop the lowest-priority hints, from the right. A dialog
+  puts its own keys in its bottom border.
 - Every action has a key on the help screen. The help screen is the
   terminal's visible control, so no action is hidden knowledge.
 
@@ -132,6 +211,11 @@ and `danger`.
   stop the view.
 - When output is not a terminal, do not redraw. Append one line when
   something changes, so logs stay short.
+- Work that takes a few seconds shows on the thing it changes: its status
+  turns to `◐` and a word, such as "stopping", the spinner runs next to it,
+  and OSC 9;4 shows the terminal's progress bar. A run with steps lists
+  them as they go, each pending, running, done, skipped or failed. A toast
+  says when it ends; a failure stays on the page.
 - Strip control characters from any text the product did not write, such as
   query text, object names and log lines, before drawing it. A stray escape
   sequence can rewrite the screen.
@@ -146,19 +230,22 @@ and `danger`.
 
 ## Verify
 
-1. Run the view in a truecolor terminal with a light theme. Every cell has
-   the Kiso background.
+1. Run the view in a truecolor terminal with a light theme. The terminal's
+   background and text color turn to Kiso's when the view starts and come
+   back when it quits.
 2. Run it with 256 colors, for example `COLORTERM= TERM=screen-256color`
    inside tmux. The selected row stays visible.
-3. Resize to 80 by 24. The main view, the help screen and every popup fit.
+3. Resize to 80 by 24. The main view, the help screen and every dialog
+   fit, and the sidebar hides.
 4. If the view can run off a terminal, pipe its output, for example
    `| cat`. It appends lines and does not redraw.
 5. Walk every layer with `q` and `Esc`. Each closes one layer, and only `q`
    on the main view quits.
 6. Compare with the gallery:
    `cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery`.
-   Add `--accent <name>` to try another accent, or `--snapshot <dir>` to
-   write every page at 80 by 24 as HTML without a terminal.
+   Add `--accent <name>` or `--light` to try another theme, or
+   `--snapshot <dir>` to write every page at 100 by 30, and one at 80 by
+   24, as HTML without a terminal.
 
 Some SSH sessions drop `COLORTERM`, so a truecolor terminal can get the
 256-color fallback over SSH. That is expected and safe.

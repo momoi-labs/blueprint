@@ -85,6 +85,33 @@ DOM order is content followed by actions. Sticky placement must not obscure
 focused controls or their errors; verify keyboard use and zoom in the actual
 scroll container. Do not announce the whole form as a live region.
 
+## Terminal
+
+In a terminal, a form is `tui-kiso` `Form`, made of `Field`s: text, secret,
+checkbox and select. Each field is a row, as in a list: the label in a
+column on the left in `muted-foreground`, the value on the same row. The
+focused field is the selected row, with a `primary` `▌`, its label in bold
+`foreground` and a block cursor in `primary`. Its hint goes on the row
+under it in `subtle-foreground`. An error replaces the hint, in
+`danger-on-dark` with a `×`, and the label turns `danger-on-dark` too.
+There is no box around a value.
+
+- A text field shows its placeholder in `subtle-foreground` while empty. A
+  secret shows dots until `Ctrl+R`.
+- A checkbox is `[ ]` or `[✓]`, with its label after the box. `Space`
+  toggles it.
+- A select is `‹ value ›` with "2 of 5" after it. `←` `→` change it, and
+  its hint describes the option.
+- A field that applies only after a choice is hidden until then, such as
+  the name to type once a removal deletes data.
+
+A short form, up to four fields, sits in a [Modal](modal-dialog.md). A form
+that creates something takes the page. Editing one section of a detail
+page happens in place. `Tab`, `Shift+Tab` and `↑` `↓` move, typing edits,
+`Enter` moves on and submits from the last field, `Ctrl+S` submits from
+anywhere, and `Esc` cancels after asking when something changed. See
+[terminal interfaces](../terminal-interfaces.md#keys).
+
 ## Tokens
 
 `form-body` uses `--spacing-lg` padding and `--spacing-xl` gaps. Form delegates

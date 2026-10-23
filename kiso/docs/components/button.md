@@ -137,6 +137,24 @@ must still meet contrast.
 | `Space` | Activate. |
 | `Tab` / `Shift+Tab` | Move focus to the next / previous control. |
 
+## Terminal
+
+In a terminal, buttons are `tui-kiso` `Buttons`: solid chips in a row,
+right-aligned and one column apart, at the bottom of a dialog or a form.
+Each has two columns of padding and half a row of fill above and below, so
+it looks two rows tall. The first letter is underlined: it is the button's
+key while a button has focus.
+
+| State | Terminal form |
+| --- | --- |
+| default | `foreground` on `muted`. |
+| focused | Bold `primary-foreground` on `primary`. |
+| focused, destructive | Bold `danger-foreground` on `danger`. |
+| disabled | `subtle-foreground` on `card`, no underline, such as Remove before the name is typed. |
+
+`←` `→` move between buttons and `Enter` presses the focused one. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - The person is causing an action: save, run, create, delete, confirm, retry.
