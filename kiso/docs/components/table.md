@@ -243,6 +243,15 @@ Alert.
 - Do not use row click alone for selection when the row also navigates; keep
   Checkbox as the selection affordance and Link/Button for navigation/actions.
 
+## Print
+
+On paper a table does not scroll. The frame, the surface and the scroller
+drop their height limits, including a height the product sets, so every row
+prints and the toolbar and footer sit before and after them. Cells wrap,
+headings and `.num` cells too, so a wide table fits the sheet. A
+`.col-tight` column takes its longest word. The scroll fade is off. See the
+[Report](../patterns/report.md#print) pattern.
+
 ## Accessibility
 
 - Use a real `<table>` with `<thead>`, `<tbody>`, and `<th scope="col">`
