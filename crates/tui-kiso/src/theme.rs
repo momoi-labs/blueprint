@@ -3,7 +3,10 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 
-/// Kiso semantic roles as ratatui styles, for one dark accent.
+use crate::Look;
+
+/// Kiso semantic roles as ratatui styles, for one accent, and the [`Look`]
+/// of titles and rules.
 ///
 /// Colors are 24-bit only when `COLORTERM` is `truecolor` or `24bit`.
 /// Otherwise each color maps to the nearest xterm-256 color, and `selected`
@@ -12,6 +15,7 @@ use ratatui::style::{Color, Modifier, Style};
 pub struct Theme {
     tokens: kiso_tokens::Theme,
     truecolor: bool,
+    look: Look,
 }
 
 /// Glyphs that are marks, not text. On a selected row they need 3:1.
@@ -24,17 +28,36 @@ impl Theme {
         let truecolor = std::env::var("COLORTERM")
             .map(|v| matches!(v.to_ascii_lowercase().as_str(), "truecolor" | "24bit"))
             .unwrap_or(false);
-        Self { tokens, truecolor }
+        Self { tokens, truecolor, look: Look::DEFAULT }
     }
 
     /// A theme that sends 24-bit colors.
     pub fn truecolor(tokens: kiso_tokens::Theme) -> Self {
-        Self { tokens, truecolor: true }
+        Self { tokens, truecolor: true, look: Look::DEFAULT }
     }
 
     /// A theme that sends xterm-256 colors.
     pub fn xterm_256(tokens: kiso_tokens::Theme) -> Self {
-        Self { tokens, truecolor: false }
+        Self { tokens, truecolor: false, look: Look::DEFAULT }
+    }
+
+    /// The same theme with other tokens, at the same color depth and look,
+    /// as when the person picks another accent. For a light theme, take the
+    /// tokens from [`Accent::tokens`](crate::Accent::tokens).
+    #[must_use]
+    pub fn with_tokens(self, tokens: kiso_tokens::Theme) -> Self {
+        Self { tokens, ..self }
+    }
+
+    /// The same theme with another look for titles and rules.
+    #[must_use]
+    pub fn with_look(self, look: Look) -> Self {
+        Self { look, ..self }
+    }
+
+    /// How titles and section rules are drawn.
+    pub fn look(&self) -> Look {
+        self.look
     }
 
     /// The token values this theme draws with.
@@ -65,8 +88,15 @@ impl Theme {
         }
     }
 
-    fn fg(&self, rgb: Rgb) -> Style {
+    /// A token color as the text color.
+    pub fn fg(&self, rgb: Rgb) -> Style {
         Style::new().fg(self.color(rgb))
+    }
+
+    /// The gradient of titles, rules and the spinner: `primary` to
+    /// `chart-1`. Blend along it with [`blend`](crate::blend).
+    pub fn stops(&self) -> [Rgb; 2] {
+        [self.tokens.primary, self.tokens.chart_1]
     }
 
     /// The screen: `foreground` on `background`.
@@ -103,9 +133,39 @@ impl Theme {
     }
     /// Brand: bold `primary-foreground` on `primary`.
     pub fn brand(&self) -> Style {
-        self.fg(self.tokens.primary_foreground)
-            .bg(self.color(self.tokens.primary))
-            .add_modifier(Modifier::BOLD)
+        self.fill(self.tokens.primary_foreground, self.tokens.primary).add_modifier(Modifier::BOLD)
+    }
+
+    /// Text in `text` on a `fill`, such as a button or the focused row.
+    /// In 256 colors, where the nearest colors can lose contrast, the fill
+    /// moves to the nearest cube color of its hue that keeps 4.5:1 with
+    /// the text. It never takes the `selected` or `background` color, so a
+    /// cursor stays visible on a selected row.
+    pub fn fill(&self, text: Rgb, fill: Rgb) -> Style {
+        let fg = self.color(text);
+        if self.truecolor {
+            return Style::new().fg(fg).bg(self.color(fill));
+        }
+        let ink = drawn_rgb(fg).unwrap_or(text);
+        let taken = [xterm_256(self.tokens.background), selected_256(self.tokens.selected, self.tokens.background)];
+        let plain = xterm_256(fill);
+        if contrast(xterm_rgb(plain), ink) >= 4.5 && !taken.contains(&plain) {
+            return Style::new().fg(fg).bg(Color::Indexed(plain));
+        }
+        let readable = |i: &u8| contrast(xterm_rgb(*i), ink) >= 4.5 && !taken.contains(i);
+        let near_hue = |i: &u8| match (hue(fill), hue(xterm_rgb(*i))) {
+            (Some(want), Some(got)) => {
+                let diff = (want - got).abs();
+                diff.min(360.0 - diff) <= 25.0
+            }
+            (None, None) => true,
+            _ => false,
+        };
+        let nearest = |colors: &mut dyn Iterator<Item = u8>| colors.min_by_key(|i| distance(xterm_rgb(*i), fill));
+        let bg = nearest(&mut (16..=255u8).filter(readable).filter(near_hue))
+            .or_else(|| nearest(&mut (16..=255u8).filter(readable)))
+            .unwrap_or(plain);
+        Style::new().fg(fg).bg(Color::Indexed(bg))
     }
     /// Table header row and section bar: bold `foreground` on `muted`.
     pub fn bar(&self) -> Style {
@@ -144,19 +204,27 @@ impl Theme {
         self.fg(self.tokens.info_on_dark)
     }
 
-    /// Paints `area` as a selected row. Only the background changes. A cell
-    /// below its minimum on `selected` (4.5:1 for text, 3:1 for a mark)
-    /// takes `foreground`, and a status word that loses its color turns bold.
-    pub(crate) fn select(&self, buf: &mut Buffer, area: Rect) {
+    /// Paints `area` as a selected row. Only the background changes, except
+    /// on cells filled with `primary`, such as a text cursor, which keep
+    /// theirs. A cell below its minimum on `selected` (4.5:1 for text, 3:1
+    /// for a mark) takes `foreground`, and a status word in a state color
+    /// (`success`, `warning`, `danger`, `info`) that loses it turns bold.
+    /// A neutral status, in `muted-foreground`, stays plain.
+    pub fn select(&self, buf: &mut Buffer, area: Rect) {
         let fill = self.selected_color();
         let fill_rgb = drawn_rgb(fill).unwrap_or(self.tokens.selected);
         let t = &self.tokens;
+        // A cell on `primary`, as the theme draws it, keeps its fill.
+        let primary = [self.color(t.primary), self.fill(t.primary_foreground, t.primary).bg.unwrap_or(Color::Reset)];
         let status = [t.success_on_dark, t.warning_on_dark, t.danger_on_dark, t.info_on_dark]
             .map(|rgb| self.color(rgb));
         let area = area.intersection(buf.area);
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
                 let cell = &mut buf[(x, y)];
+                if primary.contains(&cell.bg) {
+                    continue;
+                }
                 cell.bg = fill;
                 if cell.symbol().trim().is_empty() {
                     continue;
@@ -171,6 +239,15 @@ impl Theme {
                 }
             }
         }
+    }
+}
+
+impl Theme {
+    /// Paints `area` as the focused row of a plain list, as Crush does:
+    /// `primary-foreground` on `primary`.
+    pub fn select_fill(&self, buf: &mut Buffer, area: Rect) {
+        let style = self.fill(self.tokens.primary_foreground, self.tokens.primary);
+        buf.set_style(area.intersection(buf.area), style);
     }
 }
 
