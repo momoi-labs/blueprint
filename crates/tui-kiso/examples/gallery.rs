@@ -16,16 +16,16 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{TableState, Widget};
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
-    braille, scramble, set_background, step, Act, Buttons, Columns, Field, Form, Header, Ink, KeyHints, Look,
-    Mark, Modal, Page, Palette, Pattern, Press, Question, Scroll, Search, SideItem, Side, Sidebar, StatusBadge,
-    Stroke, Table, Tabs, Theme, ThemePicker, Title, Toast, ACCENTS,
+    braille, fact, scramble, set_background, set_foreground, step, Act, Buttons, Columns, Field, FilterEdit, Filters, Form, Header,
+    Ink, KeyHints, Look, Mark, Menu, Modal, Page, Palette, Pattern, Press, Question, Scroll, Search, SideItem, Side,
+    Sidebar, StatusBadge, StepState, Stroke, Table, Tabs, Theme, ThemePicker, Title, Toast, ACCENTS,
 };
 
 const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 16] = [
+const PAGES: [(&str, &str); 19] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The brand and version, then where the person is."),
     ("Title", "Where the person is, across the width."),
@@ -42,8 +42,12 @@ const PAGES: [(&str, &str); 16] = [
     ("ThemePicker", "The accent and dark or light, previewed live."),
     ("Toast", "Notices, spinners and the steps of a run."),
     ("Sidebar", "The navigation, as wide as its longest line."),
+    ("Filters", "One select per facet; f edits them, the page follows."),
+    ("Menu", "The actions of one row, opened with a, under the row."),
+    ("Detail", "A record as a page: tabs, facts, a failure and its run."),
 ];
 const FORM: usize = 9;
+const FILTERS: usize = 16;
 
 const SIZE: (u16, u16) = (100, 30);
 
@@ -53,6 +57,8 @@ Usage: gallery [--accent <name>] [--light] [--snapshot <dir>]
   --accent <name>    violet, terracotta, teal, cobalt, nocturne, tangerine,
                      red, gold or lime. Default: gold.
   --light            Start with the light theme.
+  --256              Send xterm-256 colors, as on a terminal without
+                     truecolor.
   --snapshot <dir>   Write every page at 100 by 30 as HTML, then exit.";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -70,6 +76,7 @@ struct App {
     layer: Option<Layer>,
     picker: Option<ThemePicker>,
     form: Form,
+    filters: Filters,
     scroll: Scroll,
     quit: bool,
 }
@@ -85,6 +92,7 @@ impl App {
             layer: None,
             picker: None,
             form: demo_form(),
+            filters: demo_filters(),
             scroll: Scroll::default(),
             quit: false,
         }
@@ -96,6 +104,17 @@ impl App {
             self.quit = true;
             return;
         }
+        if self.layer.is_some() {
+            // Any key closes help.
+            self.layer = None;
+            return;
+        }
+        // Help opens over any layer: F1 always, ? wherever it is not text.
+        let typing = self.main && self.page == FORM && self.picker.is_none() && !self.filters.is_open();
+        if key.code == KeyCode::F(1) || (key.code == KeyCode::Char('?') && !typing) {
+            self.layer = Some(Layer::Help);
+            return;
+        }
         if let Some(mut picker) = self.picker {
             let open = picker.key(key.code);
             (self.accent, self.light) = (picker.accent, picker.light);
@@ -103,16 +122,18 @@ impl App {
             self.picker = open.then_some(picker);
             return;
         }
-        if self.layer.is_some() {
-            // Any key closes help.
-            self.layer = None;
+        if self.filters.is_open() {
+            if self.filters.key(key) != FilterEdit::None {
+                self.scroll.top();
+            }
             return;
         }
-        // The form takes every key while it has focus: letters are text,
-        // so help is on F1 only.
-        if key.code == KeyCode::F(1) {
-            self.layer = Some(Layer::Help);
-            return;
+        if self.main && self.page == FILTERS {
+            match key.code {
+                KeyCode::Char('f') => return self.filters.open(),
+                KeyCode::Esc if self.filters.is_active() => return self.filters.clear(),
+                _ => {}
+            }
         }
         if self.main && self.page == FORM {
             match self.form.key(key) {
@@ -177,6 +198,8 @@ impl App {
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
+            _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
+            (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
             (None, false) => {
@@ -186,11 +209,15 @@ impl App {
         };
         KeyHints::new(t, keys).render(foot, buf);
 
-        if self.layer == Some(Layer::Help) {
-            help(t).render(screen, buf);
+        if self.filters.is_open() {
+            self.filters.view(t, "Filter machines").render(screen, buf);
         }
         if let Some(picker) = &self.picker {
             picker.view(t).render(screen, buf);
+        }
+        // Help goes over every other layer.
+        if self.layer == Some(Layer::Help) {
+            help(t).render(screen, buf);
         }
     }
 
@@ -248,7 +275,20 @@ impl App {
                 picker.view(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
             }
             "Toast" => toast_page(t, buf, area),
-            _ => sidebar_page(t, buf, area),
+            "Sidebar" => sidebar_page(t, buf, area),
+            "Filters" => {
+                let page = filtered_page(t, width, &self.filters);
+                page.view(t, &self.scroll).selected(Some(0)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
+            }
+            "Menu" => {
+                let (page, scroll) = (machine_page(t, width), Scroll::default());
+                page.view(t, &scroll).selected(Some(1)).render(area, buf);
+                if let Some(row) = page.item_area(1, area, &scroll) {
+                    let menu = Menu::new(t, "pg-main-2", row).action("Open", "enter").action("Restart", "r").action("Copy URL", "c");
+                    menu.danger("Delete", "x").selected(3).render(area, buf);
+                }
+            }
+            _ => detail_page(t, width).view(t, &self.scroll).render(area, buf),
         }
     }
 
@@ -511,12 +551,13 @@ fn toast_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     let mut spans = scramble(t, 10, 7);
     spans.extend([Span::styled(" Restarting", t.muted()), Span::raw("    "), Span::styled(braille(3), t.fg(t.tokens().primary)), Span::styled(" every 2 s", t.muted())]);
     put(buf, area, 4, Line::from(spans));
-    caption(t, buf, area, 6, "The steps of a run");
+    caption(t, buf, area, 6, "The steps of a run: done, skipped, failed, running, pending");
     let steps = [
-        step(t, "├──── ", true, "Prepare", "account sf-app-ymau548satec"),
-        step(t, "├──── ", true, "Install", "python 3.13"),
-        step(t, "├──── ", false, "Route", "laya.momoi.internal is taken"),
-        step(t, "└──── ", true, "Start", "laya-apple serve"),
+        step(t, "├──── ", StepState::Done, "Prepare", "account sf-app-ymau548satec"),
+        step(t, "├──── ", StepState::Skipped, "Install", "Not needed"),
+        step(t, "├──── ", StepState::Failed, "Route", "laya.momoi.internal is taken"),
+        step(t, "├──── ", StepState::Running(3), "Retry", "another hostname"),
+        step(t, "└──── ", StepState::Pending, "Start", "laya-apple serve"),
     ];
     for (i, line) in steps.into_iter().enumerate() {
         put(buf, area, 7 + i as u16, line);
@@ -539,6 +580,82 @@ fn sidebar_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     side(true).render(Rect::new(area.x + 31, area.y + 2, 22, area.height.saturating_sub(2)).intersection(area), buf);
 }
 
+fn demo_filters() -> Filters {
+    Filters::default().facet("Region", ["eu-west", "us-east"]).facet("State", ["Running", "Failed", "Provisioning", "Stopped"])
+}
+
+fn machine_line(t: &Theme, columns: &Columns, m: &Machine) -> Line<'static> {
+    columns.row(vec![
+        vec![Span::raw(m.name)],
+        Line::from((m.state)(t)).spans.into_iter().map(|s| Span::styled(s.content.into_owned(), s.style)).collect(),
+        vec![Span::styled(m.region, t.muted())],
+        vec![Span::raw(format!("{:>6}", m.cpu))],
+        vec![Span::raw(m.memory)],
+    ])
+}
+
+/// The machines, through the filters.
+fn filtered_page(t: &Theme, width: usize, filters: &Filters) -> Page {
+    let mut page = Page::default();
+    // The badge's word, after its mark.
+    let state = |m: &Machine| Line::from((m.state)(t)).to_string().split_once(' ').map(|(_, word)| word.to_owned()).unwrap_or_default();
+    let shown: Vec<&Machine> = MACHINES.iter().filter(|m| filters.allows(0, m.region) && filters.allows(1, &state(m))).collect();
+    if filters.is_active() {
+        page.line(filters.line(t, width));
+        page.blank();
+    }
+    let count = if filters.is_active() { format!("{} of {}", shown.len(), MACHINES.len()) } else { MACHINES.len().to_string() };
+    page.section_meta(t, width, "Machines", &count);
+    let columns = Columns::new(width, &[12, 0, 9, 6, 8]);
+    page.line(columns.head(t, &["Name", "State", "Region", "CPU %", "Memory"]));
+    for m in &shown {
+        page.item([machine_line(t, &columns, m)]);
+    }
+    if shown.is_empty() {
+        page.line(Line::styled("  Nothing matches the filters.", t.muted()));
+    }
+    page.blank();
+    page.line(Line::styled("  f opens the filters. The page follows each change; esc in the editor puts them back.", t.muted()));
+    page
+}
+
+fn machine_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    page.section(t, width, "Machines", Some(MACHINES.len()));
+    let columns = Columns::new(width, &[12, 0, 9, 6, 8]);
+    page.line(columns.head(t, &["Name", "State", "Region", "CPU %", "Memory"]));
+    for m in &MACHINES {
+        page.item([machine_line(t, &columns, m)]);
+    }
+    page
+}
+
+/// One record as a page: the tabs on the title line, its facts, the
+/// failure and the steps of its last run.
+fn detail_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    page.line(Tabs::new(t, ["pg-main-2 · Summary", "Logs", "Settings"], 0).numbered(false).line(width));
+    page.line(Line::styled("[ and ] move between tabs; esc goes back to the list as it was.", t.muted()));
+    page.blank();
+    page.section(t, width, "Facts", None);
+    let failed: Line = StatusBadge::danger(t, "Failed").into();
+    let failed = failed.spans.into_iter().map(|s| Span::styled(s.content.into_owned(), s.style));
+    page.line(fact(t, 12, "Status", failed));
+    page.line(fact(t, 12, "Region", [Span::raw("eu-west")]));
+    page.line(fact(t, 12, "Started", [Span::raw("22 Oct 2026 18:42:06")]));
+    page.line(fact(t, 12, "Finished", [Span::raw("22 Oct 2026 18:42:41")]));
+    page.blank();
+    page.section(t, width, "Failure", None);
+    page.blank();
+    page.code(Line::styled("disk /dev/vdb is full: 0 B of 512 GiB free", t.danger()));
+    page.blank();
+    page.section(t, width, "Last run", None);
+    page.line(step(t, "├──── ", StepState::Done, "Stop", "postgres stopped in 2.1 s"));
+    page.line(step(t, "├──── ", StepState::Failed, "Resize", "the disk is full"));
+    page.line(step(t, "└──── ", StepState::Pending, "Start", "Not run"));
+    page
+}
+
 fn help(t: &Theme) -> Modal<'_> {
     let keys = [
         ("j k ↑ ↓", "Move in the list, or scroll the page"),
@@ -546,7 +663,12 @@ fn help(t: &Theme) -> Modal<'_> {
         ("esc tab", "Back to the components"),
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
-        ("? F1", "This help"),
+        ("f", "Filters, on the Filters page"),
+        ("↑ ↓ ← →", "In the filters: facet, then its value"),
+        ("tab", "In a form: the next field"),
+        ("shift+tab", "In a form: the field before"),
+        ("ctrl+s", "In a form: send it"),
+        ("? F1", "This help; F1 also while typing"),
         ("q", "Quit from the components"),
         ("ctrl+c", "Quit"),
     ];
@@ -554,8 +676,8 @@ fn help(t: &Theme) -> Modal<'_> {
     Modal::new(t, "Help").width(56).body(lines.to_vec()).hints([("any key", "close")])
 }
 
-fn parse() -> Result<(usize, bool, Option<String>), String> {
-    let (mut accent, mut light, mut snapshot) = (7, false, None);
+fn parse() -> Result<(usize, bool, bool, Option<String>), String> {
+    let (mut accent, mut light, mut xterm, mut snapshot) = (7, false, false, None);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -564,16 +686,17 @@ fn parse() -> Result<(usize, bool, Option<String>), String> {
                 accent = ACCENTS.iter().position(|a| a.name == name).ok_or(format!("unknown accent \"{name}\""))?;
             }
             "--light" => light = true,
+            "--256" => xterm = true,
             "--snapshot" => snapshot = Some(args.next().ok_or("--snapshot needs a directory")?),
             "-h" | "--help" => return Err(String::new()),
             other => return Err(format!("unknown option \"{other}\"")),
         }
     }
-    Ok((accent, light, snapshot))
+    Ok((accent, light, xterm, snapshot))
 }
 
 fn main() -> ExitCode {
-    let (accent, light, snapshot_dir) = match parse() {
+    let (accent, light, xterm, snapshot_dir) = match parse() {
         Ok(options) => options,
         Err(message) => {
             if !message.is_empty() {
@@ -585,7 +708,8 @@ fn main() -> ExitCode {
     };
     let tokens = ACCENTS[accent].tokens(light);
     if let Some(dir) = snapshot_dir {
-        return match snapshot(Path::new(&dir), Theme::truecolor(tokens), accent, light) {
+        let theme = if xterm { Theme::xterm_256(tokens) } else { Theme::truecolor(tokens) };
+        return match snapshot(Path::new(&dir), theme, accent, light) {
             Ok(count) => {
                 println!("Wrote {count} pages to {dir}");
                 ExitCode::SUCCESS
@@ -603,8 +727,10 @@ fn main() -> ExitCode {
     // ratatui::init enters raw mode and the alternate screen, and restores
     // the terminal on panic.
     let mut terminal = ratatui::init();
-    let result = run(&mut terminal, App::new(Theme::new(tokens), accent, light));
+    let theme = if xterm { Theme::xterm_256(tokens) } else { Theme::new(tokens) };
+    let result = run(&mut terminal, App::new(theme, accent, light));
     let _ = set_background(&mut std::io::stdout(), None);
+    let _ = set_foreground(&mut std::io::stdout(), None);
     ratatui::restore();
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -617,14 +743,16 @@ fn main() -> ExitCode {
 
 fn run(terminal: &mut ratatui::DefaultTerminal, mut app: App) -> std::io::Result<()> {
     let mut out = std::io::stdout();
-    let mut background = None;
+    let mut colors = None;
     while !app.quit {
-        // The terminal's own background follows the theme, so cells the
-        // widgets leave unpainted show it.
-        let now = Some(app.theme.tokens().background);
-        if now != background {
-            set_background(&mut out, now)?;
-            background = now;
+        // The terminal's own colors follow the theme, so cells the widgets
+        // leave unpainted show it.
+        let tokens = app.theme.tokens();
+        let now = Some((tokens.background, tokens.foreground));
+        if now != colors {
+            set_background(&mut out, now.map(|c| c.0))?;
+            set_foreground(&mut out, now.map(|c| c.1))?;
+            colors = now;
         }
         terminal.draw(|f| app.draw(f))?;
         if let Event::Key(key) = event::read()? {
@@ -647,14 +775,26 @@ fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Re
         let open = [vec![code(KeyCode::Down); i], vec![code(KeyCode::Enter)]].concat();
         states.push((format!("{:02}-{}", i + 1, name.to_lowercase()), open, SIZE));
     }
-    let form = [vec![code(KeyCode::Down); FORM], vec![code(KeyCode::Enter)]].concat();
-    states.push(("17-form-typing".into(), [form.clone(), keys("ghcr.io/kiso/app")].concat(), SIZE));
-    states.push(("18-form-select".into(), [form, vec![code(KeyCode::BackTab), code(KeyCode::BackTab), code(KeyCode::Right)]].concat(), SIZE));
-    states.push(("19-sidebar-focus".into(), keys("jjj"), SIZE));
-    states.push(("20-help".into(), keys("?"), SIZE));
-    states.push(("21-theme-picker".into(), [keys("t"), vec![code(KeyCode::Up)]].concat(), SIZE));
-    states.push(("22-light".into(), [keys("t"), vec![code(KeyCode::Right), code(KeyCode::Enter)]].concat(), SIZE));
-    states.push(("23-80-by-24".into(), keys("jjjj"), (80, 24)));
+    let open = |page: usize| [vec![code(KeyCode::Down); page], vec![code(KeyCode::Enter)]].concat();
+    let form = open(FORM);
+    let filters = [open(FILTERS), keys("f"), vec![code(KeyCode::Right), code(KeyCode::Down), code(KeyCode::Right)]].concat();
+    let small = (80, 24);
+    states.push(("20-form-typing".into(), [form.clone(), keys("ghcr.io/kiso/app")].concat(), SIZE));
+    states.push(("21-form-select".into(), [form, vec![code(KeyCode::BackTab), code(KeyCode::BackTab), code(KeyCode::Right)]].concat(), SIZE));
+    states.push(("22-sidebar-focus".into(), keys("jjj"), SIZE));
+    states.push(("23-help".into(), keys("?"), SIZE));
+    states.push(("24-theme-picker".into(), [keys("t"), vec![code(KeyCode::Up)]].concat(), SIZE));
+    states.push(("25-light".into(), [keys("t"), vec![code(KeyCode::Right), code(KeyCode::Enter)]].concat(), SIZE));
+    states.push(("26-filter-editor".into(), filters.clone(), SIZE));
+    states.push(("27-filtered".into(), [filters.clone(), vec![code(KeyCode::Enter)]].concat(), SIZE));
+    states.push(("28-80-by-24".into(), keys("jjjj"), small));
+    // Every dialog fits 80 by 24.
+    states.push(("29-help-80".into(), keys("?"), small));
+    states.push(("30-picker-80".into(), keys("t"), small));
+    states.push(("31-palette-80".into(), [vec![code(KeyCode::Down); 12], vec![code(KeyCode::Enter)]].concat(), small));
+    states.push(("32-question-80".into(), [vec![code(KeyCode::Down); 11], vec![code(KeyCode::Enter)]].concat(), small));
+    states.push(("33-menu-80".into(), open(17), small));
+    states.push(("34-filters-80".into(), filters, small));
 
     // Every page at small sizes, with and without focus and with help, so a
     // page that writes outside its area fails here, and in CI.

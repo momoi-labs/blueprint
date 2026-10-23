@@ -19,10 +19,11 @@ contract, and each component doc has a Terminal section.
 | `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
 | `Table`, `StatusBadge` | A ratatui table with Kiso's titles and selection, and the state of a record |
 | `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |
+| `Filters`, `Menu`, `fact` | Faceted filters on `f`, the actions of a row on `a`, the facts of a record |
 | `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |
 | `Form`, `Field`, `Buttons` | Forms with labels in a column, and solid buttons |
-| `Toast`, `scramble`, `braille`, `step` | Notices, spinners and the steps of a run |
-| `set_background`, `set_progress` | The terminal's background with OSC 11, and its progress bar with OSC 9;4 |
+| `Toast`, `scramble`, `braille`, `step`, `StepState` | Notices, spinners and the steps of a run, in five states |
+| `set_background`, `set_foreground`, `set_progress`, `set_clipboard` | The terminal's colors with OSC 11 and OSC 10, its progress bar with OSC 9;4, and the clipboard with OSC 52 |
 
 The crate is not on crates.io yet. Depend on it and on `kiso-tokens` from
 the same git source, so both use one copy of the tokens:
@@ -57,11 +58,12 @@ page.view(&theme, &scroll).selected(Some(0)).render(Rect::new(0, 2, 60, 8), &mut
 
 `Theme::new` sends 24-bit color only when `COLORTERM` is `truecolor` or
 `24bit`, and maps to the xterm-256 colors otherwise. Widgets leave the
-screen unpainted: call `set_background` with the theme's `background` when
-the view starts, and with `None` when it quits.
+screen unpainted: call `set_background` and `set_foreground` with the
+theme's `background` and `foreground` when the view starts, and with `None`
+when it quits.
 
-Key handling for forms, the search and the theme picker takes crossterm
-key events, behind the `crossterm` feature, on by default.
+Key handling for forms, filters, the search and the theme picker takes
+crossterm key events, behind the `crossterm` feature, on by default.
 
 ## Gallery
 

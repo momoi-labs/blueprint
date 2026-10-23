@@ -104,6 +104,15 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
     lines
 }
 
+/// A fact of a record, two columns in: the key in `muted-foreground` in a
+/// column `key_width` wide, then the value, which keeps its own styles.
+pub fn fact(theme: &Theme, key_width: usize, key: &str, value: impl IntoIterator<Item = Span<'static>>) -> Line<'static> {
+    let (key, used) = take_cells(key, key_width);
+    let mut spans = vec![Span::styled(format!("  {key}{}", " ".repeat(key_width - used)), theme.muted())];
+    spans.extend(value);
+    Line::from(spans)
+}
+
 /// Marks each match of `query` in `line` in `primary`, bold and
 /// underlined, as a search does. Case is ignored for ASCII letters. A match
 /// that runs across two spans is not marked.
@@ -240,6 +249,13 @@ mod tests {
         assert_eq!(wrap("中 文", 3), ["中", "文"]);
         let heart: usize = fit(vec![Span::raw("\u{2764}\u{fe0f}xyz")], 4).iter().map(Span::width).sum();
         assert_eq!(heart, 4);
+    }
+
+    #[test]
+    fn a_fact_keeps_its_column() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        assert_eq!(fact(&theme, 8, "Status", [Span::raw("Failed")]).to_string(), "  Status  Failed");
+        assert_eq!(fact(&theme, 4, "Started", [Span::raw("x")]).to_string(), "  Starx");
     }
 
     #[test]

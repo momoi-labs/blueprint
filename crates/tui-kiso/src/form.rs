@@ -330,7 +330,7 @@ pub enum Act {
 /// ctrl+s submits from anywhere and esc cancels. Draw it with
 /// [`Form::rows`] into a [`Page`], in a [`Modal`](crate::Modal) or in place
 /// of a page.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Form {
     pub fields: Vec<Field>,
     /// The focused field, or a button counted after the fields.
