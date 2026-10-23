@@ -5,7 +5,7 @@ import { clsx as cn } from "clsx"
 import { createPortal } from "react-dom"
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
   usePlotArea, useXAxisInverseDataSnapScale, useXAxisScale, useYAxisScale } from "recharts"
-import { ChartLegend, ChartSeriesLabel } from "./chart-legend.js"
+import { ChartLegend, ChartSeriesLabel, type ChartLegendProps } from "./chart-legend.js"
 import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLine, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
 import { useChartFill } from "./chart-fill.js"
 import { chartPinned, clearChartPin, setChartHover, toggleChartPin, useChartSync } from "./chart-sync.js"
@@ -14,6 +14,15 @@ import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
 import type { TimeRange } from "./time-range-control.js"
 
 export type { ChartSample, ChartSeries } from "./chart-data.js"
+
+const defaultLabels = {
+  notCollected: "Not collected", empty: "No collected samples in this window.",
+  timestamp: "Timestamp", values: "View exact values",
+  help: "Focus the chart and use Left and Right to inspect samples. Press Enter to mark the inspected sample in every synchronized chart, and Escape to clear it. Select a series in the legend to highlight it. Exact values are available below.",
+  summary: (label: string) => `${label}: summary`,
+  samples: (label: string) => `${label}: collected samples, timestamps in UTC`,
+}
+
 export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   data: readonly ChartSample[]
   series: readonly ChartSeries[]
@@ -38,13 +47,16 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   /** Drag across the plot with a mouse or pen to select samples from one
       timestamp to another. TimeRangeControl stays the keyboard and touch path. */
   onRangeSelect?: (range: TimeRange) => void
+  /** Localizes the fixed text. Chart passes the legend's keys on to ChartLegend. */
+  labels?: Partial<typeof defaultLabels> & NonNullable<ChartLegendProps["labels"]>
 } & ChartTreatmentProps
 
 export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp, summary,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
-  formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect,
+  formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect, labels,
   chartStyle, chartLine, chartFill, ref, className, onKeyDown, ...props }: ChartProps) {
   const id = React.useId()
+  const text = { ...defaultLabels, ...labels }
   const frame = React.useRef<HTMLElement>(null)
   const { line, fill } = useChartStyle(frame, { chartStyle, chartLine, chartFill })
   const presentation = useChartPresentation(frame, layoutProp, legendProp)
@@ -106,7 +118,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
       !gap && measured(sample.values[item.key]) ? sample.values[item.key] : null) }
   })
   const hasData = plot.some(sample => sample.values.some(measured))
-  const displayValue = (value: number | null | undefined) => measured(value) ? formatValue(value) : "Not collected"
+  const displayValue = (value: number | null | undefined) => measured(value) ? formatValue(value) : text.notCollected
   const known = plot.flatMap(sample => sample.values).filter(measured)
   let splitMin = min ?? Math.min(0, ...known)
   let splitMax = max ?? Math.max(0, ...known)
@@ -214,8 +226,8 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     </ResponsiveContainer>
     {selectRange && <div className="chart-range-band" hidden aria-hidden="true" />}
   </div>
-  const legendProps = { data, series, label: `${label}: summary`, variant: legend, summary, formatValue, formatTime,
-    highlightSeries: highlighted, onHighlightSeriesChange: highlight }
+  const legendProps = { data, series, label: text.summary(label), variant: legend, summary, formatValue, formatTime,
+    highlightSeries: highlighted, onHighlightSeriesChange: highlight, labels }
   // Only a sidebar follows the inspected timestamp, so only it subscribes.
   const legendContent = legend === "sidebar"
     ? <ChartSidebarLegend group={group} {...legendProps} />
@@ -238,7 +250,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
       }
     }}>
     <figcaption id={`${id}-title`} className="t-h3">{label}</figcaption>
-    <p id={`${id}-help`} className="chart-help">Focus the chart and use Left and Right to inspect samples. Press Enter to mark the inspected sample in every synchronized chart, and Escape to clear it. Select a series in the legend to highlight it. Exact values are available below.</p>
+    <p id={`${id}-help`} className="chart-help">{text.help}</p>
     <div className="chart-body">
       <div className="chart-plots">
         {hasData ? layout === "split" ? series.map((item, index) => <div className="chart-lane" key={item.key}>
@@ -246,18 +258,18 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
             <span>{displayValue(data.at(-1)?.values[item.key])}</span></div>
           {renderPlot([index], item)}
         </div>) : renderPlot(series.map((_, index) => index))
-          : <div className="chart-empty hatch" style={{ minHeight: height }}>No collected samples in this window.</div>}
+          : <div className="chart-empty hatch" style={{ minHeight: height }}>{text.empty}</div>}
       </div>
       {legend === "sidebar" && legendContent}
     </div>
     {legend !== "sidebar" && legendContent}
     <details className="disclosure chart-values">
-      <summary>View exact values</summary>
+      <summary>{text.values}</summary>
       <div className="chart-table-scroll"><table className="chart-table">
-        <caption>{label}: collected samples, timestamps in UTC</caption>
-        <thead><tr><th scope="col">Timestamp</th>{series.map(item => <th scope="col" key={item.key}>{item.label}</th>)}</tr></thead>
+        <caption>{text.samples(label)}</caption>
+        <thead><tr><th scope="col">{text.timestamp}</th>{series.map(item => <th scope="col" key={item.key}>{item.label}</th>)}</tr></thead>
         <tbody>{data.map(sample => <tr key={sample.timestamp}><th scope="row">{formatChartTime(sample.timestamp)}</th>
-          {series.map(item => <td key={item.key}>{measured(sample.values[item.key]) ? String(sample.values[item.key]) : "Not collected"}</td>)}
+          {series.map(item => <td key={item.key}>{measured(sample.values[item.key]) ? String(sample.values[item.key]) : text.notCollected}</td>)}
         </tr>)}</tbody>
       </table></div>
     </details>

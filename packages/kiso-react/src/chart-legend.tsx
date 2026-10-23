@@ -2,10 +2,15 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { chartColor, chartSlot, chartSummaryLabel, defaultChartSummary, formatChartTime, formatChartValue,
+import { chartColor, chartSlot, defaultChartSummary, formatChartTime, formatChartValue,
   measured, seriesSummary, validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 
 export type { ChartSummaryStat } from "./chart-data.js"
+
+const defaultLabels = {
+  series: "Series", current: "Current", notCollected: "Not collected",
+  min: "Min", max: "Max", avg: "Avg", p50: "p50", p75: "p75", p90: "p90", p95: "p95", p99: "p99",
+}
 
 export type ChartLegendProps = React.ComponentProps<"div"> & {
   data: readonly ChartSample[]
@@ -19,6 +24,8 @@ export type ChartLegendProps = React.ComponentProps<"div"> & {
   formatTime?: (timestamp: number) => string
   highlightSeries?: string | null
   onHighlightSeriesChange?: (key: string | null) => void
+  /** Localizes the fixed text. `current` names both the current column and the inline caption. */
+  labels?: Partial<typeof defaultLabels>
 }
 
 export function ChartSeriesLabel({ series, index }: { series: ChartSeries; index: number }) {
@@ -33,8 +40,9 @@ export function ChartSeriesLabel({ series, index }: { series: ChartSeries; index
 
 export function ChartLegend({ data, series, label, formatValue = formatChartValue,
   variant = "table", summary: stats = defaultChartSummary, activeTimestamp, formatTime = formatChartTime,
-  highlightSeries, onHighlightSeriesChange, className, ...props }: ChartLegendProps) {
+  highlightSeries, onHighlightSeriesChange, labels, className, ...props }: ChartLegendProps) {
   validateChart(data, series)
+  const text = { ...defaultLabels, ...labels }
   const seriesLabel = (item: ChartSeries, index: number) => onHighlightSeriesChange
     ? <button type="button" className="chart-series-button" aria-pressed={highlightSeries === item.key}
         onClick={() => onHighlightSeriesChange(highlightSeries === item.key ? null : item.key)}>
@@ -47,22 +55,22 @@ export function ChartLegend({ data, series, label, formatValue = formatChartValu
       className={cn("chart-legend", `chart-legend-${variant}`, className)} aria-label={label}
       aria-live={variant === "sidebar" ? "polite" : undefined}>
       <span className="chart-legend-caption">{variant === "sidebar" && activeTimestamp != null
-        ? formatTime(activeTimestamp) : "Current"}</span>
+        ? formatTime(activeTimestamp) : text.current}</span>
       <dl>{series.map((item, index) => <div key={item.key}>
         <dt>{seriesLabel(item, index)}</dt>
-        <dd>{measured(sample?.values[item.key]) ? formatValue(sample.values[item.key]!) : "Not collected"}</dd>
+        <dd>{measured(sample?.values[item.key]) ? formatValue(sample.values[item.key]!) : text.notCollected}</dd>
       </div>)}</dl>
     </div>
   }
   return <div {...props} data-slot="chart-legend" data-variant="table" className={cn("chart-table-scroll", className)}>
     <table className="chart-table">
       <caption>{label}</caption>
-      <thead><tr><th scope="col">Series</th>{stats.map(stat => <th scope="col" key={stat}>{chartSummaryLabel(stat)}</th>)}</tr></thead>
+      <thead><tr><th scope="col">{text.series}</th>{stats.map(stat => <th scope="col" key={stat}>{text[stat]}</th>)}</tr></thead>
       <tbody>{series.map((item, index) => {
         const summary = seriesSummary(data, item.key, stats)
         return <tr key={item.key}><th scope="row">{seriesLabel(item, index)}</th>
           {stats.map(stat => <td key={stat}>
-            {summary[stat] === null ? "Not collected" : formatValue(summary[stat])}
+            {summary[stat] === null ? text.notCollected : formatValue(summary[stat])}
           </td>)}
         </tr>
       })}</tbody>

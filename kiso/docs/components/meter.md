@@ -21,6 +21,9 @@ track. It has no fabricated numeric ARIA state. An omitted, null, or nonfinite
 Progress value means indeterminate work, reads "In progress", and has a static
 hatch track. Zero is a known empty track; the maximum is a full track.
 
+`labels` localizes the fixed text: Meter takes `notCollected` and Progress
+takes `inProgress`. `valueText` still wins over both.
+
 ## Accessibility
 
 Known measurements use `role="meter"` with name, minimum, maximum, current
