@@ -77,6 +77,7 @@ to. An id in the layout without a pane is ignored. A size below the pane's
 | `fill` | `false` | Hand each line's leftover columns to its panes, on screen only. Sizes do not change. |
 | `pack` | `false` | Order each row's panes by size, largest first, so lines fill up. Ignored with `overflow="scroll"`. The DOM keeps the row order. |
 | `debug` | `false` | Label every row with its columns, draw each line's free columns, and show each pane's size, minimum and maximum in its head. A development aid; not for readers. |
+| `static` | `false` | One column at full width, panes in layout order, whatever the grid width. No move, no resize, no row rules: the head is a plain heading. For a [Report](../patterns/report.md) or another view that is read, not arranged. `flow`, `overflow`, `fill` and `pack` do not apply. |
 
 ### Masonry flow
 
@@ -117,6 +118,17 @@ viewport would.
 The compact scales never write to the layout. A reader edits the layout on
 the wide screen it was designed for.
 
+## Print
+
+On paper the grid, its panes and their bodies are block boxes, so a pane
+pushed to the next page cannot overlap the next one. Panes stack in one
+column in DOM order, avoid a page break inside them, and drop their card
+frame: no border, radius, shadow or fill, and no head padding or border. The
+title sits on the body with `--spacing-xs`, and the body's blocks are
+`--spacing-sm` apart. The body does not scroll. Grips, resizers, row rules
+and buttons in the head do not print. See the [Report](../patterns/report.md)
+pattern.
+
 ## States
 
 | State | Behavior |
@@ -132,7 +144,8 @@ No loading, empty or error state. Each pane's content owns those.
 
 ## Accessibility
 
-The head is a focusable `role="button"` named "Move {title}". The resizer is
+The head is a focusable `role="button"` named "Move {title}"; in a
+`static` grid it is a plain heading. The resizer is
 a focusable `role="separator"` with `aria-orientation="vertical"`,
 `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, named "Resize {title}".
 Controls in the head's actions are ordinary buttons; pressing them does not

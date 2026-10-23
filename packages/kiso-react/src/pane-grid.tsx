@@ -44,6 +44,7 @@ type Placement = {
   max: number
   compact: boolean
   stacked: boolean
+  static: boolean
   debug: boolean
 }
 type Api = {
@@ -145,6 +146,9 @@ export type PaneGridProps = Omit<React.ComponentProps<"section">, "title"> & {
   /* Show each row's columns, the free columns and each pane's size bounds.
      A development aid for products tuning their panes. */
   debug?: boolean
+  /* One column in layout order, with no move or resize controls. For a
+     report or another view that is read, not arranged. */
+  static?: boolean
 }
 
 export function PaneGrid({
@@ -158,6 +162,7 @@ export function PaneGrid({
   pack = false,
   scrollPages = 2,
   debug = false,
+  static: isStatic = false,
   className,
   children,
   ...props
@@ -191,11 +196,11 @@ export function PaneGrid({
     observer.observe(body)
     return () => observer.disconnect()
   }, [])
-  const columns = pickColumns(width)
+  const columns = isStatic ? 1 : pickColumns(width)
   const compact = columns !== COLUMNS
   const stacked = columns === 1
   const scrolling = overflow === "scroll" && !stacked
-  const masonry = flow === "masonry" && overflow === "wrap"
+  const masonry = flow === "masonry" && overflow === "wrap" && !isStatic
   const scrollMax = columns * Math.max(1, scrollPages)
 
   let gridRow = 0
@@ -485,7 +490,7 @@ export function PaneGrid({
     for (const line of row.lines) {
       for (const item of line.items) {
         const max = masonry ? columns : scrolling ? Math.min(columns, item.size + scrollMax - line.used) : item.size + line.free
-        placements.set(item.id, { id: item.id, row: line.scroll ? 1 : line.row, col: item.col, span: item.span, size: item.size, min: item.min, max, compact, stacked, debug })
+        placements.set(item.id, { id: item.id, row: line.scroll ? 1 : line.row, col: item.col, span: item.span, size: item.size, min: item.min, max, compact, stacked, static: isStatic, debug })
       }
     }
   }
@@ -512,12 +517,13 @@ export function PaneGrid({
         data-overflow={overflow}
         data-flow={masonry ? "masonry" : "rows"}
         data-debug={debug ? "true" : undefined}
+        data-static={isStatic ? "true" : undefined}
         style={{ "--pane-cols": columns, "--pane-grid-width": `${width}px` } as React.CSSProperties}
       >
         {/* One flat list keyed by pane id, so a pane that changes row keeps
             its DOM node and its focus. */}
         {rows.flatMap((row, index) => [
-          (index > 0 || debug) && (
+          (index > 0 || debug) && !isStatic && (
             <div key={`rule-${index}`} className="pane-grid-rule" data-pane-row={index} aria-hidden="true" style={{ "--r": row.lines[0]!.row } as React.CSSProperties}>
               {debug && `row ${index + 1} · ${row.lines.map((line) => `${line.used}/${columns}${line.scroll ? " ⇆ scroll" : ""}`).join(" + ")}`}
             </div>
@@ -575,21 +581,23 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
       <div
         data-slot="grid-pane-head"
         className="grid-pane-head"
-        role="button"
-        tabIndex={0}
-        aria-label={`Move ${title}`}
-        onPointerDown={(event) => api.startMove(id, event)}
-        onKeyDown={(event) => {
-          if (event.target !== event.currentTarget) return
-          if (event.key === "ArrowLeft" || (placement.stacked && event.key === "ArrowUp")) api.moveBy(id, -1)
-          else if (event.key === "ArrowRight" || (placement.stacked && event.key === "ArrowDown")) api.moveBy(id, 1)
-          else if (event.key === "Enter" || event.key === " ") api.toggleRow(id)
-          else return
-          event.preventDefault()
-        }}
+        {...(!placement.static && {
+          role: "button",
+          tabIndex: 0,
+          "aria-label": `Move ${title}`,
+          onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => api.startMove(id, event),
+          onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.target !== event.currentTarget) return
+            if (event.key === "ArrowLeft" || (placement.stacked && event.key === "ArrowUp")) api.moveBy(id, -1)
+            else if (event.key === "ArrowRight" || (placement.stacked && event.key === "ArrowDown")) api.moveBy(id, 1)
+            else if (event.key === "Enter" || event.key === " ") api.toggleRow(id)
+            else return
+            event.preventDefault()
+          },
+        })}
       >
         {/* On touch the header scrolls the page; the grip moves the pane. */}
-        <GripVertical className="icon grid-pane-grip" aria-hidden="true" />
+        {!placement.static && <GripVertical className="icon grid-pane-grip" aria-hidden="true" />}
         <h3 data-slot="grid-pane-title" className="grid-pane-title t-h3">{title}</h3>
         {placement.debug && <span className="grid-pane-meta">size={placement.size} · min={placement.min} · max={placement.max}</span>}
         {actions != null && <div data-slot="grid-pane-actions" className="grid-pane-actions">{actions}</div>}

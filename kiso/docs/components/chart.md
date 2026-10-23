@@ -102,6 +102,14 @@ announcement on every background refresh. Keep series labels descriptive.
 - Error: compose an [Alert](alert.md) with the cause and retry action. Label
   retained data as stale. An empty chart is not an error message.
 
+## Print
+
+A Chart measures its width when it draws and does not redraw for print.
+Draw it as wide as it prints: inside a [Report](../patterns/report.md), whose
+page is as wide as the sheet. On paper the exact values Disclosure, the
+synchronized marker and the pinned readout do not print; the legend table
+does. The summary table does not scroll and its cells wrap.
+
 ## Tokens and implementation
 
 Series use `--color-chart-1`, `--color-chart-2`, `--color-chart-3`,

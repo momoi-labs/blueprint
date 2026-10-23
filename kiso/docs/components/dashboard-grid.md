@@ -13,15 +13,15 @@ DashboardGrid
 ```
 
 DashboardPanel is a [Card](card.md). Put the widget directly in the panel;
-do not wrap it in another Card. A [Chart](chart.md) in a panel hides its own
-caption visually, since the panel title names it. Give the chart the same
+do not wrap it in another Card. A [Chart](chart.md) anywhere in a panel hides
+its own caption visually, since the panel title names it. Give the chart the same
 label as the panel, so assistive technology hears the same name.
 
 ## Props
 
 DashboardGrid takes every PaneGrid prop: `layout`, `defaultLayout`,
-`onLayoutChange`, `flow`, `overflow`, `fill`, `pack`, `scrollPages` and
-`debug`. DashboardPanel takes every GridPane prop.
+`onLayoutChange`, `flow`, `overflow`, `fill`, `pack`, `scrollPages`,
+`debug` and `static`. DashboardPanel takes every GridPane prop.
 
 | Prop | Default | Contract |
 | --- | --- | --- |
@@ -86,6 +86,11 @@ columns. From 641 to 1024 pixels it uses six, and sizes are halved, rounding
 up. At 640 pixels and below every panel spans one column. The compact scales
 never write to the layout. Internal tables may scroll; the page must not
 overflow.
+
+A printed dashboard, or one in a [Report](../patterns/report.md), passes
+`static`: one column at full width with nothing to move or resize. On paper
+every DashboardGrid prints as one column without panel frames or the Expand
+control; see [PaneGrid](pane-grid.md#print).
 
 ## States and accessibility
 

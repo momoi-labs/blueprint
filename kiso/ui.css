@@ -2723,6 +2723,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
    six columns, and below 640px every pane stacks. Neither is editable: a product edits the
    layout on the wide screen it was designed for. */
 .pane-grid-body[data-compact="true"] .grid-pane-resizer { display: none; }
+/* A static grid is one column in layout order with nothing to move: a report
+   or another read-only view. Its pane heads are plain headings. */
+.pane-grid-body[data-static="true"] .grid-pane-head { cursor: auto; user-select: auto; touch-action: auto; }
 @media (pointer: coarse) {
   .grid-pane-resizer::after { inset-inline: calc((1px - var(--size-touch-min)) / 2); }
   .grid-pane-head { min-height: var(--size-touch-min); }
@@ -2782,9 +2785,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 
 /* Metrics dashboard, issue #93. Series colors encode identity, not status. */
 .framed-chart { margin: 0; display: grid; gap: var(--spacing-sm); min-width: 0; }
-/* A pane's title already names the chart it holds. The caption stays for
-   assistive technology. */
-.grid-pane-body > .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A pane's title already names the chart it holds, wherever the chart sits
+   in the pane. The caption stays for assistive technology. */
+.grid-pane-body .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-plot { position: relative; width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
 .chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
@@ -3833,4 +3836,115 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
 }
 @media (forced-colors: active) {
   .bottom-nav-link[aria-current="page"]::before { background: CanvasText; }
+}
+
+/* ===========================================================================
+   Report (a document read in order and printed)
+   ---------------------------------------------------------------------------
+   Charts measure their width when they draw and do not redraw for print, so
+   the report is as wide as the printed sheet on screen too: A4 less the 12mm
+   margins of its page. Everything before the first section is the cover;
+   each section starts a page.
+   =========================================================================== */
+.report {
+  width: calc(210mm - 2 * 12mm); max-width: 100%;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--presentation-section-gap);
+}
+/* A section heading reads as a document heading, also when a Disclosure
+   that the screens share carries it. */
+.report > section > h2, .report > .disclosure > summary {
+  margin: 0;
+  padding: var(--spacing-sm) 0 0;
+  border-top: 2px solid var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: var(--presentation-page-title-size);
+  font-weight: var(--type-weight-semibold);
+  line-height: var(--type-line-height-tight);
+  letter-spacing: var(--type-letter-spacing-heading);
+}
+/* A report keeps its sections open, so the summary drops its marker. */
+.report > .disclosure > summary { list-style: none; cursor: auto; }
+.report > .disclosure > summary::-webkit-details-marker { display: none; }
+/* The same space a Disclosure leaves above its content. */
+.report > section > h2 { margin-block-end: var(--spacing-sm); }
+/* Names the kind of document above the cover title. */
+.report-kicker, .page-header > .report-kicker {
+  margin: 0;
+  font-size: var(--type-size-metadata);
+  font-weight: var(--type-weight-semibold);
+  letter-spacing: var(--type-letter-spacing-caps);
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+@page report {
+  size: A4;
+  margin: 12mm;
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font-family: var(--font-body);
+    font-size: var(--type-size-metadata);
+    color: var(--color-muted-foreground);
+  }
+}
+
+/* ===========================================================================
+   Print
+   ---------------------------------------------------------------------------
+   Paper is light, does not scroll and cannot be clicked. Chrome does not
+   grow a grid row when it moves content to the next page, so the content
+   after it overlaps: from the page down to a pane's content, layout is block
+   with margins in place of gaps. A scrolling box does not split across
+   pages, so nothing scrolls.
+   =========================================================================== */
+@media print {
+  :root, [data-theme] { color-scheme: light; }
+  :root { print-color-adjust: exact; }
+  :root:has(.report) { page: report; }
+  [data-background-style] { --canvas-pattern: none; --canvas-mask: none; }
+  html, body { min-height: 0; background: none; }
+  /* Paper has no shell: no frame, no surround, no canvas. The shell rules
+     are specific, so these win with !important. */
+  .app-shell, .app-shell > :is(main, [data-slot="app-shell-main"]) {
+    display: block !important; height: auto !important; min-height: 0 !important;
+    margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+    background: none !important; box-shadow: none !important; overflow: visible !important;
+    --corner-mark: 0;
+  }
+  :is(.app-shell, .app-shell > :is(main, [data-slot="app-shell-main"]))::before,
+  .app-shell > :is(main, [data-slot="app-shell-main"])::after { content: none !important; }
+  .topbar, .sidebar, .app-shell-panel, .bottom-nav, [data-slot="page-header-actions"],
+  .grid-pane-grip, .grid-pane-resizer, .pane-grid-rule, .pane-grid-free, .pane-grid-drop,
+  .grid-pane-actions button, .chart-values, .chart-sync-marker, .chart-pin-readout { display: none !important; }
+
+  .page { padding: 0; max-width: none; }
+  .page, .report, .pane-grid, .pane-grid-body, .grid-pane, .grid-pane-body { display: block; }
+  .pane-grid-scroll { display: contents; }
+  .page > * + *, .report > * + * { margin-block-start: var(--presentation-section-gap); }
+  .pane-grid > * + *, .pane-grid-body > * + *, .pane-grid-scroll > * + *,
+  .pane-grid-body > * + .pane-grid-scroll > :first-child { margin-block-start: var(--presentation-grid-gap); }
+
+  /* On paper a pane drops its frame, and its title sits on its content like
+     a heading on its text. */
+  .grid-pane { min-height: 0; border: 0; border-radius: 0; background: none; box-shadow: none; --corner-mark: 0; break-inside: avoid; }
+  .grid-pane::before, .grid-pane::after { content: none; }
+  .grid-pane-head { padding: 0; min-height: 0; border-bottom: 0; cursor: auto; }
+  .grid-pane-body { padding: var(--spacing-xs) 0 0; overflow: visible; }
+  .grid-pane-body > * + * { margin-block-start: var(--spacing-sm); }
+  .stat { break-inside: avoid; }
+
+  /* Wide tables wrap their cells. The scroll fade would cover their edges. */
+  .table-scroll, :is(.table-wrap, .table-surface) > .table-scroll, .chart-table-scroll { overflow: visible; }
+  :is(.table, .chart-table) :is(th, td) { white-space: normal; overflow-wrap: anywhere; }
+  :is(.table-scroll, .chart-table-scroll, .diagram-scroll, .steps-list) { mask-image: none; animation: none; }
+
+  /* A closed Disclosure prints its content. The summary is a label, not a
+     toggle. */
+  .disclosure > summary { list-style: none; cursor: auto; }
+  .disclosure > summary::-webkit-details-marker { display: none; }
+
+  .report > :is(section, .disclosure) { break-before: page; }
+}
+/* In its own rule: a browser without ::details-content drops only this one. */
+@media print {
+  .disclosure::details-content { content-visibility: visible; }
 }
