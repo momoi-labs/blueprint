@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts, phoneFrame } from "./layout-examples";
 import { Intro } from "./intro";
+import { TuiGallery, useTuiGallery } from "./tui-gallery";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, shareParam, type ShareResult } from "./appearance-share";
@@ -44,6 +45,9 @@ function App() {
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
   const example = <LayoutExamples route={route} />;
   const intro = <Intro />;
+  const tui = useTuiGallery(route === "tui" || route.startsWith("tui/"));
+  const terminal = <TuiGallery route={route} data={tui} accent={settings.accent} theme={settings.theme} />;
+  const terminalPages = tui && tui !== "failed" ? tui.pages.map((page) => ({ id: page.id, label: page.name })) : [];
 
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1) || "intro");
@@ -68,6 +72,8 @@ function App() {
         onAccentChange={onAccentChange}
         example={example}
         examples={layouts}
+        terminal={terminal}
+        terminalPages={terminalPages}
         intro={intro}
         settingsEnabled
       />}

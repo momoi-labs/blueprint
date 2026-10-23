@@ -456,3 +456,90 @@
   .layout-preview:has(.report) { border: 0; border-radius: 0; background: none; box-shadow: none; --corner-mark: 0; }
   .layout-preview:has(.report)::before, .layout-preview:has(.report)::after { content: none; }
 }
+
+/* The TUI gallery: a terminal screen of the state's columns, as large as
+   fits up to 14px, and never below 8px; a narrower page scrolls it. */
+.catalog-tui { max-width: none; }
+.tui-gallery { display: grid; gap: var(--spacing-md); min-width: 0; }
+/* As the phone preview: the panel spans the page, and around the screen it
+   is an empty region with the EmptyState hatch. The screen sits in the
+   middle; where it is wider, as on a phone, the panel scrolls sideways
+   from its left edge, and the wheel still scrolls the page. */
+.tui-frame { padding: 0; }
+.tui-stage {
+  container-type: inline-size;
+  overflow: auto hidden;
+  padding: var(--spacing-lg);
+  border-radius: inherit;
+  background-color: var(--color-card);
+}
+.tui-screen {
+  position: relative;
+  width: fit-content;
+  margin-inline: auto;
+  border-radius: var(--radius-lg);
+}
+.tui-screen:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+.tui-term {
+  /* JetBrains Mono is 0.6em wide; one column of padding on each side. */
+  font-size: clamp(8px, (100cqi - 2px) / ((var(--tui-cols) + 2) * 0.6), 14px);
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  line-height: 1.3;
+  width: fit-content;
+  padding: 0.65em 1ch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.tui-term { position: relative; }
+.tui-row { display: flex; height: 1.3em; }
+/* A component name in the screen's sidebar, as a link. */
+.tui-link { position: absolute; height: 1.3em; color: inherit; border-radius: 2px; }
+.tui-link:hover { background-color: color-mix(in srgb, currentColor 14%, transparent); }
+.tui-row > span { flex: none; white-space: pre; }
+/* A drawn character fills its cells. Lines are 1px or more, heavy ones
+   twice that; a pattern repeats once per column. */
+.tui-drawn {
+  --light: max(1px, 0.07em);
+  --heavy: max(2px, 0.2em);
+  --line: linear-gradient(currentColor, currentColor);
+  position: relative;
+  display: inline-block;
+  height: 1.3em;
+  vertical-align: top;
+  background-repeat: no-repeat;
+}
+.tui-drawn[data-char="─"] { background-image: var(--line); background-size: 100% var(--light); background-position: 0 50%; }
+.tui-drawn[data-char="━"] { background-image: var(--line); background-size: 100% var(--heavy); background-position: 0 50%; }
+.tui-drawn[data-char="│"] { background-image: var(--line); background-size: 1ch 100%; background-repeat: repeat-x;
+  background-image: linear-gradient(to right, transparent calc(50% - var(--light) / 2), currentColor 0 calc(50% + var(--light) / 2), transparent 0); }
+.tui-drawn[data-char="└"] { background-image: var(--line), var(--line);
+  background-size: var(--light) calc(50% + var(--light) / 2), calc(50% + var(--light) / 2) var(--light);
+  background-position: 50% 0, 100% 50%; }
+.tui-drawn[data-char="├"] { background-image: var(--line), var(--line);
+  background-size: var(--light) 100%, calc(50% + var(--light) / 2) var(--light);
+  background-position: 50% 0, 100% 50%; }
+.tui-drawn[data-char="╭"]::before, .tui-drawn[data-char="╮"]::before,
+.tui-drawn[data-char="╯"]::before, .tui-drawn[data-char="╰"]::before {
+  content: ""; position: absolute; border: 0 solid currentColor;
+}
+.tui-drawn[data-char="╭"]::before { inset: calc(50% - var(--light) / 2) 0 0 calc(50% - var(--light) / 2); border-width: var(--light) 0 0 var(--light); border-top-left-radius: 0.5ch; }
+.tui-drawn[data-char="╮"]::before { inset: calc(50% - var(--light) / 2) calc(50% - var(--light) / 2) 0 0; border-width: var(--light) var(--light) 0 0; border-top-right-radius: 0.5ch; }
+.tui-drawn[data-char="╯"]::before { inset: 0 calc(50% - var(--light) / 2) calc(50% - var(--light) / 2) 0; border-width: 0 var(--light) var(--light) 0; border-bottom-right-radius: 0.5ch; }
+.tui-drawn[data-char="╰"]::before { inset: 0 0 calc(50% - var(--light) / 2) calc(50% - var(--light) / 2); border-width: 0 0 var(--light) var(--light); border-bottom-left-radius: 0.5ch; }
+.tui-drawn[data-char="╱"], .tui-drawn[data-char="╲"], .tui-drawn[data-char="╳"] { background-size: 1ch 100%; background-repeat: repeat-x; }
+.tui-drawn[data-char="╱"] { background-image: linear-gradient(to top left, transparent calc(50% - 0.6px), currentColor 0 calc(50% + 0.6px), transparent 0); }
+.tui-drawn[data-char="╲"] { background-image: linear-gradient(to top right, transparent calc(50% - 0.6px), currentColor 0 calc(50% + 0.6px), transparent 0); }
+.tui-drawn[data-char="╳"] { background-image:
+  linear-gradient(to top left, transparent calc(50% - 0.6px), currentColor 0 calc(50% + 0.6px), transparent 0),
+  linear-gradient(to top right, transparent calc(50% - 0.6px), currentColor 0 calc(50% + 0.6px), transparent 0); }
+.tui-drawn[data-char="▀"] { background-image: linear-gradient(currentColor 50%, transparent 0); }
+.tui-drawn[data-char="▄"] { background-image: linear-gradient(transparent 50%, currentColor 0); }
+.tui-drawn[data-char="█"] { background-image: var(--line); }
+.tui-drawn[data-char="▌"] { background-image: linear-gradient(to right, currentColor 50%, transparent 0); background-size: 1ch 100%; background-repeat: repeat-x; }
+.tui-drawn[data-char="░"] { background-image: linear-gradient(color-mix(in srgb, currentColor 25%, transparent), color-mix(in srgb, currentColor 25%, transparent)); }
+/* A long command wraps rather than scroll. */
+.tui-run { margin: 0; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tui-run > code { white-space: inherit; }
+/* The screen's text for screen readers; the drawn screen is hidden from them. */
+.tui-text { position: absolute; inset: 0 auto auto 0; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: pre; }
