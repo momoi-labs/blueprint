@@ -447,3 +447,12 @@
   .layout-content > .table-wrap:last-child { display: flex; flex-direction: column; }
   .layout-content > .table-wrap:last-child > .table-scroll { flex: 1; min-height: 0; }
 }
+
+/* Printing the report example prints the report alone, without the gallery
+   around it. */
+@media print {
+  .catalog-main:has(.report) { padding: 0; }
+  .catalog-main:has(.report) > :not(:has(.report)), .catalog-main:has(.report) .layout-preview-caption { display: none; }
+  .layout-preview:has(.report) { border: 0; border-radius: 0; background: none; box-shadow: none; --corner-mark: 0; }
+  .layout-preview:has(.report)::before, .layout-preview:has(.report)::after { content: none; }
+}

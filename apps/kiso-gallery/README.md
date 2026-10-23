@@ -3,8 +3,8 @@
 Standalone app for `kiso.momoi-labs.dev`, built in the Blueprint workspace.
 It opens an introduction to Kiso at `/`. Components are at `/#components`.
 Layout tabs at `/#example` show a dashboard,
-a list-detail screen, workspace settings and a login screen. Each composition
-uses sample data. Preview actions do not save, authenticate or send requests.
+a list-detail screen, workspace settings, a login screen and a printable
+report. Each composition uses sample data. Preview actions do not save, authenticate or send requests.
 The component navigation stays available across all layouts.
 The header links to the Kiso release notes. Its version comes from
 `packages/kiso/package.json` at build time.

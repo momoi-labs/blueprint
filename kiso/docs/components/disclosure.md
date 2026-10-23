@@ -22,6 +22,14 @@ summary in DOM order. Keep heading levels appropriate to the surrounding page.
 On a coarse pointer, the summary is at least the minimum touch target height.
 Do not animate the content or add redundant expanded-state ARIA.
 
+## Print
+
+Paper cannot be opened, so a closed Disclosure prints its content in
+browsers that support `::details-content`. For other browsers, pass `open`
+when the content must print. On paper the summary has no marker and reads as
+a label. In a [Report](../patterns/report.md), a Disclosure that is a
+section starts a page and its summary reads as the section heading.
+
 ## Tokens and implementation
 
 Spacing uses `--spacing-sm`; the summary uses `--type-weight-medium`.
