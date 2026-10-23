@@ -56,6 +56,10 @@ On paper the report uses the named page `report`: A4, 12mm margins, and
 `.report` is on it. A product that needs another paper size or a localized
 footer adds its own `@page report` rule after Kiso's.
 
+The page number footer is an `@page` margin box. Chromium prints it; Firefox
+and Safari do not support margin boxes and print the report without page
+numbers. The page size, margins and section breaks work in all three.
+
 ## Structure
 
 - **Cover.** Everything before the first section: the PageHeader and the
