@@ -11,10 +11,22 @@ keywords = ["kiso", "ratatui", "tui", "terminal", "design-system"]
 categories = ["command-line-interface"]
 publish = false
 
+[features]
+default = ["crossterm"]
+# Key handling for forms, the search and the theme picker.
+crossterm = ["ratatui/crossterm"]
+
 [dependencies]
 kiso-core = { path = "../kiso-core", version = "0.1.0" }
 kiso-tokens = { path = "../kiso-tokens", version = "0.2.0" }
 ratatui = { version = "0.30.2", default-features = false }
+unicode-segmentation = "1"
+unicode-width = "0.2"
 
 [dev-dependencies]
 ratatui = { version = "0.30.2", features = ["crossterm"] }
+
+# The gallery handles keys, so it needs the crossterm feature.
+[[example]]
+name = "gallery"
+required-features = ["crossterm"]

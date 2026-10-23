@@ -4,33 +4,64 @@ Kiso components for [ratatui](https://ratatui.rs) terminal interfaces. Kiso
 is the Momoi Labs design system. See it at
 [kiso.momoi-labs.dev](https://kiso.momoi-labs.dev).
 
-The crate is a thin layer: a `Theme` built from one `kiso-tokens` accent,
-and the widgets `Header`, `KeyHints`, `Table`, `StatusBadge` and `Modal`.
-Your app keeps its own event loop and layout. The widgets follow the
+The look follows Charm's Crush: no frames around parts of a page, a section
+is a title and a rule, and only the selection, code, buttons and dialogs
+get a fill or a frame. Your app keeps its own event loop and layout. The
+widgets follow the
 [terminal interfaces](https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/terminal-interfaces.md)
 contract, and each component doc has a Terminal section.
 
-The crate is not on crates.io yet. Depend on it from git:
+| Part | What it is |
+| --- | --- |
+| `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the patterns of the title line and section rules |
+| `Title`, `Tabs`, `Header` | Where the person is: the page title, the views of a screen, the brand and breadcrumb |
+| `Page`, `Scroll`, `Columns` | A page of rows that scrolls, with sections, items to select, columns and code blocks |
+| `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
+| `Table`, `StatusBadge` | A ratatui table with Kiso's titles and selection, and the state of a record |
+| `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |
+| `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |
+| `Form`, `Field`, `Buttons` | Forms with labels in a column, and solid buttons |
+| `Toast`, `scramble`, `braille`, `step` | Notices, spinners and the steps of a run |
+| `set_background`, `set_progress` | The terminal's background with OSC 11, and its progress bar with OSC 9;4 |
+
+The crate is not on crates.io yet. Depend on it and on `kiso-tokens` from
+the same git source, so both use one copy of the tokens:
 
 ```toml
 [dependencies]
 tui-kiso = { git = "https://github.com/momoi-labs/blueprint" }
-kiso-tokens = "0.1"
+kiso-tokens = { git = "https://github.com/momoi-labs/blueprint" }
 ratatui = "0.30"
 ```
 
 ```rust
-use tui_kiso::{StatusBadge, Table, Theme};
-use ratatui::layout::Constraint;
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
+use ratatui::text::Span;
+use ratatui::widgets::Widget;
+use tui_kiso::{Columns, Page, Scroll, Theme, Title};
 
 let theme = Theme::new(kiso_tokens::GOLD_DARK);
-let rows = [[ratatui::text::Line::raw("pg-main-1"), StatusBadge::success(&theme, "Running").into()]];
-let table = Table::new(&theme, rows, [Constraint::Length(12), Constraint::Fill(1)])
-    .header(["Name", "State"]);
+let scroll = Scroll::default();
+let mut page = Page::default();
+page.section(&theme, 60, "Machines", Some(1));
+let columns = Columns::new(60, &[12, 0]);
+page.line(columns.head(&theme, &["Name", "State"]));
+page.item([columns.row(vec![vec![Span::raw("pg-main-1")], vec![Span::styled("● Running", theme.success())]])]);
+
+// In your draw, the title on the first row and the page under it.
+let mut buf = Buffer::empty(Rect::new(0, 0, 62, 10));
+Title::new(&theme, "Overview").render(Rect::new(0, 0, 60, 1), &mut buf);
+page.view(&theme, &scroll).selected(Some(0)).render(Rect::new(0, 2, 60, 8), &mut buf);
 ```
 
 `Theme::new` sends 24-bit color only when `COLORTERM` is `truecolor` or
-`24bit`, and maps to the xterm-256 colors otherwise.
+`24bit`, and maps to the xterm-256 colors otherwise. Widgets leave the
+screen unpainted: call `set_background` with the theme's `background` when
+the view starts, and with `None` when it quits.
+
+Key handling for forms, the search and the theme picker takes crossterm
+key events, behind the `crossterm` feature, on by default.
 
 ## Gallery
 
@@ -40,5 +71,6 @@ The gallery shows every component with its variants and states:
 cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
 ```
 
-Add `--accent <name>` to try another accent, or `--snapshot <dir>` to write
-every page at 80 by 24 as HTML without a terminal.
+Add `--accent <name>` or `--light` to try another theme, or
+`--snapshot <dir>` to write every page at 100 by 30, and one at 80 by 24,
+as HTML without a terminal.

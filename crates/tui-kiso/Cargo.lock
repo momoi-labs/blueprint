@@ -1511,6 +1511,8 @@ dependencies = [
  "kiso-core",
  "kiso-tokens",
  "ratatui",
+ "unicode-segmentation",
+ "unicode-width",
 ]
 
 [[package]]

@@ -1,17 +1,19 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::text::Line;
-use ratatui::widgets::{Cell, Row, StatefulWidget, TableState, Widget};
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{Cell, HighlightSpacing, Row, StatefulWidget, TableState, Widget};
 
 use crate::Theme;
 
-/// A table of records, one line per row.
+/// A table of records, one line per row, two columns in.
 ///
-/// The header row is bold `foreground` on `muted`. Numeric columns align
-/// right, header included. The selected row of a [`TableState`] changes
-/// only its background to `selected`, so cells keep their colors. A cell
-/// below its minimum contrast on `selected` takes `foreground`, and a
-/// status word that loses its color turns bold.
+/// The column titles are in `subtle-foreground`, with no fill. Numeric
+/// columns align right, titles included. The selected row of a
+/// [`TableState`] gets a `primary` `▌` in the first column and the
+/// `selected` background, so cells keep their colors. A cell below its
+/// minimum contrast on `selected` takes `foreground`, and a status word in
+/// a state color that loses it turns bold. For a list on a
+/// [`Page`](crate::Page), use [`Columns`](crate::Columns) instead.
 #[derive(Clone, Debug)]
 pub struct Table<'a> {
     theme: &'a Theme,
@@ -68,9 +70,12 @@ impl StatefulWidget for Table<'_> {
         let header = std::mem::take(&mut self.header);
         let has_header = !header.is_empty();
         let rows: Vec<Row> = std::mem::take(&mut self.rows).into_iter().map(|r| self.row(r)).collect();
-        let mut table = ratatui::widgets::Table::new(rows, self.widths.clone()).style(t.base());
+        let mut table = ratatui::widgets::Table::new(rows, self.widths.clone())
+            .style(t.text())
+            .highlight_symbol(Line::from(vec![Span::styled("▌", t.fg(t.tokens().primary)), Span::raw(" ")]))
+            .highlight_spacing(HighlightSpacing::Always);
         if has_header {
-            table = table.header(self.row(header).style(t.bar()));
+            table = table.header(self.row(header).style(t.subtle()));
         }
         StatefulWidget::render(table, area, buf, state);
         if let Some(selected) = state.selected() {
@@ -104,8 +109,9 @@ mod tests {
         let mut buf = Buffer::empty(area);
         let table = Table::new(&theme, [[StatusBadge::danger(&theme, "Failed")]], [Constraint::Fill(1)]);
         StatefulWidget::render(table, area, &mut buf, &mut TableState::new().with_selected(0));
-        let cell = buf[(2, 0)].clone();
+        let cell = buf[(4, 0)].clone();
         assert_eq!(cell.symbol(), "F");
+        assert_eq!(buf[(0, 0)].symbol(), "▌");
         assert_eq!(cell.bg, theme.selected_color());
         (cell, theme.color(tokens.danger_on_dark), theme.color(tokens.foreground))
     }

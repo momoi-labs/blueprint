@@ -7,8 +7,9 @@ use crate::Theme;
 
 /// The top row: product name and version, then where the person is.
 ///
-/// The brand is bold `primary-foreground` on `primary`. The row is painted
-/// on `background`.
+/// The brand is bold `primary-foreground` on `primary`, then the path in
+/// `muted-foreground` with the current part in bold `foreground`. The rest
+/// of the row stays unpainted, as the page.
 #[derive(Clone, Debug)]
 pub struct Header<'a> {
     theme: &'a Theme,
@@ -38,7 +39,6 @@ impl<'a> Header<'a> {
 impl Widget for Header<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let t = self.theme;
-        buf.set_style(area, t.base());
         let brand = if self.version.is_empty() {
             format!(" {} ", self.product)
         } else {
