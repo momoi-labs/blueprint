@@ -3932,9 +3932,17 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   .grid-pane-body > * + * { margin-block-start: var(--spacing-sm); }
   .stat { break-inside: avoid; }
 
-  /* Wide tables wrap their cells. The scroll fade would cover their edges. */
+  /* A table grows to hold all its rows, with its footer after them. A product
+     bounds a table with its own rule or an inline style, so the height
+     limits lose with !important. */
+  .table-wrap, .table-surface, .table-scroll { height: auto !important; max-height: none !important; min-height: 0; }
+  .table-surface { display: block; overflow: visible; }
+  /* Wide tables wrap their cells, numbers and headings too. A tight column
+     takes its longest word, so it breaks between words, not inside one. The
+     scroll fade would cover their edges. */
   .table-scroll, :is(.table-wrap, .table-surface) > .table-scroll, .chart-table-scroll { overflow: visible; }
-  :is(.table, .chart-table) :is(th, td) { white-space: normal; overflow-wrap: anywhere; }
+  :is(.table, .chart-table) :is(th, td, .num, .col-tight) { white-space: normal; overflow-wrap: anywhere; }
+  :is(.table, .chart-table) .col-tight { overflow-wrap: break-word; }
   :is(.table-scroll, .chart-table-scroll, .diagram-scroll, .steps-list) { mask-image: none; animation: none; }
 
   /* A closed Disclosure prints its content. The summary is a label, not a

@@ -85,8 +85,11 @@ Kiso's print rules apply to every page that loads `ui.css`:
   does not grow a grid row when it moves content to the next page, so the
   content after the row overlaps it.
 - Nothing scrolls: pane bodies, `.table-scroll` and `.chart-table-scroll`
-  show all their content, table cells wrap, and the scroll fade is off.
-  Chrome does not split a scrolling box across pages.
+  show all their content, and the scroll fade is off. Chrome does not split
+  a scrolling box across pages.
+- A table grows to hold all its rows, with its footer after them, even when
+  the product bounds its height. Its cells wrap, headings and numbers too, so
+  a wide table fits the sheet. A tight column takes its longest word.
 - A pane drops its card frame. Its title sits on its content like a heading
   on its text: no head padding or border, `--spacing-xs` above the body and
   `--spacing-sm` between its blocks.
