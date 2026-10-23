@@ -1,74 +1,91 @@
 //! A gallery of every component in the crate, like the web gallery.
 //!
 //! Run: cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
-//! Options: --accent <name>, --snapshot <dir>
+//! Options: --accent <name>, --light, --snapshot <dir>
 
 use std::io::IsTerminal;
 use std::path::Path;
 use std::process::ExitCode;
 
 use ratatui::backend::TestBackend;
+use ratatui::buffer::Buffer;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Rect};
 use ratatui::style::Style;
-use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Paragraph, TableState};
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{TableState, Widget};
 use ratatui::{Frame, Terminal};
-use tui_kiso::{Header, KeyHints, Modal, StatusBadge, Table, Theme};
+use tui_kiso::{
+    braille, scramble, set_background, step, Act, Buttons, Columns, Field, Form, Header, Ink, KeyHints, Look,
+    Mark, Modal, Page, Palette, Pattern, Press, Question, Scroll, Search, SideItem, Side, Sidebar, StatusBadge,
+    Stroke, Table, Tabs, Theme, ThemePicker, Title, Toast, ACCENTS,
+};
 
 const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const ACCENTS: &[(&str, kiso_tokens::Theme)] = &[
-    ("violet", kiso_tokens::VIOLET_DARK),
-    ("terracotta", kiso_tokens::TERRACOTTA_DARK),
-    ("teal", kiso_tokens::TEAL_DARK),
-    ("cobalt", kiso_tokens::COBALT_DARK),
-    ("nocturne", kiso_tokens::NOCTURNE_DARK),
-    ("tangerine", kiso_tokens::TANGERINE_DARK),
-    ("red", kiso_tokens::RED_DARK),
-    ("gold", kiso_tokens::GOLD_DARK),
-    ("lime", kiso_tokens::LIME_DARK),
+/// Each component, and what its page shows.
+const PAGES: [(&str, &str); 16] = [
+    ("Theme", "Token colors at this depth, and the look of titles and rules."),
+    ("Header", "The brand and version, then where the person is."),
+    ("Title", "Where the person is, across the width."),
+    ("Tabs", "The views of a screen; the current one takes the width."),
+    ("Page", "Rows that scroll: sections, columns, a selection, code."),
+    ("Table", "A ratatui table with Kiso's header and selection."),
+    ("StatusBadge", "A mark and a word, in the tone's color."),
+    ("KeyHints", "The footer keys. Help and quit always stay."),
+    ("Buttons", "Solid buttons, half a row of fill above and below."),
+    ("Form", "Labels in a column; focus is the list selection."),
+    ("Modal", "The one framed element: a dialog over the page."),
+    ("Question", "A question with facts, what happens, and buttons."),
+    ("Palette", "Commands with their keys, opened with ctrl+p."),
+    ("ThemePicker", "The accent and dark or light, previewed live."),
+    ("Toast", "Notices, spinners and the steps of a run."),
+    ("Sidebar", "The navigation, as wide as its longest line."),
 ];
+const FORM: usize = 9;
 
-const PAGES: [&str; 6] = ["Theme", "Header", "KeyHints", "Table", "StatusBadge", "Modal"];
-const TABLE: usize = 3;
-const MODAL: usize = 5;
+const SIZE: (u16, u16) = (100, 30);
 
 const USAGE: &str = "\
-Usage: gallery [--accent <name>] [--snapshot <dir>]
+Usage: gallery [--accent <name>] [--light] [--snapshot <dir>]
 
   --accent <name>    violet, terracotta, teal, cobalt, nocturne, tangerine,
                      red, gold or lime. Default: gold.
-  --snapshot <dir>   Write every page at 80 by 24 as HTML, then exit.";
+  --light            Start with the light theme.
+  --snapshot <dir>   Write every page at 100 by 30 as HTML, then exit.";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Layer {
     Help,
-    Confirm,
-    /// The accent picker, with the highlighted index.
-    Accent(usize),
 }
 
 struct App {
     theme: Theme,
     accent: usize,
+    light: bool,
     page: usize,
-    pane: bool,
+    /// True when the page has focus, false for the sidebar.
+    main: bool,
     layer: Option<Layer>,
-    rows: TableState,
+    picker: Option<ThemePicker>,
+    form: Form,
+    scroll: Scroll,
     quit: bool,
 }
 
 impl App {
-    fn new(theme: Theme, accent: usize) -> Self {
+    fn new(theme: Theme, accent: usize, light: bool) -> Self {
         Self {
             theme,
             accent,
+            light,
             page: 0,
-            pane: false,
+            main: false,
             layer: None,
-            rows: TableState::new().with_selected(1),
+            picker: None,
+            form: demo_form(),
+            scroll: Scroll::default(),
             quit: false,
         }
     }
@@ -79,132 +96,187 @@ impl App {
             self.quit = true;
             return;
         }
-        match self.layer {
+        if let Some(mut picker) = self.picker {
+            let open = picker.key(key.code);
+            (self.accent, self.light) = (picker.accent, picker.light);
+            self.theme = self.theme.with_tokens(picker.tokens());
+            self.picker = open.then_some(picker);
+            return;
+        }
+        if self.layer.is_some() {
             // Any key closes help.
-            Some(Layer::Help) => self.layer = None,
-            Some(Layer::Confirm) => {
-                if matches!(key.code, KeyCode::Enter | KeyCode::Esc | KeyCode::Char('q')) {
-                    self.layer = None;
-                }
+            self.layer = None;
+            return;
+        }
+        // The form takes every key while it has focus: letters are text,
+        // so help is on F1 only.
+        if key.code == KeyCode::F(1) {
+            self.layer = Some(Layer::Help);
+            return;
+        }
+        if self.main && self.page == FORM {
+            match self.form.key(key) {
+                Act::Cancel => self.main = false,
+                Act::Submit | Act::Press(_) => self.form = demo_form(),
+                Act::None => {}
             }
-            Some(Layer::Accent(i)) => match key.code {
-                KeyCode::Up | KeyCode::Char('k') => self.layer = Some(Layer::Accent(i.saturating_sub(1))),
-                KeyCode::Down | KeyCode::Char('j') => {
-                    self.layer = Some(Layer::Accent((i + 1).min(ACCENTS.len() - 1)));
-                }
-                KeyCode::Enter => {
-                    self.accent = i;
-                    self.theme = Theme::new(ACCENTS[i].1);
-                    self.layer = None;
-                }
-                KeyCode::Esc | KeyCode::Char('q') => self.layer = None,
-                _ => {}
-            },
-            None => match key.code {
-                KeyCode::Char('?') | KeyCode::F(1) => self.layer = Some(Layer::Help),
-                KeyCode::Char('a') => self.layer = Some(Layer::Accent(self.accent)),
-                KeyCode::Up | KeyCode::Char('k') => self.step(-1),
-                KeyCode::Down | KeyCode::Char('j') => self.step(1),
-                KeyCode::Tab => self.pane = !self.pane,
-                KeyCode::Enter if !self.pane => self.pane = true,
-                KeyCode::Enter if self.page == MODAL => self.layer = Some(Layer::Confirm),
-                KeyCode::Esc | KeyCode::Char('q') if self.pane => self.pane = false,
-                KeyCode::Char('q') => self.quit = true,
-                _ => {}
-            },
+            return;
+        }
+        match key.code {
+            KeyCode::Char('?') | KeyCode::F(1) => self.layer = Some(Layer::Help),
+            KeyCode::Char('t') => self.picker = Some(ThemePicker::new(self.accent, self.light)),
+            KeyCode::Tab | KeyCode::Enter if !self.main => self.main = true,
+            KeyCode::Tab | KeyCode::Esc if self.main => self.main = false,
+            KeyCode::Char('q') if self.main => self.main = false,
+            KeyCode::Char('q') => self.quit = true,
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Left if !self.main => self.open(self.page.saturating_sub(1)),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Right if !self.main => self.open(self.page + 1),
+            KeyCode::Up | KeyCode::Char('k') => self.scroll.by(-1),
+            KeyCode::Down | KeyCode::Char('j') => self.scroll.by(1),
+            _ => {}
         }
     }
 
-    fn step(&mut self, delta: isize) {
-        if !self.pane {
-            self.page = self.page.saturating_add_signed(delta).min(PAGES.len() - 1);
-        } else if self.page == TABLE {
-            let row = self.rows.selected().unwrap_or(0).saturating_add_signed(delta);
-            self.rows.select(Some(row.min(MACHINES.len() - 1)));
-        }
+    fn open(&mut self, page: usize) {
+        self.page = page.min(PAGES.len() - 1);
+        self.scroll.top();
     }
 
-    fn draw(&mut self, f: &mut Frame) {
-        let t = self.theme;
+    fn sidebar(&self) -> Sidebar<'_> {
+        let t = &self.theme;
+        let brand = Line::from(vec![Span::styled(format!(" {PRODUCT} {VERSION} "), t.brand())]);
+        Sidebar::new(t)
+            .head([brand, Line::default(), Line::styled("Kiso for ratatui", t.muted())])
+            .group("Components", PAGES.iter().map(|(name, _)| SideItem::new(*name)))
+            .current(Some(self.page))
+            .focused(!self.main)
+    }
+
+    fn draw(&self, f: &mut Frame) {
+        let t = &self.theme;
         let screen = f.area();
-        f.buffer_mut().set_style(screen, t.base());
-        let [top, body, bottom] =
-            Layout::vertical([Constraint::Length(1), Constraint::Fill(1), Constraint::Length(1)])
-                .areas(screen);
-        let [side, rule, pane] =
-            Layout::horizontal([Constraint::Length(16), Constraint::Length(1), Constraint::Fill(1)])
-                .areas(body);
-
-        f.render_widget(Header::new(&t, PRODUCT, VERSION).breadcrumb(["Gallery", PAGES[self.page]]), top);
-
-        // Sidebar: the selected row has focus; otherwise the page is bold.
-        let names = PAGES.iter().enumerate().map(|(i, name)| {
-            let style = if i == self.page && self.pane { t.strong() } else { t.text() };
-            [Line::styled(format!(" {name}"), style)]
-        });
-        let list = Table::new(&t, names, [Constraint::Fill(1)]).header([" Components"]);
-        let mut state = TableState::new().with_selected(if self.pane { None } else { Some(self.page) });
-        f.render_stateful_widget(list, side, &mut state);
-        let rule_style = if self.pane { t.focus() } else { t.subtle() };
-        f.render_widget(Paragraph::new(vec![Line::raw("│"); usize::from(rule.height)]).style(rule_style), rule);
-
-        let [bar, content] = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).areas(pane);
-        f.render_widget(Paragraph::new(format!(" {}", PAGES[self.page])).style(t.bar()), bar);
-        let content = content.inner(ratatui::layout::Margin::new(1, 0));
-        match self.page {
-            0 => self.theme_page(f, content),
-            1 => header_page(f, content, &t),
-            2 => hints_page(f, content, &t),
-            TABLE => self.table_page(f, content),
-            4 => badge_page(f, content, &t),
-            _ => modal_page(f, content, &t),
+        let buf = f.buffer_mut();
+        // No fill: the terminal's background, set with OSC 11, shows through.
+        let body = Rect::new(screen.x + 2, screen.y, screen.width.saturating_sub(4), screen.height.saturating_sub(1));
+        let foot = Rect::new(body.x, screen.bottom().saturating_sub(1), body.width, 1);
+        let sidebar = self.sidebar();
+        let (side, main) = sidebar.split(body, Side::Left);
+        if let Some(area) = side {
+            sidebar.render(area, buf);
         }
 
-        let hints: Vec<(&str, &str)> = if !self.pane {
-            vec![("↑↓", "move"), ("enter", "open"), ("a", "accent"), ("?", "help"), ("q", "quit")]
-        } else if self.page == TABLE {
-            vec![("↑↓", "select row"), ("tab", "list"), ("?", "help"), ("esc", "back")]
-        } else if self.page == MODAL {
-            vec![("enter", "confirmation"), ("tab", "list"), ("?", "help"), ("esc", "back")]
-        } else {
-            vec![("tab", "list"), ("?", "help"), ("esc", "back")]
-        };
-        f.render_widget(KeyHints::new(&t, hints), bottom);
+        let (name, about) = PAGES[self.page];
+        let title = if side.is_none() { format!("{name} · {} of {}", self.page + 1, PAGES.len()) } else { name.to_owned() };
+        Title::new(t, title).render(main, buf);
+        put(buf, main, 1, Line::styled(about, t.muted()));
+        let area = Rect { y: main.y + 3, height: main.height.saturating_sub(3), ..main };
+        self.content(buf, area);
 
-        match self.layer {
-            Some(Layer::Help) => f.render_widget(help(&t), screen),
-            Some(Layer::Confirm) => f.render_widget(confirm(&t), screen),
-            Some(Layer::Accent(i)) => f.render_widget(accents(&t, self.accent, i), screen),
-            None => {}
+        let keys: Vec<(&str, &str)> = match (self.layer, self.main) {
+            (Some(Layer::Help), _) => vec![("any key", "close")],
+            (None, true) if self.page == FORM => {
+                vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
+            }
+            (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
+            // Without the sidebar, ←→ go through the components.
+            (None, false) => {
+                let browse = if side.is_some() { "j/k" } else { "←/→" };
+                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("?", "help"), ("q", "quit")]
+            }
+        };
+        KeyHints::new(t, keys).render(foot, buf);
+
+        if self.layer == Some(Layer::Help) {
+            help(t).render(screen, buf);
+        }
+        if let Some(picker) = &self.picker {
+            picker.view(t).render(screen, buf);
         }
     }
 
-    fn theme_page(&self, f: &mut Frame, area: Rect) {
-        let t = self.theme;
+    fn content(&self, buf: &mut Buffer, area: Rect) {
+        let t = &self.theme;
+        let width = usize::from(area.width);
+        match PAGES[self.page].0 {
+            "Theme" => self.theme_page(width).view(t, &self.scroll).render(area, buf),
+            "Header" => header_page(t, buf, area),
+            "Title" => title_page(t, buf, area),
+            "Tabs" => tabs_page(t, buf, area),
+            "Page" => {
+                let page = list_page(t, width);
+                page.view(t, &self.scroll).selected(Some(1)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
+            }
+            "Table" => table_page(t, buf, area),
+            "StatusBadge" => badge_page(t, buf, area),
+            "KeyHints" => hints_page(t, buf, area),
+            "Buttons" => buttons_page(t, buf, area),
+            "Form" => {
+                let mut page = Page::default();
+                page.section(t, width, "Deploy application", None);
+                self.form.rows(&mut page, t, width, 17, 0..self.form.fields.len());
+                page.blank();
+                let buttons = [("Cancel", self.form.press(0, false)), ("Deploy", self.form.press(1, false))];
+                for line in Buttons::new(t, buttons).lines(width.saturating_sub(1)) {
+                    page.line(line);
+                }
+                let selected = if self.main { self.form.item() } else { None };
+                page.view(t, &self.scroll).selected(selected).render(area, buf);
+            }
+            "Modal" => {
+                caption(t, buf, area, 0, "Help, as ? opens it. The page under it stays as it was.");
+                help(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
+            }
+            "Question" => {
+                caption(t, buf, area, 0, "Focus starts on the safe answer; a destructive one turns danger.");
+                let question = Question::new(t, "Delete pg-main-2?")
+                    .facts([("Machine", "pg-main-2"), ("Region", "eu-west")])
+                    .block(["This deletes the machine and its disk.", "Backups stay for 7 days."])
+                    .buttons(["Cancel", "Delete"])
+                    .focused(1)
+                    .danger(true);
+                question.render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
+            }
+            "Palette" => {
+                caption(t, buf, area, 0, "Typing filters; the selected command is filled with primary.");
+                let commands = [("Go to Machines", "1"), ("Go to Logs", "2"), ("Restart machine", "r"), ("Theme", "t"), ("Quit", "q")];
+                let palette = Palette::new(t, commands).filter("").selected(0);
+                palette.render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
+            }
+            "ThemePicker" => {
+                caption(t, buf, area, 0, "Press t anywhere: the app redraws in the accent under the cursor.");
+                let picker = ThemePicker::new(self.accent, self.light);
+                picker.view(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
+            }
+            "Toast" => toast_page(t, buf, area),
+            _ => sidebar_page(t, buf, area),
+        }
+    }
+
+    fn theme_page(&self, width: usize) -> Page {
+        let t = &self.theme;
         let r = t.tokens();
-        let depth = if t.is_truecolor() { "truecolor" } else { "xterm-256" };
-        let mut lines = vec![
-            caption_line(&t, "Accent", ACCENTS[self.accent].0),
-            caption_line(&t, "Color depth", depth),
-            Line::raw(""),
-        ];
+        let mut page = Page::default();
+        let fact = |key: &str, value: &str| Line::from(vec![Span::styled(format!("  {key:<13}"), t.muted()), Span::raw(value.to_owned())]);
+        page.line(fact("Accent", ACCENTS[self.accent].name));
+        page.line(fact("Mode", if self.light { "light" } else { "dark" }));
+        page.line(fact("Color depth", if t.is_truecolor() { "truecolor" } else { "xterm-256" }));
+        page.blank();
+        page.section(t, width, "Tokens", None);
         let surfaces = [
             ("background", r.background),
-            ("surface", r.surface),
-            ("elevated-surface", r.elevated_surface),
+            ("card", r.card),
             ("muted", r.muted),
             ("selected", r.selected),
             ("primary", r.primary),
+            ("chart-1", r.chart_1),
             ("border", r.border),
-            ("focus", r.focus),
-            ("disabled", r.disabled),
+            ("danger", r.danger),
         ];
         let text = [
             ("foreground", r.foreground),
             ("muted-foreground", r.muted_foreground),
             ("subtle-foreground", r.subtle_foreground),
             ("link", r.link),
-            ("primary-foreground", r.primary_foreground),
             ("success-on-dark", r.success_on_dark),
             ("warning-on-dark", r.warning_on_dark),
             ("danger-on-dark", r.danger_on_dark),
@@ -216,46 +288,90 @@ impl App {
                 ratatui::style::Color::Indexed(i) => format!("{i:>7}"),
                 _ => format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]),
             };
-            vec![
-                Span::styled("███", Style::new().fg(color)),
-                Span::styled(format!(" {name:<19}"), t.text()),
-                Span::styled(value, t.muted()),
-            ]
+            vec![Span::styled("██", Style::new().fg(color)), Span::styled(format!(" {name:<18}"), t.text()), Span::styled(value, t.muted())]
         };
         for (a, b) in surfaces.into_iter().zip(text) {
-            let mut spans = swatch(a);
-            spans.push(Span::raw(" "));
+            let mut spans = vec![Span::raw("  ")];
+            spans.extend(swatch(a));
+            spans.push(Span::raw("   "));
             spans.extend(swatch(b));
-            lines.push(Line::from(spans));
+            page.line(Line::from(spans));
         }
-        lines.push(Line::raw(""));
-        f.render_widget(Paragraph::new(lines), area);
-        let y = area.y + 13;
-        let row = |y: u16| Rect::new(area.x, y, area.width, 1).intersection(area);
-        f.render_widget(Paragraph::new(" bar()  Table header row and section bar").style(t.bar()), row(y));
-        f.render_widget(Paragraph::new(" selected()  A selected row").style(t.base().patch(t.selected())), row(y + 1));
-        f.render_widget(Paragraph::new(" surface()  An inline panel").style(t.surface()), row(y + 2));
-        f.render_widget(Paragraph::new(" elevated()  A popup").style(t.elevated()), row(y + 3));
+        page.blank();
+        page.section(t, width, "Look", None);
+        let look = t.look();
+        let stroke = |label: &str, stroke: Stroke| {
+            let ink = match stroke.ink {
+                Ink::Primary => "primary",
+                Ink::Gradient => "gradient",
+                Ink::Faint => "faint",
+            };
+            let mut spans = vec![Span::styled(format!("  {label:<13}"), t.muted()), Span::raw(format!("{:<9}{ink:<10}", stroke.pattern.name()))];
+            spans.extend(stroke.spans(t, 16));
+            Line::from(spans)
+        };
+        page.line(stroke("Title line", look.title));
+        page.line(stroke("Section rule", look.rule));
+        page.blank();
+        for pattern in Pattern::ALL {
+            let mut spans = vec![Span::styled(format!("  {:<13}", pattern.name()), t.muted())];
+            spans.extend(Stroke::new(pattern, Ink::Faint).spans(t, 16));
+            spans.push(Span::raw("  "));
+            spans.extend(Stroke::new(pattern, Ink::Gradient).spans(t, 16));
+            page.line(Line::from(spans));
+        }
+        page
     }
+}
 
-    fn table_page(&mut self, f: &mut Frame, area: Rect) {
-        let t = self.theme;
-        let [a, b, _, c, d, _, e] = Layout::vertical([
-            Constraint::Length(1),
-            Constraint::Length(5),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(5),
-            Constraint::Length(1),
-            Constraint::Length(1),
-        ])
-        .areas(area);
-        f.render_widget(caption(&t, "No selection. CPU % and Memory are numeric."), a);
-        f.render_widget(machines(&t), b);
-        f.render_widget(caption(&t, "Selected row: only the background changes."), c);
-        f.render_stateful_widget(machines(&t), d, &mut self.rows);
-        let note = if self.pane { "↑↓ moves the selection." } else { "Press enter to move the selection." };
-        f.render_widget(caption(&t, note), e);
+fn caption(t: &Theme, buf: &mut Buffer, area: Rect, dy: u16, text: &str) {
+    put(buf, area, dy, Line::styled(text.to_owned(), t.muted()));
+}
+
+/// `line` on row `dy` of `area`, when that row is on screen.
+fn put(buf: &mut Buffer, area: Rect, dy: u16, line: Line) {
+    let area = area.intersection(buf.area);
+    if dy < area.height {
+        buf.set_line(area.x, area.y + dy, &line, area.width);
+    }
+}
+
+fn header_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let rows: [(&str, Header); 4] = [
+        ("Brand only", Header::new(t, "pg-probe", "0.4.0")),
+        ("With a title", Header::new(t, "pg-probe", "0.4.0").title("Machines")),
+        ("With a breadcrumb", Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"])),
+        ("At 32 columns, the end is cut", Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"])),
+    ];
+    for (i, (label, header)) in rows.into_iter().enumerate() {
+        let y = i as u16 * 3;
+        caption(t, buf, area, y, label);
+        let width = if i == 3 { 32.min(area.width) } else { area.width };
+        header.render(Rect::new(area.x, area.y + y + 1, width, 1).intersection(area), buf);
+    }
+}
+
+fn title_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let looks = [
+        ("The default: a heavy line in primary", Look::DEFAULT),
+        ("Shade in the gradient", Look { title: Stroke::new(Pattern::Shade, Ink::Gradient), ..Look::DEFAULT }),
+        ("Thin and faint", Look { title: Stroke::new(Pattern::Thin, Ink::Faint), ..Look::DEFAULT }),
+    ];
+    for (i, (label, look)) in looks.into_iter().enumerate() {
+        let y = i as u16 * 3;
+        caption(t, buf, area, y, label);
+        let themed = t.with_look(look);
+        Title::new(&themed, "Machines").render(Rect::new(area.x, area.y + y + 1, area.width, 1).intersection(area), buf);
+    }
+    caption(t, buf, area, 10, "Set the look once for the product with Theme::with_look.");
+}
+
+fn tabs_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let views = ["Running 12", "Waiting 3", "Blocking 1"];
+    for (i, current) in [0, 1].into_iter().enumerate() {
+        let y = i as u16 * 3;
+        caption(t, buf, area, y, if current == 0 { "Running is current" } else { "Waiting is current; 1 and 3 are the keys" });
+        Tabs::new(t, views, current).render(Rect::new(area.x, area.y + y + 1, area.width, 1).intersection(area), buf);
     }
 }
 
@@ -274,175 +390,190 @@ const MACHINES: [Machine; 4] = [
     Machine { name: "pg-archive", state: |t| StatusBadge::neutral(t, "Stopped"), region: "us-east", cpu: "—", memory: "4 GiB" },
 ];
 
+fn list_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    let search = Search { query: "pg-main".into(), typing: false };
+    let shown: Vec<&Machine> = MACHINES.iter().filter(|m| search.hit(&[m.name])).collect();
+    page.section_meta(t, width, "Machines", &search.count(shown.len(), MACHINES.len()));
+    let columns = Columns::new(width, &[12, 0, 9, 6, 8]);
+    page.line(columns.head(t, &["Name", "State", "Region", "CPU %", "Memory"]));
+    for m in shown {
+        let line = columns.row(vec![
+            vec![Span::raw(m.name)],
+            Line::from((m.state)(t)).spans.into_iter().map(|s| Span::styled(s.content.into_owned(), s.style)).collect(),
+            vec![Span::styled(m.region, t.muted())],
+            vec![Span::raw(format!("{:>6}", m.cpu))],
+            vec![Span::raw(m.memory)],
+        ]);
+        page.item([search.mark(t, line)]);
+    }
+    page.blank();
+    page.section(t, width, "Start command", None);
+    page.code(Line::raw("postgres -D /var/lib/postgresql/18/main"));
+    page.blank();
+    page.line(Line::styled("  The search \"pg-main\" keeps 2 of 4 and marks the match.", t.muted()));
+    page
+}
+
+fn table_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    caption(t, buf, area, 0, "No selection. CPU % and Memory are numeric.");
+    machines(t).render(Rect::new(area.x, area.y + 1, area.width, 5).intersection(area), buf);
+    caption(t, buf, area, 7, "A selected row: a bar, and only the background changes.");
+    let rows = Rect::new(area.x, area.y + 8, area.width, 5).intersection(area);
+    ratatui::widgets::StatefulWidget::render(machines(t), rows, buf, &mut TableState::new().with_selected(1));
+}
+
 fn machines(t: &Theme) -> Table<'_> {
     let rows = MACHINES.iter().map(|m| {
-        [
-            Line::raw(m.name),
-            (m.state)(t).into(),
-            Line::styled(m.region, t.muted()),
-            Line::raw(m.cpu),
-            Line::raw(m.memory),
-        ]
+        [Line::raw(m.name), (m.state)(t).into(), Line::styled(m.region, t.muted()), Line::raw(m.cpu), Line::raw(m.memory)]
     });
     let widths = [11, 15, 8, 5, 7].map(Constraint::Length);
     Table::new(t, rows, widths).header(["Name", "State", "Region", "CPU %", "Memory"]).numeric([3, 4])
 }
 
-fn caption(t: &Theme, text: &'static str) -> Paragraph<'static> {
-    Paragraph::new(text).style(t.muted())
+fn badge_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let variants = [
+        ("success", StatusBadge::success(t, "Running")),
+        ("success, pulse", StatusBadge::success(t, "Provisioning").pulse(true)),
+        ("danger", StatusBadge::danger(t, "Failed")),
+        ("neutral", StatusBadge::neutral(t, "Stopped")),
+    ];
+    for (i, (name, badge)) in variants.into_iter().enumerate() {
+        let mut line: Line = badge.into();
+        line.spans.insert(0, Span::styled(format!("{name:<16}"), t.muted()));
+        put(buf, area, i as u16, line);
+    }
 }
 
-fn caption_line(t: &Theme, label: &'static str, value: &'static str) -> Line<'static> {
-    Line::from(vec![Span::styled(format!("{label:<13}"), t.muted()), Span::styled(value, t.text())])
-}
-
-fn header_page(f: &mut Frame, area: Rect, t: &Theme) {
-    let rows = Layout::vertical([Constraint::Length(1); 12]).split(area);
-    f.render_widget(caption(t, "Brand only"), rows[0]);
-    f.render_widget(Header::new(t, "pg-probe", "0.4.0"), rows[1]);
-    f.render_widget(caption(t, "With a title"), rows[3]);
-    f.render_widget(Header::new(t, "pg-probe", "0.4.0").title("Machines"), rows[4]);
-    f.render_widget(caption(t, "With a breadcrumb"), rows[6]);
-    f.render_widget(Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"]), rows[7]);
-    f.render_widget(caption(t, "At 32 columns, the end is cut"), rows[9]);
-    let narrow = Rect { width: 32.min(rows[10].width), ..rows[10] };
-    f.render_widget(Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"]), narrow);
-}
-
-fn hints_page(f: &mut Frame, area: Rect, t: &Theme) {
-    let hints = [("↑↓", "move"), ("enter", "open"), ("/", "filter"), ("s", "sort"), ("?", "help"), ("q", "quit")];
-    let rows = Layout::vertical([Constraint::Length(1); 15]).split(area);
+fn hints_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let hints = [("↑↓", "move"), ("enter", "open"), ("/", "search"), ("s", "sort"), ("?", "help"), ("q", "quit")];
     let widths: [(u16, &str); 4] = [
-        (56, "At 56 columns, every hint fits"),
-        (40, "At 40 columns, sort and filter drop"),
+        (60, "At 60 columns, every hint fits"),
+        (40, "At 40 columns, sort and search drop"),
         (30, "At 30 columns, open drops too"),
         (22, "At 22 columns, help and quit stay"),
     ];
     for (n, (width, label)) in widths.into_iter().enumerate() {
-        let y = n * 3;
-        f.render_widget(caption(t, label), rows[y]);
-        let line = Rect { width: width.min(rows[y + 1].width), ..rows[y + 1] };
-        f.render_widget(KeyHints::new(t, hints), line);
-        if line.right() < area.right() {
-            f.buffer_mut().set_string(line.right(), line.y, "│", t.subtle());
+        let y = n as u16 * 3;
+        caption(t, buf, area, y, label);
+        let line = Rect::new(area.x, area.y + y + 1, width.min(area.width), 1).intersection(area);
+        KeyHints::new(t, hints).render(line, buf);
+        if !line.is_empty() && line.right() < area.right() {
+            buf.set_string(line.right(), line.y, "│", t.subtle());
         }
     }
-    f.render_widget(caption(t, "The current view's label is bold"), rows[12]);
+    caption(t, buf, area, 12, "The current view's label is bold");
     let views = [("1", "Overview"), ("2", "Machines"), ("3", "Logs"), ("?", "help"), ("q", "quit")];
-    f.render_widget(KeyHints::new(t, views).current(1), rows[13]);
+    KeyHints::new(t, views).current(1).render(Rect::new(area.x, area.y + 13, area.width, 1).intersection(area), buf);
+    caption(t, buf, area, 15, "After a search prompt");
+    let search = Search { query: "fail".into(), typing: true };
+    let keys = [("↑/↓", "move"), ("enter", "keep"), ("esc", "clear")];
+    KeyHints::new(t, keys).prefix(search.prompt(t, 3, 40)).render(Rect::new(area.x, area.y + 16, area.width, 1).intersection(area), buf);
 }
 
-fn badge_page(f: &mut Frame, area: Rect, t: &Theme) {
-    let lines = vec![
-        variant(t, "success", StatusBadge::success(t, "Running")),
-        variant(t, "success, pulse", StatusBadge::success(t, "Provisioning").pulse(true)),
-        variant(t, "danger", StatusBadge::danger(t, "Failed")),
-        variant(t, "neutral", StatusBadge::neutral(t, "Stopped")),
+fn buttons_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let rows = [
+        ("Plain", Press::Plain),
+        ("Focused", Press::Focused),
+        ("Danger: focused and destructive", Press::Danger),
+        ("Off: does nothing yet", Press::Off),
     ];
-    let [a, _, b, c] = Layout::vertical([
-        Constraint::Length(4),
-        Constraint::Length(1),
-        Constraint::Length(1),
-        Constraint::Length(5),
-    ])
-    .areas(area);
-    f.render_widget(Paragraph::new(lines), a);
-    f.render_widget(caption(t, "In a table, on a selected row"), b);
-    let rows = MACHINES.iter().map(|m| [Line::raw(m.name), (m.state)(t).into()]);
-    let table = Table::new(t, rows, [Constraint::Length(11), Constraint::Length(15)]).header(["Name", "State"]);
-    f.render_stateful_widget(table, c, &mut TableState::new().with_selected(1));
+    for (i, (label, press)) in rows.into_iter().enumerate() {
+        let y = area.y + i as u16 * 4;
+        if y + 3 > area.bottom() {
+            break;
+        }
+        put(buf, area, y - area.y + 1, Line::styled(label, t.muted()));
+        Buttons::new(t, [("Cancel", Press::Plain), ("Remove", press)]).render(Rect::new(area.x, y, 40, 3).intersection(area), buf);
+    }
 }
 
-fn variant<'a>(t: &Theme, name: &str, badge: StatusBadge<'a>) -> Line<'a> {
-    let mut line: Line = badge.into();
-    line.spans.insert(0, Span::styled(format!("{name:<16}"), t.muted()));
-    line
+fn demo_form() -> Form {
+    let mut name = Field::text("Name", "My app");
+    name.error = Some("Another application is called this.".into());
+    let name = name.filled("laya");
+    let fields = vec![
+        Field::select("Definition", ["Container image", "Compose file", "Native process"]).hint("An image that is already published."),
+        name,
+        Field::text("Container image", "nginx:alpine").hint("One container serving HTTP."),
+        Field::text("Token", "Leave empty to keep it").secret(),
+        Field::check("Start on boot"),
+    ];
+    let mut form = Form::new(fields, 2);
+    form.focus = 2;
+    form
 }
 
-fn modal_page(f: &mut Frame, area: Rect, t: &Theme) {
-    let [a, b, _, c, d] = Layout::vertical([
-        Constraint::Length(1),
-        Constraint::Length(9),
-        Constraint::Length(1),
-        Constraint::Length(1),
-        Constraint::Length(9),
-    ])
-    .areas(area);
-    f.render_widget(caption(t, "Help, opened with ?"), a);
-    f.render_widget(machines(t), b);
-    let body = vec![key_line(t, "↑↓ j k", "Move"), key_line(t, "enter", "Open"), key_line(t, "q", "Quit")];
-    f.render_widget(Modal::new(t, "Help").body(body).hints([("any key", "close")]), b);
-    f.render_widget(caption(t, "Confirmation, opened with enter"), c);
-    f.render_widget(machines(t), d);
-    f.render_widget(confirm(t), d);
+fn toast_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    caption(t, buf, area, 0, "A toast replaces the key hints for a few seconds");
+    Toast::new(t, "laya restarted in 1.6 s.").render(Rect::new(area.x, area.y + 1, area.width, 1).intersection(area), buf);
+    caption(t, buf, area, 3, "Spinners: scramble for a few seconds of work, braille for a refresh");
+    let mut spans = scramble(t, 10, 7);
+    spans.extend([Span::styled(" Restarting", t.muted()), Span::raw("    "), Span::styled(braille(3), t.fg(t.tokens().primary)), Span::styled(" every 2 s", t.muted())]);
+    put(buf, area, 4, Line::from(spans));
+    caption(t, buf, area, 6, "The steps of a run");
+    let steps = [
+        step(t, "├──── ", true, "Prepare", "account sf-app-ymau548satec"),
+        step(t, "├──── ", true, "Install", "python 3.13"),
+        step(t, "├──── ", false, "Route", "laya.momoi.internal is taken"),
+        step(t, "└──── ", true, "Start", "laya-apple serve"),
+    ];
+    for (i, line) in steps.into_iter().enumerate() {
+        put(buf, area, 7 + i as u16, line);
+    }
 }
 
-fn key_line<'a>(t: &Theme, key: &'a str, label: &'a str) -> Line<'a> {
-    Line::from(vec![Span::styled(format!("{key:<11}"), t.link()), Span::styled(label, t.text())])
+fn sidebar_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let side = |focused: bool| {
+        Sidebar::new(t)
+            .head([Line::styled(" self-host ", t.brand()), Line::default(), Line::styled("  momoi.internal", t.muted())])
+            .group("Pages", ["Overview", "Databases", "Routes"].into_iter().enumerate().map(|(i, name)| SideItem::new(name).key(["1", "2", "3"][i])))
+            .group("Applications", ["comfyui", "laya"].map(|name| SideItem::new(name).mark(Span::styled("●", t.success()))))
+            .current(Some(1))
+            .focused(focused)
+    };
+    caption(t, buf, area, 0, "The page has focus");
+    let right = Rect { x: area.x + 30, width: area.width.saturating_sub(30), ..area };
+    put(buf, right, 0, Line::styled("The sidebar has focus", t.muted()));
+    side(false).render(Rect::new(area.x + 1, area.y + 2, 22, area.height.saturating_sub(2)).intersection(area), buf);
+    side(true).render(Rect::new(area.x + 31, area.y + 2, 22, area.height.saturating_sub(2)).intersection(area), buf);
 }
 
 fn help(t: &Theme) -> Modal<'_> {
-    let body = Text::from(vec![
-        Line::styled("Gallery", t.strong()),
-        key_line(t, "↑↓ j k", "Move in the list"),
-        key_line(t, "enter tab", "Focus the pane"),
-        key_line(t, "esc q", "Back to the list"),
-        Line::raw(""),
-        Line::styled("Everywhere", t.strong()),
-        key_line(t, "? F1", "This help"),
-        key_line(t, "a", "Pick the accent"),
-        key_line(t, "q", "Quit from the list"),
-        key_line(t, "ctrl+c", "Quit"),
-    ]);
-    Modal::new(t, "Help").body(body).hints([("any key", "close")])
-}
-
-/// The accent picker: a swatch of each accent's primary and its name. The
-/// highlighted row has the `selected` background; the applied accent is
-/// marked, so color is not the only cue.
-fn accents(t: &Theme, current: usize, highlighted: usize) -> Modal<'_> {
-    let body: Vec<Line> = ACCENTS
-        .iter()
-        .enumerate()
-        .map(|(i, (name, tokens))| {
-            let mark = if i == current { "✓" } else { " " };
-            let row = if i == highlighted { t.selected() } else { Style::new() };
-            Line::from(vec![
-                Span::styled("██ ", Style::new().fg(t.color(tokens.primary))),
-                Span::styled(format!("{name:<12}{mark} "), t.text().patch(row)),
-            ])
-        })
-        .collect();
-    Modal::new(t, "Accent").body(body).width(30).hints([("enter", "apply"), ("esc", "cancel")])
-}
-
-fn confirm(t: &Theme) -> Modal<'_> {
-    let body = vec![
-        Line::raw("This deletes the machine and its disk."),
-        Line::styled("Backups stay for 7 days.", t.muted()),
+    let keys = [
+        ("j k ↑ ↓", "Move in the list, or scroll the page"),
+        ("enter tab", "Focus the page"),
+        ("esc tab", "Back to the components"),
+        ("← →", "Previous or next component"),
+        ("t", "Theme: accent, dark or light"),
+        ("? F1", "This help"),
+        ("q", "Quit from the components"),
+        ("ctrl+c", "Quit"),
     ];
-    Modal::new(t, "Delete pg-main-2?").body(body).hints([("enter", "delete"), ("esc", "cancel")])
+    let lines = keys.map(|(key, label)| Line::from(vec![Span::styled(format!("{key:<12}"), t.text()), Span::styled(label, t.muted())]));
+    Modal::new(t, "Help").width(56).body(lines.to_vec()).hints([("any key", "close")])
 }
 
-fn parse() -> Result<(usize, Option<String>), String> {
-    let (mut accent, mut snapshot) = (7, None);
+fn parse() -> Result<(usize, bool, Option<String>), String> {
+    let (mut accent, mut light, mut snapshot) = (7, false, None);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--accent" => {
                 let name = args.next().ok_or("--accent needs a name")?;
-                accent = ACCENTS.iter().position(|(n, _)| *n == name).ok_or(format!("unknown accent \"{name}\""))?;
+                accent = ACCENTS.iter().position(|a| a.name == name).ok_or(format!("unknown accent \"{name}\""))?;
             }
+            "--light" => light = true,
             "--snapshot" => snapshot = Some(args.next().ok_or("--snapshot needs a directory")?),
             "-h" | "--help" => return Err(String::new()),
             other => return Err(format!("unknown option \"{other}\"")),
         }
     }
-    Ok((accent, snapshot))
+    Ok((accent, light, snapshot))
 }
 
 fn main() -> ExitCode {
-    let (accent, snapshot_dir) = match parse() {
+    let (accent, light, snapshot_dir) = match parse() {
         Ok(options) => options,
         Err(message) => {
             if !message.is_empty() {
@@ -452,9 +583,9 @@ fn main() -> ExitCode {
             return ExitCode::from(if message.is_empty() { 0 } else { 2 });
         }
     };
-    let app = App::new(Theme::new(ACCENTS[accent].1), accent);
+    let tokens = ACCENTS[accent].tokens(light);
     if let Some(dir) = snapshot_dir {
-        return match snapshot(Path::new(&dir), app) {
+        return match snapshot(Path::new(&dir), Theme::truecolor(tokens), accent, light) {
             Ok(count) => {
                 println!("Wrote {count} pages to {dir}");
                 ExitCode::SUCCESS
@@ -472,7 +603,8 @@ fn main() -> ExitCode {
     // ratatui::init enters raw mode and the alternate screen, and restores
     // the terminal on panic.
     let mut terminal = ratatui::init();
-    let result = run(&mut terminal, app);
+    let result = run(&mut terminal, App::new(Theme::new(tokens), accent, light));
+    let _ = set_background(&mut std::io::stdout(), None);
     ratatui::restore();
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -484,7 +616,16 @@ fn main() -> ExitCode {
 }
 
 fn run(terminal: &mut ratatui::DefaultTerminal, mut app: App) -> std::io::Result<()> {
+    let mut out = std::io::stdout();
+    let mut background = None;
     while !app.quit {
+        // The terminal's own background follows the theme, so cells the
+        // widgets leave unpainted show it.
+        let now = Some(app.theme.tokens().background);
+        if now != background {
+            set_background(&mut out, now)?;
+            background = now;
+        }
         terminal.draw(|f| app.draw(f))?;
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
@@ -495,40 +636,52 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut app: App) -> std::io::Result
     Ok(())
 }
 
-/// Writes every page, and the states a page alone does not show, at
-/// 80 by 24 as HTML.
-fn snapshot(dir: &Path, base: App) -> std::io::Result<usize> {
+/// Writes every page at 100 by 30, and the states a page alone does not
+/// show, as HTML.
+fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Result<usize> {
     std::fs::create_dir_all(dir)?;
-    let mut shots = Vec::new();
-    let press = |app: &mut App, codes: &[KeyCode]| {
-        for &code in codes {
-            app.key(KeyEvent::new(code, KeyModifiers::NONE));
-        }
-    };
-    let mut states: Vec<(String, App)> = Vec::new();
-    for (i, name) in PAGES.iter().enumerate() {
-        let mut app = App::new(base.theme, base.accent);
-        app.page = i;
-        states.push((format!("{:02}-{}", i + 1, name.to_lowercase()), app));
+    let code = |c: KeyCode| KeyEvent::new(c, KeyModifiers::NONE);
+    let keys = |text: &str| text.chars().map(|c| code(KeyCode::Char(c))).collect::<Vec<_>>();
+    let mut states: Vec<(String, Vec<KeyEvent>, (u16, u16))> = Vec::new();
+    for (i, (name, _)) in PAGES.iter().enumerate() {
+        let open = [vec![code(KeyCode::Down); i], vec![code(KeyCode::Enter)]].concat();
+        states.push((format!("{:02}-{}", i + 1, name.to_lowercase()), open, SIZE));
     }
-    let mut app = App::new(base.theme, base.accent);
-    press(&mut app, &[KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Enter, KeyCode::Down]);
-    states.push(("07-table-focused".into(), app));
-    let mut app = App::new(base.theme, base.accent);
-    press(&mut app, &[KeyCode::Char('?')]);
-    states.push(("08-help".into(), app));
-    let mut app = App::new(base.theme, base.accent);
-    app.page = MODAL;
-    press(&mut app, &[KeyCode::Enter, KeyCode::Enter]);
-    states.push(("09-confirmation".into(), app));
-    let mut app = App::new(base.theme, base.accent);
-    press(&mut app, &[KeyCode::Char('a'), KeyCode::Up]);
-    states.push(("10-accent".into(), app));
+    let form = [vec![code(KeyCode::Down); FORM], vec![code(KeyCode::Enter)]].concat();
+    states.push(("17-form-typing".into(), [form.clone(), keys("ghcr.io/kiso/app")].concat(), SIZE));
+    states.push(("18-form-select".into(), [form, vec![code(KeyCode::BackTab), code(KeyCode::BackTab), code(KeyCode::Right)]].concat(), SIZE));
+    states.push(("19-sidebar-focus".into(), keys("jjj"), SIZE));
+    states.push(("20-help".into(), keys("?"), SIZE));
+    states.push(("21-theme-picker".into(), [keys("t"), vec![code(KeyCode::Up)]].concat(), SIZE));
+    states.push(("22-light".into(), [keys("t"), vec![code(KeyCode::Right), code(KeyCode::Enter)]].concat(), SIZE));
+    states.push(("23-80-by-24".into(), keys("jjjj"), (80, 24)));
 
-    for (name, mut app) in states {
-        let Ok(mut terminal) = Terminal::new(TestBackend::new(80, 24));
+    // Every page at small sizes, with and without focus and with help, so a
+    // page that writes outside its area fails here, and in CI.
+    for page in 0..PAGES.len() {
+        for (width, height) in [(1, 1), (30, 6), (40, 10), (60, 15), (80, 12), (80, 24)] {
+            for (main, help) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new(theme, accent, light);
+                (app.page, app.main) = (page, main);
+                app.layer = help.then_some(Layer::Help);
+                let Ok(mut terminal) = Terminal::new(TestBackend::new(width, height));
+                let Ok(_) = terminal.draw(|f| app.draw(f));
+            }
+        }
+    }
+
+    let mut shots = Vec::new();
+    for (name, events, (width, height)) in states {
+        let mut app = App::new(theme, accent, light);
+        let Ok(mut terminal) = Terminal::new(TestBackend::new(width, height));
+        for event in events {
+            let Ok(_) = terminal.draw(|f| app.draw(f));
+            app.key(event);
+        }
         let Ok(_) = terminal.draw(|f| app.draw(f));
-        let frame = html::buffer(terminal.backend().buffer());
+        let mut buffer = terminal.backend().buffer().clone();
+        html::opaque(&mut buffer, &app.theme);
+        let frame = html::buffer(&buffer);
         std::fs::write(dir.join(format!("{name}.html")), html::page(&name, &frame))?;
         shots.push((name, frame));
     }
@@ -538,76 +691,5 @@ fn snapshot(dir: &Path, base: App) -> std::io::Result<usize> {
 }
 
 /// A ratatui buffer as HTML: one span per run of equal style.
-mod html {
-    use ratatui::buffer::Buffer;
-    use ratatui::style::{Color, Modifier};
-
-    const LEVELS: [u8; 6] = [0, 95, 135, 175, 215, 255];
-
-    fn css(color: Color) -> Option<String> {
-        let [r, g, b] = match color {
-            Color::Rgb(r, g, b) => [r, g, b],
-            Color::Indexed(i @ 16..=231) => {
-                let i = i - 16;
-                [LEVELS[usize::from(i / 36)], LEVELS[usize::from(i / 6 % 6)], LEVELS[usize::from(i % 6)]]
-            }
-            Color::Indexed(i @ 232..=255) => [8 + 10 * (i - 232); 3],
-            Color::Reset => return None,
-            // Kiso never sends the 16 named colors. Show one loudly.
-            _ => [255, 0, 255],
-        };
-        Some(format!("#{r:02x}{g:02x}{b:02x}"))
-    }
-
-    fn escape(text: &str) -> String {
-        text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
-    }
-
-    pub fn buffer(buffer: &Buffer) -> String {
-        let area = buffer.area;
-        let mut out = String::from("<div class=\"term\">");
-        for y in 0..area.height {
-            out.push_str("<div class=\"row\">");
-            let mut run: Option<(String, String)> = None;
-            for x in 0..area.width {
-                let cell = &buffer[(x, y)];
-                let mut style = String::new();
-                if let Some(c) = css(cell.fg) {
-                    style += &format!("color:{c};");
-                }
-                if let Some(c) = css(cell.bg) {
-                    style += &format!("background:{c};");
-                }
-                if cell.modifier.contains(Modifier::BOLD) {
-                    style += "font-weight:700;";
-                }
-                match &mut run {
-                    Some((s, text)) if *s == style => text.push_str(cell.symbol()),
-                    _ => {
-                        if let Some((s, text)) = run.take() {
-                            out += &format!("<span style=\"{s}\">{}</span>", escape(&text));
-                        }
-                        run = Some((style, cell.symbol().to_owned()));
-                    }
-                }
-            }
-            if let Some((s, text)) = run {
-                out += &format!("<span style=\"{s}\">{}</span>", escape(&text));
-            }
-            out.push_str("</div>");
-        }
-        out + "</div>"
-    }
-
-    pub fn page(title: &str, body: &str) -> String {
-        format!(
-            "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>{}</title><style>{STYLE}</style></head><body>{body}</body></html>",
-            escape(title)
-        )
-    }
-
-    const STYLE: &str = "body{margin:0;padding:8px;background:#151411;color:#eeece9;font:14px/1.5 system-ui,sans-serif}\
-h2{font-size:15px;margin:16px 0 6px}\
-.term{font-family:\"JetBrains Mono\",\"DejaVu Sans Mono\",ui-monospace,monospace;font-size:13px;line-height:17px;white-space:pre;display:inline-block;border:1px solid #494744;font-variant-ligatures:none}\
-.row{height:17px}.row span{display:inline-block;height:17px;vertical-align:top}";
-}
+#[path = "support/html.rs"]
+mod html;
