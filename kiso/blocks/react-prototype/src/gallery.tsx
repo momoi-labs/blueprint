@@ -2049,6 +2049,8 @@ export function ComponentGallery({
   onAccentChange,
   example,
   examples = [],
+  terminal,
+  terminalPages = [],
   intro,
   settingsEnabled = false,
   panel,
@@ -2062,6 +2064,9 @@ export function ComponentGallery({
   onAccentChange: (accent: Accent) => void;
   example?: ReactNode;
   examples?: readonly { id: string; label: string }[];
+  /** The TUI page, at #tui, and its pages for the navigation. */
+  terminal?: ReactNode;
+  terminalPages?: readonly { id: string; label: string }[];
   intro?: ReactNode;
   settingsEnabled?: boolean;
   panel?: ReactNode;
@@ -2070,7 +2075,10 @@ export function ComponentGallery({
   const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
   const demoSettings = useContext(DemoSettingsContext);
   const [optionsLinkTarget, setOptionsLinkTarget] = useState<HTMLSpanElement | null>(null);
-  const [navigationCollapsed, setNavigationCollapsed] = useState(() => route === "intro");
+  const [pagesCollapsed, setPagesCollapsed] = useState(() => route === "intro");
+  // The TUI screen lists its own components, so there the navigation starts
+  // closed, and opening it does not open it on the other pages.
+  const [terminalCollapsed, setTerminalCollapsed] = useState(true);
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1024px)").matches);
   useEffect(() => {
     const media = matchMedia("(min-width: 1024px)");
@@ -2090,7 +2098,10 @@ export function ComponentGallery({
   const selected = route.split("/")[1] || "all";
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
-  const browsing = !showingExample && !showingIntro && selected === "all";
+  const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
+  const navigationCollapsed = showingTerminal ? terminalCollapsed : pagesCollapsed;
+  const setNavigationCollapsed = showingTerminal ? setTerminalCollapsed : setPagesCollapsed;
+  const browsing = !showingExample && !showingIntro && !showingTerminal && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
@@ -2099,6 +2110,10 @@ export function ComponentGallery({
     ? entries
         .filter((entry) => group === "all" || entry[2] === group)
         .sort((a, b) => sizeRank(catalogSize[a[0]]) - sizeRank(catalogSize[b[0]]))
+    : showingTerminal
+    // A TUI page shares names with components, such as table; its hidden
+    // catalog draws nothing, so no demo opens its options.
+    ? []
     : catalog.filter((entry) => entry[0] === selected);
   const CatalogGrid = browsing ? PaneGrid : "div";
   const CatalogPane = browsing ? GridPane : "section";
@@ -2116,9 +2131,11 @@ export function ComponentGallery({
   useEffect(() => {
     if (previousRoute.current === route) return;
     previousRoute.current = route;
+    // A control that changes the route in place keeps the focus.
     if (
       document.activeElement?.getAttribute("aria-label") === "Find a component" ||
-      document.activeElement?.getAttribute("role") === "tab"
+      document.activeElement?.getAttribute("role") === "tab" ||
+      document.activeElement?.hasAttribute("data-keeps-focus")
     )
       return;
     setMenuOpen(false);
@@ -2143,7 +2160,24 @@ export function ComponentGallery({
     window.location.hash = "components";
   }
 
-  const destinations = showingExample && examples.length > 0 ? (
+  const destinations = showingTerminal ? (
+    <Navigation aria-label="Terminal components">
+      <NavigationGroup label="TUI">
+        <NavigationList>
+          {terminalPages.map((page, index) => (
+            <NavigationItem key={page.id}>
+              <NavigationLink
+                href={`#tui/${page.id}`}
+                active={selected === page.id || (selected === "all" && index === 0)}
+              >
+                {page.label}
+              </NavigationLink>
+            </NavigationItem>
+          ))}
+        </NavigationList>
+      </NavigationGroup>
+    </Navigation>
+  ) : showingExample && examples.length > 0 ? (
     <Navigation aria-label="Example layouts">
       <NavigationGroup label="Layouts">
         <NavigationList>
@@ -2246,13 +2280,20 @@ export function ComponentGallery({
                 </NavigationItem>
               )}
               <NavigationItem>
-                <NavigationLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
+                <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal} onClick={showAll}>
                   Components
                 </NavigationLink>
               </NavigationItem>
               {example !== undefined && (
                 <NavigationItem>
                   <NavigationLink href="#example" active={showingExample}>Layouts</NavigationLink>
+                </NavigationItem>
+              )}
+              {terminal !== undefined && (
+                <NavigationItem>
+                  <NavigationLink href="#tui" active={showingTerminal}>
+                    TUI <Badge variant="info">New</Badge>
+                  </NavigationLink>
                 </NavigationItem>
               )}
             </NavigationList>
@@ -2291,9 +2332,9 @@ export function ComponentGallery({
           </div>
           </>}
         </Header>
-        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
-          {!browsing && !showingExample && (
+          {!browsing && !showingExample && !showingTerminal && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -2324,7 +2365,7 @@ export function ComponentGallery({
           )}
           <PageHeader
             actions={
-              showingExample ? undefined : browsing ? (
+              showingExample || showingTerminal ? undefined : browsing ? (
                 <p className="muted t-label" role="status">
                   {visible.length} {visible.length === 1 ? "component" : "components"}
                 </p>
@@ -2336,6 +2377,8 @@ export function ComponentGallery({
             <PageHeaderTitle tabIndex={-1}>
               {showingExample
                 ? "Layout examples"
+                : showingTerminal
+                ? "TUI gallery"
                 : browsing
                 ? group === "all" ? "Component gallery" : group
                 : current?.[1] || "Component not found"}
@@ -2343,16 +2386,19 @@ export function ComponentGallery({
             <PageHeaderDescription>
               {showingExample
                 ? "Complete interface examples, composed with Kiso components."
+                : showingTerminal
+                ? "Kiso in a terminal, drawn by tui-kiso with ratatui. The gallery follows your accent and theme."
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
-              {!browsing && !showingExample && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
+              {!browsing && !showingExample && !showingTerminal && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
-        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro}>
+        {terminal !== undefined && <div hidden={!showingTerminal}>{terminal}</div>}
+        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal}>
           {visible.map(([id, name, category, description]) => (
             <CatalogPane
               id={id}
@@ -2403,14 +2449,18 @@ export function ComponentGallery({
             </CatalogPane>
           ))}
         </CatalogGrid>
-        {!showingExample && !showingIntro && visible.length === 0 && (
+        {!showingExample && !showingIntro && !showingTerminal && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
         <p className="muted t-label catalog-footnote" hidden={showingIntro}>
-          {showingExample ? "Visual examples only. Actions do not save or send data." : "Preview only. All actions use sample data."}
+          {showingExample
+            ? "Visual examples only. Actions do not save or send data."
+            : showingTerminal
+            ? "Snapshots of the tui-kiso gallery. Run it in a terminal to try every key."
+            : "Preview only. All actions use sample data."}
         </p>
         </div>
       </AppShellMain>
@@ -2421,7 +2471,7 @@ export function ComponentGallery({
             <span className="bottom-nav-icon" aria-hidden="true"><BookOpen className="icon" /></span>
             <span>Intro</span>
           </BottomNavLink>}
-          <BottomNavLink href="#components" active={!showingExample && !showingIntro} onClick={showAll}>
+          <BottomNavLink href="#components" active={!showingExample && !showingIntro && !showingTerminal} onClick={showAll}>
             <span className="bottom-nav-icon" aria-hidden="true"><Boxes className="icon" /></span>
             <span>Components</span>
           </BottomNavLink>
@@ -2438,13 +2488,25 @@ export function ComponentGallery({
         </BottomNav>
         <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
           <DrawerContent placement="bottom" className="catalog-sheet">
-            <DrawerHeader><DrawerTitle>{showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></DrawerHeader>
+            <DrawerHeader><DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></DrawerHeader>
             <DrawerBody
               onClick={(event) => {
                 if ((event.target as Element).closest("a[href]")) setMenuOpen(false);
               }}
             >
               {destinations}
+              {/* The bottom bar has no room for a fifth page. */}
+              {terminal !== undefined && !showingTerminal && (
+                <Navigation aria-label="More pages">
+                  <NavigationList>
+                    <NavigationItem>
+                      <NavigationLink href="#tui">
+                        TUI gallery <Badge variant="info">New</Badge>
+                      </NavigationLink>
+                    </NavigationItem>
+                  </NavigationList>
+                </Navigation>
+              )}
               {version && <Link className="catalog-version t-label mono"
                 href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
                 target="_blank" rel="noreferrer">
