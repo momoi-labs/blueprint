@@ -68,6 +68,8 @@ footer adds its own `@page report` rule after Kiso's.
 - **Panels.** Pass `static` to DashboardGrid. Panels stack in one column at
   full width, in layout order, and have nothing to move or resize. A panel
   avoids a page break inside it; a panel taller than a page still splits.
+  A panel holds one chart: its title names it, so the chart's caption hides
+  even when the chart is wrapped.
 
 A section that a screen also shows may stay a Disclosure. Pass `open`: in a
 report the summary has no marker, so a closed section would look empty.

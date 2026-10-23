@@ -2785,9 +2785,10 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 
 /* Metrics dashboard, issue #93. Series colors encode identity, not status. */
 .framed-chart { margin: 0; display: grid; gap: var(--spacing-sm); min-width: 0; }
-/* A pane's title already names the chart it holds, wherever the chart sits
-   in the pane. The caption stays for assistive technology. */
-.grid-pane-body .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A pane's title already names the chart it holds. The caption stays for
+   assistive technology. A report holds one chart per pane, so there the
+   caption also hides when the chart is wrapped. */
+.grid-pane-body > .framed-chart > figcaption, .report .grid-pane-body .framed-chart > figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .chart-plot { position: relative; width: 100%; min-width: 0; font-size: var(--type-size-metadata); }
 .chart-plot :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
