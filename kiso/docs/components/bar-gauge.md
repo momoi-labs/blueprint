@@ -14,6 +14,7 @@ the same unit and precision to every known value. Preserve row order across
 refreshes so a reader can compare changes. Bars clip at their bounds while
 text retains the actual number. A missing row value reads "Not collected";
 zero draws an empty track. An empty group reads "No measurements."
+`labels` localizes both with `notCollected` and `empty`.
 
 ## Accessibility
 

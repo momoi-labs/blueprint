@@ -52,8 +52,6 @@ export function validateChart(data: readonly ChartSample[], series: readonly Cha
 export type ChartSummaryStat = "min" | "max" | "avg" | "current" | "p50" | "p75" | "p90" | "p95" | "p99"
 export const chartSummaryStats: readonly ChartSummaryStat[] = ["min", "max", "avg", "current", "p50", "p75", "p90", "p95", "p99"]
 export const defaultChartSummary: readonly ChartSummaryStat[] = ["min", "max", "avg", "current"]
-export const chartSummaryLabel = (stat: ChartSummaryStat) =>
-  stat.startsWith("p") ? stat : stat[0].toUpperCase() + stat.slice(1)
 
 /** Linear interpolation between the closest ranks of sorted values. */
 function percentile(sorted: readonly number[], fraction: number) {

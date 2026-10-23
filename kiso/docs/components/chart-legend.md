@@ -33,6 +33,14 @@ zero remains zero. An empty window retains the named series and headers.
 the table. The chart's exact-values table preserves unrounded source data.
 The legend alone is a summary, not a replacement for the full sample table.
 
+## Labels
+
+`labels` localizes the fixed text: `series` (the first column header),
+`notCollected`, `current` (the current column and the inline and sidebar
+caption) and one key per summary column, `min`, `max`, `avg`, `p50`, `p75`,
+`p90`, `p95` and `p99`. Defaults are "Series", "Not collected", "Current",
+"Min", "Max", "Avg" and the percentile names. The `label` prop is the caption.
+
 ## Accessibility and behavior
 
 Use native table, caption, column headers, and row headers. Numeric cells align

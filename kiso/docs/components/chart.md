@@ -102,6 +102,23 @@ announcement on every background refresh. Keep series labels descriptive.
 - Error: compose an [Alert](alert.md) with the cause and retry action. Label
   retained data as stale. An empty chart is not an error message.
 
+## Labels
+
+`labels` localizes the fixed text: `notCollected`, `empty`, `timestamp`,
+`values` (the exact values disclosure) and `help` (the plot's keyboard
+instructions). `summary(label)` and `samples(label)` build the captions of the
+legend and the exact table from the chart label. Chart passes `labels` on to
+[ChartLegend](chart-legend.md#labels), so one object also sets the legend's
+keys. Defaults are the English text above. Errors for invalid props stay in
+English.
+
+```tsx
+<Chart label="CPU (%)" data={samples} series={series} labels={{
+  notCollected: "Não coletado", empty: "Nenhuma amostra coletada nesta janela.",
+  summary: label => `${label}: resumo`, current: "Atual",
+}} />
+```
+
 ## Print
 
 A Chart measures its width when it draws and does not redraw for print.

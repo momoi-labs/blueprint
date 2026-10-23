@@ -1,19 +1,23 @@
 import * as React from "react"
 import { clsx as cn } from "clsx"
 
+const defaultMeterLabels = { notCollected: "Not collected" }
+const defaultProgressLabels = { inProgress: "In progress" }
+
 export type MeterProps = Omit<React.ComponentProps<"div">, "children"> & {
   label: string
   value: number | null
   min?: number
   max?: number
   valueText?: string
+  labels?: Partial<typeof defaultMeterLabels>
 }
 
-export function Meter({ label, value, min = 0, max = 100, valueText, className, ...props }: MeterProps) {
+export function Meter({ label, value, min = 0, max = 100, valueText, labels, className, ...props }: MeterProps) {
   if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) throw new RangeError("Meter max must exceed min.")
   const known = value !== null && Number.isFinite(value)
   const bounded = known ? Math.min(max, Math.max(min, value)) : undefined
-  const text = valueText ?? (known ? `${value} / ${max}` : "Not collected")
+  const text = valueText ?? (known ? `${value} / ${max}` : { ...defaultMeterLabels, ...labels }.notCollected)
   return <div {...props} data-slot="meter" className={cn("meter", className)}>
     <div className="meter-label"><span>{label}</span><span>{text}</span></div>
     <div role={known ? "meter" : undefined} aria-label={label}
@@ -25,11 +29,14 @@ export function Meter({ label, value, min = 0, max = 100, valueText, className, 
   </div>
 }
 
-export type ProgressProps = Omit<MeterProps, "min" | "value"> & { value?: number | null }
-export function Progress({ label, value, max = 100, valueText, className, ...props }: ProgressProps) {
+export type ProgressProps = Omit<MeterProps, "min" | "value" | "labels"> & {
+  value?: number | null
+  labels?: Partial<typeof defaultProgressLabels>
+}
+export function Progress({ label, value, max = 100, valueText, labels, className, ...props }: ProgressProps) {
   if (!Number.isFinite(max) || max <= 0) throw new RangeError("Progress max must be positive.")
   const known = value != null && Number.isFinite(value)
-  const text = valueText ?? (known ? `${value} / ${max}` : "In progress")
+  const text = valueText ?? (known ? `${value} / ${max}` : { ...defaultProgressLabels, ...labels }.inProgress)
   return <div {...props} data-slot="progress" className={cn("meter", className)}>
     <div className="meter-label"><span>{label}</span><span>{text}</span></div>
     <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max}
