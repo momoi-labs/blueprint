@@ -61,16 +61,18 @@ impl<'a> StatusBadge<'a> {
     }
 }
 
-impl<'a> From<StatusBadge<'a>> for Line<'a> {
-    fn from(badge: StatusBadge<'a>) -> Self {
+// The spans own their text, so the line can outlive the theme it was
+// styled with.
+impl<'a> From<StatusBadge<'_>> for Line<'a> {
+    fn from(badge: StatusBadge<'_>) -> Self {
         let style = badge.style();
         let mark = badge.spec.mark();
         Line::from(vec![Span::styled(mark, style), Span::raw(" "), Span::styled(badge.spec.label, style)])
     }
 }
 
-impl<'a> From<StatusBadge<'a>> for Cell<'a> {
-    fn from(badge: StatusBadge<'a>) -> Self {
+impl<'a> From<StatusBadge<'_>> for Cell<'a> {
+    fn from(badge: StatusBadge<'_>) -> Self {
         Cell::from(Line::from(badge))
     }
 }

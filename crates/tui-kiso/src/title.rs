@@ -59,12 +59,21 @@ pub struct Tabs<'a> {
     theme: &'a Theme,
     labels: Vec<String>,
     current: usize,
+    numbered: bool,
 }
 
 impl<'a> Tabs<'a> {
     /// Views by label, such as "Waiting 3", and the current one.
     pub fn new(theme: &'a Theme, labels: impl IntoIterator<Item = impl Into<String>>, current: usize) -> Self {
-        Self { theme, labels: labels.into_iter().map(Into::into).collect(), current }
+        Self { theme, labels: labels.into_iter().map(Into::into).collect(), current, numbered: true }
+    }
+
+    /// Hides the numbers, for a screen where number keys mean something
+    /// else, such as the tabs of a detail page moved with `[` and `]`.
+    #[must_use]
+    pub fn numbered(mut self, numbered: bool) -> Self {
+        self.numbered = numbered;
+        self
     }
 
     /// The row `width` cells wide. When the views do not fit, the ones
@@ -72,7 +81,8 @@ impl<'a> Tabs<'a> {
     pub fn line(&self, width: usize) -> Line<'static> {
         let t = self.theme;
         let short = |i: usize, label: &str| {
-            vec![Span::styled(format!(" {} ", i + 1), t.subtle()), Span::styled(format!("{label} "), t.muted())]
+            let number = if self.numbered { format!(" {} ", i + 1) } else { " ".to_owned() };
+            vec![Span::styled(number, t.subtle()), Span::styled(format!("{label} "), t.muted())]
         };
         let cost = |i: usize| short(i, &self.labels[i]).iter().map(Span::width).sum::<usize>() + 1;
         // The current view keeps its label and a few cells of line.
@@ -127,6 +137,13 @@ mod tests {
         Title::new(&theme, "Logs").render(Rect::new(0, 0, 10, 0), &mut buf);
         Tabs::new(&theme, ["A"], 0).render(Rect::new(0, 1, 10, 1), &mut buf);
         assert_eq!(buf[(0, 0)].symbol(), " ");
+    }
+
+    #[test]
+    fn tabs_can_hide_their_numbers() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let line = Tabs::new(&theme, ["laya · Summary", "Routes", "Logs"], 0).numbered(false).line(50);
+        assert!(line.to_string().ends_with("  Routes   Logs  "), "{line}");
     }
 
     #[test]

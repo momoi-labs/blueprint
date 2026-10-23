@@ -132,6 +132,18 @@ impl Page {
         self.items.len()
     }
 
+    /// Where `item` shows when the page was last drawn in `view` with
+    /// `scroll`: the rows of it on screen, or None when it is scrolled out.
+    /// Call it after drawing, to anchor a [`Menu`](crate::Menu) to the
+    /// selected row.
+    pub fn item_area(&self, item: usize, view: Rect, scroll: &Scroll) -> Option<Rect> {
+        let range = self.items.get(item)?;
+        let offset = scroll.offset();
+        let start = range.start.max(offset);
+        let end = range.end.min(offset + usize::from(view.height));
+        (start < end).then(|| Rect::new(view.x, view.y + (start - offset) as u16, view.width, (end - start) as u16))
+    }
+
     /// The page as a widget, scrolled by `scroll`.
     pub fn view<'a>(&'a self, theme: &'a Theme, scroll: &'a Scroll) -> PageView<'a> {
         PageView { page: self, theme, scroll, selected: None, mark: Mark::Bar, border: None }
@@ -330,6 +342,19 @@ mod tests {
         page.view(&theme, &scroll).selected(Some(0)).render(Rect::new(0, 0, 0, 1), &mut buf);
         let mut edge = Buffer::empty(Rect::new(65534, 0, 1, 1));
         page.view(&theme, &scroll).selected(Some(0)).render(Rect::new(65534, 0, 1, 1), &mut edge);
+    }
+
+    #[test]
+    fn item_area_follows_the_scroll() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let (page, scroll) = (page(20), Scroll::default());
+        let view = Rect::new(2, 3, 20, 5);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 10));
+        scroll.follow();
+        page.view(&theme, &scroll).selected(Some(12)).render(view, &mut buf);
+        assert_eq!(page.item_area(12, view, &scroll), Some(Rect::new(2, 7, 20, 1)));
+        assert_eq!(page.item_area(0, view, &scroll), None);
+        assert_eq!(page.item_area(99, view, &scroll), None);
     }
 
     #[test]
