@@ -62,6 +62,16 @@ focus trap, background inertness, and focus return. `Escape` closes when safe;
 `Tab` stays inside. Swipe/drag dismissal must have an equivalent Close Button,
 must not be the only way out, and must not discard work accidentally.
 
+## Terminal
+
+A terminal has no drawer. A record's details open as a page in place of
+the list, as pg-probe opens a query: a side panel would leave the list too
+narrow. The page has the record's name on the title line, its facts as
+`tui-kiso` `fact` rows, and sections for what it did, such as a failure in
+a code block. `Esc` and `q` go back to the list as it was: the same search,
+filters, selected row and scroll. See
+[terminal interfaces](../terminal-interfaces.md#layout).
+
 ## When to use
 
 - A Modal task that needs a small-viewport, edge-to-edge presentation.

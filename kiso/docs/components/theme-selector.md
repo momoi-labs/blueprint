@@ -118,6 +118,16 @@ server round-trip to repaint, and do not show a Toast for it.
 - The control must remain operable at the current theme's contrast in both
   themes; it is chrome, so it is gated like any other control.
 
+## Terminal
+
+In a terminal, the theme selector is `tui-kiso` `ThemePicker`, in a
+[Modal](modal-dialog.md) titled Theme: dark or light on top, then each
+accent with its `primary` fill, its gradient and its name. The accent under
+the cursor is the selected row, and the screen redraws in that theme as
+the person moves. `↑` `↓` pick the accent, `←` `→` dark or light, `Enter`
+keeps it and `Esc` puts the theme before back. Dark is the default; see
+[terminal interfaces](../terminal-interfaces.md#color).
+
 ## When NOT to use
 
 - A single "dark mode" Switch. A boolean cannot express "follow the system",

@@ -125,6 +125,20 @@ properties for group headings.
 | `Escape` | Close without activating. |
 | `Tab` | Generally stays within the palette (focus trap) while open; do not tab into the page behind a modal palette. |
 
+## Terminal
+
+In a terminal, the palette is `tui-kiso` `Palette`, in a
+[Modal](modal-dialog.md) titled Commands. The filter is on top, after a
+bold `primary` `>`, with the placeholder "Type to filter" while empty.
+Each command has its key on the right in `muted-foreground`. The selected
+command is filled: `primary-foreground` on `primary`. "No command
+matches." stands in for an empty list.
+
+`Ctrl+P` opens it, and `:` is an alias outside a text field. Typing
+filters, `↑` `↓` move, `Enter` runs the command and `Esc` closes. The
+product lists only the commands that apply where the person is. See
+[terminal interfaces](../terminal-interfaces.md#keys).
+
 ## When to use
 
 - App-wide command and navigation entry (user stories #5, #19, #20).

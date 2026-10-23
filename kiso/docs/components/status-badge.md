@@ -63,9 +63,12 @@ label, both in the tone's color. It converts into a line or a table cell.
 | `danger` | ● | `danger-on-dark` |
 | `neutral` | ○ | `muted-foreground` |
 
-The terminal does not animate the pulse; ◐ marks work that is going. The
-label always names the state, so color never carries it alone. On a
-selected table row, a label that misses contrast takes bold `foreground`.
+The terminal does not animate the pulse; ◐ marks work that is going, such
+as an application stopping, while a spinner runs next to it on the page.
+The label always names the state, so color never carries it alone. On a
+selected table row, a `success` or `danger` label that misses contrast
+takes bold `foreground`; a `neutral` label takes plain `foreground`, as
+other secondary text does, and its `○` and word still name the state.
 StatusBadge has no keys.
 
 ## When to use

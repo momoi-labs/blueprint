@@ -71,16 +71,20 @@ control. Clicking the overlay may close only when losing work is impossible.
 
 ## Terminal
 
-In a terminal, Modal is `tui-kiso` `Modal`: a popup centered over the page.
-It clears the cells beneath it and has an `elevated-surface` fill, a
-`border` frame and a bold `foreground` title. Its own key hints sit in the
-bottom frame, key in `link` and label in `muted-foreground`. It fits in 80
-by 24.
+In a terminal, Modal is `tui-kiso` `Modal`: a dialog centered over the
+page, and the one framed element on screen. It clears the cells beneath it
+and draws a rounded `primary` frame on `background`, with two columns of
+padding at the sides. The title is bold `primary` in the top border, and
+the dialog's own key hints sit in the bottom border. There is no shadow and
+the page under it is not dimmed. It fits in 80 by 24.
 
-Use it for help and confirmations. Help opens with `?` or `F1`, and any key
-closes it. A confirmation shows its keys, such as `Enter` to confirm and
-`Esc` to cancel. `q` and `Esc` close one layer at a time, and `Ctrl+C`
-quits from anywhere. See [terminal interfaces](../terminal-interfaces.md).
+Use it for help, questions, pickers, the command palette and short forms.
+`tui-kiso` `Question` lays out a question: facts, a block on `card` with
+what will happen, then [buttons](button.md). Focus starts on the safe
+answer, `←` `→` move between the buttons, and each button's first letter
+takes it. Help opens with `?` or `F1`, and any key closes it. `q` and
+`Esc` close one layer at a time, and `Ctrl+C` quits from anywhere. See
+[terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

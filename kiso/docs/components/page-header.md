@@ -83,6 +83,15 @@ then actions even when visual layout places actions beside the title. Button
 labels must state their actions. Do not put navigation controls here merely to
 fill space.
 
+## Terminal
+
+In a terminal, the page header is `tui-kiso` `Title` on the first row: the
+title in bold `foreground` in the middle of the title line, across the
+page. The line is a heavy `━` in `primary` by default, and the product can
+pick another pattern and ink with `Theme::with_look`. A description in
+`muted-foreground` goes on the next row, then a blank row before the page.
+See [terminal interfaces](../terminal-interfaces.md#surfaces).
+
 ## When to use
 
 - At the start of a routed page or a primary workspace view.

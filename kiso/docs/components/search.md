@@ -109,6 +109,17 @@ Clear control: [IconButton](icon-button.md) `ghost` `sm`, `aria-label`
 [CommandPalette](command-palette.md) unless the product explicitly documents
 a different global binding.
 
+## Terminal
+
+In a terminal, search is `tui-kiso` `Search`, on the lists of the page.
+`/` starts it, and the footer starts with a bold `primary` `/`, the query,
+a block cursor while typing and the number of matches. Each letter filters
+the lists: the match is marked in bold, underlined `primary`, a section's
+count becomes "3 of 5", and a section with no match hides. A page with no
+match says "Nothing matches" with the query. `Enter` keeps the search,
+`Esc` clears it and `↑` `↓` move while typing. See
+[terminal interfaces](../terminal-interfaces.md#keys).
+
 ## When to use
 
 - Filtering rows in a Table/DataTable toolbar.

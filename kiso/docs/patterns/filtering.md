@@ -141,6 +141,24 @@ When filters exclude everything:
 - No-matches [EmptyState](../components/empty-state.md) must be reachable and
   announced; keep filter controls in the tab order so the person can adjust.
 
+## Terminal
+
+In a terminal, filters are `tui-kiso` `Filters`: faceted filters, one
+select per facet, each starting on "All". They compose selects, not a
+[FilterInput](../components/filter-input.md) expression, and the page
+follows each change. `f` opens them in a [Modal](../components/modal-dialog.md),
+one row per facet with its label in a column. `↑` `↓` choose the facet,
+`←` `→` its value, `Enter` keeps the filters and `Esc` puts back the ones
+from before, with the selected row.
+
+While any facet filters the list, the row under the page's description
+reads "Filtered by" and each facet with its value, then `f edit` and
+`esc clear filters`. A row shows when it passes the search and every facet,
+and a section's count reads "3 of 5". On the page, `Esc` clears the search
+first, then the filters. Filters belong to one list: they stay while a
+record's details are open and clear when another page opens. See
+[terminal interfaces](../terminal-interfaces.md#keys).
+
 ## Related patterns
 
 - [Search](search.md) — free-text narrowing that composes with filters.

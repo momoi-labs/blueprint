@@ -132,6 +132,19 @@ corner marks. Padding `--spacing-xs` around the list; item padding
 | `Escape` | Close menu; return focus to trigger. |
 | Typeahead | Focus the item matching typed characters when supported. |
 
+## Terminal
+
+In a terminal, the actions of a row are `tui-kiso` `Menu`, the terminal
+form of a `⋯` menu. `a` opens it: a small rounded `primary` frame right
+under the selected row, or above it when there is no room below, titled
+with what it acts on. Each action has its key on the right in
+`muted-foreground`. The selected action is filled with `primary`; a
+destructive action is in `danger-on-dark`, and selected it takes the
+`danger` fill with `danger-foreground`. `↑` `↓` and `Enter`, or an
+action's key, run one, and `Esc` closes. A copy action sends the text with
+OSC 52 and says what it copied in a toast, since some terminals block the
+clipboard. See [terminal interfaces](../terminal-interfaces.md#layout).
+
 ## When to use
 
 - Overflow / kebab actions on a table row, Card, or list item.

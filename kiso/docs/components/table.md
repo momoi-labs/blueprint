@@ -284,16 +284,17 @@ headings and `.num` cells too, so a wide table fits the sheet. A
 
 ## Terminal
 
-In a terminal, Table is `tui-kiso` `Table`: one line per row on
-`background`, with no frame. The header row is bold `foreground` on `muted`
-and spans the full width. Numeric columns align right, header included.
-Cells keep their role colors, such as `muted-foreground` for secondary text
-and a [StatusBadge](status-badge.md) for state.
+In a terminal, Table is `tui-kiso` `Table`: one line per row, two columns
+in, with no frame and no fill. The column titles are `subtle-foreground`.
+Numeric columns align right, titles included. Cells keep their role
+colors, such as `muted-foreground` for secondary text and a
+[StatusBadge](status-badge.md) for state. On a scrolling page, `tui-kiso`
+`Columns` lays out the same rows as items of a `Page`.
 
 | State | Terminal form |
 | --- | --- |
 | default | No row is selected. |
-| selected | Only the background changes, to `selected`. A cell below 4.5:1 for text or 3:1 for a mark on `selected` takes `foreground`, and a status word that loses its color turns bold. |
+| selected | A `primary` `▌` in the first column, and the background turns `selected`. A cell below 4.5:1 for text or 3:1 for a mark on `selected` takes `foreground`, and a status word in a state color that loses it turns bold. |
 
 `↑` `↓` and `j` `k` move the selected row. The product owns other keys,
 such as `Enter` to open a row. See
