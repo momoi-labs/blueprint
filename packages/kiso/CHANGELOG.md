@@ -1,5 +1,39 @@
 # @momoi-labs/kiso
 
+## 1.0.0
+
+### Major Changes
+
+- bae614e: The terminal contract now follows the Crush-style look of `tui-kiso`, and
+  products built on the old rules no longer match it. Breaking: the screen
+  stays unpainted, with the terminal's colors set by OSC 11 and OSC 10;
+  sections are a title and a rule, not a filled bar; the selected row gets a
+  `▌`; dialogs have a rounded `primary` frame on `background`, not an
+  elevated fill; key hints show the key in `foreground`; and `Ctrl+P` opens
+  the command palette, with `:` as an alias and `Ctrl+K` no longer used.
+  
+  The contract adds the sidebar, scrolling, forms, the `/` search, faceted
+  filters on `f`, record details as a page, tabs on a detail page, row actions
+  on `a`, the order in which keys reach each layer, and how work in progress
+  shows. A light theme is allowed when the person picks it. Button, Form,
+  Command palette, Sidebar, Toast, Spinner, Tabs, Page header, Search, Theme
+  selector, Step list, Dropdown menu and Drawer gain or update a Terminal
+  section, and the filtering pattern gains one.
+
+### Minor Changes
+
+- 53a47fa: Chart, ChartLegend, BarGauge, Meter and Progress take a `labels` prop that
+  localizes their fixed text, such as "Not collected", the summary column
+  headers and the exact values disclosure. Chart passes its labels on to
+  ChartLegend. The defaults keep the current English text.
+- 6906cd7: The terminal contract now points Rust products at the `tui-kiso` crate and
+  settles its open questions: a selected row changes only its background and
+  falls back to `foreground` where a role misses contrast on `selected`, help
+  is a popup, `Ctrl+C` asks before it stops a running job, `:` opens the
+  command palette, and the footer drops hints from the right. Header, Table,
+  StatusBadge, Modal and the keyboard shortcuts pattern gain a Terminal
+  section.
+
 ## 0.26.0
 
 ### Minor Changes
