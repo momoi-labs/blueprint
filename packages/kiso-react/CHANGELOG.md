@@ -1,5 +1,23 @@
 # @momoi-labs/kiso-react
 
+## 0.22.0
+
+### Minor Changes
+
+- 53a47fa: Chart, ChartLegend, BarGauge, Meter and Progress take a `labels` prop that
+  localizes their fixed text, such as "Not collected", the summary column
+  headers and the exact values disclosure. Chart passes its labels on to
+  ChartLegend. The defaults keep the current English text.
+
+### Patch Changes
+
+- ae0a341: StatusBadge props now come from the shared spec in `crates/kiso-core`. The
+  public types are unchanged.
+- Updated dependencies [53a47fa]
+- Updated dependencies [bae614e]
+- Updated dependencies [6906cd7]
+  - @momoi-labs/kiso@1.0.0
+
 ## 0.21.0
 
 ### Minor Changes
