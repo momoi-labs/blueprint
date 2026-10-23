@@ -7,6 +7,7 @@ on:
       - "package-lock.json"
       - "tokens/**"
       - "crates/**"
+      - "apps/kiso-gallery/src/generated/**"
       - "kiso/docs/components/**"
       - "style-dictionary.config.*"
       - "scripts/**"
@@ -62,6 +63,10 @@ jobs:
         run: |
           cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --snapshot "$RUNNER_TEMP/tui-kiso"
           test -s "$RUNNER_TEMP/tui-kiso/index.html"
+      - name: Check the site's copy of the tui-kiso gallery
+        run: |
+          cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --json apps/kiso-gallery/src/generated/tui-gallery.json
+          git diff --exit-code -- apps/kiso-gallery/src/generated/tui-gallery.json
 
   contrast:
     name: Check AA contrast

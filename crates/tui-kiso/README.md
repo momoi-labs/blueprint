@@ -76,3 +76,12 @@ cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
 Add `--accent <name>` or `--light` to try another theme, or
 `--snapshot <dir>` to write every page at 100 by 30, and one at 80 by 24,
 as HTML without a terminal.
+
+The Kiso site shows the gallery under TUI, from
+`apps/kiso-gallery/src/generated/tui-gallery.json`. After a change to a
+widget or to the gallery, write it again and commit it; CI fails while it
+is out of date:
+
+```sh
+cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --json apps/kiso-gallery/src/generated/tui-gallery.json
+```
