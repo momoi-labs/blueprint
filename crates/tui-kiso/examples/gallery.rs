@@ -1,14 +1,14 @@
 //! A gallery of every component in the crate, like the web gallery.
 //!
 //! Run: cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
-//! Options: --accent <name>, --light, --snapshot <dir>
+//! Options: --accent <name>, --light, --snapshot <dir>, --json <file>
 
 use std::io::IsTerminal;
 use std::path::Path;
 use std::process::ExitCode;
 
 use ratatui::backend::TestBackend;
-use ratatui::buffer::Buffer;
+use ratatui::buffer::{Buffer, Cell};
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::layout::{Constraint, Rect};
 use ratatui::style::Style;
@@ -52,14 +52,34 @@ const FILTERS: usize = 16;
 const SIZE: (u16, u16) = (100, 30);
 
 const USAGE: &str = "\
-Usage: gallery [--accent <name>] [--light] [--snapshot <dir>]
+Usage: gallery [--accent <name>] [--light] [--snapshot <dir>] [--json <file>]
 
   --accent <name>    violet, terracotta, teal, cobalt, nocturne, tangerine,
                      red, gold or lime. Default: gold.
   --light            Start with the light theme.
   --256              Send xterm-256 colors, as on a terminal without
                      truecolor.
-  --snapshot <dir>   Write every page at 100 by 30 as HTML, then exit.";
+  --snapshot <dir>   Write every page at 100 by 30 as HTML, then exit.
+  --json <file>      Write every page and state in every theme as JSON for
+                     the Kiso site, then exit.";
+
+/// The states the Kiso site shows under a page, after the page itself.
+const SITE_STATES: [(&str, usize, &str); 14] = [
+    ("21-form-select", FORM, "Changed select"),
+    ("20-form-typing", FORM, "Typing"),
+    ("23-help", 10, "Help over a page"),
+    ("29-help-80", 10, "At 80 by 24"),
+    ("32-question-80", 11, "At 80 by 24"),
+    ("31-palette-80", 12, "At 80 by 24"),
+    ("24-theme-picker", 13, "Previewing an accent"),
+    ("30-picker-80", 13, "At 80 by 24"),
+    ("22-sidebar-focus", 15, "With focus"),
+    ("28-80-by-24", 15, "Hidden at 80 by 24"),
+    ("26-filter-editor", FILTERS, "Editing"),
+    ("27-filtered", FILTERS, "Filtered"),
+    ("34-filters-80", FILTERS, "Editing at 80 by 24"),
+    ("33-menu-80", 17, "At 80 by 24"),
+];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Layer {
@@ -178,7 +198,7 @@ impl App {
         let screen = f.area();
         let buf = f.buffer_mut();
         // No fill: the terminal's background, set with OSC 11, shows through.
-        let body = Rect::new(screen.x + 2, screen.y, screen.width.saturating_sub(4), screen.height.saturating_sub(1));
+        let body = body(screen);
         let foot = Rect::new(body.x, screen.bottom().saturating_sub(1), body.width, 1);
         let sidebar = self.sidebar();
         let (side, main) = sidebar.split(body, Side::Left);
@@ -676,8 +696,11 @@ fn help(t: &Theme) -> Modal<'_> {
     Modal::new(t, "Help").width(56).body(lines.to_vec()).hints([("any key", "close")])
 }
 
-fn parse() -> Result<(usize, bool, bool, Option<String>), String> {
-    let (mut accent, mut light, mut xterm, mut snapshot) = (7, false, false, None);
+/// The accent, light, 256 colors, and where to write a snapshot or JSON.
+type Options = (usize, bool, bool, Option<String>, Option<String>);
+
+fn parse() -> Result<Options, String> {
+    let (mut accent, mut light, mut xterm, mut snapshot, mut json) = (7, false, false, None, None);
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -688,15 +711,16 @@ fn parse() -> Result<(usize, bool, bool, Option<String>), String> {
             "--light" => light = true,
             "--256" => xterm = true,
             "--snapshot" => snapshot = Some(args.next().ok_or("--snapshot needs a directory")?),
+            "--json" => json = Some(args.next().ok_or("--json needs a file")?),
             "-h" | "--help" => return Err(String::new()),
             other => return Err(format!("unknown option \"{other}\"")),
         }
     }
-    Ok((accent, light, xterm, snapshot))
+    Ok((accent, light, xterm, snapshot, json))
 }
 
 fn main() -> ExitCode {
-    let (accent, light, xterm, snapshot_dir) = match parse() {
+    let (accent, light, xterm, snapshot_dir, json) = match parse() {
         Ok(options) => options,
         Err(message) => {
             if !message.is_empty() {
@@ -707,6 +731,18 @@ fn main() -> ExitCode {
         }
     };
     let tokens = ACCENTS[accent].tokens(light);
+    if let Some(file) = json {
+        return match export(Path::new(&file), accent, light) {
+            Ok(count) => {
+                println!("Wrote {count} states to {file}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!("gallery: could not write {file}: {error}");
+                ExitCode::FAILURE
+            }
+        };
+    }
     if let Some(dir) = snapshot_dir {
         let theme = if xterm { Theme::xterm_256(tokens) } else { Theme::truecolor(tokens) };
         return match snapshot(Path::new(&dir), theme, accent, light) {
@@ -764,10 +800,11 @@ fn run(terminal: &mut ratatui::DefaultTerminal, mut app: App) -> std::io::Result
     Ok(())
 }
 
-/// Writes every page at 100 by 30, and the states a page alone does not
-/// show, as HTML.
-fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Result<usize> {
-    std::fs::create_dir_all(dir)?;
+/// A state: its name, the keys that reach it, and the screen size.
+type State = (String, Vec<KeyEvent>, (u16, u16));
+
+/// Every page at 100 by 30, and the states a page alone does not show.
+fn states() -> Vec<State> {
     let code = |c: KeyCode| KeyEvent::new(c, KeyModifiers::NONE);
     let keys = |text: &str| text.chars().map(|c| code(KeyCode::Char(c))).collect::<Vec<_>>();
     let mut states: Vec<(String, Vec<KeyEvent>, (u16, u16))> = Vec::new();
@@ -795,7 +832,44 @@ fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Re
     states.push(("32-question-80".into(), [vec![code(KeyCode::Down); 11], vec![code(KeyCode::Enter)]].concat(), small));
     states.push(("33-menu-80".into(), open(17), small));
     states.push(("34-filters-80".into(), filters, small));
+    states
+}
 
+/// The screen less two columns on each side and the footer.
+fn body(screen: Rect) -> Rect {
+    Rect::new(screen.x + 2, screen.y, screen.width.saturating_sub(4), screen.height.saturating_sub(1))
+}
+
+/// Where each component's name shows in the sidebar of `buffer`: its row,
+/// first column, width, and page. A name a dialog covers is left out.
+fn sidebar_links(buffer: &Buffer, theme: Theme) -> Vec<(u16, u16, u16, usize)> {
+    let app = App::new(theme, 0, false);
+    let Some(side) = app.sidebar().split(body(buffer.area), Side::Left).0 else { return Vec::new() };
+    (side.top()..side.bottom())
+        .filter_map(|y| {
+            let text: String = (side.left()..side.right()).map(|x| buffer[(x, y)].symbol()).collect();
+            let page = PAGES.iter().position(|(name, _)| text.trim() == *name)?;
+            Some((y, side.x, side.width, page))
+        })
+        .collect()
+}
+
+/// The screen after `events`, and the theme then, which the picker can
+/// change.
+fn draw_state(theme: Theme, accent: usize, light: bool, events: &[KeyEvent], (width, height): (u16, u16)) -> (Buffer, Theme) {
+    let mut app = App::new(theme, accent, light);
+    let Ok(mut terminal) = Terminal::new(TestBackend::new(width, height));
+    for event in events {
+        let Ok(_) = terminal.draw(|f| app.draw(f));
+        app.key(*event);
+    }
+    let Ok(_) = terminal.draw(|f| app.draw(f));
+    (terminal.backend().buffer().clone(), app.theme)
+}
+
+/// Writes every state as HTML.
+fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Result<usize> {
+    std::fs::create_dir_all(dir)?;
     // Every page at small sizes, with and without focus and with help, so a
     // page that writes outside its area fails here, and in CI.
     for page in 0..PAGES.len() {
@@ -811,16 +885,9 @@ fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Re
     }
 
     let mut shots = Vec::new();
-    for (name, events, (width, height)) in states {
-        let mut app = App::new(theme, accent, light);
-        let Ok(mut terminal) = Terminal::new(TestBackend::new(width, height));
-        for event in events {
-            let Ok(_) = terminal.draw(|f| app.draw(f));
-            app.key(event);
-        }
-        let Ok(_) = terminal.draw(|f| app.draw(f));
-        let mut buffer = terminal.backend().buffer().clone();
-        html::opaque(&mut buffer, &app.theme);
+    for (name, events, size) in states() {
+        let (mut buffer, theme) = draw_state(theme, accent, light, &events, size);
+        html::opaque(&mut buffer, &theme);
         let frame = html::buffer(&buffer);
         std::fs::write(dir.join(format!("{name}.html")), html::page(&name, &frame))?;
         shots.push((name, frame));
@@ -830,6 +897,65 @@ fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Re
     Ok(shots.len())
 }
 
+/// Writes every page and its site states, each drawn in every accent, dark
+/// and light, as JSON for the Kiso site. The text comes from `accent` and
+/// `light`.
+fn export(file: &Path, accent: usize, light: bool) -> std::io::Result<usize> {
+    let themes: Vec<(usize, bool)> = (0..ACCENTS.len()).flat_map(|a| [(a, false), (a, true)]).collect();
+    let base = themes.iter().position(|&theme| theme == (accent, light)).unwrap_or(0);
+    let names = themes.iter().map(|&(a, l)| (format!("{}-{}", ACCENTS[a].name, if l { "light" } else { "dark" }), ACCENTS[a].tokens(l)));
+    let mut gallery = json::Gallery::new(names, base);
+    let states = states();
+    let mut count = 0;
+    for (page, (name, about)) in PAGES.iter().enumerate() {
+        let first = (states[page].0.as_str(), "Default");
+        let shown = std::iter::once(first).chain(SITE_STATES.iter().filter(|s| s.1 == page).map(|s| (s.0, s.2)));
+        let mut list = Vec::new();
+        for (id, label) in shown {
+            let Some((_, events, size)) = states.iter().find(|s| s.0 == id) else { continue };
+            // The terminal's own colors follow the state's theme, which the
+            // picker changes, as OSC 10 and 11 do.
+            let draw = |events: &[KeyEvent]| -> (Vec<Buffer>, Vec<Cell>) {
+                themes
+                    .iter()
+                    .map(|&(a, l)| {
+                        let (mut buffer, theme) = draw_state(Theme::truecolor(ACCENTS[a].tokens(l)), a, l, events, *size);
+                        html::opaque(&mut buffer, &theme);
+                        let mut colors = Cell::default();
+                        colors.set_style(theme.base());
+                        (buffer, colors)
+                    })
+                    .unzip()
+            };
+            let (buffers, terminal) = draw(events);
+            // A page scrolls with j, as on the page itself. The form takes
+            // j as text, so it has no scroll.
+            let mut scrolled: Vec<Vec<Buffer>> = Vec::new();
+            if label == "Default" && page != FORM {
+                let mut keys = events.clone();
+                while scrolled.len() < 60 {
+                    keys.push(KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE));
+                    let (next, _) = draw(&keys);
+                    if next[base] == scrolled.last().unwrap_or(&buffers)[base] {
+                        break;
+                    }
+                    scrolled.push(next);
+                }
+            }
+            let links = sidebar_links(&buffers[base], Theme::truecolor(ACCENTS[accent].tokens(light)));
+            list.push(gallery.state(&id[3..], label, &buffers, &terminal, &scrolled, &links));
+            count += 1;
+        }
+        gallery.page(&name.to_lowercase(), name, about, list);
+    }
+    std::fs::write(file, gallery.finish())?;
+    Ok(count)
+}
+
 /// A ratatui buffer as HTML: one span per run of equal style.
 #[path = "support/html.rs"]
 mod html;
+
+/// The gallery as JSON for the Kiso site.
+#[path = "support/json.rs"]
+mod json;
