@@ -70,6 +70,18 @@ test('A report starts each section on a page and prints closed Disclosures open'
   } finally { await page.close(); }
 });
 
+test('On a screen, a pane with wrapped charts keeps their captions', async () => {
+  const page = await open('screen', '?case=dashboard');
+  try {
+    const captions = page.locator('[data-pane-id="resources"] .framed-chart > figcaption');
+    assert.deepEqual(await captions.allTextContents(), ['CPU utilization', 'Memory usage']);
+    for (const caption of await captions.all()) {
+      assert.equal(await caption.evaluate(el => getComputedStyle(el).clipPath), 'none');
+      assert((await caption.boundingBox()).width > 1, 'The caption is visible');
+    }
+  } finally { await page.close(); }
+});
+
 test('An ordinary dashboard prints its panes in order without overlap', async () => {
   const page = await open('print', '?case=dashboard');
   try {

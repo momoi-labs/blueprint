@@ -13,9 +13,12 @@ DashboardGrid
 ```
 
 DashboardPanel is a [Card](card.md). Put the widget directly in the panel;
-do not wrap it in another Card. A [Chart](chart.md) anywhere in a panel hides
+do not wrap it in another Card. A [Chart](chart.md) directly in a panel hides
 its own caption visually, since the panel title names it. Give the chart the same
-label as the panel, so assistive technology hears the same name.
+label as the panel, so assistive technology hears the same name. A wrapped
+chart keeps its caption, so a panel with two charts names both. In a
+[Report](../patterns/report.md) a panel holds one chart, and its caption hides
+wherever the chart sits.
 
 ## Props
 
