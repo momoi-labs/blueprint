@@ -175,7 +175,7 @@ try {
         return ['Top', 'Right', 'Bottom', 'Left'].every(side => parseFloat(style[`border${side}Width`]) >= 1)
           && item === document.elementFromPoint(rect.right - 2, rect.top + rect.height / 2);
       })), `${label}: every badge shows all four borders`);
-      // A neutral tone has no border of its own, so the phone gives it one.
+      // A neutral badge shows the standard border, in the wrapped cluster and alone.
       const borders = element => {
         const style = getComputedStyle(element);
         return ['Top', 'Right', 'Bottom', 'Left'].map(side => [style[`border${side}Width`], style[`border${side}Color`], style[`border${side}Style`]]);
@@ -183,8 +183,15 @@ try {
       const neutral = await cluster.locator('.badge', { hasText: 'Health unverified' }).evaluate(borders);
       assert(neutral.every(([width, color, style]) => parseFloat(width) >= 1 && style !== 'none' && color !== 'rgba(0, 0, 0, 0)' && color !== 'transparent'),
         `${label}: the neutral status badge shows a border on all four sides`);
-      assert(!(await page.locator('#standalone').evaluate(borders)).some(([, color]) => color !== 'rgba(0, 0, 0, 0)'),
-        `${label}: a standalone neutral badge keeps its transparent border`);
+      const standardBorder = await page.evaluate(() => {
+        const probe = document.body.appendChild(document.createElement('div'));
+        probe.style.borderColor = 'var(--color-border)';
+        const color = getComputedStyle(probe).borderTopColor;
+        probe.remove();
+        return color;
+      });
+      assert((await page.locator('#standalone').evaluate(borders)).every(([width, color, style]) => parseFloat(width) >= 1 && style !== 'none' && color === standardBorder),
+        `${label}: a standalone neutral badge shows the standard border color`);
       if (screenshots) await page.screenshot({ path: `${screenshots}/${label}.png`, clip: { x: 0, y: 0, width: 390, height: 140 } });
     }
     console.log(`${colorScheme}-390: wrapped status badges keep their own borders.`);

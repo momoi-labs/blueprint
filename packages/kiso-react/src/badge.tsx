@@ -6,7 +6,7 @@ import { Slot } from "radix-ui"
 
 const badgeVariants = cva("badge", {
   variants: { variant: {
-    neutral: "", info: "badge-info", success: "badge-success",
+    neutral: "badge-neutral", info: "badge-info", success: "badge-success",
     warning: "badge-warning", danger: "badge-danger",
   } },
   defaultVariants: { variant: "neutral" },

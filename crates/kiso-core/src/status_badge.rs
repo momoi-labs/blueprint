@@ -62,13 +62,9 @@ impl StatusBadge {
     /// The markup `<StatusBadge>` renders, for pages without React.
     pub fn to_html(&self) -> String {
         let tone = self.tone.as_str();
-        let badge_class = match self.tone {
-            StatusTone::Neutral => "badge".to_string(),
-            _ => format!("badge badge-{tone}"),
-        };
         let dot_class = if self.pulse { "dot dot-pulse" } else { "dot" };
         format!(
-            r#"<span data-slot="badge" data-variant="{tone}" class="{badge_class}"><span data-slot="dot" data-variant="neutral" class="{dot_class}" aria-hidden="true"></span>{}</span>"#,
+            r#"<span data-slot="badge" data-variant="{tone}" class="badge badge-{tone}"><span data-slot="dot" data-variant="neutral" class="{dot_class}" aria-hidden="true"></span>{}</span>"#,
             escape_html(&self.label)
         )
     }
