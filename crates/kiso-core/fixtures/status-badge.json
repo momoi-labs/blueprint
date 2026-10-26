@@ -36,7 +36,7 @@
     "text": "◐ Ready <now>"
   },
   {
-    "html": "<span data-slot=\"badge\" data-variant=\"neutral\" class=\"badge\"><span data-slot=\"dot\" data-variant=\"neutral\" class=\"dot\" aria-hidden=\"true\"></span>Ready &lt;now&gt;</span>",
+    "html": "<span data-slot=\"badge\" data-variant=\"neutral\" class=\"badge badge-neutral\"><span data-slot=\"dot\" data-variant=\"neutral\" class=\"dot\" aria-hidden=\"true\"></span>Ready &lt;now&gt;</span>",
     "props": {
       "label": "Ready <now>",
       "pulse": false,
@@ -45,7 +45,7 @@
     "text": "○ Ready <now>"
   },
   {
-    "html": "<span data-slot=\"badge\" data-variant=\"neutral\" class=\"badge\"><span data-slot=\"dot\" data-variant=\"neutral\" class=\"dot dot-pulse\" aria-hidden=\"true\"></span>Ready &lt;now&gt;</span>",
+    "html": "<span data-slot=\"badge\" data-variant=\"neutral\" class=\"badge badge-neutral\"><span data-slot=\"dot\" data-variant=\"neutral\" class=\"dot dot-pulse\" aria-hidden=\"true\"></span>Ready &lt;now&gt;</span>",
     "props": {
       "label": "Ready <now>",
       "pulse": true,

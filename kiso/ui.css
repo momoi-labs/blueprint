@@ -351,9 +351,12 @@ a:hover, .link:hover { text-decoration: underline; }
   line-height: 1;
   white-space: nowrap;
 }
-.badge-solid   { background: var(--color-primary); color: var(--color-primary-foreground); }
-.badge-neutral { background: var(--color-secondary); color: var(--color-secondary-foreground); }
-.badge-outline { border-color: var(--color-border-strong); color: var(--color-muted-foreground); }
+/* Neutral is the React default, so a look class added on top must win. */
+.badge-neutral { background: var(--color-surface); border-color: var(--color-border); color: var(--color-foreground); }
+/* A neutral count keeps the secondary fill that tokens.md assigns to counts. */
+.badge-neutral:where(.badge-count) { background: var(--color-secondary); border-color: transparent; color: var(--color-secondary-foreground); }
+.badge-solid   { background: var(--color-primary); border-color: transparent; color: var(--color-primary-foreground); }
+.badge-outline { background: transparent; border-color: var(--color-border-strong); color: var(--color-muted-foreground); }
 .badge-success { background: var(--color-success-surface); border-color: var(--color-success-border); color: var(--color-success); }
 .badge-warning { background: var(--color-warning-surface); border-color: var(--color-warning-border); color: var(--color-warning); }
 .badge-danger  { background: var(--color-danger-surface);  border-color: var(--color-danger-border);  color: var(--color-danger); }
@@ -1556,6 +1559,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 @media (min-width: 721px) {
   .cluster-status > .badge + .badge { border-inline-start-color: var(--color-border); }
 }
+/* A neutral border would double the frame's line too. */
+.cluster-status > .badge-neutral:first-child { border-inline-start-color: transparent; }
 /* The verbs are pressed, so the group carries the surface and the shadow
    each button carried on its own. */
 .cluster-verbs { background: var(--color-card); box-shadow: var(--shadow-xs); }
@@ -1773,8 +1778,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     height: var(--size-control-sm);
     border-width: 1px; border-style: solid; border-radius: var(--radius-sm);
   }
-  /* A neutral badge has no border color of its own, and a wrapped one would be
-     bare text next to the boxed tones. */
+  /* A badge without a tone class has no border color of its own, and a
+     wrapped one would be bare text next to the boxed tones. */
   .lifecycle > .cluster-status > .badge:not(.badge-solid, .badge-outline, .badge-info, .badge-success, .badge-warning, .badge-danger) {
     border-color: var(--color-border);
   }
