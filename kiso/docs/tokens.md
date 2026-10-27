@@ -480,8 +480,13 @@ fields, framed buttons and, with frame scope `all`, Steps markers. These interna
 `none` hides marks, and Border None suppresses them without discarding the saved
 selection. Incompatible curved marks on Pixel, Manga or Brush, and brackets on Brush,
 stay saved but are hidden until the frame supports them.
-`sheet` adds clearance; Offset and expressive borders also reserve
-space for their stroke. Curved brackets follow the selected radius, including
+`sheet` puts the marks on the center of the grid gap
+(`--presentation-grid-gap`), so the marks of neighbouring panels join into one
+shape. Brackets form a cross where four panels meet and a tee on an edge.
+Ticks form an open crop cross, arcs a four-point star, diagonals an X, and
+dots merge into one dot. Panels laid out with another gap do not join. Offset
+and expressive borders reserve space for their stroke in `normal` only; in
+`sheet`, a Manga stroke can touch the marks. Curved brackets follow the selected radius, including
 Asymmetric's smaller corners.
 
 The gallery keeps Inset edge (`bevel`) and Corner dots (`dots`) readable as

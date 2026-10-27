@@ -403,7 +403,9 @@ test('New border contours, clearance, patterns and frameless suppression compose
       assert.equal(image.every(value => value === 'none'), background === 'solid', background);
     }
     await page.evaluate(() => { document.documentElement.dataset.borderStyle = 'offset'; document.documentElement.dataset.markClearance = 'sheet'; });
-    assert(await page.locator('#sample').evaluate(el => parseFloat(getComputedStyle(el, '::after').top) <= -15), 'Offset plus drawing-sheet clearance stays outside the frame');
+    // Sheet marks sit on the center of the grid gap, outside the offset stroke.
+    const sheet = await page.locator('#sample').evaluate(el => ({ top: parseFloat(getComputedStyle(el, '::after').top), gap: parseFloat(getComputedStyle(el).getPropertyValue('--presentation-grid-gap')), stroke: parseFloat(getComputedStyle(el).getPropertyValue('--appearance-effect-clearance')) }));
+    assert(sheet.top <= -(sheet.gap / 2 + 1) && sheet.gap / 2 > sheet.stroke, `Offset plus drawing-sheet clearance stays outside the frame: ${JSON.stringify(sheet)}`);
   } finally { await page.close(); }
 });
 
