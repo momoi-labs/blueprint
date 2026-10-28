@@ -150,7 +150,8 @@ date and keeps its time. A relative expression first resolves to its time
 with the current `now`; the field then holds a date and time. Only days
 inside retention can be picked; the others are marked unavailable, with the
 reason in their accessible name, and month navigation stops at retention.
-The first day of the week follows `locale`. Picking a day is an edit: it
+The first day of the week follows `locale`, or Monday when the browser
+does not report it. Picking a day is an edit: it
 waits for Apply.
 
 The grid follows the date picker dialog pattern. Arrow keys move by day and
@@ -169,27 +170,40 @@ Dragging the segment moves the range and keeps its duration. Dragging an
 end changes it. The range stays inside the window and keeps at least one
 second, or the whole retention when it is shorter. A drag previews against
 the `now` at its start and applies once, on release, checked against the
-current retention. Releasing with the end at now applies a relative value:
-the duration rounds to the minute when that stays between one minute and
-`maxDuration`, else to the second. Escape, a cancelled pointer, or a lost
-pointer capture cancels a drag without applying.
+current retention. Releasing with the end within 1.5% of retention from now
+applies a relative value. Its duration rounds to the minute when that stays
+between one minute and `maxDuration`; otherwise it rounds to the second and
+stays between one second, or the whole retention when it is shorter, and
+`maxDuration`. Escape, a cancelled pointer, or a lost pointer capture cancels
+a drag without applying.
 
-The bar has three sliders: "Range start", "Move range", and "Range end",
-each with its limits and a text value. Arrow keys step by 1/120 of
-retention, at least one second; Shift, Page Up, and Page Down step ten times
-as far. Home and End go to the slider's limits. Each key step applies.
+The bar has three sliders, in this order, each with `role="slider"`,
+epoch-millisecond `aria-valuemin`, `aria-valuemax`, and `aria-valuenow`, and
+an `aria-valuetext` with the times:
+
+- "Range start": from the window start to the end minus the minimum span.
+- "Move range": its value is the start, from the window start to now minus
+  the duration.
+- "Range end": from the start plus the minimum span to now.
+
+Arrow keys step by 1/120 of retention, rounded to the whole second and at
+least one second. Shift, Page Up, and Page Down step ten times as far. Home
+and End go to the slider's limits. Each key step applies. Every slider shows
+a focus ring and stays reachable when the range is narrow.
 
 ### Escape
 
 Escape acts on the innermost thing: an open calendar, then a drag in
-progress, then an edit in the fields, then the popover. Closing the popover
+progress, then an edit in the fields while focus is in them, then the
+popover. Closing the popover
 returns focus to the range button.
 
 ### Polling
 
 A new `now` changes no applied value. It keeps an absolute value, keeps an
-edit in the fields, and keeps the open view. Fields without an edit follow
-the value. An absolute value that has fallen out of retention stays
+edit in the fields, and keeps the open view. A new `value` from the consumer
+also keeps an edit. Fields without an edit follow the value. Reset, a
+preset, pause or resume, and a drag or slider step discard the edit. An absolute value that has fallen out of retention stays
 selected; the consumer shows its own empty state. Live mode never throws
 during render, whatever `now`, `value`, or data it gets. Invalid presets are
 left out.
