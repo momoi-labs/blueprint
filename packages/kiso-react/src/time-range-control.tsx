@@ -86,6 +86,12 @@ const defaultPresets = [
   { label: "Last 15 minutes", duration: 900_000 },
   { label: "Last 30 minutes", duration: 1_800_000 },
 ]
+// Browsers drop zero seconds and milliseconds from a datetime-local value.
+const wallKey = (text: string) => {
+  const [date, time = ""] = text.split("T")
+  const [clock = "", fraction = ""] = time.split(".")
+  return `${date}T${clock.length === 5 ? `${clock}:00` : clock}.${fraction.padEnd(3, "0")}`
+}
 const validRange = (range: TimeRange) => validInstant(range.from) && validInstant(range.to) && range.from < range.to
 
 export function TimeRangeControl(props: TimeRangeControlProps) {
@@ -143,10 +149,19 @@ function ArtifactForm({ value, bounds, timeZone, zone, text, onApply }: { value:
   const [from, setFrom] = React.useState(dateInput(value.from))
   const [to, setTo] = React.useState(dateInput(value.to))
   const [error, setError] = React.useState("")
-  return <Form className="stack-sm" onSubmit={event => {
+  const utc = timeZone === "UTC"
+  const min = dateInput(bounds.from)
+  const max = dateInput(bounds.to)
+  // Outside UTC, a DST overlap repeats wall times: an unchanged field keeps
+  // its instant, and native constraints, which compare wall times, are hints.
+  const [start] = React.useState({ from, to })
+  const read = (text: string, initial: string, original: number) =>
+    wallKey(text) === wallKey(initial) ? original : parseWallTime(text, timeZone)
+  const hint = utc || min < max ? { min, max } : {}
+  return <Form className="stack-sm" noValidate={!utc} onSubmit={event => {
     event.preventDefault()
-    const range = timeZone === "UTC" ? { from: Date.parse(`${from}Z`), to: Date.parse(`${to}Z`) }
-      : { from: parseWallTime(from, timeZone), to: parseWallTime(to, timeZone) }
+    const range = utc ? { from: Date.parse(`${from}Z`), to: Date.parse(`${to}Z`) }
+      : { from: read(from, start.from, value.from), to: read(to, start.to, value.to) }
     if (!validRange(range) || range.from < bounds.from || range.to > bounds.to) {
       setError(text.error)
       return
@@ -155,11 +170,11 @@ function ArtifactForm({ value, bounds, timeZone, zone, text, onApply }: { value:
   }}>
     <label htmlFor={`${id}-from`}>{text.from(zone)}</label>
     <Input id={`${id}-from`} type="datetime-local" step="0.001" required value={from}
-      min={dateInput(bounds.from)} max={dateInput(bounds.to)} onChange={event => { setFrom(event.target.value); setError("") }}
+      {...hint} onChange={event => { setFrom(event.target.value); setError("") }}
       aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined} />
     <label htmlFor={`${id}-to`}>{text.to(zone)}</label>
     <Input id={`${id}-to`} type="datetime-local" step="0.001" required value={to}
-      min={dateInput(bounds.from)} max={dateInput(bounds.to)} onChange={event => { setTo(event.target.value); setError("") }}
+      {...hint} onChange={event => { setTo(event.target.value); setError("") }}
       aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined} />
     {error && <p id={`${id}-error`} role="alert" className="field-error">{error}</p>}
     <FormActions><Button type="submit" variant="primary">{text.apply}</Button></FormActions>
@@ -288,10 +303,9 @@ function LiveForm({ initial, now, maxDuration, timeZone, zone, text, onApply }: 
   return <Form className="stack-sm" noValidate onSubmit={event => {
     event.preventDefault()
     // A field that still reads its initial wall time keeps the value's
-    // milliseconds. Browsers may drop ":00" seconds from the value.
-    const seconds = (text: string) => /T\d\d:\d\d$/.test(text) ? `${text}:00` : text
+    // milliseconds.
     const read = (text: string, initial: string, original: number) =>
-      seconds(text) === seconds(initial) ? original : parseWallTime(text, timeZone)
+      wallKey(text) === wallKey(initial) ? original : parseWallTime(text, timeZone)
     const range = { from: read(from, start.from, start.range.from), to: read(to, start.to, start.range.to) }
     if (!validRange(range) || !(range.from >= now - maxDuration) || !(range.to <= now)) {
       setError(text.liveError)
