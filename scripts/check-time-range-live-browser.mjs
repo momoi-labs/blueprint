@@ -387,6 +387,13 @@ test('days outside retention cannot be picked and months stop at retention', asy
   assert.equal(await calendar().count(), 1);
   assert.equal(await calendar().getByRole('button', { name: 'Previous month' }).isDisabled(), true);
   assert.equal(await calendar().getByRole('button', { name: 'Next month' }).isDisabled(), true);
+  await page.keyboard.press('PageUp');
+  assert.equal(await day(), '2026-09-01', 'keys stop at the first month of retention');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowLeft');
+  assert.equal(await day(), '2026-09-01');
+  await page.keyboard.press('PageDown');
+  assert.equal(await day(), '2026-09-30', 'and at the last one');
+  assert.match(await calendar().locator('strong').textContent(), /September 2026/);
 });
 
 test('Escape closes only the calendar, and a click inside it keeps the popover open', async () => {
