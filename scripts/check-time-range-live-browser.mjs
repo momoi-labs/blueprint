@@ -19,6 +19,8 @@ before(async () => {
 });
 after(async () => { await browser?.close(); await server.close(); });
 beforeEach(async () => {
+  // Escape resets an edit before it closes the popover.
+  for (let i = 0; i < 3 && await page.locator('.time-range-live-content').count(); i++) await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
   await page.evaluate(start => new Promise(resolve => {
     window.changes = []; window.zones = [];
@@ -121,12 +123,26 @@ test('Escape resets an edit first, then closes; Reset and new values behave', as
   await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
 });
 
-test('a zone change discards an edit typed in the old zone', async () => {
+test('a zone change discards an edit typed in the old zone, even after a round trip', async () => {
   await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 60_000 } });
   await open();
   await from().fill('11:00');
   await update({ timeZone: 'Asia/Tokyo' });
   assert.equal(await from().inputValue(), '2026-09-12 23:22:41');
+  await from().fill('now-7m');
+  await update({ timeZone: 'UTC' });
+  await update({ timeZone: 'Asia/Tokyo' });
+  assert.equal(await from().inputValue(), '2026-09-12 23:22:41');
+  assert.equal(await button('Apply range').count(), 0);
+});
+
+test('an untouched field follows a new value while the other one is edited', async () => {
+  await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 60_000 } });
+  await open();
+  await from().fill('11:00');
+  await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 30_000 } });
+  assert.equal(await from().inputValue(), '11:00');
+  assert.equal(await to().inputValue(), '2026-09-12 11:27:10');
 });
 
 test('pause freezes the window and resume returns to the resume duration', async () => {
