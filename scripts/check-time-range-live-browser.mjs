@@ -169,3 +169,14 @@ test('an edited wall time inside a daylight-saving gap moves forward', async () 
   await button('Apply range').click();
   assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 2, 8, 7), to: Date.UTC(2026, 2, 8, 7, 10) }]);
 });
+
+test('a Chart with timeZone formats its axis and readout in that zone', async () => {
+  await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').first().waitFor();
+  const ticks = (await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').allTextContents()).filter(tick => tick.includes(':'));
+  assert.ok(ticks.length > 0 && ticks.every(tick => /^23:0\d:\d0$/.test(tick)), ticks.join());
+  await page.locator('[data-slot="chart"] .recharts-surface').first().focus();
+  await page.keyboard.press('ArrowRight');
+  const readout = page.locator('.chart-inspection strong').first();
+  await readout.waitFor();
+  assert.match(await readout.textContent(), /^23:0\d:\d0$/);
+});

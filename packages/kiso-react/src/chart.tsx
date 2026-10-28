@@ -12,6 +12,7 @@ import { chartPinned, clearChartPin, setChartHover, toggleChartPin, useChartSync
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 import type { TimeRange } from "./time-range-control.js"
+import { dateFormat, validTimeZone } from "./time-zone.js"
 
 export type { ChartSample, ChartSeries } from "./chart-data.js"
 
@@ -20,7 +21,7 @@ const defaultLabels = {
   timestamp: "Timestamp", values: "View exact values",
   help: "Focus the chart and use Left and Right to inspect samples. Press Enter to mark the inspected sample in every synchronized chart, and Escape to clear it. Select a series in the legend to highlight it. Exact values are available below.",
   summary: (label: string) => `${label}: summary`,
-  samples: (label: string) => `${label}: collected samples, timestamps in UTC`,
+  samples: (label: string, timeZone: string) => `${label}: collected samples, timestamps in ${timeZone}`,
 }
 
 export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
@@ -41,6 +42,10 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   /** Panels in a group inspect the same timestamp, not the same array index. */
   syncId?: string
   formatTime?: (timestamp: number) => string
+  /** IANA time zone for times. With timeZone and locale both omitted, times
+      stay UTC ISO strings. */
+  timeZone?: string
+  locale?: string
   formatValue?: (value: number) => string
   min?: number
   max?: number
@@ -53,10 +58,22 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
 
 export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp, summary,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
-  formatTime = formatChartTime, formatValue = formatChartValue, min, max, onRangeSelect, labels,
+  formatTime: formatTimeProp, timeZone, locale, formatValue = formatChartValue, min, max, onRangeSelect, labels,
   chartStyle, chartLine, chartFill, ref, className, onKeyDown, ...props }: ChartProps) {
   const id = React.useId()
   const text = { ...defaultLabels, ...labels }
+  const zoned = timeZone !== undefined || locale !== undefined
+  const zone = timeZone ?? "UTC"
+  if (zoned && !validTimeZone(zone)) throw new RangeError("Chart time zone must be a valid IANA name.")
+  const zonedTime = React.useCallback((timestamp: number) => dateFormat(locale, { timeZone: zone,
+    hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(timestamp), [locale, zone])
+  const formatTime = formatTimeProp ?? (zoned ? zonedTime : formatChartTime)
+  // The exact table always names the date, the second, and the offset.
+  const fractional = data.some(sample => sample.timestamp % 1000 !== 0)
+  const exactTime = zoned ? (timestamp: number) => dateFormat(locale, { timeZone: zone, year: "numeric",
+    month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    ...(fractional ? { fractionalSecondDigits: 3 as const } : {}), timeZoneName: "longOffset" }).format(timestamp)
+    : formatChartTime
   const frame = React.useRef<HTMLElement>(null)
   const { line, fill } = useChartStyle(frame, { chartStyle, chartLine, chartFill })
   const presentation = useChartPresentation(frame, layoutProp, legendProp)
@@ -266,9 +283,9 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     <details className="disclosure chart-values">
       <summary>{text.values}</summary>
       <div className="chart-table-scroll"><table className="chart-table">
-        <caption>{text.samples(label)}</caption>
+        <caption>{text.samples(label, zone)}</caption>
         <thead><tr><th scope="col">{text.timestamp}</th>{series.map(item => <th scope="col" key={item.key}>{item.label}</th>)}</tr></thead>
-        <tbody>{data.map(sample => <tr key={sample.timestamp}><th scope="row">{formatChartTime(sample.timestamp)}</th>
+        <tbody>{data.map(sample => <tr key={sample.timestamp}><th scope="row">{exactTime(sample.timestamp)}</th>
           {series.map(item => <td key={item.key}>{measured(sample.values[item.key]) ? String(sample.values[item.key]) : text.notCollected}</td>)}
         </tr>)}</tbody>
       </table></div>
