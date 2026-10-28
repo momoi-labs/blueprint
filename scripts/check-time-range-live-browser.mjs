@@ -28,7 +28,7 @@ beforeEach(async () => {
   await page.locator('.time-range-content').waitFor({ state: 'detached' });
 });
 
-const trigger = () => page.locator('.time-range-trigger');
+const trigger = () => page.locator('.time-range-trigger[data-time-range-state]');
 const popover = () => page.locator('.time-range-content');
 const button = name => popover().getByRole('button', { name, exact: true });
 const changes = () => page.evaluate(() => window.changes);
@@ -179,4 +179,16 @@ test('a Chart with timeZone formats its axis and readout in that zone', async ()
   const readout = page.locator('.chart-inspection strong').first();
   await readout.waitFor();
   assert.match(await readout.textContent(), /^23:0\d:\d0$/);
+});
+
+test('a zoned artifact form keeps unchanged instants and never blocks Apply in an overlap', async () => {
+  const artifact = page.getByRole('button', { name: /^Artifact range:/ });
+  assert.match(await artifact.getAttribute('aria-label'), /01:10:00\.250 to .*01:14:00\.000 GMT-5/);
+  await artifact.click();
+  await button('Custom range').click();
+  await from().waitFor();
+  assert.equal(await from().getAttribute('min'), null, 'the reversed wall-time window is not a native constraint');
+  await button('Apply range').click();
+  assert.deepEqual(await page.evaluate(() => window.artifactChanges),
+    [{ from: Date.UTC(2026, 10, 1, 6, 10, 0, 250), to: Date.UTC(2026, 10, 1, 6, 14) }]);
 });
