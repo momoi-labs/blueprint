@@ -18,6 +18,7 @@ User story #20.
 | Actions on a specific element | **DropdownMenu** | Anchored; contextual. |
 | Global actions / navigation by query | **[CommandPalette](command-palette.md)** | Not anchored to one element. |
 | Single choice that sets a value | **[Select](select.md)** | Value selection, not a list of verbs. |
+| Switch the current org, project or resource | **[ScopeSwitcher](scope-switcher.md)** | A current choice with "All", destinations and a filter. |
 | Navigate to a URL as primary affordance | **[Link](link.md)** | Real navigation; menu items may still contain links when appropriate. |
 
 DropdownMenu vs CommandPalette (user story #20): if the person must first

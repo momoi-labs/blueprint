@@ -75,6 +75,7 @@ behavioral reference where one exists.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [BottomNav](bottom-nav.md): Puts a phone's main destinations in a bar fixed to the bottom edge.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
+- [ScopeSwitcher](scope-switcher.md): Shows and switches the current organization, project and resource in Header, keeping the page.
 - [Header](header.md): Composes persistent application navigation and global actions.
 - [Lifecycle](lifecycle.md): Groups a detail screen's status, verbs, and destructive action in one row.
 - [Navigation](navigation.md): Provides a generic semantic container for destination links.
@@ -98,6 +99,6 @@ behavioral reference where one exists.
 
 - [FormField](form-field.md) composes [Label](label.md) + [Input](input.md) (or another form control) + [HelperText](helper-text.md) + [ValidationMessage](validation-message.md).
 - [ApplicationShell](app-shell.md) composes [Sidebar](sidebar.md) + [Navigation](navigation.md) + [Header](header.md) + page content, or a top-bar-only frame with brand in [Header](header.md).
-- [Header](header.md) composes [Link](link.md) + [IconButton](icon-button.md) + optional [DropdownMenu](dropdown-menu.md).
+- [Header](header.md) composes [Link](link.md) + [IconButton](icon-button.md) + optional [DropdownMenu](dropdown-menu.md) + optional [ScopeSwitcher](scope-switcher.md).
 - [Table / DataTable](table.md) composes [EmptyState](empty-state.md), [Skeleton](skeleton.md), and [Pagination](pagination.md) for empty, loading, and paged states.
 - [PageHeader](page-header.md) composes a title + optional subtitle + [Buttons](button.md).
