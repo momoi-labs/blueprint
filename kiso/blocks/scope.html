@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scope switcher console — Kiso</title>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem("kiso-theme");if(t&&t!=="system")r.setAttribute("data-theme",t);}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../tokens/build/tokens.css">
+<link rel="stylesheet" href="../ui.css">
+<style>
+  /* Block layout only. The wide row and the compact trigger swap at the
+     phone breakpoint; the switcher itself is ui.css. */
+  .scope-block .scope-compact { display: none; }
+  @media (max-width: 699px) {
+    .scope-block .scope-path { display: none; }
+    .scope-block .scope-compact { display: inline-flex; }
+    .scope-block .sidebar { display: none; }
+  }
+  body > .scope-popover { position: fixed; z-index: 70; }
+  body > .scope-popover[hidden], .scope-filter[hidden] { display: none; }
+  .scope-block .topbar > .brand-mark { display: none; }
+  @media (max-width: 699px) { .scope-block .topbar > .brand-mark { display: grid; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 2l6 3-6 3-6-3z"/><path d="M2 8l6 3 6-3M2 11l6 3 6-3"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2 13.5h12"/><path d="M4 11V7M8 11V3M12 11V9"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h7M3 12.5h4"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M2.5 5L8 2l5.5 3v6L8 14l-5.5-3z"/><path d="M2.5 5L8 8l5.5-3M8 8v6"/></symbol>
+</defs></svg>
+
+<div class="app-shell scope-block">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="brand"><span class="brand-mark">P</span><div class="t-label">pg-yard</div></div></div>
+    <div class="sidebar-body">
+      <nav class="nav-group" aria-label="Pages" data-pages>
+        <a class="nav-item" href="?page=summary" data-page="summary"><svg class="icon icon-sm"><use href="#i-chart"/></svg>Summary</a>
+        <a class="nav-item" href="?page=metrics" data-page="metrics"><svg class="icon icon-sm"><use href="#i-chart"/></svg>Metrics</a>
+        <a class="nav-item" href="?page=logs" data-page="logs"><svg class="icon icon-sm"><use href="#i-logs"/></svg>Logs</a>
+        <a class="nav-item" href="?page=events" data-page="events"><svg class="icon icon-sm"><use href="#i-box"/></svg>Events</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="grow" style="min-width:0">
+    <header class="topbar">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <!-- One switcher per level. Each trigger opens a listbox popup; the
+           current choice is aria-selected, never aria-current. -->
+      <nav class="scope" aria-label="Scope" data-scope>
+        <ol class="scope-path">
+          <li class="scope-segment"><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="org"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+          <li class="scope-sep" aria-hidden="true">/</li>
+          <li class="scope-segment"><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="project"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+          <li class="scope-sep" aria-hidden="true">/</li>
+          <li class="scope-segment"><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="server"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+        </ol>
+        <!-- Below 700px: one trigger, every level inside its popup. -->
+        <button type="button" class="btn btn-ghost scope-compact" aria-haspopup="dialog" aria-expanded="false" data-compact><svg class="icon icon-sm" aria-hidden="true"><use href="#i-layers"/></svg><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button>
+      </nav>
+      <span class="grow"></span>
+      <button type="button" class="btn btn-outline btn-sm">Account</button>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <h1 class="t-h1" data-page-title>Metrics</h1>
+        <p class="muted t-label" data-page-scope></p>
+      </div>
+      <p class="muted">The page stays the same when the scope changes. Only its data follows the scope in the URL.</p>
+    </div>
+  </main>
+</div>
+
+<div class="scope-popover" role="dialog" aria-label="Scope" hidden data-levels-popup>
+  <ol class="scope-levels">
+    <li class="scope-level"><span class="scope-level-label" aria-hidden="true">Organization</span><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="org"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+    <li class="scope-level"><span class="scope-level-label" aria-hidden="true">Project</span><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="project"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+    <li class="scope-level"><span class="scope-level-label" aria-hidden="true">Server</span><button type="button" class="btn btn-ghost scope-trigger" aria-haspopup="dialog" aria-expanded="false" data-level="server"><span class="scope-name"></span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-down"/></svg></button></li>
+  </ol>
+</div>
+
+<div class="scope-popover" role="dialog" hidden data-list-popup>
+  <div class="scope-filter" hidden><svg class="icon icon-sm muted" aria-hidden="true"><use href="#i-search"/></svg><input role="combobox" aria-expanded="true" aria-autocomplete="list" autocomplete="off" spellcheck="false"></div>
+  <div class="scope-list" role="listbox"></div>
+  <div class="scope-status" role="status"></div>
+  <div class="scope-destinations"></div>
+</div>
+
+<script src="scope.js"></script>
+</body>
+</html>

@@ -13,6 +13,7 @@ import { PaneGridDemo } from "./pane-grid-demo";
 // Catalogue previews. Every entry renders the published component, so the
 // gallery cannot drift from what @momoi-labs/kiso-react ships.
 import { FilterInputDemo } from "./filter-input-demo";
+import { ScopeSwitcherDemo } from "./scope-switcher-demo";
 import { DetailSelectDemo } from "./detail-select-demo";
 import { MediaPreviewDemo } from "./media-preview-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
@@ -295,6 +296,7 @@ const catalog = [
   ],
   ["bottom-nav", "BottomNav", "Navigation", "Main destinations in a bar at the bottom of a phone."],
   ["breadcrumb", "Breadcrumb", "Navigation", "Location within the console."],
+  ["scope-switcher", "ScopeSwitcher", "Navigation", "Org, project and resource switchers in Header that keep the page."],
   ["link", "Link", "Navigation", "Navigation using a real anchor."],
   ["tabs", "Tabs", "Navigation", "Related panels with arrow-key navigation."],
   ["pagination", "Pagination", "Navigation", "Move between known pages."],
@@ -373,6 +375,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "app-shell": "wide",
   split: "wide",
   breadcrumb: "wide",
+  "scope-switcher": "wide",
   tabs: "wide",
   pagination: "wide",
   "modal-dialog": "wide",
@@ -451,6 +454,8 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#components/app-shell" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
   "bottom-nav":
     '<ApplicationShell\n  layout="topbar"\n  brand={brand}\n  header={tabs}\n  bottomNav={\n    <BottomNav aria-label="Primary">\n      <BottomNavLink href="/new" active><Plus className="icon" aria-hidden="true" /><span>New</span></BottomNavLink>\n      <BottomNavLink href="/drafts"><Pencil className="icon" aria-hidden="true" /><span>Drafts</span><BottomNavBadge>3</BottomNavBadge></BottomNavLink>\n    </BottomNav>\n  }\n>\n  {page}\n</ApplicationShell>',
+  "scope-switcher":
+    '<ScopeSwitcher>\n  <ScopeSegment level="Organization" value={org} options={orgs} onValueChange={switchOrg} />\n  <ScopeSegment level="Project" value={project} options={projects}\n    all={{ value: "all", label: "All projects" }} onValueChange={switchProject}\n    destinations={<ScopeDestination href="/projects">Manage projects</ScopeDestination>} />\n  <ScopeSegment level="Server" value={server} options={servers} searchable\n    all={{ value: "all", label: "All servers" }} onValueChange={switchServer} />\n</ScopeSwitcher>',
   breadcrumb:
     '<Breadcrumb>\n  <BreadcrumbList>\n    <BreadcrumbItem><BreadcrumbLink href="#">Workspace</BreadcrumbLink></BreadcrumbItem>\n    <BreadcrumbSeparator />\n    <BreadcrumbItem><BreadcrumbPage>Website refresh</BreadcrumbPage></BreadcrumbItem>\n  </BreadcrumbList>\n</Breadcrumb>',
   link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
@@ -1616,6 +1621,8 @@ const Demo = memo(function Demo({
       return (
         <BottomNavDemo />
       );
+    case "scope-switcher":
+      return <ScopeSwitcherDemo />;
     case "breadcrumb":
       return (
         <Breadcrumb aria-label="Example breadcrumb">

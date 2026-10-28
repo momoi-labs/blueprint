@@ -22,7 +22,9 @@ to re-derive a working screen from prose.
 | --- | --- |
 | `index.html` | Every component, in every documented state. The thing to look at when you are choosing one. |
 | `console.html` | A full product screen — sidebar, stat row, chart, table, list-detail — composed only from those components. |
+| `scope.html` | A console header with an org / project / server [scope switcher](../docs/components/scope-switcher.md). Switching keeps the page; below 700px the levels move into one compact popup. |
 | `app.js` | Enough behaviour to review states. Not production code. |
+| `scope.js` | The same, for `scope.html`: popups, keyboard, filter, and scope in the URL. |
 
 Neither `tokens.css` nor `ui.css` lives here, on purpose. Both pages link
 `../../tokens/build/tokens.css` and `../ui.css` directly, so a block can never
