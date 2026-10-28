@@ -1159,7 +1159,7 @@ table.table {
 .scope-compact { min-width: 0; max-width: 100%; color: var(--color-foreground); }
 .scope-compact .scope-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 @media (pointer: coarse) {
-  .scope-trigger, .scope-compact, .scope-option, .scope-destination { min-height: var(--size-touch-min); }
+  .scope-trigger, .scope-compact, .scope-option, .scope-destination, .scope-filter input { min-height: var(--size-touch-min); }
   .scope-trigger, .scope-compact { min-width: var(--size-touch-min); }
 }
 
