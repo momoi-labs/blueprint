@@ -192,7 +192,8 @@ function Timeline({ range, now, maxDuration, live, formats }: { range: TimeRange
   </div>
 }
 
-type Draft = { from: string; to: string; zone: string }
+// Only the fields a person edited; the others follow the value.
+type Draft = { from?: string; to?: string; zone: string }
 type FieldError = { field: "from" | "to"; message: string }
 
 function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { value: LiveTimeRange; now: number;
@@ -205,11 +206,15 @@ function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { val
     ? (positive(value.duration) ? [relativeRangeText(value.duration), "now"] : ["", ""])
     : value?.kind === "absolute" ? [absoluteRangeText(ceilSecond(value.from), zone), absoluteRangeText(floorSecond(value.to), zone)]
     : ["", ""]
-  // An edit belongs to the zone it was typed in.
+  // An edit belongs to the zone it was typed in: a zone change discards it.
+  if (draft && draft.zone !== zone) {
+    setDraft(null)
+    setError(null)
+  }
   const edit = draft && draft.zone === zone ? draft : null
-  const from = edit ? edit.from : shown[0]
-  const to = edit ? edit.to : shown[1]
-  const dirty = !!edit && (edit.from !== shown[0] || edit.to !== shown[1])
+  const from = edit?.from ?? shown[0]
+  const to = edit?.to ?? shown[1]
+  const dirty = from !== shown[0] || to !== shown[1]
   const reset = () => { setDraft(null); setError(null) }
   escape.current.fields = () => {
     if (!dirty || !form.current?.contains(document.activeElement)) return false
@@ -217,7 +222,7 @@ function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { val
     return true
   }
   const change = (field: "from" | "to", next: string) => {
-    setDraft({ from, to, zone, [field]: next })
+    setDraft({ ...edit, zone, [field]: next })
     setError(null)
   }
   // Text that still shows an absolute value's end keeps its exact instant.
