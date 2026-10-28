@@ -172,7 +172,7 @@ function LiveRangeDemo() {
   return <>
     <TimeRangeControl {...control} />
     <p>{samples.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to).length} samples in the selected window.
-      New samples arrive every 5 seconds.</p>
+      Samples arrive every 10 seconds; the view refreshes every 5 seconds.</p>
   </>
 }
 
