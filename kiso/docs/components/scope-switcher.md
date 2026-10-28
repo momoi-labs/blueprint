@@ -257,7 +257,7 @@ Use at most three segments; a deeper hierarchy belongs in
 The trigger consumes Button tokens. The popup uses `--color-popover`,
 `--color-border`, `--radius-lg`, `--shadow-lg`, `--spacing-xs` list padding,
 `--spacing-sm` / `--spacing-md` item padding, `--color-accent-surface-hover`
-for the active option, `--color-primary` for the check,
+for the active option, `--color-foreground` for option text and the check,
 `--color-muted-foreground` for separators, group labels, descriptions and
 status, `--color-danger` for the error text, `--color-focus`,
 `--motion-duration-fast`, and `--motion-easing-standard`. Items use the five
