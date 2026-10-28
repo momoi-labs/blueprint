@@ -2874,6 +2874,12 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-presets { display: grid; gap: var(--spacing-xs); }
 .time-range-presets > button { height: auto; min-height: var(--size-touch-min); display: flex; align-items: flex-start; flex-direction: column; text-align: start; }
 .time-range-presets small { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); }
+.time-range-presets > .time-range-option { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.time-range-zones { max-height: 16rem; overflow-y: auto; }
+.time-range-paused { display: grid; gap: var(--spacing-xs); padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--color-border); }
+.time-range-paused > p, .time-range-empty { margin: 0; color: var(--color-muted-foreground); }
+.time-range-paused > button { justify-self: start; }
+.time-range-zone { justify-content: flex-start; height: auto; min-height: var(--size-touch-min); text-align: start; white-space: normal; }
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
 @media (pointer: coarse) {
   .time-range-trigger { min-height: var(--size-touch-min); }
