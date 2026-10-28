@@ -217,6 +217,97 @@ test('the popover has two columns when wide and the keyboard reaches it', async 
   await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
 });
 
+const track = () => popover().locator('.time-range-live-track');
+const slider = name => popover().getByRole('slider', { name, exact: true });
+// Starts a pointer drag on a slider's middle and returns a mover in track widths.
+async function grab(name, at = 0.5) {
+  const box = await slider(name).boundingBox();
+  const width = (await track().boundingBox()).width;
+  const x = box.x + box.width * at, y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  return async fraction => page.mouse.move(x + fraction * width, y, { steps: 4 });
+}
+const paused = { kind: 'absolute', from: now - 1_200_000, to: now - 600_000 };
+
+test('dragging the segment moves the range once, on release, and keeps its duration', async () => {
+  await update({ value: paused });
+  await open();
+  const move = await grab('Move range');
+  await move(-1 / 6);
+  assert.deepEqual(await changes(), [], 'a drag previews without applying');
+  await page.mouse.up();
+  const [change] = await changes();
+  assert.equal(change.kind, 'absolute');
+  assert.equal(change.to - change.from, 600_000);
+  assert.ok(Math.abs(change.from - (paused.from - 300_000)) <= 15_000, String(change.from - paused.from));
+  assert.equal((await changes()).length, 1);
+});
+
+test('dragging the end to now follows the clock with a rounded duration', async () => {
+  await update({ value: paused });
+  await open();
+  const move = await grab('Range end');
+  await move(0.5);
+  assert.match(await popover().getByRole('status').textContent(), /Release to follow the clock: Last 20 minutes/);
+  await page.mouse.up();
+  assert.deepEqual(await changes(), [{ kind: 'relative', duration: 1_200_000 }]);
+});
+
+test('Escape cancels a drag before it resets an edit, and the release applies nothing', async () => {
+  await update({ value: paused });
+  await open();
+  await from().fill('now-25m');
+  const move = await grab('Move range');
+  await move(-0.1);
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+  assert.deepEqual(await changes(), []);
+  assert.equal(await from().inputValue(), 'now-25m', 'the edit is still there');
+  await from().focus();
+  await page.keyboard.press('Escape');
+  assert.equal(await from().inputValue(), '2026-09-12 11:07:41');
+  assert.equal(await popover().count(), 1);
+});
+
+test('a cancelled pointer applies nothing, and polling does not move a drag', async () => {
+  await update({ value: paused });
+  await open();
+  let move = await grab('Move range');
+  await move(-0.1);
+  await track().dispatchEvent('pointercancel', { pointerId: 1 });
+  await page.mouse.up();
+  assert.deepEqual(await changes(), []);
+  move = await grab('Move range');
+  await move(-1 / 6);
+  await update({ now: now + 60_000 });
+  await move(-1 / 6);
+  await page.mouse.up();
+  const [change] = await changes();
+  assert.ok(Math.abs(change.from - (paused.from - 300_000)) <= 15_000, 'the drag kept its own now');
+});
+
+test('the sliders have limits, step by 1/120 of retention, and apply each key', async () => {
+  await update({ value: paused });
+  await open();
+  const start = slider('Range start');
+  assert.deepEqual(await start.evaluate(node => [node.ariaValueMin, node.ariaValueMax, node.ariaValueNow].map(Number)),
+    [now - 1_800_000, paused.to - 1000, paused.from]);
+  assert.match(await slider('Move range').getAttribute('aria-valuetext'), /11:07:40 to 11:17:40/);
+  await slider('Move range').focus();
+  await page.keyboard.press('ArrowLeft');
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: paused.from - 15_000, to: paused.to - 15_000 }]);
+  await page.keyboard.press('Home');
+  assert.deepEqual((await changes())[1], { kind: 'absolute', from: now - 1_800_000, to: now - 1_800_000 + 600_000 });
+  await slider('Range end').focus();
+  await page.keyboard.press('End');
+  assert.deepEqual((await changes())[2], { kind: 'absolute', from: now - 1_800_000, to: now });
+  await slider('Range start').focus();
+  await page.keyboard.press('End');
+  assert.deepEqual((await changes())[3], { kind: 'absolute', from: now - 1000, to: now });
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Range start');
+});
+
 test('a Chart with timeZone formats its axis and readout in that zone', async () => {
   await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').first().waitFor();
   const ticks = (await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').allTextContents()).filter(tick => tick.includes(':'));

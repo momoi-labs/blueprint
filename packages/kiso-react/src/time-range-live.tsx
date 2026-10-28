@@ -12,7 +12,8 @@ import { Separator } from "./separator.js"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip.js"
 import { browserTimeZone, dateFormat, timeZones, validInstant, validTimeZone, wallString, zoneName } from "./time-zone.js"
 import { absoluteRangeText, parseRangeText, relativeRangeText, resolveRangeText, type RangeText } from "./time-range-text.js"
-import { ceilSecond, defaultLabels, defaultPresets, documentLocale, durationText, floorSecond, positive, validLocale,
+import { ceilSecond, defaultLabels, defaultPresets, documentLocale, durationText, floorSecond, minimumSpan, positive,
+  snapDuration, validLocale,
   validRange, type LiveTimeRange, type TimeRange, type TimeRangeControlLabels, type TimeRangePreset,
   type TimeRangeState } from "./time-range-shared.js"
 
@@ -142,7 +143,8 @@ export function LiveControl({ value, now, maxDuration, resumeDuration, onValueCh
                 {relative ? text.pause : text.backToLive}
               </Button>
             </div>
-            <Timeline range={resolvable ? resolved : null} now={now} maxDuration={maxDuration} live={relative} formats={formats} />
+            <RangeTimeline range={resolvable ? resolved : null} now={now} maxDuration={maxDuration} live={relative}
+              formats={formats} escape={escape} onCommit={act} />
             <Separator />
             <LiveFields key={fieldsKey} value={value} now={now} maxDuration={maxDuration} formats={formats} escape={escape}
               onApply={onValueChange} />
@@ -189,6 +191,119 @@ function Timeline({ range, now, maxDuration, live, formats }: { range: TimeRange
     {usable && <div className="time-range-live-axis" aria-hidden="true">
       <span>{formats.axis(start, maxDuration >= 86_400_000)}</span><span>{formats.text.now}</span>
     </div>}
+  </div>
+}
+
+type DragMode = "move" | "from" | "to"
+type Drag = { mode: DragMode; pointer: number; x: number; width: number; now: number; from: number; to: number;
+  preview: TimeRange; snap: boolean }
+
+/** Moves or resizes `range` by `delta` inside [start, end], keeping the minimum span. */
+function shift(mode: DragMode, range: TimeRange, delta: number, start: number, end: number, span: number): TimeRange {
+  if (mode === "move") {
+    const clamped = Math.max(start - range.from, Math.min(end - range.to, delta))
+    return { from: range.from + clamped, to: range.to + clamped }
+  }
+  if (mode === "from") return { from: Math.max(start, Math.min(range.to - span, range.from + delta)), to: range.to }
+  return { from: range.from, to: Math.min(end, Math.max(range.from + span, range.to + delta)) }
+}
+
+/** The popover's timeline: drag the range or its ends, or use the three sliders. */
+function RangeTimeline({ range, now, maxDuration, live, formats, escape, onCommit }: { range: TimeRange | null;
+  now: number; maxDuration: number; live: boolean; formats: Formats; escape: React.RefObject<EscapeHandlers>;
+  onCommit: (value: LiveTimeRange) => void }) {
+  const track = React.useRef<HTMLDivElement>(null)
+  const dragRef = React.useRef<Drag | null>(null)
+  const [drag, setDrag] = React.useState<Drag | null>(null)
+  const start = now - maxDuration
+  const usable = validInstant(now) && positive(maxDuration) && validInstant(start)
+  if (!usable || !range || range.to < start) {
+    return <Timeline range={range} now={now} maxDuration={maxDuration} live={live} formats={formats} />
+  }
+  const span = minimumSpan(maxDuration)
+  const unit = maxDuration >= 2000 ? 1000 : 1
+  const step = Math.max(unit, Math.round(maxDuration / 120 / unit) * unit)
+  const { text } = formats
+  const update = (next: Drag | null) => { dragRef.current = next; setDrag(next) }
+  const cancel = () => {
+    if (!dragRef.current) return false
+    track.current?.releasePointerCapture?.(dragRef.current.pointer)
+    update(null)
+    return true
+  }
+  escape.current.drag = cancel
+  // During a drag the window stays at the `now` the drag started with.
+  const shown = drag ? drag.preview : range
+  const windowNow = drag ? drag.now : now
+  const windowStart = windowNow - maxDuration
+  const left = Math.min(1, Math.max(0, (shown.from - windowStart) / maxDuration))
+  const right = Math.min(1, Math.max(0, (shown.to - windowStart) / maxDuration))
+  const crosses = !formats.sameDay(shown.from, shown.to)
+  const time = (instant: number) => formats.time(instant, crosses)
+
+  const begin = (mode: DragMode) => (event: React.PointerEvent) => {
+    if (event.button !== 0 || !track.current) return
+    event.preventDefault()
+    event.stopPropagation()
+    track.current.setPointerCapture?.(event.pointerId)
+    const width = track.current.getBoundingClientRect().width
+    update({ mode, pointer: event.pointerId, x: event.clientX, width, now, from: range.from, to: range.to,
+      preview: range, snap: false })
+  }
+  const move = (event: React.PointerEvent) => {
+    const current = dragRef.current
+    if (!current || event.pointerId !== current.pointer || !current.width) return
+    const delta = Math.round((event.clientX - current.x) / current.width * maxDuration / unit) * unit
+    let preview = shift(current.mode, current, delta, current.now - maxDuration, current.now, span)
+    const snap = current.mode !== "from" && preview.to >= current.now - maxDuration * 0.015
+    if (snap) preview = { from: preview.from, to: current.now }
+    update({ ...current, preview, snap })
+  }
+  const end = (event: React.PointerEvent) => {
+    const current = dragRef.current
+    if (!current || event.pointerId !== current.pointer) return
+    update(null)
+    track.current?.releasePointerCapture?.(current.pointer)
+    if (current.preview.from === current.from && current.preview.to === current.to && !current.snap) return
+    if (current.snap) return onCommit({ kind: "relative", duration: snapDuration(current.preview.to - current.preview.from, maxDuration) })
+    // Checked against the retention of the current `now`.
+    const from = Math.max(current.preview.from, now - maxDuration)
+    const to = Math.min(current.preview.to, now)
+    if (from < to) onCommit({ kind: "absolute", from, to })
+  }
+  const key = (mode: DragMode) => (event: React.KeyboardEvent) => {
+    const limits = mode === "move" ? [start, now - (range.to - range.from)] : mode === "from" ? [start, range.to - span] : [range.from + span, now]
+    const current = mode === "to" ? range.to : range.from
+    const big = step * 10
+    const deltas: Record<string, number> = { ArrowLeft: -step, ArrowDown: -step, ArrowRight: step, ArrowUp: step,
+      PageDown: -big, PageUp: big, Home: limits[0] - current, End: limits[1] - current }
+    if (!(event.key in deltas)) return
+    event.preventDefault()
+    const delta = event.shiftKey && event.key.startsWith("Arrow") ? deltas[event.key] * 10 : deltas[event.key]
+    const next = shift(mode, range, delta, start, now, span)
+    if (next.from !== range.from || next.to !== range.to) onCommit({ kind: "absolute", ...next })
+  }
+  const slider = (mode: DragMode, name: string, min: number, max: number, value: number, valueText: string) => ({
+    role: "slider", tabIndex: 0, "aria-label": name, "aria-valuemin": min, "aria-valuemax": max, "aria-valuenow": value,
+    "aria-valuetext": valueText, "aria-orientation": "horizontal" as const, onKeyDown: key(mode), onPointerDown: begin(mode),
+  })
+  return <div className="time-range-live-timeline">
+    <div ref={track} className="time-range-live-track" data-state={live && (!drag || drag.snap) ? "live" : "paused"}
+      data-dragging={drag ? drag.mode : undefined} onPointerMove={move} onPointerUp={end}
+      onPointerCancel={cancel} onLostPointerCapture={() => { if (dragRef.current) update(null) }}>
+      <span className="time-range-live-handle" style={{ left: `${left * 100}%` }}
+        {...slider("from", text.rangeStart, start, range.to - span, range.from, time(range.from))} />
+      <span className="time-range-live-segment" style={{ left: `${left * 100}%`, width: `${Math.max(right - left, 0.015) * 100}%` }}
+        {...slider("move", text.moveRange, start, now - (range.to - range.from), range.from,
+          text.fullRange(time(range.from), time(range.to)))} />
+      <span className="time-range-live-handle" style={{ left: `${right * 100}%` }}
+        {...slider("to", text.rangeEnd, range.from + span, now, range.to, time(range.to))} />
+    </div>
+    <div className="time-range-live-axis" aria-hidden="true">
+      <span>{formats.axis(windowStart, maxDuration >= 86_400_000)}</span><span>{text.now}</span>
+    </div>
+    {drag?.snap && <p className="time-range-live-note" role="status">
+      {text.releaseToLive(durationText(snapDuration(drag.preview.to - drag.preview.from, maxDuration), text.relative))}</p>}
   </div>
 }
 

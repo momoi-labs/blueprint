@@ -2973,6 +2973,15 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-live-track { position: relative; height: 6px; border-radius: var(--radius-full); background: var(--color-background); }
 .time-range-live-segment { position: absolute; inset-block: 0; border-radius: var(--radius-full); background: var(--color-primary); }
 .time-range-live-track[data-state="paused"] .time-range-live-segment { background: var(--color-muted-foreground); }
+/* The popover's bar: drag the segment to move, an end to resize. Hit areas
+   are taller than the bar; the handles have no visible mark of their own. */
+.time-range-live-main .time-range-live-track { margin-block: var(--spacing-sm); touch-action: none; user-select: none; }
+.time-range-live-main .time-range-live-segment { cursor: grab; }
+.time-range-live-main .time-range-live-segment::before { content: ""; position: absolute; inset: calc(-1 * var(--spacing-sm)) 0; }
+.time-range-live-main .time-range-live-segment:hover, .time-range-live-track[data-dragging] .time-range-live-segment { filter: brightness(1.2); }
+.time-range-live-track[data-dragging="move"] .time-range-live-segment { cursor: grabbing; }
+.time-range-live-handle { position: absolute; inset-block: calc(-1 * var(--spacing-sm)); z-index: 1; width: var(--spacing-md); transform: translateX(-50%); border-radius: var(--radius-sm); cursor: ew-resize; }
+.time-range-live-main :is(.time-range-live-segment, .time-range-live-handle):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .time-range-live-axis { display: flex; justify-content: space-between; gap: var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-metadata); }
 .time-range-live-fields { display: grid; gap: var(--spacing-md); }
 .time-range-live-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); }
