@@ -21,6 +21,7 @@ immediate vs deferred persistence, and unambiguous save feedback.
 | Text / choice fields | [FormField](../components/form-field.md) | [Label](../components/label.md) + [Input](../components/input.md) / [Select](../components/select.md) / [Textarea](../components/textarea.md) + [HelperText](../components/helper-text.md) + [ValidationMessage](../components/validation-message.md) |
 | Repeated values with their own options | [ChipInput](../components/chip-input.md) | One field for a list a person types, such as dependencies or scopes, instead of a form section per entry |
 | Booleans | [Switch](../components/switch.md) (immediate) or [Checkbox](../components/checkbox.md) inside FormField (part of a saved form) | Switch for single immediate preferences; Checkbox when the value submits with Save |
+| Short choices | [RadioGroup](../components/radio-group.md) `segmented` (immediate) | Two to four short options that save at once, such as a boolean that can also follow a parent: see [Inherited values](#inherited-values) |
 | Actions | [FormActions](../components/form-actions.md) + [Button](../components/button.md) | Save (primary), Reset/Cancel (secondary) for explicit-save sections |
 | Feedback | [Toast](../components/toast.md), [Alert](../components/alert.md), [ValidationMessage](../components/validation-message.md) | Saved confirmation; section errors; field errors |
 | Shell | [Application shell](application-shell.md) | Authenticated framing |
@@ -90,6 +91,25 @@ Immediate preferences and automatic filters do not require FormActions.
    inline Alert with recovery.
 3. Do not also require Save for that same boolean.
 
+A segmented RadioGroup for a short choice follows the same flow: the choice
+persists when picked, a failure puts the saved option back, and no Save
+applies to it.
+
+### Inherited values
+
+Some settings follow a parent, such as a workspace default that each project
+can override. Show the inheritance as a choice, not as a hidden state:
+
+- Offer it as a segmented RadioGroup. The first option follows the parent
+  and names the parent's current value, such as "Workspace (Off)". The other
+  options set the value here: "On", "Off".
+- The row shows the option that is saved here. Do not show the parent's
+  value as if this level set it.
+- Following the parent means a later change of the parent applies here too.
+  Say so in the row's description.
+- On the parent's own settings, say that it applies to everything that
+  follows it.
+
 Do not mix both persistence models inside one Card without labeling which
 controls save immediately.
 
@@ -102,7 +122,7 @@ controls save immediately.
 | dirty | Visual cue that Save applies; warn on navigate-away when appropriate. |
 | invalid | Field ValidationMessage; focus first error; preserve other values. |
 | saving | Save Button loading; prevent duplicate submits. |
-| error | Alert with what / why / now; values preserved; Switch failures revert. |
+| error | Alert with what / why / now; values preserved; Switch and segmented choice failures revert. |
 | success | Toast or quiet confirmation; do not block the page. |
 
 ## Layout sketch
