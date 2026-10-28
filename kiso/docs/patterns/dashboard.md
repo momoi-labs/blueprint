@@ -38,8 +38,9 @@ hierarchy ([principles](../principles.md)).
 [Sparkline](../components/sparkline.md) carries metric shape inside Cards and
 table cells; it composes like any other widget payload. Use
 [Chart](../components/chart.md) with its legend and exact-values table for
-exploratory metrics. Share a timestamp grid, time range, and syncId across
-related panels. Compose [DashboardGrid](../components/dashboard-grid.md) and
+exploratory metrics. Share a timestamp grid, time range, time zone, and
+syncId across related panels. A monitoring console uses TimeRangeControl's
+live mode and resolves a relative range from the wall clock on every poll. Compose [DashboardGrid](../components/dashboard-grid.md) and
 [Disclosure](../components/disclosure.md) for panel groups the reader can
 move and resize, and persist the layout. DashboardGrid is a
 [PaneGrid](../components/pane-grid.md). Make a chart panel expandable so the

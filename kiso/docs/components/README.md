@@ -67,7 +67,7 @@ behavioral reference where one exists.
 - [Steps](steps.md): Shows explicit progress and available navigation in a guided flow.
 
 - [Disclosure](disclosure.md): Native collapsible sections.
-- [TimeRangeControl](time-range-control.md): Presets and exact UTC collection windows.
+- [TimeRangeControl](time-range-control.md): Presets and exact ranges for a collected run, or live ranges that follow the wall clock.
 - [DashboardGrid](dashboard-grid.md): Metric panels the reader moves, resizes and expands, on PaneGrid.
 - [PaneGrid / GridPane](pane-grid.md): Summary panes on twelve columns that the reader resizes and moves, saved by the product.
 
