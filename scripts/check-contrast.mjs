@@ -15,6 +15,12 @@ const textRoles = new Map([
   ['warning', 4.5],
   ['danger', 4.5],
   ['info', 4.5],
+  // Syntax roles are aliases, but code text is small, so gate them directly.
+  ['code-comment', 4.5],
+  ['code-keyword', 4.5],
+  ['code-string', 4.5],
+  ['code-constant', 4.5],
+  ['code-name', 4.5],
   ['subtle-foreground', 3],
 ]);
 

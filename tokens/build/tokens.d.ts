@@ -273,6 +273,16 @@ export const semanticWarningOnDark: string;
 export const semanticDangerOnDark: string;
 /** Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticInfoOnDark: string;
+/** Syntax: comments and diff headers. Alias of muted-foreground, so it stays text-eligible. */
+export const semanticCodeComment: string;
+/** Syntax: keywords and control flow. Alias of info. */
+export const semanticCodeKeyword: string;
+/** Syntax: strings. Alias of success. */
+export const semanticCodeString: string;
+/** Syntax: numbers, booleans, constants and command options. Alias of warning. */
+export const semanticCodeConstant: string;
+/** Syntax: variables and keys. Alias of accent, the text-eligible accent ink, so it follows the accent theme. */
+export const semanticCodeName: string;
 /** Categorical chart series 1. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. Pinned to the violet ink: chart series do not follow the accent, so the palette stays distinguishable from the status series under every accent. */
 export const semanticChart1: string;
 /** Categorical chart series 2. Identity only, never status. Pair with its numbered label, interactive highlighting, and exact values. */

@@ -19,8 +19,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/media-preview.js', 'dist/media-preview.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/code-block.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/media-preview.js', 'dist/media-preview.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/code-block.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -83,7 +83,7 @@ try {
       Disclosure, TimeRangeControl, DashboardGrid, DashboardPanel,
       AppShell, AppShellMain, AppShellPanel, AppShellPanelToggle, Dot, KV, KVKey, KVValue, Separator, Split, Pane, Splitter,
       Toasts, useToast, Lifecycle, StatusBadge, FilterInput, parseFilterExpression,
-      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel, CodeEditor,
+      Stat, StatLabel, StatValue, LogView, LogViewLine, LogViewTime, LogViewLevel, CodeEditor, CodeBlock,
       AudioPreview, DetailOption, ImagePreview, isPlayPreviewKey } from '@momoi-labs/kiso-react';
     for (const component of [DetailSelect, Chart, ChartLegend, Meter, Progress, BarGauge, Disclosure,
       TimeRangeControl, DashboardGrid, DashboardPanel]) assert.equal(typeof component, 'function');
@@ -194,6 +194,13 @@ try {
     assert.match(code, /class="code-editor-gutter" aria-hidden="true"/);
     assert.match(code, /class="code-editor-highlight" aria-hidden="true"><div>a&lt;b<[/]div>/);
     assert(!render(h(CodeEditor, { defaultValue: 'x', highlight: () => null })).includes('code-editor-highlight'));
+    const block = render(h(CodeBlock, { title: 'Changes', diff: true, lineNumbers: true, code: '-a\\n+"b\\nc"',
+      highlight: value => value.split(/("[^"]*")/).map((part, i) => i % 2 ? h('span', { key: i, className: 'code-string' }, part) : part) }));
+    assert.match(block, /<figure class="code-block" data-slot="code-block"/);
+    assert.match(block, /<figcaption class="code-block-header"><span class="code-block-title">Changes<[/]span><[/]figcaption>/);
+    assert.match(block, /data-change="removed"><span class="code-block-number" aria-hidden="true">1<[/]span><span class="code-block-marker" aria-hidden="true">−<[/]span><span class="code-block-change">Removed line: <[/]span>/);
+    assert.match(block, /<span class="code-string">&quot;b<[/]span>[^]*<span class="code-string">c&quot;<[/]span>/, 'a token that spans lines reopens on the next line');
+    assert.match(render(h(CodeBlock, { code: 'x\\ny', highlight: () => ({ __html: '<b>x\\ny</b>' }) })), /<span><b>x<[/]b><[/]span>[^]*<span><b>y<[/]b><[/]span>/);
     assert.match(render(h(ValidationMessage, { id: 'e' }, 'Use lowercase letters.')), /class="field-error"/);
     assert.match(render(h(PageHeader, { actions: h(Button, null, 'Deploy') },
       h(PageHeaderTitle, null, 'Applications'))), /class="between"/);

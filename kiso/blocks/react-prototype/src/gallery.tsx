@@ -2,6 +2,7 @@ import { usePaneLayout } from "./use-pane-layout";
 import { BookOpen, Boxes, ChevronDown, FileText, LayoutDashboard, ListTree, PanelLeft, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, UserRound, X } from "lucide-react";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
+import { CodeBlockDemo } from "./code-block-demo";
 import { CodeEditorDemo } from "./code-editor-demo";
 import { DemoSettings, DemoSettingsContext } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
@@ -253,6 +254,7 @@ const catalog = [
   ["diagram", "Diagram", "Data", "How routes, services and stores connect."],
   ["dot", "Dot", "Data", "Status as a mark beside a name."],
   ["status-badge", "StatusBadge", "Data", "A status in one of three tones, pulsing while work goes."],
+  ["code-block", "CodeBlock", "Data", "Read-only code with copy, diff markers and folding."],
   ["log-view", "LogView", "Data", "Streamed output that follows the tail."],
   ["step-list", "StepList", "Data", "A run's steps with a state, a timing and an output."],
   ["step-bar", "StepBar", "Data", "The same run as one segment per step."],
@@ -391,6 +393,7 @@ const snippets: Record<string, string> = {
   steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
   "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
   "password-input": '<FormField label="Password">\n  <PasswordInput name="password" />\n</FormField>',
+  "code-block": '<CodeBlock terminal title="Deploy from CI" copy="command" highlight={bash}\n  code={command} />\n\n<CodeBlock diff title="Changes" highlight={yaml} code={changes} />',
   "code-editor": '<FormField label="Startup script">\n  <CodeEditor value={script} onChange={(event) => setScript(event.target.value)}\n    highlight={(code) => ({ __html: Prism.highlight(code, Prism.languages.bash, "bash") })} />\n</FormField>',
   "file-dropzone": '<FileDropzone label="Choose a file" accept=".txt" onFilesSelected={setFiles} />',
 
@@ -1306,6 +1309,8 @@ const Demo = memo(function Demo({
           <small className="field-hint">{value.length} characters</small>
         </div>
       );
+    case "code-block":
+      return <CodeBlockDemo />;
     case "code-editor":
       return <CodeEditorDemo />;
     case "chip-input":

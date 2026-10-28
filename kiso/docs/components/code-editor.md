@@ -83,7 +83,9 @@ gutter keeps one `--color-border` divider.
 - Tab moves focus out of the editor, as in any textarea. The editor does not
   trap Tab for indentation.
 - Highlight colors must keep 4.5:1 contrast against `--color-card` in both
-  themes. Use semantic text roles, not raw colors.
+  themes. Mark tokens with the syntax role classes in
+  [CodeBlock](code-block.md#highlighting), which are gated at 4.5:1, not raw
+  colors.
 
 ## When to use
 
@@ -93,6 +95,8 @@ gutter keeps one `--color-border` divider.
 ## When NOT to use
 
 - Prose or free-form notes; use [Textarea](textarea.md).
+- Read-only code, such as commands and examples; use
+  [CodeBlock](code-block.md) with the same `highlight`.
 - Read-only output, such as logs; use [LogView](log-view.md).
 - Long files or work that needs completion, folding, search or multiple
   cursors; that needs a full editor.
@@ -104,8 +108,10 @@ The frame uses FormField's grouped control: `--color-card`, `--color-input`,
 `--color-disabled-surface` and `--color-disabled`. Text uses
 `--type-role-code-font-family`, `--type-role-code-font-size` and
 `--type-role-code-line-height`, with `--color-foreground`; line numbers use
-`--color-muted-foreground` and a `--color-border` divider. Padding uses
-`--spacing-sm` and `--spacing-md`.
+`--color-muted-foreground` and a `--color-border` divider. A highlight uses
+the syntax roles `--color-code-comment`, `--color-code-keyword`,
+`--color-code-string`, `--color-code-constant` and `--color-code-name`. Padding uses `--spacing-sm` and
+`--spacing-md`.
 
 ## Radix/shadcn mapping
 

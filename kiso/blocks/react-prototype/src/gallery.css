@@ -420,10 +420,5 @@
   .gallery-keyboard-hint { display: none; }
 }
 
-/* Token colors for the CodeEditor preview's highlighter. */
-.code-demo-comment { color: var(--color-muted-foreground); }
-.code-demo-string { color: var(--color-success); }
-.code-demo-variable { color: var(--color-primary); }
-.code-demo-keyword { color: var(--color-info); }
 .media-preview-demo-list { display: grid; max-width: 20rem; padding: var(--spacing-xs); border: 1px solid var(--color-border); border-radius: var(--radius-md); background-color: var(--color-popover); }
 .media-preview-demo-list:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }

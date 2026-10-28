@@ -11,6 +11,7 @@ export * from "./button.js";
 export * from "./card.js";
 export * from "./checkbox.js";
 export * from "./chip-input.js";
+export * from "./code-block.js";
 export * from "./code-editor.js";
 export * from "./filter-input.js";
 export * from "./filter-expression.js";
