@@ -158,6 +158,8 @@
     trigger.setAttribute("aria-expanded", "true");
     draw();
     place(listPopup, trigger);
+    // Scroll only once the popup is shown and sized.
+    if (open.active) document.getElementById("scope-opt-" + open.active.replace(/[^\w-]/g, "_")).scrollIntoView({ block: "nearest" });
     (def.searchable ? input : list).focus();
   }
 

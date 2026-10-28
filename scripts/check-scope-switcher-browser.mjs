@@ -255,6 +255,7 @@ for (const [width, label] of [[390, 'phone'], [640, '200% zoom']]) test(`Every l
   await levels.getByRole('button', { name: /^Server/ }).click();
   const option = page.getByRole('option', { name: 'db-prod-02' });
   if (width < 500) assert((await option.boundingBox()).height >= 44);
+  if (width < 500) assert((await page.getByRole('combobox', { name: 'Filter servers' }).boundingBox()).height >= 44, 'filter touch target');
   await option.click();
   assert.equal(await page.getByRole('dialog').count(), 0, 'choosing closes both popups');
   assert.equal(await scope(page), 'acme/checkout/s1');
@@ -284,4 +285,19 @@ test('Contrast of trigger, active and selected option, and no motion', async () 
    await axe(page, `${theme} open`);
   } finally { await page.close(); }
  }
+});
+
+test('Static block opens on the selected option and passes axe', async () => {
+ const page = await browser.newPage({ viewport: { width: 1280, height: 420 } });
+ try {
+  page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.goto(url.replace('scripts/fixtures/scope-switcher.html', 'kiso/blocks/scope.html') + '?page=logs&project=analytics&server=metrics-14');
+  await page.getByRole('navigation', { name: 'Scope' }).getByRole('button', { name: 'Server metrics-14' }).click();
+  const selected = page.getByRole('option', { name: 'metrics-14' });
+  assert.equal(await selected.getAttribute('aria-selected'), 'true');
+  assert(await selected.evaluate(el => { const r = el.getBoundingClientRect(), l = el.closest('[role="listbox"]').getBoundingClientRect(); return r.top >= l.top && r.bottom <= l.bottom + 1; }), 'selected option scrolled into view');
+  await axe(page, 'block open');
+  await page.keyboard.press('ArrowUp'); await page.keyboard.press('Enter');
+  assert.match(await page.evaluate(() => location.search), /page=logs&.*server=metrics-13/, 'switch keeps the page');
+ } finally { await page.close(); }
 });
