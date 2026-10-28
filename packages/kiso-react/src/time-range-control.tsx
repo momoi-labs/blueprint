@@ -2,53 +2,18 @@
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
-import { Check, ChevronDown, Pause, Radio } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import { Button } from "./button.js"
 import { Form, FormActions } from "./form.js"
 import { Input } from "./input.js"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover.js"
-import { Search } from "./search.js"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip.js"
-import { browserTimeZone, dateFormat, parseWallTime, timeZones, validInstant, validTimeZone, wallString,
-  zoneName } from "./time-zone.js"
+import { parseWallTime, validTimeZone, wallString, zoneName } from "./time-zone.js"
+import { LiveControl } from "./time-range-live.js"
+import { defaultLabels, defaultPresets, validRange, type LiveTimeRange, type TimeRange, type TimeRangeControlLabels,
+  type TimeRangePreset } from "./time-range-shared.js"
 
-export type TimeRange = { from: number; to: number }
-/** A live value: relative follows the wall clock, absolute is paused. */
-export type LiveTimeRange = { kind: "relative"; duration: number } | { kind: "absolute"; from: number; to: number }
-export type TimeRangePreset = { label: string; duration: number }
-export type TimeRangeUnit = "second" | "minute" | "hour" | "day"
-export type TimeRangeState = "live" | "paused"
-
-const defaultLabels = {
-  entireRun: "Entire run",
-  custom: "Custom range",
-  backToPresets: "Back to presets",
-  backToLive: "Back to live",
-  apply: "Apply range",
-  from: (zone: string) => `From (${zone})`,
-  to: (zone: string) => `To (${zone})`,
-  error: "Choose a start before the end, within the collection window.",
-  liveError: "Choose a start before the end, within the kept data.",
-  presets: "Presets",
-  live: "Live",
-  paused: "Paused",
-  relative: (count: number, unit: TimeRangeUnit) => `Last ${count} ${unit}${count === 1 ? "" : "s"}`,
-  /** Visible range text: short times and the zone name. */
-  range: (from: string, to: string, zone: string) => `${from} to ${to} ${zone}`,
-  /** Full timestamps for the tooltip and the accessible name. */
-  fullRange: (from: string, to: string) => `${from} to ${to}`,
-  triggerName: ({ label, state, text, range }: { label: string; state: string; text: string; range: string }) =>
-    `${label}, ${state}: ${text}, ${range}`,
-  pausedAt: (range: string) => `Paused at ${range}.`,
-  timeZone: "Time zone",
-  timeZoneButton: (zone: string) => `Time zone: ${zone}`,
-  browserTimeZone: (zone: string) => `Browser time zone (${zone})`,
-  utc: "UTC",
-  searchTimeZones: "Search time zones",
-  noTimeZones: "No matching time zones.",
-  unavailable: "Time unavailable",
-}
-export type TimeRangeControlLabels = typeof defaultLabels
+export type { LiveTimeRange, TimeRange, TimeRangeControlLabels, TimeRangePreset, TimeRangeState,
+  TimeRangeUnit } from "./time-range-shared.js"
 
 type SharedProps = {
   label?: string
@@ -81,18 +46,12 @@ export type LiveTimeRangeControlProps = SharedProps & {
 }
 export type TimeRangeControlProps = ArtifactTimeRangeControlProps | LiveTimeRangeControlProps
 
-const defaultPresets = [
-  { label: "Last 5 minutes", duration: 300_000 },
-  { label: "Last 15 minutes", duration: 900_000 },
-  { label: "Last 30 minutes", duration: 1_800_000 },
-]
 // Browsers drop zero seconds and milliseconds from a datetime-local value.
 const wallKey = (text: string) => {
   const [date, time = ""] = text.split("T")
   const [clock = "", fraction = ""] = time.split(".")
   return `${date}T${clock.length === 5 ? `${clock}:00` : clock}.${fraction.padEnd(3, "0")}`
 }
-const validRange = (range: TimeRange) => validInstant(range.from) && validInstant(range.to) && range.from < range.to
 
 export function TimeRangeControl(props: TimeRangeControlProps) {
   return props.mode === "live" ? <LiveControl {...props} /> : <ArtifactControl {...props} />
@@ -179,171 +138,4 @@ function ArtifactForm({ value, bounds, timeZone, zone, text, onApply }: { value:
     {error && <p id={`${id}-error`} role="alert" className="field-error">{error}</p>}
     <FormActions><Button type="submit" variant="primary">{text.apply}</Button></FormActions>
   </Form>
-}
-
-const units: [TimeRangeUnit, number][] = [["day", 86_400_000], ["hour", 3_600_000], ["minute", 60_000], ["second", 1000]]
-const positive = (value: number) => Number.isFinite(value) && value > 0
-
-function documentLocale() {
-  return typeof document === "undefined" ? undefined : document.documentElement.lang || undefined
-}
-
-function validLocale(locale: string | undefined) {
-  if (locale === undefined) return undefined
-  try { return Intl.getCanonicalLocales(locale)[0] } catch { return undefined }
-}
-
-function LiveControl({ value, now, maxDuration, resumeDuration, onValueChange, label = "Time range", disabled,
-  className, presets = defaultPresets, timeZone, onTimeZoneChange, locale, labels }: LiveTimeRangeControlProps) {
-  const text = { ...defaultLabels, ...labels }
-  const [open, setOpen] = React.useState(false)
-  const [view, setView] = React.useState<"presets" | "custom" | "zone">("presets")
-  const [session, setSession] = React.useState(0)
-  const [chosenZone, setChosenZone] = React.useState<string>()
-  const zone = validTimeZone(timeZone) ? timeZone : validTimeZone(chosenZone) ? chosenZone : browserTimeZone()
-  const language = validLocale(locale ?? documentLocale())
-  const valid = presets.filter(preset => positive(preset.duration))
-  const shown = valid.filter(preset => preset.duration <= maxDuration)
-  const relative = value?.kind === "relative"
-  const state: TimeRangeState = relative ? "live" : "paused"
-  const resolved: TimeRange = relative ? { from: now - value.duration, to: now }
-    : { from: value?.kind === "absolute" ? value.from : NaN, to: value?.kind === "absolute" ? value.to : NaN }
-  const resolvable = validRange(resolved)
-
-  const time = (instant: number, withDate: boolean) => dateFormat(language, { timeZone: zone, hour: "2-digit",
-    minute: "2-digit", second: "2-digit", ...(withDate ? { month: "short", day: "numeric" } : {}) }).format(instant)
-  const full = (instant: number) => dateFormat(language, { timeZone: zone, year: "numeric", month: "short",
-    day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit", timeZoneName: "longOffset" }).format(instant)
-  const shortRange = (range: TimeRange) => {
-    if (!validRange(range)) return text.unavailable
-    const crosses = wallString(range.from, zone, "second").slice(0, 10) !== wallString(range.to, zone, "second").slice(0, 10)
-    return text.range(time(range.from, crosses), time(range.to, crosses), zoneName(range.from, zone, language))
-  }
-  const relativeText = (duration: number) => {
-    if (!positive(duration)) return text.unavailable
-    const preset = valid.find(item => item.duration === duration)
-    if (preset) return preset.label
-    const [unit, size] = units.find(([, size]) => duration % size === 0) ?? ["second", 1000]
-    return text.relative(Math.max(1, Math.round(duration / size)), unit)
-  }
-  const triggerText = relative ? relativeText(value.duration) : shortRange(resolved)
-  const fullText = resolvable ? text.fullRange(full(resolved.from), full(resolved.to)) : text.unavailable
-  const StateIcon = relative ? Radio : Pause
-
-  const apply = (next: LiveTimeRange) => { onValueChange(next); setOpen(false) }
-  const chooseZone = (next: string) => {
-    setChosenZone(next)
-    onTimeZoneChange?.(next)
-    setView("presets")
-  }
-  const fieldZone = zoneName(validInstant(now) ? now : resolved.from, zone, language)
-
-  return <Popover open={open} onOpenChange={next => {
-    setOpen(next)
-    setView("presets")
-    if (next) setSession(count => count + 1)
-  }}>
-    <TooltipProvider><Tooltip>
-      <TooltipTrigger asChild><PopoverTrigger asChild>
-        <Button disabled={disabled} className={cn("time-range-trigger", className)} data-time-range-state={state}
-          aria-label={text.triggerName({ label, state: relative ? text.live : text.paused, text: triggerText, range: fullText })}>
-          <StateIcon className="icon icon-sm" aria-hidden="true" /> {triggerText} <ChevronDown className="icon icon-sm" aria-hidden="true" />
-        </Button>
-      </PopoverTrigger></TooltipTrigger>
-      <TooltipContent>{fullText}</TooltipContent>
-    </Tooltip></TooltipProvider>
-    <PopoverContent className="time-range-content" aria-label={label}>
-      {view === "custom" ? <div className="stack-sm">
-        <Button variant="ghost" onClick={() => setView("presets")}>{text.backToPresets}</Button>
-        <LiveForm key={session} initial={resolved} now={now} maxDuration={maxDuration} timeZone={zone}
-          zone={fieldZone} text={text} onApply={range => apply({ kind: "absolute", ...range })} />
-      </div> : view === "zone" ? <TimeZoneView zone={zone} text={text} onBack={() => setView("presets")} onChoose={chooseZone} />
-      : <div className="stack-sm">
-        {!relative && <div className="time-range-paused">
-          <p>{text.pausedAt(shortRange(resolved))}</p>
-          <Button onClick={() => apply({ kind: "relative", duration: resumeDuration })}>
-            <Radio className="icon icon-sm" aria-hidden="true" /> {text.backToLive}
-          </Button>
-        </div>}
-        <div className="time-range-presets" role="group" aria-label={text.presets}>
-          {shown.map(preset => {
-            const selected = relative && value.duration === preset.duration
-            return <Button variant="ghost" key={`${preset.label}-${preset.duration}`} className="time-range-option"
-              aria-pressed={selected} onClick={() => apply({ kind: "relative", duration: preset.duration })}>
-              <span>{preset.label}</span>{selected && <Check className="icon icon-sm" aria-hidden="true" />}
-            </Button>
-          })}
-          <Button variant="ghost" onClick={() => setView("custom")}>{text.custom}</Button>
-        </div>
-        <Button variant="ghost" className="time-range-zone" onClick={() => setView("zone")}>{text.timeZoneButton(zone)}</Button>
-      </div>}
-    </PopoverContent>
-  </Popover>
-}
-
-const ceilSecond = (value: number) => Math.ceil(value / 1000) * 1000
-const floorSecond = (value: number) => Math.floor(value / 1000) * 1000
-
-function LiveForm({ initial, now, maxDuration, timeZone, zone, text, onApply }: { initial: TimeRange; now: number;
-  maxDuration: number; timeZone: string; zone: string; text: TimeRangeControlLabels; onApply: (range: TimeRange) => void }) {
-  const id = React.useId()
-  const wall = (value: number) => validInstant(value) ? wallString(value, timeZone, "second") : ""
-  // The draft is taken once per opening; polling changes now, never the draft.
-  const [start] = React.useState(() => ({ from: wall(ceilSecond(initial.from)), to: wall(floorSecond(initial.to)), range: initial }))
-  const [from, setFrom] = React.useState(start.from)
-  const [to, setTo] = React.useState(start.to)
-  const [error, setError] = React.useState("")
-  const min = wall(ceilSecond(now - maxDuration))
-  const max = wall(floorSecond(now))
-  // Native constraints compare wall times, which a DST overlap can reverse, so
-  // they are hints only and Apply validates instants.
-  const hint = min && max && min < max ? { min, max } : {}
-  const field = { type: "datetime-local", step: "1", required: true, ...hint,
-    "aria-invalid": !!error, "aria-describedby": error ? `${id}-error` : undefined }
-  return <Form className="stack-sm" noValidate onSubmit={event => {
-    event.preventDefault()
-    // A field that still reads its initial wall time keeps the value's
-    // milliseconds.
-    const read = (text: string, initial: string, original: number) =>
-      wallKey(text) === wallKey(initial) ? original : parseWallTime(text, timeZone)
-    const range = { from: read(from, start.from, start.range.from), to: read(to, start.to, start.range.to) }
-    if (!validRange(range) || !(range.from >= now - maxDuration) || !(range.to <= now)) {
-      setError(text.liveError)
-      return
-    }
-    onApply(range)
-  }}>
-    <label htmlFor={`${id}-from`}>{text.from(zone)}</label>
-    <Input id={`${id}-from`} {...field} value={from} onChange={event => { setFrom(event.target.value); setError("") }} />
-    <label htmlFor={`${id}-to`}>{text.to(zone)}</label>
-    <Input id={`${id}-to`} {...field} value={to} onChange={event => { setTo(event.target.value); setError("") }} />
-    {error && <p id={`${id}-error`} role="alert" className="field-error">{error}</p>}
-    <FormActions><Button type="submit" variant="primary">{text.apply}</Button></FormActions>
-  </Form>
-}
-
-function TimeZoneView({ zone, text, onBack, onChoose }: { zone: string; text: TimeRangeControlLabels;
-  onBack: () => void; onChoose: (zone: string) => void }) {
-  const [query, setQuery] = React.useState("")
-  const browser = browserTimeZone()
-  const search = query.trim().toLowerCase()
-  const matches = search ? timeZones().filter(item => item.toLowerCase().includes(search)).slice(0, 50) : []
-  const option = (item: string, name: string) => <Button variant="ghost" key={item} className="time-range-option"
-    aria-pressed={item === zone} onClick={() => onChoose(item)}>
-    <span>{name}</span>{item === zone && <Check className="icon icon-sm" aria-hidden="true" />}
-  </Button>
-  return <div className="stack-sm">
-    <Button variant="ghost" onClick={onBack}>{text.backToPresets}</Button>
-    <div className="time-range-presets" role="group" aria-label={text.timeZone}>
-      {option(browser, text.browserTimeZone(browser))}
-      {browser !== "UTC" && option("UTC", text.utc)}
-    </div>
-    <Search aria-label={text.searchTimeZones} placeholder={text.searchTimeZones} value={query}
-      onChange={event => setQuery(event.target.value)} />
-    {search && (matches.length
-      ? <div className="time-range-presets time-range-zones" role="group" aria-label={text.searchTimeZones}>
-        {matches.map(item => option(item, item))}
-      </div>
-      : <p className="time-range-empty">{text.noTimeZones}</p>)}
-  </div>
 }

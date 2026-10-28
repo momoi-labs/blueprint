@@ -36,7 +36,7 @@ try {
   const dist = path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist');
   for (const file of (await readdir(dist)).filter(file => /\.(js|ts)$/.test(file))) {
     const source = await readFile(path.join(dist, file), 'utf8');
-    for (const [, specifier] of source.matchAll(/(?:from\s*|import\s*(?:\(\s*)?)["']([^"']+)["']/g)) {
+    for (const [, specifier] of source.matchAll(/(?:(?<![\w"'$.])from\s*|\bimport\s*(?:\(\s*)?)["']([^"']+)["']/g)) {
       if (specifier.startsWith('.')) continue;
       const dependency = specifier.split('/').slice(0, specifier.startsWith('@') ? 2 : 1).join('/');
       assert(declared.has(dependency), `${file} imports undeclared dependency ${dependency}`);

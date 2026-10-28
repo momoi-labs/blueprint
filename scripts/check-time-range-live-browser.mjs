@@ -20,16 +20,18 @@ before(async () => {
 after(async () => { await browser?.close(); await server.close(); });
 beforeEach(async () => {
   await page.keyboard.press('Escape');
-  await page.evaluate(start => {
+  await page.evaluate(start => new Promise(resolve => {
     window.changes = []; window.zones = [];
     window.update({ now: start, maxDuration: 1_800_000, resumeDuration: 900_000, timeZone: undefined,
       value: { kind: 'relative', duration: 900_000 } });
-  }, now);
-  await page.locator('.time-range-content').waitFor({ state: 'detached' });
+    requestAnimationFrame(() => setTimeout(resolve));
+  }), now);
+  await page.locator('.time-range-live-content').waitFor({ state: 'detached' });
 });
 
 const trigger = () => page.locator('.time-range-trigger[data-time-range-state]');
-const popover = () => page.locator('.time-range-content');
+const pauseButton = () => page.locator('.time-range-live-pause');
+const popover = () => page.locator('.time-range-live-content');
 const button = name => popover().getByRole('button', { name, exact: true });
 const changes = () => page.evaluate(() => window.changes);
 // Waits a frame so React has rendered the new props.
@@ -39,75 +41,109 @@ const update = props => page.evaluate(next => new Promise(resolve => {
 }), props);
 const from = () => popover().getByLabel(/^From/);
 const to = () => popover().getByLabel(/^To/);
-async function openCustom() {
+const alert = () => popover().getByRole('alert');
+async function open() {
   await trigger().click();
-  await button('Custom range').click();
   await from().waitFor();
 }
 
-test('presets stop at the retention and the current one is pressed', async () => {
+test('presets stop at the retention, the current one is pressed, and there is no custom view', async () => {
   await update({ maxDuration: 1_200_000 });
-  await trigger().click();
+  await open();
   const presets = popover().getByRole('group', { name: 'Presets' }).getByRole('button');
-  assert.deepEqual(await presets.allTextContents(), ['Last 5 minutes', 'Last 15 minutes', 'Custom range']);
+  assert.deepEqual(await presets.allTextContents(), ['Last 5 minutes', 'Last 15 minutes']);
   assert.equal(await button('Last 15 minutes').getAttribute('aria-pressed'), 'true');
-  assert.equal(await button('Last 5 minutes').getAttribute('aria-pressed'), 'false');
-  assert.equal(await popover().getByText('Entire run').count(), 0);
+  assert.equal(await popover().getByText(/Entire run|Custom range/).count(), 0);
   await button('Last 5 minutes').click();
   assert.deepEqual(await changes(), [{ kind: 'relative', duration: 300_000 }]);
   assert.equal(await popover().count(), 0);
 });
 
-test('an open draft survives polling, and validation waits for Apply', async () => {
-  await openCustom();
-  assert.equal(await from().inputValue(), '2026-09-12T11:12:41', 'the shown start rounds up');
-  assert.equal(await to().inputValue(), '2026-09-12T11:27:40', 'the shown end rounds down');
-  await from().fill('2026-09-12T11:30');
+test('a live value shows now-x text, and a relative edit survives polling and applies live', async () => {
+  await open();
+  assert.equal(await from().inputValue(), 'now-15m');
+  assert.equal(await to().inputValue(), 'now');
+  assert.match(await popover().getByText(/follows the clock/).first().textContent(), /11:12:40/);
+  assert.equal(await button('Apply range').count(), 0, 'actions wait for an edit');
+  await from().fill('now-20m');
   await update({ now: now + 5000 });
-  await update({ now: now + 10_000, value: { kind: 'relative', duration: 300_000 } });
-  assert.equal(await from().inputValue(), '2026-09-12T11:30');
-  assert.equal(await popover().getByRole('alert').count(), 0);
+  assert.equal(await from().inputValue(), 'now-20m');
+  await from().press('Enter');
+  assert.deepEqual(await changes(), [{ kind: 'relative', duration: 1_200_000 }]);
+});
+
+test('Apply validates the grammar, the order, and the retention against the latest now', async () => {
+  await open();
+  await from().fill('2026-02-30 10:00');
   await button('Apply range').click();
-  assert.match(await popover().getByRole('alert').textContent(), /start before the end/);
+  assert.match(await alert().textContent(), /Enter a start/);
   assert.equal(await from().getAttribute('aria-invalid'), 'true');
-  assert.deepEqual(await changes(), []);
-  await from().fill('2026-09-12T11:20');
+  await from().fill('11:30');
   await button('Apply range').click();
-  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 8, 12, 14, 20), to: now }]);
+  assert.match(await alert().textContent(), /before the end/);
+  await from().fill('now-40m');
+  await button('Apply range').click();
+  assert.match(await alert().textContent(), /within the data kept/);
+  await from().fill('11:20');
+  await to().fill('now-0m');
+  await update({ now: now + 5000 });
+  await button('Apply range').click();
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 8, 12, 14, 20), to: now + 5000 }]);
 });
 
-test('a full-retention range applies unchanged', async () => {
-  await update({ value: { kind: 'relative', duration: 1_800_000 } });
-  await openCustom();
-  await button('Apply range').click();
-  assert.deepEqual(await changes(), [{ kind: 'absolute', from: now - 1_800_000, to: now }]);
-});
-
-test('a chart-selected range keeps its milliseconds, and an edited end rounds down', async () => {
+test('an untouched end keeps its milliseconds and the future is rejected', async () => {
   const selected = { kind: 'absolute', from: now - 600_000 + 250, to: now - 60_000 + 750 };
   await update({ value: selected });
-  await openCustom();
+  await open();
+  assert.equal(await from().inputValue(), '2026-09-12 11:17:41');
+  await to().fill('11:30');
   await button('Apply range').click();
-  assert.deepEqual((await changes())[0], selected);
-  await openCustom();
-  await to().fill('2026-09-12T11:26:07');
-  await button('Apply range').click();
-  assert.deepEqual((await changes())[1], { kind: 'absolute', from: selected.from, to: Date.UTC(2026, 8, 12, 14, 26, 7) });
+  assert.match(await alert().textContent(), /future/);
+  assert.equal(await to().getAttribute('aria-invalid'), 'true');
+  await to().fill('11:26:07');
+  await to().press('Enter');
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: selected.from, to: Date.UTC(2026, 8, 12, 14, 26, 7) }]);
 });
 
-test('a paused range offers Back to live', async () => {
-  await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 60_000 }, resumeDuration: 600_000 });
+test('Escape resets an edit first, then closes; Reset and new values behave', async () => {
+  await open();
+  await from().fill('now-10m');
+  await update({ value: { kind: 'relative', duration: 300_000 } });
+  assert.equal(await from().inputValue(), 'now-10m', 'a new value keeps the edit');
+  await page.keyboard.press('Escape');
+  assert.equal(await from().inputValue(), 'now-5m');
+  assert.equal(await popover().count(), 1);
+  await from().fill('now-10m');
+  await button('Reset').click();
+  assert.equal(await from().inputValue(), 'now-5m');
+  await page.keyboard.press('Escape');
+  await popover().waitFor({ state: 'detached' });
+  await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
+});
+
+test('a zone change discards an edit typed in the old zone', async () => {
+  await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 60_000 } });
+  await open();
+  await from().fill('11:00');
+  await update({ timeZone: 'Asia/Tokyo' });
+  assert.equal(await from().inputValue(), '2026-09-12 23:22:41');
+});
+
+test('pause freezes the window and resume returns to the resume duration', async () => {
+  assert.equal(await pauseButton().getAttribute('aria-label'), 'Pause');
+  await pauseButton().click();
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: now - 900_000, to: now }]);
   assert.equal(await trigger().getAttribute('data-time-range-state'), 'paused');
-  assert.match(await trigger().getAttribute('aria-label'), /Paused/);
-  await trigger().click();
-  assert.match(await popover().locator('.time-range-paused').textContent(), /Paused at 11:22:40 to 11:26:40 GMT-3/);
+  assert.equal(await pauseButton().getAttribute('aria-label'), 'Resume live');
+  await open();
+  assert.equal(await popover().locator('.time-range-live-status').textContent(), ' Paused');
   await button('Back to live').click();
-  assert.deepEqual(await changes(), [{ kind: 'relative', duration: 600_000 }]);
+  assert.deepEqual((await changes())[1], { kind: 'relative', duration: 900_000 });
   assert.equal(await trigger().getAttribute('data-time-range-state'), 'live');
 });
 
 test('the time zone view searches and picks a zone', async () => {
-  await trigger().click();
+  await open();
   await button('Time zone: America/Sao_Paulo').click();
   assert.equal(await button('Browser time zone (America/Sao_Paulo)').getAttribute('aria-pressed'), 'true');
   await popover().getByRole('searchbox', { name: 'Search time zones' }).fill('tokyo');
@@ -117,57 +153,52 @@ test('the time zone view searches and picks a zone', async () => {
   await page.keyboard.press('Escape');
   await update({ value: { kind: 'absolute', from: now - 300_000, to: now - 60_000 } });
   assert.match(await trigger().textContent(), /23:22:40 to 23:26:40 GMT\+9/);
-  await trigger().click();
+  await open();
   await button('Time zone: Asia/Tokyo').click();
-  await popover().getByRole('searchbox').fill('no such zone');
-  await popover().getByText('No matching time zones.').waitFor();
   await button('Browser time zone (America/Sao_Paulo)').click();
 });
 
-test('native constraints never block Apply across a daylight-saving overlap', async () => {
-  // 05:45Z is 01:45 EDT and 06:15Z is 01:15 EST: the wall-time window reverses.
-  await update({ timeZone: 'America/New_York', now: Date.UTC(2026, 10, 1, 6, 15), value: { kind: 'relative', duration: 1_800_000 } });
-  await openCustom();
-  assert.equal(await from().getAttribute('min'), null);
-  await button('Apply range').click();
-  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 10, 1, 5, 45), to: Date.UTC(2026, 10, 1, 6, 15) }]);
-});
-
-test('the keyboard reaches every action and Escape returns focus', async () => {
-  await trigger().focus();
-  await page.keyboard.press('Enter');
-  await page.waitForFunction(() => document.activeElement?.textContent === 'Last 5 minutes', null, { timeout: 2000 });
-  await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Last 15 minutes');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Enter');
-  assert.deepEqual(await changes(), [{ kind: 'relative', duration: 300_000 }]);
-  await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
-  await page.keyboard.press('Enter');
-  await popover().waitFor();
-  await page.keyboard.press('Escape');
-  assert.equal(await popover().count(), 0);
-  await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
-});
-
-test('the tooltip repeats the full range', async () => {
+test('the tooltip shows the timeline on a neutral surface', async () => {
   await trigger().hover();
-  const tip = page.getByRole('tooltip');
+  const tip = page.locator('.time-range-live-tip');
   await tip.waitFor();
-  assert.match(await tip.textContent(), /12 Sept 2026, 11:12:40 GMT-03:00 to 12 Sept 2026, 11:27:40 GMT-03:00/);
+  assert.match(await tip.textContent(), /11:12:40.*11:27:40.*Keeps 30 minutes\./);
+  const segment = await tip.locator('.time-range-live-segment').evaluate(node => ({ left: node.style.left, width: node.style.width }));
+  assert.deepEqual(segment, { left: '50%', width: '50%' });
+  assert.notEqual(await tip.evaluate(node => getComputedStyle(node).backgroundColor),
+    await page.locator('.time-range-live-pause').evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-primary')));
   await page.mouse.move(0, 0);
 });
 
-
 test('an edited wall time inside a daylight-saving gap moves forward', async () => {
-  // 06:59:59.500Z shows as 03:00:00 EDT; 02:30 does not exist that night.
   await update({ timeZone: 'America/New_York', now: Date.UTC(2026, 2, 8, 7, 20),
     value: { kind: 'absolute', from: Date.UTC(2026, 2, 8, 6, 59, 59, 500), to: Date.UTC(2026, 2, 8, 7, 10) } });
-  await openCustom();
-  assert.equal(await from().inputValue(), '2026-03-08T03:00');
-  await from().fill('2026-03-08T02:30');
-  await button('Apply range').click();
+  await open();
+  assert.equal(await from().inputValue(), '2026-03-08 03:00:00');
+  await from().fill('2026-03-08 02:30');
+  await from().press('Enter');
   assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 2, 8, 7), to: Date.UTC(2026, 2, 8, 7, 10) }]);
+});
+
+test('an untouched end inside a daylight-saving overlap keeps its instant', async () => {
+  // 06:15Z is 01:15 EST; 01:50 is read as EDT, the earlier instant.
+  await update({ timeZone: 'America/New_York', now: Date.UTC(2026, 10, 1, 6, 20),
+    value: { kind: 'absolute', from: Date.UTC(2026, 10, 1, 5, 45), to: Date.UTC(2026, 10, 1, 6, 15) } });
+  await open();
+  await from().fill('2026-11-01 01:50');
+  await from().press('Enter');
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 10, 1, 5, 50), to: Date.UTC(2026, 10, 1, 6, 15) }]);
+});
+
+test('the popover has two columns when wide and the keyboard reaches it', async () => {
+  await trigger().focus();
+  await page.keyboard.press('Enter');
+  await from().waitFor();
+  const columns = await page.locator('.time-range-live-panel').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+  assert.equal(columns, 2);
+  await page.keyboard.press('Escape');
+  await popover().waitFor({ state: 'detached' });
+  await page.waitForFunction(() => document.activeElement?.classList.contains('time-range-trigger'));
 });
 
 test('a Chart with timeZone formats its axis and readout in that zone', async () => {
@@ -185,10 +216,13 @@ test('a zoned artifact form keeps unchanged instants and never blocks Apply in a
   const artifact = page.getByRole('button', { name: /^Artifact range:/ });
   assert.match(await artifact.getAttribute('aria-label'), /01:10:00\.250 to .*01:14:00\.000 GMT-5/);
   await artifact.click();
-  await button('Custom range').click();
-  await from().waitFor();
-  assert.equal(await from().getAttribute('min'), null, 'the reversed wall-time window is not a native constraint');
-  await button('Apply range').click();
+  const content = page.locator('.time-range-content');
+  await content.getByRole('button', { name: 'Custom range', exact: true }).click();
+  const start = content.getByLabel(/^From/);
+  await start.waitFor();
+  assert.equal(await start.getAttribute('min'), null, 'the reversed wall-time window is not a native constraint');
+  assert.equal(await content.evaluate(node => node.getBoundingClientRect().width), 384, 'artifact keeps its width');
+  await content.getByRole('button', { name: 'Apply range', exact: true }).click();
   assert.deepEqual(await page.evaluate(() => window.artifactChanges),
     [{ from: Date.UTC(2026, 10, 1, 6, 10, 0, 250), to: Date.UTC(2026, 10, 1, 6, 14) }]);
 });
