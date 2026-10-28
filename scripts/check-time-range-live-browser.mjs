@@ -158,3 +158,14 @@ test('the tooltip repeats the full range', async () => {
   await page.mouse.move(0, 0);
 });
 
+
+test('an edited wall time inside a daylight-saving gap moves forward', async () => {
+  // 06:59:59.500Z shows as 03:00:00 EDT; 02:30 does not exist that night.
+  await update({ timeZone: 'America/New_York', now: Date.UTC(2026, 2, 8, 7, 20),
+    value: { kind: 'absolute', from: Date.UTC(2026, 2, 8, 6, 59, 59, 500), to: Date.UTC(2026, 2, 8, 7, 10) } });
+  await openCustom();
+  assert.equal(await from().inputValue(), '2026-03-08T03:00');
+  await from().fill('2026-03-08T02:30');
+  await button('Apply range').click();
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 2, 8, 7), to: Date.UTC(2026, 2, 8, 7, 10) }]);
+});
