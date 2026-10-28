@@ -26,7 +26,7 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
-      - run: npm audit --audit-level=low
+      - run: node scripts/check-audit.mjs
       - run: npm run check
       - run: npm run check:react
       - name: Open the version PR or publish merged versions
