@@ -34,6 +34,7 @@ export * from "./navigation.js";
 export * from "./page-header.js";
 export * from "./pagination.js";
 export * from "./popover.js";
+export * from "./scope-switcher.js";
 export * from "./search.js";
 export * from "./select.js";
 export * from "./detail-select.js";
