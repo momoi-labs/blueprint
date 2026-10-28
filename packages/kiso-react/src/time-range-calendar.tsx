@@ -119,7 +119,7 @@ export function RangeCalendar({ day, min, max, locale, label, text, onPick }: { 
             <button type="button" className="time-range-calendar-day" data-day={value} data-outside={value.slice(0, 7) !== month || undefined}
               tabIndex={value === focus ? 0 : -1} aria-disabled={!inside || undefined} aria-current={value === max ? "date" : undefined}
               aria-label={`${utc({ weekday: "long", year: "numeric", month: "long", day: "numeric" }).format(toDate(value))}${inside ? "" : `, ${text.outsideRetention}`}`}
-              onClick={() => { setFocus(value); pick(value) }}>
+              onClick={() => { if (inside) { setFocus(value); pick(value) } }}>
               {Number(value.slice(8))}
             </button>
           </td>
