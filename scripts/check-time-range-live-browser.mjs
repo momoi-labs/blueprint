@@ -394,6 +394,9 @@ test('days outside retention cannot be picked and months stop at retention', asy
   await page.keyboard.press('PageDown');
   assert.equal(await day(), '2026-09-30', 'and at the last one');
   assert.match(await calendar().locator('strong').textContent(), /September 2026/);
+  await calendar().locator('[data-day="2026-08-31"]').click({ force: true });
+  assert.match(await calendar().locator('strong').textContent(), /September 2026/, 'an unavailable spillover day changes nothing');
+  assert.equal(await calendar().count(), 1);
 });
 
 test('Escape closes only the calendar, and a click inside it keeps the popover open', async () => {
