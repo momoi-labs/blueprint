@@ -85,3 +85,13 @@ export function durationText(duration: number, template: (count: number, unit: T
   const [unit, size] = units.find(([, size]) => duration % size === 0) ?? ["second", 1000]
   return template(Math.max(1, Math.round(duration / size)), unit)
 }
+
+/** The smallest span a drag or slider keeps: one second, or all of a shorter retention. */
+export const minimumSpan = (maxDuration: number) => Math.min(1000, maxDuration)
+
+/** A drag released at now: the minute when it fits retention, else the second. */
+export function snapDuration(span: number, maxDuration: number) {
+  const minute = Math.round(span / 60_000) * 60_000
+  if (minute >= 60_000 && minute <= maxDuration) return minute
+  return Math.min(maxDuration, Math.max(minimumSpan(maxDuration), Math.round(span / 1000) * 1000))
+}

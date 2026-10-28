@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { TimeRangeControl } from '../dist/index.js';
 import { parseWallTime, wallString } from '../dist/time-zone.js';
 import { parseRangeText, relativeRangeText } from '../dist/time-range-text.js';
+import { snapDuration } from '../dist/time-range-shared.js';
 
 const render = props => renderToStaticMarkup(createElement(TimeRangeControl, { onValueChange() {}, ...props }));
 const chevron = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down icon icon-sm" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>';
@@ -114,4 +115,12 @@ test('live field text reads now, offsets, times of day, and dates in the zone', 
   assert.deepEqual(parseRangeText('2026-03-08 02:30', 'America/New_York', now), { kind: 'absolute', at: Date.UTC(2026, 2, 8, 7) });
   assert.deepEqual([relativeRangeText(1_800_000), relativeRangeText(7_200_000), relativeRangeText(86_400_000), relativeRangeText(90_000)],
     ['now-30m', 'now-2h', 'now-1d', 'now-90s']);
+});
+
+test('a drag released at now rounds to the minute only inside retention', () => {
+  assert.equal(snapDuration(1_195_000, 1_800_000), 1_200_000);
+  assert.equal(snapDuration(100_000, 100_000), 100_000, 'never past a 100-second retention');
+  assert.equal(snapDuration(29_400, 1_800_000), 29_000, 'under a minute rounds to the second');
+  assert.equal(snapDuration(200, 1_800_000), 1000, 'at least one second');
+  assert.equal(snapDuration(300, 500), 500, 'a sub-second retention keeps all of it');
 });
