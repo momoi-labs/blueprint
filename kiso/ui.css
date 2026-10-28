@@ -1126,6 +1126,12 @@ table.table {
 /* The active option carries focus; the list shows a ring only when empty. */
 .scope-list:focus-visible { outline: none; }
 .scope-list:focus-visible:not(:has([data-active])) { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+/* Forced colors drop fills and shadows, so focus needs system-color outlines. */
+@media (forced-colors: active) {
+  .scope-list:focus-visible { outline: 2px solid CanvasText; outline-offset: 1px; }
+  .scope-option[data-active] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .scope-filter:focus-within { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
 .scope-group + .scope-group, .scope-option + .scope-group { margin-block-start: var(--spacing-xs); }
 .scope-group-label { padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs); color: var(--color-muted-foreground); }
 .scope-option.menu-item {

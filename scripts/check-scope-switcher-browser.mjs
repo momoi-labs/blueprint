@@ -301,3 +301,37 @@ test('Static block opens on the selected option and passes axe', async () => {
   assert.match(await page.evaluate(() => location.search), /page=logs&.*server=metrics-13/, 'switch keeps the page');
  } finally { await page.close(); }
 });
+
+test('Forced colors keep a visible focus on the list and the active option', async () => {
+ const page = await open('', { forcedColors: 'active' });
+ try {
+  await page.getByRole('button', { name: 'Project Checkout' }).focus();
+  await page.keyboard.press('Enter');
+  const list = page.getByRole('listbox', { name: 'Projects' });
+  await list.waitFor();
+  assert(await list.evaluate(el => el === document.activeElement));
+  const style = el => { const s = getComputedStyle(el); return { style: s.outlineStyle, width: parseFloat(s.outlineWidth) }; };
+  const active = await page.locator('.scope-option[data-active]').evaluate(style);
+  assert(active.style !== 'none' && active.width >= 2, `active option outline ${JSON.stringify(active)}`);
+  const ring = await list.evaluate(style);
+  assert(ring.style !== 'none' && ring.width >= 2, `list outline ${JSON.stringify(ring)}`);
+ } finally { await page.close(); }
+});
+
+test('Forced colors keep the filter focus visible with no matches, loading and error', async () => {
+ const outline = el => { const s = getComputedStyle(el.closest('.scope-filter')); return { style: s.outlineStyle, width: parseFloat(s.outlineWidth) }; };
+ for (const [query, typed] of [['', 'zzzz'], ['state=loading', ''], ['state=error', '']]) {
+  const page = await open(query, { forcedColors: 'active' });
+  try {
+   await page.getByRole('button', { name: 'Server db-prod-01' }).focus();
+   await page.keyboard.press('Enter');
+   const input = page.getByRole('combobox', { name: 'Filter servers' });
+   await input.waitFor();
+   if (typed) await page.keyboard.type(typed);
+   assert(await input.evaluate(el => el === document.activeElement));
+   assert.equal(await page.locator('.scope-option[data-active]').count(), 0, 'no active option');
+   const ring = await input.evaluate(outline);
+   assert(ring.style !== 'none' && ring.width >= 2, `${query || typed} filter outline ${JSON.stringify(ring)}`);
+  } finally { await page.close(); }
+ }
+});
