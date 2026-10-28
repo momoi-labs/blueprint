@@ -287,12 +287,11 @@ function LiveForm({ initial, now, maxDuration, timeZone, zone, text, onApply }: 
     "aria-invalid": !!error, "aria-describedby": error ? `${id}-error` : undefined }
   return <Form className="stack-sm" noValidate onSubmit={event => {
     event.preventDefault()
-    // Browsers may drop ":00" seconds from the value, so compare instants: a
-    // field that still reads its initial time keeps the value's milliseconds.
-    const read = (text: string, initial: string, original: number) => {
-      const instant = parseWallTime(text, timeZone)
-      return instant === parseWallTime(initial, timeZone) ? original : instant
-    }
+    // A field that still reads its initial wall time keeps the value's
+    // milliseconds. Browsers may drop ":00" seconds from the value.
+    const seconds = (text: string) => /T\d\d:\d\d$/.test(text) ? `${text}:00` : text
+    const read = (text: string, initial: string, original: number) =>
+      seconds(text) === seconds(initial) ? original : parseWallTime(text, timeZone)
     const range = { from: read(from, start.from, start.range.from), to: read(to, start.to, start.range.to) }
     if (!validRange(range) || !(range.from >= now - maxDuration) || !(range.to <= now)) {
       setError(text.liveError)
