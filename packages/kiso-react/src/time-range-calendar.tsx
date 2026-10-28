@@ -66,6 +66,10 @@ export function RangeCalendar({ day, min, max, locale, label, text, onPick }: { 
     onPick(value)
     setOpen(false)
   }
+  const firstMonth = min.slice(0, 7), lastMonth = max.slice(0, 7)
+  // Keys stay in the months that hold retention; their unavailable days stay reachable.
+  const inMonths = (value: string) => value.slice(0, 7) < firstMonth ? `${firstMonth}-01`
+    : value.slice(0, 7) > lastMonth ? addDays(addMonths(`${lastMonth}-01`, 1), -1) : value
   const key = (event: React.KeyboardEvent) => {
     const dow = (toDate(focus).getUTCDay() - first + 7) % 7
     const next: Record<string, () => string> = {
@@ -79,10 +83,9 @@ export function RangeCalendar({ day, min, max, locale, label, text, onPick }: { 
       pick(focus)
     } else if (next[event.key]) {
       event.preventDefault()
-      move(next[event.key]())
+      move(inMonths(next[event.key]()))
     }
   }
-  const firstMonth = min.slice(0, 7), lastMonth = max.slice(0, 7)
   return <Popover open={open} onOpenChange={next => { setOpen(next); if (next) setFocus(clamp(day)) }}>
     <PopoverTrigger asChild>
       <Button type="button" variant="ghost" size="sm" className="btn-icon time-range-live-date" aria-label={label}>
