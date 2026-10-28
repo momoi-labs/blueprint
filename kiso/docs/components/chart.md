@@ -58,7 +58,7 @@ calls `onRangeSelect` with `{ from, to }`, the ordered timestamps of the
 samples at both ends. Escape before release cancels the drag. A click
 without a drag selects no range; it pins the timestamp, as described below. The product applies the range, usually as the value of its
 [TimeRangeControl](time-range-control.md), which stays the keyboard and touch
-path and the way back to the entire run.
+path and the way back to the entire run or to live.
 
 Pass the same `syncId` to related charts to synchronize by timestamp. Products
 must supply the same expected timestamp grid and window to that group. Array
@@ -84,7 +84,7 @@ label with pointer, touch, Enter, or Space to highlight that series; select
 it again to clear. The active label is underlined and exposes `aria-pressed`.
 Other series stay in the plot and in every readout. The
 "View exact values" disclosure exposes every sample as a native table, with
-full UTC timestamps and unrounded source numbers. Include units in the chart
+full timestamps and unrounded source numbers. Include units in the chart
 label; formatters change display text, never the exact table. Scrolling stays
 inside the table at narrow widths.
 
@@ -102,12 +102,25 @@ announcement on every background refresh. Keep series labels descriptive.
 - Error: compose an [Alert](alert.md) with the cause and retry action. Label
   retained data as stale. An empty chart is not an error message.
 
+## Time zone and locale
+
+`timeZone` (an IANA name) and `locale` are optional. With both omitted, the
+axis, readout, and exact table show UTC ISO timestamps, and the table caption
+names UTC. When a consumer passes either one, Kiso formats with
+`Intl.DateTimeFormat` in `timeZone`, UTC when only `locale` is given. The
+axis and readout show the time to the second; `formatTime` still wins for
+both. The exact table always shows the full date, the time to the second,
+milliseconds when a sample has them, and the UTC offset, in `timeZone`. Its
+caption names the zone. Pass the same zone as the page's
+[TimeRangeControl](time-range-control.md).
+
 ## Labels
 
 `labels` localizes the fixed text: `notCollected`, `empty`, `timestamp`,
 `values` (the exact values disclosure) and `help` (the plot's keyboard
-instructions). `summary(label)` and `samples(label)` build the captions of the
-legend and the exact table from the chart label. Chart passes `labels` on to
+instructions). `summary(label)` and `samples(label, timeZone)` build the
+captions of the legend and the exact table from the chart label; the exact
+table's caption also gets the zone name. Chart passes `labels` on to
 [ChartLegend](chart-legend.md#labels), so one object also sets the legend's
 keys. Defaults are the English text above. Errors for invalid props stay in
 English.
