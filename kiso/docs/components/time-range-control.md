@@ -58,9 +58,10 @@ Live mode has no `bounds`.
 
 ### Trigger
 
-- Relative: the label of the preset with the same duration, or
-  "Last N minutes", "Last N hours", or "Last N days" when no preset matches.
-  It never shows absolute times.
+- Relative: the label of the preset with the same duration. Without a
+  match, it reads "Last N days", "Last N hours", or "Last N minutes", in the
+  largest unit that divides the duration, with "Last N seconds" as the
+  fallback and the singular unit for 1. It never shows absolute times.
 - Absolute: a short range to the second with the zone's short name, for
   example "11:18:05 to 11:21:30 GMT-3". Both ends show their date when the
   range crosses a day in the selected zone.
@@ -131,13 +132,17 @@ invalid artifact props stay in English.
 
 ## Accessibility
 
-Compose [Button](button.md), [Popover](popover.md), [Tooltip](tooltip.md),
-[Search](search.md), and labelled [Input](input.md) controls. Tab follows the
-visible preset buttons or custom form fields and Apply. Native date/time
-inputs retain platform keyboard behavior. Escape dismisses; Radix restores
-focus to the trigger. Errors use an alert and field descriptions. The
-tooltip repeats the accessible name's timestamps; nothing lives only in it.
-Touch can use every action.
+Compose [Button](button.md), [Popover](popover.md), and labelled
+[Input](input.md) controls; live mode adds [Tooltip](tooltip.md) and
+[Search](search.md). Tab follows the visible preset buttons or custom form
+fields and Apply. Native date/time inputs retain platform keyboard behavior.
+Escape dismisses; Radix restores focus to the trigger. Errors use an alert
+and field descriptions. Touch can use every action.
+
+In artifact mode, the trigger's accessible name includes both full
+timestamps, and visible dates appear when the interval crosses a day. In
+live mode, the tooltip repeats the accessible name's timestamps; nothing
+lives only in it.
 
 ## Tokens and implementation
 
