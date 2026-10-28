@@ -431,6 +431,42 @@ test('a picked day on a daylight-saving date resolves on Apply', async () => {
   assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 2, 8, 7), to: at - 3_600_000 }]);
 });
 
+test('a narrow range keeps the move target in its middle and the handles outside it', async () => {
+  await update({ value: { kind: 'absolute', from: now - 900_000, to: now - 899_000 } });
+  await open();
+  const box = await popover().locator('.time-range-live-segment').boundingBox();
+  const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.getAttribute('aria-label'), [box.x + box.width / 2, box.y + box.height / 2]);
+  assert.equal(hit, 'Move range');
+});
+
+test('the time zone view keeps an edit when the zone stays the same', async () => {
+  await open();
+  await from().fill('now-10m');
+  await button('Time zone: America/Sao_Paulo').click();
+  await button('Back to presets').click();
+  assert.equal(await from().inputValue(), 'now-10m');
+});
+
+test('touch targets on the timeline and the calendar are at least 44 by 44', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+    timezoneId: 'America/Sao_Paulo', locale: 'en-GB' });
+  const phone = await context.newPage();
+  await phone.route('https://fonts.googleapis.com/**', route => route.abort());
+  await phone.goto(page.url());
+  await phone.evaluate(start => window.update({ now: start, maxDuration: 7 * 86_400_000,
+    value: { kind: 'absolute', from: start - 900_000, to: start - 899_000 } }), now);
+  await phone.locator('.time-range-trigger[data-time-range-state]').click();
+  const sizes = await phone.locator('.time-range-live-handle').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    return [Math.round(box.width), Math.round(box.height)];
+  }));
+  for (const [width, height] of sizes) assert.ok(width >= 44 && height >= 44, `${width}x${height}`);
+  await phone.getByRole('button', { name: 'Choose start date' }).click();
+  const day = await phone.locator('.time-range-calendar-day').first().boundingBox();
+  assert.ok(day.width >= 44 && day.height >= 44, `${day.width}x${day.height}`);
+  await context.close();
+});
+
 test('a Chart with timeZone formats its axis and readout in that zone', async () => {
   await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').first().waitFor();
   const ticks = (await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').allTextContents()).filter(tick => tick.includes(':'));

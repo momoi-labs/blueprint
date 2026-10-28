@@ -56,8 +56,9 @@ export function LiveControl({ value, now, maxDuration, resumeDuration, onValueCh
   const [view, setView] = React.useState<"main" | "zone">("main")
   const [chosenZone, setChosenZone] = React.useState<string>()
   const escape = React.useRef<EscapeHandlers>({})
-  // Pause, resume, and a drag discard an edit in the fields by remounting them.
-  const [fieldsKey, setFieldsKey] = React.useState(0)
+  // The fields' edit lives here so the time zone view does not discard it.
+  // Pause, resume, a drag, a zone change, and closing the popover do.
+  const [fields, setFields] = React.useState<FieldsState>(cleanFields)
   const zone = validTimeZone(timeZone) ? timeZone : validTimeZone(chosenZone) ? chosenZone : browserTimeZone()
   const language = validLocale(locale ?? documentLocale())
   const valid = presets.filter(preset => positive(preset.duration))
@@ -93,7 +94,8 @@ export function LiveControl({ value, now, maxDuration, resumeDuration, onValueCh
   const fullText = resolvable ? text.fullRange(formats.full(resolved.from), formats.full(resolved.to)) : text.unavailable
   const StateIcon = relative ? Radio : Pause
 
-  const act = (next: LiveTimeRange) => { setFieldsKey(key => key + 1); onValueChange(next) }
+  if (fields.draft && fields.draft.zone !== zone) setFields(cleanFields)
+  const act = (next: LiveTimeRange) => { setFields(cleanFields); onValueChange(next) }
   const pause = () => { if (resolvable) act({ kind: "absolute", ...resolved }) }
   const resume = () => act({ kind: "relative", duration: resumeDuration })
   const toggle = relative ? pause : resume
@@ -113,7 +115,7 @@ export function LiveControl({ value, now, maxDuration, resumeDuration, onValueCh
       </TooltipTrigger>
       <TooltipContent>{relative ? text.pause : text.resume}</TooltipContent>
     </Tooltip>
-    <Popover open={open} onOpenChange={next => { setOpen(next); setView("main") }}>
+    <Popover open={open} onOpenChange={next => { setOpen(next); setView("main"); setFields(cleanFields) }}>
       <Tooltip>
         <TooltipTrigger asChild><PopoverTrigger asChild>
           <Button disabled={disabled} className="time-range-trigger" data-time-range-state={state}
@@ -148,7 +150,7 @@ export function LiveControl({ value, now, maxDuration, resumeDuration, onValueCh
             <RangeTimeline range={resolvable ? resolved : null} now={now} maxDuration={maxDuration} live={relative}
               formats={formats} escape={escape} onCommit={act} />
             <Separator />
-            <LiveFields key={fieldsKey} value={value} now={now} maxDuration={maxDuration} formats={formats} escape={escape}
+            <LiveFields state={fields} setState={setFields} value={value} now={now} maxDuration={maxDuration} formats={formats} escape={escape}
               onApply={onValueChange} />
             <Separator />
             <Button variant="ghost" className="time-range-zone" onClick={() => setView("zone")}>
@@ -297,12 +299,12 @@ function RangeTimeline({ range: value, now, maxDuration, live, formats, escape, 
     <div ref={track} className="time-range-live-track" data-state={live && (!drag || drag.snap) ? "live" : "paused"}
       data-dragging={drag ? drag.mode : undefined} onPointerMove={move} onPointerUp={end}
       onPointerCancel={cancel} onLostPointerCapture={() => { if (dragRef.current) update(null) }}>
-      <span className="time-range-live-handle" style={{ left: `${left * 100}%` }}
+      <span className="time-range-live-handle" data-edge="start" style={{ left: `${left * 100}%` }}
         {...slider("from", text.rangeStart, start, range.to - span, range.from, time(range.from))} />
       <span className="time-range-live-segment" style={{ left: `${left * 100}%`, width: `${Math.max(right - left, 0.015) * 100}%` }}
         {...slider("move", text.moveRange, start, now - (range.to - range.from), range.from,
           text.fullRange(time(range.from), time(range.to)))} />
-      <span className="time-range-live-handle" style={{ left: `${right * 100}%` }}
+      <span className="time-range-live-handle" data-edge="end" style={{ left: `${(left + Math.max(right - left, 0.015)) * 100}%` }}
         {...slider("to", text.rangeEnd, range.from + span, now, range.to, time(range.to))} />
     </div>
     <div className="time-range-live-axis" aria-hidden="true">
@@ -316,28 +318,28 @@ function RangeTimeline({ range: value, now, maxDuration, live, formats, escape, 
 // Only the fields a person edited; the others follow the value.
 type Draft = { from?: string; to?: string; zone: string }
 type FieldError = { field: "from" | "to"; message: string }
+type FieldsState = { draft: Draft | null; error: FieldError | null }
+const cleanFields: FieldsState = { draft: null, error: null }
 
-function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { value: LiveTimeRange; now: number;
-  maxDuration: number; formats: Formats; escape: React.RefObject<EscapeHandlers>; onApply: (value: LiveTimeRange) => void }) {
+function LiveFields({ state, setState, value, now, maxDuration, formats, escape, onApply }: { state: FieldsState;
+  setState: React.Dispatch<React.SetStateAction<FieldsState>>; value: LiveTimeRange; now: number; maxDuration: number;
+  formats: Formats; escape: React.RefObject<EscapeHandlers>; onApply: (value: LiveTimeRange) => void }) {
   const { zone, text } = formats
   const form = React.useRef<HTMLFormElement>(null)
   const baseId = React.useId()
-  const [draft, setDraft] = React.useState<Draft | null>(null)
-  const [error, setError] = React.useState<FieldError | null>(null)
+  const { draft, error } = state
+  const setDraft = (next: Draft | null) => setState(current => ({ ...current, draft: next }))
+  const setError = (next: FieldError | null) => setState(current => ({ ...current, error: next }))
   const shown = value?.kind === "relative"
     ? (positive(value.duration) ? [relativeRangeText(value.duration), "now"] : ["", ""])
     : value?.kind === "absolute" ? [absoluteRangeText(ceilSecond(value.from), zone), absoluteRangeText(floorSecond(value.to), zone)]
     : ["", ""]
-  // An edit belongs to the zone it was typed in: a zone change discards it.
-  if (draft && draft.zone !== zone) {
-    setDraft(null)
-    setError(null)
-  }
+  // An edit belongs to the zone it was typed in; LiveControl discards it on a zone change.
   const edit = draft && draft.zone === zone ? draft : null
   const from = edit?.from ?? shown[0]
   const to = edit?.to ?? shown[1]
   const dirty = from !== shown[0] || to !== shown[1]
-  const reset = () => { setDraft(null); setError(null) }
+  const reset = () => setState(cleanFields)
   escape.current.fields = () => {
     if (!dirty || !form.current?.contains(document.activeElement)) return false
     reset()
