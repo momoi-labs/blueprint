@@ -118,8 +118,10 @@ function currentName(props: ScopeSegmentProps) {
   return undefined;
 }
 
+// Every character outside [A-Za-z0-9-] becomes _<code>_, so two values
+// never share an id, and the -option- prefix keeps clear of the list id.
 function optionId(base: string, value: string) {
-  return `${base}-${value.replace(/[^A-Za-z0-9_-]/g, (c) => `_${c.charCodeAt(0).toString(16)}`)}`;
+  return `${base}-option-${value.replace(/[^A-Za-z0-9-]/g, (c) => `_${c.codePointAt(0)!.toString(16)}_`)}`;
 }
 
 function matches(option: ScopeOption, query: string) {
@@ -232,7 +234,16 @@ function ScopeSegment(props: ScopeSegmentProps) {
   const filtering = searchable && query.trim() !== "";
   const named = ready ? options.filter((option) => matches(option, filtering ? query : "")) : [];
   const showAll = Boolean(all) && ready && options.length > 0 && !filtering;
-  const visible: ScopeOption[] = [...(showAll && all ? [all] : []), ...named];
+  // Ungrouped options first, then each group in the order it first appears.
+  // Keyboard order follows this rendered order.
+  const grouped: { group?: string; items: ScopeOption[] }[] = [];
+  for (const option of named) {
+    const bucket = grouped.find((entry) => entry.group === option.group);
+    if (bucket) bucket.items.push(option);
+    else grouped.push({ group: option.group, items: [option] });
+  }
+  grouped.sort((a, b) => Number(a.group !== undefined) - Number(b.group !== undefined));
+  const visible: ScopeOption[] = [...(showAll && all ? [all] : []), ...grouped.flatMap((entry) => entry.items)];
   const visibleValues = visible.map((option) => option.value);
   const active = activeValue !== null && visibleValues.includes(activeValue)
     ? activeValue
@@ -323,14 +334,6 @@ function ScopeSegment(props: ScopeSegmentProps) {
     tabForward.current = edge === "forward";
     changeOpen(false);
   }
-
-  const grouped: { group?: string; items: ScopeOption[] }[] = [];
-  for (const option of named) {
-    const bucket = grouped.find((entry) => entry.group === option.group);
-    if (bucket) bucket.items.push(option);
-    else grouped.push({ group: option.group, items: [option] });
-  }
-  grouped.sort((a, b) => Number(a.group !== undefined) - Number(b.group !== undefined));
 
   function renderOption(option: ScopeOption, isAll = false) {
     const id = optionId(base, option.value);

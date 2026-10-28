@@ -17,10 +17,16 @@ async function open(query = '', options = {}) {
  return page;
 }
 const focusName = page => page.evaluate(() => { const el = document.activeElement; return el?.getAttribute('aria-label') || el?.textContent?.trim() || el?.tagName; });
-// Radix returns focus after the popup unmounts, a frame or two later.
-async function focused(page) {
+// Radix returns focus after a popup unmounts, a frame or two later, and a
+// nested close passes through the level trigger first. Wait for the expected
+// element, then report what actually holds focus.
+async function focused(page, expected) {
  let name;
- for (let i = 0; i < 20; i++) { name = await focusName(page); if (name !== await page.evaluate(() => document.body.textContent.trim())) return name; await page.waitForTimeout(25); }
+ for (let i = 0; i < 40; i++) {
+  name = await focusName(page);
+  if (expected === undefined || (expected instanceof RegExp ? expected.test(name) : name === expected)) return name;
+  await page.waitForTimeout(25);
+ }
  return name;
 }
 const scope = page => page.getByRole('status', { name: 'Scope' }).or(page.locator('output[aria-label="Scope"]')).first().textContent();
@@ -65,7 +71,7 @@ test('Keyboard: Tab order, open keys, active option, typeahead, choose and Escap
   for (let i = 0; i < 4; i++) { await page.keyboard.press('Tab'); order.push(await focused(page)); }
   assert.deepEqual(order, ['Organization Acme', 'Project Checkout', 'Server db-prod-01', 'Account']);
   await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab');
-  assert.equal(await focused(page), 'Project Checkout');
+  assert.equal(await focused(page, 'Project Checkout'), 'Project Checkout');
   await page.keyboard.press('ArrowDown');
   const list = page.getByRole('listbox', { name: 'Projects' });
   assert(await list.evaluate(el => el === document.activeElement), 'listbox takes focus');
@@ -78,26 +84,26 @@ test('Keyboard: Tab order, open keys, active option, typeahead, choose and Escap
   await page.keyboard.press('Home'); assert.equal(await activeLabel(), 'All projects');
   await page.keyboard.press('b'); assert.equal(await activeLabel(), 'Billing', 'typeahead');
   await page.keyboard.press('Escape');
-  assert.equal(await focused(page), 'Project Checkout');
+  assert.equal(await focused(page, 'Project Checkout'), 'Project Checkout');
   assert.equal(await scope(page), 'acme/checkout/s0', 'Escape does not choose');
   await page.keyboard.press('Enter');
   await page.keyboard.press('a'); await page.keyboard.press('n');
   assert.equal(await activeLabel(), 'Analytics');
   await page.keyboard.press('Enter');
   assert.equal(await scope(page), 'acme/analytics/all');
-  assert.equal(await focused(page), 'Project Analytics');
+  assert.equal(await focused(page, 'Project Analytics'), 'Project Analytics');
   await page.keyboard.press('Space');
   await page.getByRole('listbox', { name: 'Projects' }).waitFor();
   await page.keyboard.press('Tab');
-  assert.equal(await focused(page), 'Manage projects');
+  assert.equal(await focused(page, 'Manage projects'), 'Manage projects');
   await page.keyboard.press('Tab');
   assert.equal(await page.getByRole('dialog').count(), 0, 'Tab past the last control closes');
-  assert.equal(await focused(page), 'Server All servers', 'and moves on from the trigger');
+  assert.equal(await focused(page, 'Server All servers'), 'Server All servers', 'and moves on from the trigger');
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Shift+Tab');
   assert.equal(await page.getByRole('dialog').count(), 0, 'Shift+Tab before the first control closes');
-  assert.equal(await focused(page), 'Project Analytics');
+  assert.equal(await focused(page, 'Project Analytics'), 'Project Analytics');
  } finally { await page.close(); }
 });
 
@@ -113,6 +119,9 @@ test('Filter is a named combobox with no-matches state, and All hides while filt
   assert.equal(await input.getAttribute('aria-controls'), await list.getAttribute('id'));
   const active = () => input.evaluate(el => document.getElementById(el.getAttribute('aria-activedescendant'))?.textContent ?? null);
   assert.equal(await active(), 'db-prod-01');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await active(), 'db-replica-01', 'keyboard follows the rendered group order');
+  await page.keyboard.press('ArrowUp');
   assert.equal(await list.getByRole('group', { name: 'Checkout' }).getByRole('option').count(), 2);
   await axe(page, 'server open');
   await input.fill('replica');
@@ -130,7 +139,7 @@ test('Filter is a named combobox with no-matches state, and All hides while filt
   assert.equal(await list.getByRole('option').first().textContent(), 'All servers');
   await input.fill('cache'); await page.keyboard.press('Enter');
   assert.equal(await scope(page), 'acme/checkout/s3');
-  assert.equal(await focused(page), 'Server cache-01');
+  assert.equal(await focused(page, 'Server cache-01'), 'Server cache-01');
   await page.keyboard.press('Enter');
   assert.equal(await page.getByRole('combobox').inputValue(), '', 'query clears on close');
  } finally { await page.close(); }
@@ -147,13 +156,13 @@ test('Loading, error with Retry and empty states keep focus and stay usable', as
   assert(await dialog.getByRole('link', { name: 'Open server details' }).isVisible());
   await axe(page, 'error');
   await page.keyboard.press('Tab');
-  assert.equal(await focused(page), 'Retry');
+  assert.equal(await focused(page, 'Retry'), 'Retry');
   await page.keyboard.press('Enter');
-  assert.equal(await focused(page), 'Filter servers', 'Retry hands focus to the filter');
+  assert.equal(await focused(page, 'Filter servers'), 'Filter servers', 'Retry hands focus to the filter');
   assert.equal(await dialog.getByRole('listbox').getAttribute('aria-busy'), 'true');
   assert.equal(await dialog.getByRole('status').textContent(), 'Loading servers');
   await dialog.getByRole('option', { name: 'db-prod-01' }).waitFor();
-  assert.equal(await focused(page), 'Filter servers');
+  assert.equal(await focused(page, 'Filter servers'), 'Filter servers');
  } finally { await page.close(); }
  const unknown = await open('state=loading&unknown');
  try {
@@ -220,27 +229,27 @@ for (const [width, label] of [[390, 'phone'], [640, '200% zoom']]) test(`Every l
   await page.keyboard.press('Enter');
   const levels = page.getByRole('dialog', { name: 'Scope' });
   assert.deepEqual(await levels.getByRole('button').evaluateAll(els => els.map(el => el.getAttribute('aria-label').split(' ')[0])), ['Organization', 'Project', 'Server']);
-  assert.equal(await focused(page), 'Organization Acme Industrial Holdings International Limited');
+  assert.equal(await focused(page, 'Organization Acme Industrial Holdings International Limited'), 'Organization Acme Industrial Holdings International Limited');
   await axe(page, `compact ${width}`);
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await page.getByRole('listbox', { name: 'Projects' }).waitFor();
   await page.keyboard.press('Escape');
-  assert.equal(await focused(page), 'Project Checkout and payments platform for Europe');
+  assert.equal(await focused(page, 'Project Checkout and payments platform for Europe'), 'Project Checkout and payments platform for Europe');
   await page.keyboard.press('Escape');
-  assert.equal(await focused(page), await compact.getAttribute('aria-label'));
+  assert.equal(await focused(page, await compact.getAttribute('aria-label')), await compact.getAttribute('aria-label'));
   await page.keyboard.press('Enter');
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await page.getByRole('listbox', { name: 'Projects' }).waitFor();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');
-  assert.equal(await focused(page), 'Server db-prod-01', 'Tab past a level list moves to the next level');
+  assert.equal(await focused(page, 'Server db-prod-01'), 'Server db-prod-01', 'Tab past a level list moves to the next level');
   await page.keyboard.press('Enter');
   await page.getByRole('combobox', { name: 'Filter servers' }).waitFor();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');
-  assert.equal(await focused(page), 'Account');
+  assert.equal(await focused(page, 'Account'), 'Account');
   assert.equal(await page.getByRole('dialog').count(), 0, 'Tab past the last level leaves the compact popup');
   await compact.click();
   await levels.getByRole('button', { name: /^Server/ }).click();
@@ -249,7 +258,7 @@ for (const [width, label] of [[390, 'phone'], [640, '200% zoom']]) test(`Every l
   await option.click();
   assert.equal(await page.getByRole('dialog').count(), 0, 'choosing closes both popups');
   assert.equal(await scope(page), 'acme/checkout/s1');
-  assert.match(await focused(page), /^Scope: .* \/ db-prod-02$/);
+  assert.match(await focused(page, /^Scope: .* \/ db-prod-02$/), /^Scope: .* \/ db-prod-02$/);
  } finally { await page.close(); }
 });
 
