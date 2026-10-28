@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-react-checks
-      - run: npm audit --audit-level=low
+      - run: node scripts/check-audit.mjs
       - run: npm run check
       - run: npm run check:react
       - run: npm run build:gallery
