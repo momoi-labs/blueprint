@@ -154,7 +154,7 @@ scrolls.
 | `Home` / `End` | listbox | First / last option. In the filter they move the caret. |
 | Printable keys | listbox | Typeahead: jump to the next option whose label starts with the typed text. |
 | Printable keys | filter | Edit the query. |
-| `Enter` | popup | Choose the active option, close, return focus to the trigger. |
+| `Enter` | filter, listbox | Choose the active option, close, return focus to the trigger. On Retry and destinations, `Enter` keeps its native Button and Link behavior. |
 | `Space` | listbox | Same as `Enter`. In the filter it types a space. |
 | `Escape` | popup | Close without choosing, return focus to the trigger. |
 | `Tab` | popup | Move through the filter or listbox, Retry and destinations. Past the last one, the popup closes and focus moves to the control after the trigger. |

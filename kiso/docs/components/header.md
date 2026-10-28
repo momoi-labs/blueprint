@@ -43,7 +43,9 @@ ApplicationShell exposes this choice through `headerVariant`, in both layouts.
 No named sizes. Header spacing adapts responsively with semantic spacing tokens;
 child Links, IconButtons, and DropdownMenu triggers keep their own sizes.
 The bar is at least 52px tall. When its children wrap, for example tabs on a
-second line on a phone, it grows to contain them.
+second line on a phone, it grows to contain them. A Header with a
+[ScopeSwitcher](scope-switcher.md) stays one row: below 700px the compact
+scope trigger takes the place of the segments.
 
 ## States
 
