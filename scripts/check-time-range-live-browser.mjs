@@ -467,6 +467,16 @@ test('touch targets on the timeline and the calendar are at least 44 by 44', asy
     [segment.x + segment.width / 2 + dx, segment.y + segment.height / 2]);
   assert.deepEqual([await at(-30), await at(-15), await at(0), await at(15), await at(30)],
     ['Range start', 'Move range', 'Move range', 'Move range', 'Range end']);
+  // At both retention edges all three targets stay on screen and apart.
+  for (const from of [now - 7 * 86_400_000, now - 1000]) {
+    await phone.evaluate(([start, at]) => window.update({ now: start, value: { kind: 'absolute', from: at, to: at + 1000 } }), [now, from]);
+    const boxes = await phone.locator('.time-range-live-track [role="slider"]').evaluateAll(nodes => nodes.map(node => {
+      const box = node.getBoundingClientRect();
+      return [box.left, box.right, box.width];
+    }));
+    for (const [left, right, width] of boxes) assert.ok(left >= 0 && right <= 390 && width >= 44, `${left}..${right}`);
+    assert.ok(boxes[0][1] <= boxes[1][0] + 0.5 && boxes[1][1] <= boxes[2][0] + 0.5, JSON.stringify(boxes));
+  }
   await phone.getByRole('button', { name: 'Choose start date' }).click();
   const day = await phone.locator('.time-range-calendar-day').first().boundingBox();
   assert.ok(day.width >= 44 && day.height >= 44, `${day.width}x${day.height}`);

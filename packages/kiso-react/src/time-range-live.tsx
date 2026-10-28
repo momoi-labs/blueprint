@@ -246,9 +246,14 @@ function RangeTimeline({ range: value, now, maxDuration, live, formats, escape, 
   const windowStart = windowNow - maxDuration
   const left = Math.min(1, Math.max(0, (shown.from - windowStart) / maxDuration))
   const right = Math.min(1, Math.max(0, (shown.to - windowStart) / maxDuration))
-  // The handles sit outside the move target, which is at least --time-range-hit wide.
+  // Three targets that never overlap and stay on the track: the move target
+  // covers the segment and is at least --time-range-hit wide; each handle
+  // takes --time-range-hit beside it. The middle keeps room for both handles.
   const width = Math.max(right - left, 0.015)
-  const middle = left + width / 2
+  const hit = "var(--time-range-hit)"
+  const middle = `clamp(calc(${hit} * 1.5), ${(left + width / 2) * 100}%, calc(100% - ${hit} * 1.5))`
+  const moveStart = `max(${hit}, min(${left * 100}%, calc(${middle} - ${hit} / 2)))`
+  const moveEnd = `min(calc(100% - ${hit}), max(${(left + width) * 100}%, calc(${middle} + ${hit} / 2)))`
   const crosses = !formats.sameDay(shown.from, shown.to)
   const time = (instant: number) => formats.time(instant, crosses)
 
@@ -302,14 +307,13 @@ function RangeTimeline({ range: value, now, maxDuration, live, formats, escape, 
     <div ref={track} className="time-range-live-track" data-state={live && (!drag || drag.snap) ? "live" : "paused"}
       data-dragging={drag ? drag.mode : undefined} onPointerMove={move} onPointerUp={end}
       onPointerCancel={cancel} onLostPointerCapture={() => { if (dragRef.current) update(null) }}>
-      <span className="time-range-live-handle" data-edge="start"
-        style={{ left: `min(${left * 100}%, calc(${middle * 100}% - var(--time-range-hit) / 2))` }}
+      <span className="time-range-live-segment" aria-hidden="true" style={{ left: `${left * 100}%`, width: `${width * 100}%` }} />
+      <span className="time-range-live-handle" data-edge="start" style={{ left: moveStart }}
         {...slider("from", text.rangeStart, start, range.to - span, range.from, time(range.from))} />
-      <span className="time-range-live-segment" style={{ left: `${left * 100}%`, width: `${width * 100}%` }}
+      <span className="time-range-live-move" style={{ left: moveStart, width: `calc(${moveEnd} - ${moveStart})` }}
         {...slider("move", text.moveRange, start, now - (range.to - range.from), range.from,
           text.fullRange(time(range.from), time(range.to)))} />
-      <span className="time-range-live-handle" data-edge="end"
-        style={{ left: `max(${(left + width) * 100}%, calc(${middle * 100}% + var(--time-range-hit) / 2))` }}
+      <span className="time-range-live-handle" data-edge="end" style={{ left: moveEnd }}
         {...slider("to", text.rangeEnd, range.from + span, now, range.to, time(range.to))} />
     </div>
     <div className="time-range-live-axis" aria-hidden="true">
