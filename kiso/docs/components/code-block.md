@@ -41,7 +41,11 @@ provides; Kiso ships no highlighter.
 The renderer receives the whole value, or in a diff the value without its
 first column, and must return the same characters in the same order. Escape
 HTML yourself when you return `{ __html }`. The block reopens an element that
-a line break cuts, so a token may span lines.
+a line break cuts, so a token may span lines. React nodes must carry their
+text as children: strings, fragments and elements such as `span`. When the
+painted lines do not read the same as the source, for example because a
+component takes its text from another prop, the block shows the source
+unpainted.
 
 ## Highlighting
 
@@ -89,8 +93,8 @@ first hidden line would be, and Copy copies folded lines too.
 | --- | --- |
 | Default | The frame uses the code block surface and the code uses `--color-foreground`. |
 | Highlighted | Tokens use the syntax roles. |
-| Added line | `--color-success-surface` background, a `--color-success` edge and a `+` marker. |
-| Removed line | `--color-danger-surface` background, a `--color-danger` edge and a `−` marker. |
+| Added line | `--color-success-surface` at 60%, a `--color-success` edge and a `+` marker. |
+| Removed line | `--color-danger-surface` at 60%, a `--color-danger` edge and a `−` marker. |
 | Folded | A dashed button reads `Show 4 hidden lines`. Open, it reads `Hide 4 lines` and stays above the lines. |
 | Copied | The Copy label and icon change to Copied for six seconds. |
 | Forced colors | Syntax colors and tints give way to system colors. Changed lines keep their marker and gain a `CanvasText` edge. |
@@ -107,7 +111,10 @@ header keeps one `--color-border` divider.
 - Line numbers and markers are hidden from assistive technology. Each changed
   line starts with hidden text, `Added line:` or `Removed line:`.
 - Copy and each fold are buttons with names that state the action. A fold
-  sets `aria-expanded`.
+  sets `aria-expanded`. On a coarse pointer a fold is at least
+  `--size-touch-min` high.
+- The change tints are lighter than status fills, so muted text such as
+  comments and line numbers keeps 4.5:1 on them in every theme and accent.
 - Syntax role colors are gated at 4.5:1 against the code block surface in both
   themes and every accent.
 
