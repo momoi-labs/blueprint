@@ -3014,7 +3014,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
   .time-range-trigger { min-height: var(--size-touch-min); }
   .time-range-live-pause { min-height: var(--size-touch-min); width: var(--size-touch-min); }
   .time-range-calendar-day { height: var(--size-touch-min); min-width: var(--size-touch-min); }
-  .time-range-calendar[role="dialog"] { width: 23rem; }
+  /* Seven 44px columns fit a 320px screen with the panel nearly edge to edge. */
+  .time-range-calendar[role="dialog"] { width: min(23rem, calc(100vw - 2 * var(--spacing-2xs))); max-width: none; padding: var(--spacing-xs) var(--spacing-2xs); }
+  .time-range-calendar td { padding: 0; }
   .time-range-live-main .time-range-live-track { --time-range-hit: var(--size-touch-min); }
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
 }

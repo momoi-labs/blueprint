@@ -454,16 +454,26 @@ test('touch targets on the timeline and the calendar are at least 44 by 44', asy
   await phone.route('https://fonts.googleapis.com/**', route => route.abort());
   await phone.goto(page.url());
   await phone.evaluate(start => window.update({ now: start, maxDuration: 7 * 86_400_000,
-    value: { kind: 'absolute', from: start - 900_000, to: start - 899_000 } }), now);
+    value: { kind: 'absolute', from: start - 302_400_000, to: start - 302_399_000 } }), now);
   await phone.locator('.time-range-trigger[data-time-range-state]').click();
   const sizes = await phone.locator('.time-range-live-handle').evaluateAll(nodes => nodes.map(node => {
     const box = node.getBoundingClientRect();
     return [Math.round(box.width), Math.round(box.height)];
   }));
   for (const [width, height] of sizes) assert.ok(width >= 44 && height >= 44, `${width}x${height}`);
+  // Separate 44px targets: beside the narrow segment is a handle, its middle moves.
+  const segment = await phone.locator('.time-range-live-segment').boundingBox();
+  const at = (dx) => phone.evaluate(([x, y]) => document.elementFromPoint(x, y)?.getAttribute('aria-label'),
+    [segment.x + segment.width / 2 + dx, segment.y + segment.height / 2]);
+  assert.deepEqual([await at(-30), await at(-15), await at(0), await at(15), await at(30)],
+    ['Range start', 'Move range', 'Move range', 'Move range', 'Range end']);
   await phone.getByRole('button', { name: 'Choose start date' }).click();
   const day = await phone.locator('.time-range-calendar-day').first().boundingBox();
   assert.ok(day.width >= 44 && day.height >= 44, `${day.width}x${day.height}`);
+  await phone.setViewportSize({ width: 320, height: 700 });
+  await phone.waitForTimeout(100);
+  const last = await phone.locator('.time-range-calendar tr:last-child .time-range-calendar-day').last().boundingBox();
+  assert.ok(last.x >= 0 && last.x + last.width <= 320 && last.width >= 44, `${last.x}+${last.width}`);
   await context.close();
 });
 
