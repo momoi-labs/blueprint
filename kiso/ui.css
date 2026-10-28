@@ -2880,9 +2880,44 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-paused > p, .time-range-empty { margin: 0; color: var(--color-muted-foreground); }
 .time-range-paused > button { justify-self: start; }
 .time-range-zone { justify-content: flex-start; height: auto; min-height: var(--size-touch-min); text-align: start; white-space: normal; }
+/* Live mode: a pause button joined to the range button, a neutral tooltip
+   timeline, and a two-column popover. */
+.time-range-live { display: inline-flex; max-width: 100%; }
+.time-range-live > .btn { border-radius: 0; }
+.time-range-live > .btn:first-child { border-start-start-radius: var(--radius-md); border-end-start-radius: var(--radius-md); }
+.time-range-live > .btn:last-child { border-start-end-radius: var(--radius-md); border-end-end-radius: var(--radius-md); margin-inline-start: -1px; }
+.time-range-live > .time-range-trigger { justify-self: auto; }
+.time-range-live-pause { height: auto; min-height: var(--size-control-md); width: var(--size-control-md); }
+.tooltip.time-range-live-tip { display: grid; gap: var(--spacing-xs); width: 18rem; max-width: calc(100vw - 2 * var(--spacing-md)); padding: var(--spacing-sm) var(--spacing-md); border: 1px solid var(--color-border); background: var(--color-popover); color: var(--color-popover-foreground); }
+.time-range-live-tip small, .time-range-live-note { color: var(--color-muted-foreground); font-size: var(--type-size-label); margin: 0; }
+.time-range-live-ends { display: flex; justify-content: space-between; gap: var(--spacing-sm); }
+/* role="dialog" outranks the floating panel's default max-width. */
+.time-range-live-content[role="dialog"] { width: min(40rem, calc(100vw - 2 * var(--spacing-md))); max-width: none; container-type: inline-size; }
+.time-range-live-panel { display: grid; gap: var(--spacing-lg); }
+.time-range-live-main { display: flex; flex-direction: column; gap: var(--spacing-md); min-width: 0; }
+.time-range-live-main > .time-range-zone { margin-block-start: auto; }
+.time-range-live-presets { align-content: start; }
+@container (min-width: 34rem) {
+  .time-range-live-panel { grid-template-columns: minmax(0, 1fr) 13rem; }
+  .time-range-live-main { padding-inline-end: var(--spacing-lg); border-inline-end: 1px solid var(--color-border); }
+}
+.time-range-live-state { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.time-range-live-status { display: inline-flex; align-items: center; gap: var(--spacing-xs); font-size: var(--type-size-label); font-weight: var(--type-weight-semibold); }
+.time-range-live-timeline { display: grid; gap: var(--spacing-xs); direction: ltr; }
+.time-range-live-track { position: relative; height: 6px; border-radius: var(--radius-full); background: var(--color-background); }
+.time-range-live-segment { position: absolute; inset-block: 0; border-radius: var(--radius-full); background: var(--color-primary); }
+.time-range-live-track[data-state="paused"] .time-range-live-segment { background: var(--color-muted-foreground); }
+.time-range-live-axis { display: flex; justify-content: space-between; gap: var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-metadata); }
+.time-range-live-fields { display: grid; gap: var(--spacing-md); }
+.time-range-live-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); }
+@media (forced-colors: active) {
+  .time-range-live-track { border: 1px solid CanvasText; }
+  .time-range-live-segment { background: Highlight; forced-color-adjust: none; }
+}
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
 @media (pointer: coarse) {
   .time-range-trigger { min-height: var(--size-touch-min); }
+  .time-range-live-pause { min-height: var(--size-touch-min); width: var(--size-touch-min); }
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
 }
 
