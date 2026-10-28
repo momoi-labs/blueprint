@@ -211,7 +211,7 @@ function shift(mode: DragMode, range: TimeRange, delta: number, start: number, e
 }
 
 /** The popover's timeline: drag the range or its ends, or use the three sliders. */
-function RangeTimeline({ range, now, maxDuration, live, formats, escape, onCommit }: { range: TimeRange | null;
+function RangeTimeline({ range: value, now, maxDuration, live, formats, escape, onCommit }: { range: TimeRange | null;
   now: number; maxDuration: number; live: boolean; formats: Formats; escape: React.RefObject<EscapeHandlers>;
   onCommit: (value: LiveTimeRange) => void }) {
   const track = React.useRef<HTMLDivElement>(null)
@@ -219,12 +219,16 @@ function RangeTimeline({ range, now, maxDuration, live, formats, escape, onCommi
   const [drag, setDrag] = React.useState<Drag | null>(null)
   const start = now - maxDuration
   const usable = validInstant(now) && positive(maxDuration) && validInstant(start)
-  if (!usable || !range || range.to < start) {
-    return <Timeline range={range} now={now} maxDuration={maxDuration} live={live} formats={formats} />
+  if (!usable || !value || value.to < start) {
+    return <Timeline range={value} now={now} maxDuration={maxDuration} live={live} formats={formats} />
   }
   const span = minimumSpan(maxDuration)
+  // The sliders and drags work on the part of the range inside retention.
+  const from = Math.min(now - span, Math.max(start, value.from))
+  const range = { from, to: Math.min(now, Math.max(from + span, value.to)) }
+  // Pointer precision follows a short retention; keyboard steps stay whole seconds.
   const unit = maxDuration >= 2000 ? 1000 : 1
-  const step = Math.max(unit, Math.round(maxDuration / 120 / unit) * unit)
+  const step = Math.max(1000, Math.round(maxDuration / 120_000) * 1000)
   const { text } = formats
   const update = (next: Drag | null) => { dragRef.current = next; setDrag(next) }
   const cancel = () => {
@@ -257,7 +261,7 @@ function RangeTimeline({ range, now, maxDuration, live, formats, escape, onCommi
     if (!current || event.pointerId !== current.pointer || !current.width) return
     const delta = Math.round((event.clientX - current.x) / current.width * maxDuration / unit) * unit
     let preview = shift(current.mode, current, delta, current.now - maxDuration, current.now, span)
-    const snap = current.mode !== "from" && preview.to >= current.now - maxDuration * 0.015
+    const snap = preview.to >= current.now - maxDuration * 0.015
     if (snap) preview = { from: preview.from, to: current.now }
     update({ ...current, preview, snap })
   }
@@ -266,12 +270,12 @@ function RangeTimeline({ range, now, maxDuration, live, formats, escape, onCommi
     if (!current || event.pointerId !== current.pointer) return
     update(null)
     track.current?.releasePointerCapture?.(current.pointer)
-    if (current.preview.from === current.from && current.preview.to === current.to && !current.snap) return
+    if (current.preview.from === current.from && current.preview.to === current.to) return
     if (current.snap) return onCommit({ kind: "relative", duration: snapDuration(current.preview.to - current.preview.from, maxDuration) })
     // Checked against the retention of the current `now`.
     const from = Math.max(current.preview.from, now - maxDuration)
     const to = Math.min(current.preview.to, now)
-    if (from < to) onCommit({ kind: "absolute", from, to })
+    if (to - from >= span) onCommit({ kind: "absolute", from, to })
   }
   const key = (mode: DragMode) => (event: React.KeyboardEvent) => {
     const limits = mode === "move" ? [start, now - (range.to - range.from)] : mode === "from" ? [start, range.to - span] : [range.from + span, now]
