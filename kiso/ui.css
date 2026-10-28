@@ -1511,9 +1511,11 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   color: var(--color-muted-foreground); text-align: end; user-select: none;
 }
 .code-block-marker { display: inline-block; inline-size: 2ch; color: var(--color-muted-foreground); user-select: none; }
-.code-block-line[data-change="added"] { background: var(--color-success-surface); box-shadow: inset 2px 0 var(--color-success); }
+/* The tint is lighter than a status fill so muted text, such as comments and
+   line numbers, keeps 4.5:1 on it; the edge and the marker carry the change. */
+.code-block-line[data-change="added"] { background: color-mix(in srgb, var(--color-success-surface) 60%, transparent); box-shadow: inset 2px 0 var(--color-success); }
 .code-block-line[data-change="added"] .code-block-marker { color: var(--color-success); }
-.code-block-line[data-change="removed"] { background: var(--color-danger-surface); box-shadow: inset 2px 0 var(--color-danger); }
+.code-block-line[data-change="removed"] { background: color-mix(in srgb, var(--color-danger-surface) 60%, transparent); box-shadow: inset 2px 0 var(--color-danger); }
 .code-block-line[data-change="removed"] .code-block-marker { color: var(--color-danger); }
 .code-block-change { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .code-block-fold > button {
@@ -1522,6 +1524,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 .code-block-fold > button:hover { color: var(--color-foreground); border-color: var(--color-border-strong); }
 .code-block-fold > button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+@media (pointer: coarse) {
+  .code-block-fold > button { min-block-size: var(--size-touch-min); }
+}
 @media (forced-colors: active) {
   .code-block-line[data-change] { border-inline-start: 2px solid CanvasText; }
 }

@@ -47,10 +47,14 @@ function splitNode(node: ReactNode): ReactNode[][] {
   return [[node]];
 }
 
+// A tag, with `>` allowed inside quoted attribute values, or a run of text.
+const htmlPart = /<\/?[a-z][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>|[^<]+|</gi;
+
 function splitHTML(html: string): string[] {
   const lines = [""];
   const open: [tag: string, name: string][] = [];
-  for (const [part] of html.matchAll(/<\/?[a-z][^>]*>|[^<]+/gi)) {
+  for (const [part] of html.matchAll(htmlPart)) {
+    if (part === "<") { lines[lines.length - 1] += "&lt;"; continue; }
     if (part.startsWith("</")) open.pop();
     else if (part.startsWith("<") && !part.endsWith("/>")) open.push([part, /^<([a-z0-9-]+)/i.exec(part)![1]]);
     if (part.startsWith("<")) { lines[lines.length - 1] += part; continue; }
@@ -65,13 +69,31 @@ function splitHTML(html: string): string[] {
   return lines;
 }
 
+const entities: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0" };
+const htmlText = (html: string) => html.replace(/<[^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>/g, "")
+  .replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity, name: string) => name[0] !== "#" ? entities[name.toLowerCase()] ?? entity
+    : String.fromCodePoint(parseInt(name.slice(name[1].toLowerCase() === "x" ? 2 : 1), name[1].toLowerCase() === "x" ? 16 : 10)));
+// The text a split line will show. A component that takes its text from
+// another prop yields none here, so its line no longer matches the source.
+const nodeText = (node: ReactNode): string => node == null || typeof node === "boolean" ? ""
+  : typeof node === "string" || typeof node === "number" ? String(node)
+  : Array.isArray(node) ? node.map(nodeText).join("")
+  : isValidElement<{ children?: ReactNode }>(node) ? nodeText(node.props.children) : "";
+
+// A highlight must keep the value's characters. When the painted lines do not
+// read the same as the source, the block shows the source unpainted.
 function paint(code: string, highlight?: CodeEditorHighlight): ReactNode[] {
+  const rows = code.split("\n");
   const painted = highlight?.(code);
-  if (painted == null || painted === false || painted === "") return code.split("\n");
+  if (painted == null || painted === false || painted === "") return rows;
   if (typeof painted === "object" && "__html" in painted) {
-    return splitHTML(painted.__html).map((__html, index) => <span key={index} dangerouslySetInnerHTML={{ __html }} />);
+    const lines = splitHTML(painted.__html);
+    if (lines.length !== rows.length || lines.some((line, index) => htmlText(line) !== rows[index])) return rows;
+    return lines.map((__html, index) => <span key={index} dangerouslySetInnerHTML={{ __html }} />);
   }
-  return splitNode(painted as ReactNode).map(parts => createElement("span", null, ...parts));
+  const lines = splitNode(painted as ReactNode);
+  if (lines.length !== rows.length || lines.some((parts, index) => nodeText(parts) !== rows[index])) return rows;
+  return lines.map(parts => createElement("span", null, ...parts));
 }
 
 // The console also runs on plain HTTP, where the Clipboard API is missing.

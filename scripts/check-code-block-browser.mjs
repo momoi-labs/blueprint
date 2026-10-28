@@ -28,6 +28,9 @@ test('Painted lines keep the value, also when a token spans lines', async () => 
   assert.deepEqual(await lineTexts(page, 'html'), ['# a<b', 'echo "x', 'y"']);
   assert.equal(await page.locator('#html .code-block-line').nth(2).locator('.code-string').textContent(), 'y"');
   assert.equal(await page.locator('#html .code-comment').textContent(), '# a<b');
+  assert.deepEqual(await lineTexts(page, 'component'), ['one', 'two'], 'a component that hides its text falls back to the source');
+  assert.deepEqual(await lineTexts(page, 'quoted'), ['one', 'two']);
+  assert.equal(await page.locator('#quoted .code-block-line').nth(1).locator('.code-string').getAttribute('title'), 'x > y');
  } finally { await page.close(); }
 });
 
@@ -47,7 +50,7 @@ test('Title, terminal mark, numbers and diff markers are wired for assistive tec
    assert.deepEqual(new Set(await page.locator(`#marked ${part}`).evaluateAll(els => els.map(el => el.getAttribute('aria-hidden')))), new Set(['true']));
   }
   const added = page.locator('#diff [data-change="added"]');
-  assert.equal(await added.evaluate(el => getComputedStyle(el).backgroundColor), await page.evaluate(() => { const i = document.createElement('i'); i.style.backgroundColor = 'var(--color-success-surface)'; document.body.append(i); const c = getComputedStyle(i).backgroundColor; i.remove(); return c; }));
+  assert.doesNotMatch(await added.evaluate(el => getComputedStyle(el).backgroundColor), /rgba\(0, 0, 0, 0\)|\/ 0\)$/, 'an added row is tinted');
   assert.equal(await added.locator('.code-block-marker').evaluate(el => getComputedStyle(el).color), await token(page, '--color-success'));
  } finally { await page.close(); }
 });
@@ -97,6 +100,38 @@ for (const theme of ['light', 'dark'])
   } finally { await page.close(); }
  });
 
+// Changed rows put a translucent status tint under the code, so every text
+// color on them is checked against the tint composited over the block.
+const accents = ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime'];
+for (const theme of ['light', 'dark'])
+ test(`Text on added and removed lines passes 4.5:1 in ${theme} for every accent`, async () => {
+  const page = await open(`theme=${theme}`);
+  try {
+   const failures = [];
+   for (const accent of accents) {
+    await page.evaluate(accent => { document.documentElement.dataset.accent = accent; }, accent);
+    failures.push(...await page.locator('#tinted').evaluate((block, accent) => {
+     const rgba = color => { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = color; c.fillRect(0, 0, 1, 1); return [...c.getImageData(0, 0, 1, 1).data]; };
+     const over = ([r, g, b, a], [R, G, B]) => [r, g, b].map((v, i) => v * a / 255 + [R, G, B][i] * (1 - a / 255));
+     const lum = rgb => rgb.map(v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+     const surface = rgba(getComputedStyle(block).backgroundColor);
+     const out = [];
+     for (const line of block.querySelectorAll('.code-block-line[data-change]')) {
+      const fill = over(rgba(getComputedStyle(line).backgroundColor), surface);
+      for (const part of line.querySelectorAll('.code-block-number, .code-block-marker, [class^="code-"]:not(.code-block-change)')) {
+       const ink = over(rgba(getComputedStyle(part).color), fill);
+       const [a, b] = [lum(ink), lum(fill)];
+       const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+       if (ratio < 4.5) out.push(`${accent} ${line.dataset.change} ${part.className} ${ratio.toFixed(2)}`);
+      }
+     }
+     return out;
+    }, accent));
+   }
+   assert.deepEqual(failures, []);
+  } finally { await page.close(); }
+ });
+
 for (const query of ['cornerStyle=pixel&frameScope=all&markScope=all&cornerMarks=ticks', 'theme=dark&cornerStyle=pixel&frameScope=all', 'borderStyle=manga&frameScope=all', 'borderStyle=brush&frameScope=all&theme=dark', 'borderStyle=double&cornerStyle=rounded&frameScope=all'])
  test(`One frame and no inner frame with ${query}`, async () => {
   const page = await open(query);
@@ -120,6 +155,8 @@ test('Fits a phone; long lines scroll inside the block and tints span the scroll
  const page = await open('', { viewport: { width: 320, height: 800 }, hasTouch: true });
  try {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  const touch = await page.evaluate(() => { const i = document.createElement('i'); i.style.width = 'var(--size-touch-min)'; document.body.append(i); const w = i.getBoundingClientRect().width; i.remove(); return w; });
+  assert((await page.getByRole('button', { name: 'Show 3 hidden lines' }).boundingBox()).height >= touch, 'the fold meets the touch minimum');
   const code = page.locator('#command code');
   assert(await code.evaluate(el => el.scrollWidth > el.clientWidth), 'long lines scroll inside the block');
   const widths = await page.locator('#diff').evaluate(el => {
