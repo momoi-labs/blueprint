@@ -122,7 +122,7 @@
       var el = document.createElement("div");
       el.id = "scope-opt-" + o.value.replace(/[^\w-]/g, "_");
       el.setAttribute("role", "option");
-      el.className = "scope-option";
+      el.className = "menu-item scope-option";
       el.setAttribute("aria-selected", String(o.value === s[open.level]));
       if (def.all && o === def.all) el.dataset.all = "";
       if (o.value === open.active) el.dataset.active = "";
