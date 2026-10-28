@@ -308,6 +308,45 @@ test('the sliders have limits, step by 1/120 of retention, and apply each key', 
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Range start');
 });
 
+test('dragging the start of a live range keeps it live', async () => {
+  await open();
+  const move = await grab('Range start');
+  await move(-1 / 6);
+  await page.mouse.up();
+  const [change] = await changes();
+  assert.equal(change.kind, 'relative');
+  assert.ok(Math.abs(change.duration - 1_200_000) <= 60_000, String(change.duration));
+});
+
+test('a release that polling shrinks below one second applies nothing', async () => {
+  await update({ value: { kind: 'absolute', from: now - 1_790_000, to: now - 1_789_000 } });
+  await open();
+  const move = await grab('Move range');
+  await move(-0.5);
+  await update({ now: now + 600 });
+  await page.mouse.up();
+  assert.deepEqual(await changes(), []);
+});
+
+test('a paused range crossing the retention start exposes valid slider limits', async () => {
+  await update({ value: { kind: 'absolute', from: now - 1_860_000, to: now - 1_200_000 } });
+  await open();
+  const start = slider('Range start');
+  const [min, , value] = await start.evaluate(node => [node.ariaValueMin, node.ariaValueMax, node.ariaValueNow].map(Number));
+  assert.equal(value, min);
+  await slider('Range end').focus();
+  await page.keyboard.press('End');
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: now - 1_800_000, to: now }]);
+});
+
+test('keyboard steps stay whole seconds on a short retention', async () => {
+  await update({ maxDuration: 1500, value: { kind: 'absolute', from: now - 1500, to: now - 500 } });
+  await open();
+  await slider('Range end').focus();
+  await page.keyboard.press('ArrowRight');
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: now - 1500, to: now }]);
+});
+
 const week = 7 * 86_400_000;
 const calendar = () => page.locator('.time-range-calendar');
 const day = () => page.evaluate(() => document.activeElement?.dataset.day);
