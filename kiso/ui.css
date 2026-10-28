@@ -1473,6 +1473,67 @@ pre {
    the frame — the same reason `.table-scroll` exists. Write `<pre><code>`. */
 pre code { display: block; overflow-x: auto; padding: 0; background: none; border: 0; }
 
+/* Code block: a read-only code panel. The figure is the panel, so every
+   border style and corner mark wraps the header and the code together; the
+   inner pre gives up its own frame. Lines are blocks so a diff marker can
+   tint a whole row; they never wrap. */
+.code-block {
+  --frame-fill: var(--color-surface);
+  position: relative;
+  margin: 0;
+  min-inline-size: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+.code-block-header {
+  display: flex; align-items: center; gap: var(--spacing-sm);
+  min-block-size: var(--size-control-sm);
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-md);
+  border-block-end: 1px solid var(--color-border);
+  color: var(--color-muted-foreground); font-size: var(--type-size-label);
+}
+.code-block-title { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.code-block-header > .btn { margin-inline-start: auto; }
+.code-block > pre { margin: 0; padding: var(--spacing-md) 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.code-block > pre::before, .code-block > pre::after { content: none; }
+.code-block > pre > code {
+  /* One column as wide as the longest line, so a tinted row spans the
+     whole scroll width. */
+  display: grid; grid-template-columns: minmax(100%, max-content);
+  font-family: var(--type-role-code-font-family); font-size: var(--type-role-code-font-size);
+  line-height: var(--type-role-code-line-height); font-variant-ligatures: none; tab-size: 2;
+  color: var(--color-foreground);
+}
+.code-block-line { display: block; padding-inline: var(--spacing-md); white-space: pre; }
+.code-block-number {
+  display: inline-block; min-inline-size: calc(var(--code-block-digits, 1) * 1ch); margin-inline-end: var(--spacing-md);
+  color: var(--color-muted-foreground); text-align: end; user-select: none;
+}
+.code-block-marker { display: inline-block; inline-size: 2ch; color: var(--color-muted-foreground); user-select: none; }
+.code-block-line[data-change="added"] { background: var(--color-success-surface); box-shadow: inset 2px 0 var(--color-success); }
+.code-block-line[data-change="added"] .code-block-marker { color: var(--color-success); }
+.code-block-line[data-change="removed"] { background: var(--color-danger-surface); box-shadow: inset 2px 0 var(--color-danger); }
+.code-block-line[data-change="removed"] .code-block-marker { color: var(--color-danger); }
+.code-block-change { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.code-block-fold > button {
+  inline-size: 100%; padding: 0 var(--spacing-sm); border: 1px dashed var(--color-border); border-radius: var(--radius-sm);
+  background: none; color: var(--color-muted-foreground); font: inherit; text-align: start; cursor: pointer;
+}
+.code-block-fold > button:hover { color: var(--color-foreground); border-color: var(--color-border-strong); }
+.code-block-fold > button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+@media (forced-colors: active) {
+  .code-block-line[data-change] { border-inline-start: 2px solid CanvasText; }
+}
+
+/* Syntax roles for a product's highlighter, in CodeBlock and CodeEditor.
+   Unmarked text keeps --color-foreground. */
+.code-comment { color: var(--color-code-comment); }
+.code-keyword { color: var(--color-code-keyword); }
+.code-string { color: var(--color-code-string); }
+.code-constant { color: var(--color-code-constant); }
+.code-name { color: var(--color-code-name); }
+
 .kv { display: grid; grid-template-columns: minmax(min(96px, 30%), auto) minmax(0, 1fr); gap: var(--spacing-sm) var(--spacing-lg); font-size: var(--type-size-body); }
 .kv dt { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
 .kv dd { margin: 0; font-family: var(--font-mono); font-size: var(--type-size-label); overflow-wrap: anywhere; }
@@ -1951,7 +2012,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-footer-start: calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)));
 }
 
-:where([data-border-style], [data-corner-style], [data-corner-size]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) {
+:where([data-border-style], [data-corner-style], [data-corner-size]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) {
   border-radius: var(--appearance-corners);
   border-style: var(--appearance-panel-border);
 }
@@ -1961,13 +2022,13 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    every corner and leaves the panel's border alone. Square corners (k = 0)
    keep the flat band inside the panel. Each frame resolves k from its own
    corners, and an outside shadow keeps the corner marks clear. */
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone) {
   --appearance-cast-k: calc(var(--appearance-cast, 0) * var(--appearance-rounded, 0) * clamp(0, var(--appearance-scale, 1) * 100, 1) * (1 - var(--appearance-pixel, 0)));
   --appearance-cast-clearance: calc(var(--appearance-cast-k) * var(--appearance-cast-inside, 0) * var(--spacing-xs));
 }
 /* Paint decorative edges above table headers and panel footers. */
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
   content: var(--appearance-mark-content, var(--corner-overlay-content, var(--appearance-overlay-content, none)));
   --appearance-cast-out: calc(1 - var(--appearance-cast-inside, 0) * (1 - var(--appearance-cast-k, 0)));
@@ -2024,7 +2085,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 [data-corner-marks="none"],
 :where([data-outer-corner-marks="none"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-mark: 0; }
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after,
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after,
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::after {
   content: var(--appearance-mark-content, "");
   position: absolute;
@@ -2377,10 +2438,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
   --appearance-corners: calc(var(--radius-surface) * (1 - var(--appearance-expressive, 0))) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)) * (1 - var(--appearance-expressive, 0)));
 }
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border-color: var(--appearance-border-color, var(--corner-border-color, var(--color-border))); }
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border-color: var(--appearance-border-color, var(--corner-border-color, var(--color-border))); }
 
 /* Pixel geometry is painted behind content. Focus and overflow stay rectangular. */
-:where([data-corner-style="pixel"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:where([data-corner-style="pixel"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
 :where([data-outer-corner-style="pixel"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
@@ -2405,16 +2466,16 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   background-origin: border-box;
 }
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --frame-fill: var(--color-background); }
-:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre) {
+:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block) {
   --appearance-pixel: 0; --appearance-expressive: 0;
   --appearance-panel-border: none;
   --appearance-frame-shadow: none;
   --appearance-band-content: none; --appearance-footer-clip: none; --appearance-ink-clip: none;
   border: 0; border-radius: 0; box-shadow: none;
 }
-:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre)::before { content: none; }
+:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block)::before { content: none; }
 :where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) { border-radius: 4px; }
-:where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .radio-item, .file-dropzone)::after { content: none; }
+:where([data-mark-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, .radio-item, .file-dropzone)::after { content: none; }
 /* Compact guides stay inside native controls, away from focus indicators. */
 :where([data-mark-scope="all"]) :is(.btn-outline:where(:not(.btn-xs)), .btn-primary:where(:not(.btn-xs)), .btn-secondary:where(:not(.btn-xs)), .btn-danger:where(:not(.btn-xs)), .input:where(:not(.field-control *)), .select:where(:not(.field-control *)), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone, :where([data-frame-scope="all"]) .steps-marker) {
   --control-guide: color-mix(in srgb, var(--color-corner-mark) calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)) * 100%), transparent);
@@ -2429,8 +2490,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 /* Tiles and drop zones with the panel contour carry panel marks instead. */
 :where([data-mark-scope="all"][data-frame-scope="all"]) :is(.radio-group:where([data-variant="tiles"]) > .radio-item, .file-dropzone-field > .file-dropzone) { --control-guide: transparent; }
 @media (forced-colors: active) {
-  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border: 1px solid CanvasText; background: Canvas; }
-  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before, :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after { display: none; }
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border: 1px solid CanvasText; background: Canvas; }
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before, :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after { display: none; }
 }
 
 /* ===========================================================================
@@ -3527,7 +3588,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 /* Expressive surfaces fill the space up to their ink, without clipping content. */
-:where([data-border-style="manga"], [data-border-style="brush"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+:where([data-border-style="manga"], [data-border-style="brush"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
 :where([data-outer-border-style="manga"], [data-outer-border-style="brush"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   isolation: isolate;
   background-color: color-mix(in srgb, var(--frame-fill, var(--color-card)) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
@@ -3591,7 +3652,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   }
 }
 @media (forced-colors: active) {
-  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { background: Canvas; }
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { background: Canvas; }
   :is(.card-footer, .dialog-footer, .app-shell .topbar)::before { display: none; }
 }
 

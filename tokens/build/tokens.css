@@ -185,6 +185,11 @@
   --color-warning-on-dark: #efc05b;
   --color-danger-on-dark: #f5807f;
   --color-info-on-dark: #75c4fa;
+  --color-code-comment: var(--color-muted-foreground);
+  --color-code-keyword: var(--color-info);
+  --color-code-string: var(--color-success);
+  --color-code-constant: var(--color-warning);
+  --color-code-name: var(--color-accent);
   --color-chart-1: var(--color-violet-base);
   --color-chart-2: var(--color-status-success);
   --color-chart-3: var(--color-status-warning);

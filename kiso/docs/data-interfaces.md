@@ -161,9 +161,16 @@ and the detail view contains the same explanation.
 - Preserve whitespace and allow horizontal scrolling in code blocks. Never
   soft-wrap SQL in a way that changes where tokens appear; a product may offer
   an explicit wrap toggle.
-- Do not invent syntax colors. Syntax highlighting is deferred to v2. In v1,
-  render all code with `--color-foreground`; comments or secondary metadata
-  may use `--color-muted-foreground` only when they remain readable.
+- Use [CodeBlock](components/code-block.md) for a code block, and give it a
+  title and a copy action when a person runs or pastes the value.
+- Syntax highlighting is optional. When a product highlights code, it uses
+  only the five syntax roles: `--color-code-comment`,
+  `--color-code-keyword`, `--color-code-string`, `--color-code-constant` and
+  `--color-code-name`. Text without a role keeps `--color-foreground`. Do not
+  invent other syntax colors, and do not change weight, style or size per
+  token. The roles alias text roles that pass 4.5:1 on code block surfaces in
+  both themes. Use the same highlighter for read-only code and
+  [CodeEditor](components/code-editor.md).
 
 ```sql
 SELECT pid, application_name, state
@@ -244,7 +251,8 @@ Query ID   01J8Y5R9Q2K6…   [Copy query ID]
   tabular figures, code type for machine-readable values, and full-value copy.
 - When comparing SQL or multi-line config, use a line diff with visible `+`
   and `−` markers and accessible labels `Added line` and `Removed line`.
-  Preserve whitespace. Syntax highlighting remains deferred.
+  Preserve whitespace. [CodeBlock](components/code-block.md) with `diff`
+  draws this, and may highlight the lines with the syntax roles.
 
 ```text
 Setting           Before    After     Change

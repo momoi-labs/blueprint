@@ -130,6 +130,22 @@ the light-theme red, near-black on the dark-theme salmon. Both are gated at
 `border-strong` and `corner-mark` are non-text roles but are gated at 3:1
 against every surface: a registration mark that cannot be seen is not a mark.
 
+### Syntax roles
+
+Five text roles color highlighted code in
+[CodeBlock](components/code-block.md) and
+[CodeEditor](components/code-editor.md). Each aliases a gated text role, so
+it follows the theme and, for `code-name`, the accent. Unmarked code keeps
+`foreground`.
+
+| Role | Meaning and use | Alias |
+| --- | --- | --- |
+| `code-comment` | Comments and diff headers. | `muted-foreground` |
+| `code-keyword` | Keywords and control flow. | `info` |
+| `code-string` | Strings. | `success` |
+| `code-constant` | Numbers, booleans, constants and command options. | `warning` |
+| `code-name` | Variables and keys. | `accent` |
+
 ### Status fills
 
 Each status role gains a tinted fill and an outline, both the status hue at low
@@ -234,7 +250,7 @@ themes, for the default and for every accent, it resolves the semantic aliases
 and checks:
 
 - `foreground`, `muted-foreground`, `link`, `accent`, `success`, `warning`,
-  `danger`, and `info` at **4.5:1** or better against `background`, `surface`,
+  `danger`, `info`, and the five `code-*` syntax roles at **4.5:1** or better against `background`, `surface`,
   and `elevated-surface`. `link` is gated, not `primary`: since the ink/fill
   split, `primary` is the deep fill and is not text-eligible on dark, while
   the ink that links and indicators actually draw with is `link`;
