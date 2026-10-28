@@ -274,10 +274,11 @@ test('Contrast of trigger, active and selected option, and no motion', async () 
     const bg = el => { for (let n = el; n; n = n.parentElement) { const c = parse(getComputedStyle(n).backgroundColor); if (c[3] > 0.99) return c; if (c[3] > 0) { const below = bg(n.parentElement) ?? [255, 255, 255, 1]; return c.map((v, i) => i < 3 ? v * c[3] + below[i] * (1 - c[3]) : 1); } } return [255, 255, 255, 1]; };
     const ratio = el => { const a = lum(parse(getComputedStyle(el).color)), b = lum(bg(el)); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
     const q = s => document.querySelector(s);
-    return { trigger: ratio(q('.scope-trigger')), active: ratio(q('.scope-option[data-active]')), selected: ratio(q('.scope-option[aria-selected="true"]')), sep: ratio(q('.scope-sep')),
+    return { trigger: ratio(q('.scope-trigger')), active: ratio(q('.scope-option[data-active]')), selected: ratio(q('.scope-option[aria-selected="true"]')), check: ratio(q('.scope-option[aria-selected="true"] .scope-check')), sep: ratio(q('.scope-sep')),
      animation: getComputedStyle(q('.scope-popover')).animationName };
    });
    for (const key of ['trigger', 'active', 'selected']) assert(ratios[key] >= 4.5, `${theme} ${key} contrast ${ratios[key].toFixed(2)}`);
+   assert(ratios.check >= 3, `${theme} check contrast ${ratios.check.toFixed(2)}`);
    assert(ratios.sep >= 3, `${theme} separator contrast ${ratios.sep.toFixed(2)}`);
    assert.equal(ratios.animation, 'none');
    await axe(page, `${theme} open`);

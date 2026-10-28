@@ -1142,7 +1142,7 @@ table.table {
 .scope-option[data-active] { background: var(--color-accent-surface-hover); box-shadow: inset 2px 0 0 var(--color-focus); }
 .scope-option-text { display: grid; flex: 1; min-width: 0; }
 .scope-option-description { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
-.scope-check { flex: none; visibility: hidden; color: var(--color-primary); }
+.scope-check { flex: none; visibility: hidden; color: currentColor; }
 .scope-option[aria-selected="true"] { font-weight: var(--type-weight-medium); }
 .scope-option[aria-selected="true"] .scope-check { visibility: visible; }
 .scope-option[data-all] { position: relative; margin-block-end: calc(var(--spacing-xs) * 2 + 1px); }
