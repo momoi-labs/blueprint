@@ -16,7 +16,8 @@ tables, or dedicated tool routes.
 
 | Region | Compose with | Role |
 | --- | --- | --- |
-| Page framing | [PageHeader](../components/page-header.md) | Dashboard title; optional [TimeRangeControl](../components/time-range-control.md) or environment [Select](../components/select.md); optional refresh [IconButton](../components/icon-button.md) / [Button](../components/button.md) |
+| Page framing | [PageHeader](../components/page-header.md) | Dashboard title; optional [TimeRangeControl](../components/time-range-control.md) or environment [Select](../components/select.md) when the environment is not a scope level; optional refresh [IconButton](../components/icon-button.md) / [Button](../components/button.md) |
+| Scope | [ScopeSwitcher](../components/scope-switcher.md) in Header | When the product has nested scopes, the organization, project or resource the dashboard covers. See [Scope in Header](application-shell.md#scope-in-header). |
 | Widget unit | [Card](../components/card.md) | One concern per Card (metric cluster, short table, status list) |
 | Status | [Badge](../components/badge.md) | Compact health/severity labels inside Cards |
 | Dense lists | [Table / DataTable](../components/table.md) | Short "needs attention" tables — still compose Search/EmptyState/Pagination only when those behaviors are truly present |
@@ -50,7 +51,10 @@ reader can study it full viewport with `V`; see
 ## Flow
 
 1. Person opens Overview / Dashboard from Sidebar.
-2. PageHeader establishes scope (product area, optional range/environment).
+2. Header's [scope switcher](application-shell.md#scope-in-header) sets the
+   scope when the product has one, and an "All" choice gives the fleet view.
+   PageHeader names the page and holds its range. A product without a scope
+   switcher sets the environment in PageHeader.
 3. Widgets load independently when possible so one slow tile does not block the
    whole page.
 4. Person scans Badges and summary numbers, then follows a Link into a deeper

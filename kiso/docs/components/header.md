@@ -8,14 +8,16 @@ predictable place. Header is a layout container, not a primitive.
 Header orients the person and exposes a small set of destinations and actions
 that remain useful across routes. It composes [Link](link.md) for navigation,
 [IconButton](icon-button.md) for icon-only actions, and optionally
-[DropdownMenu](dropdown-menu.md) for overflow. Do not replace those controls with clickable
-containers.
+[DropdownMenu](dropdown-menu.md) for overflow. A product with nested scopes
+adds a [ScopeSwitcher](scope-switcher.md) after the brand. Do not replace
+those controls with clickable containers.
 
 ## Anatomy
 
 ```
 Header
 ├── brand/home Link
+├── ScopeSwitcher (optional; org / project / resource)
 ├── primary Navigation
 │   └── Link(s)
 └── actions
@@ -52,7 +54,7 @@ second line on a phone, it grows to contain them.
 | focus | Focus follows document order; each child shows `--color-focus`. |
 | active | The current Link is marked; pressed actions keep their component behavior. |
 | disabled | Header itself is never disabled. Unavailable children follow their own specs. |
-| collapsed | At narrow viewports, preserve the home Link and essential actions; move lower-priority destinations into DropdownMenu. |
+| collapsed | At narrow viewports, preserve the home Link and essential actions; move lower-priority destinations into DropdownMenu. Below 700px a ScopeSwitcher collapses to its own compact trigger, never into the overflow menu. |
 
 ## Accessibility
 

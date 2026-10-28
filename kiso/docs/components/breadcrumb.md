@@ -56,6 +56,9 @@ behavior is native Link/menu behavior; `Tab` visits Links, not separators.
 ## When NOT to use
 
 - Switching panels on one page; use Tabs.
+- Switching the current organization, project or resource; use
+  [ScopeSwitcher](scope-switcher.md). Its segments are choices, not ancestor
+  pages.
 - A flat product with no hierarchy.
 - As a substitute for the page title or browser history.
 

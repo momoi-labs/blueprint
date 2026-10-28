@@ -18,6 +18,7 @@ actions, or collection behavior.
 | Region | Compose with | Role |
 | --- | --- | --- |
 | Top chrome | [Header](../components/header.md) | Brand/home [Link](../components/link.md), optional primary [Navigation](../components/navigation.md), global [IconButton](../components/icon-button.md) / [DropdownMenu](../components/dropdown-menu.md) |
+| Scope | [ScopeSwitcher](../components/scope-switcher.md) in Header | Optional: the organization, project or resource the app works in, one switcher per level. See [Scope in Header](#scope-in-header). |
 | Side chrome | [Sidebar](../components/sidebar.md) | Persistent product destinations via Navigation Links; optional collapse [IconButton](../components/icon-button.md) |
 | Main | page content | Routed page patterns; starts with [PageHeader](../components/page-header.md) unless the page pattern specifies otherwise |
 | Phone chrome | [BottomNav](../components/bottom-nav.md) | Optional: the same primary destinations in a bar at the bottom edge below 700px |
@@ -42,9 +43,39 @@ destinations. Focus rings use `--color-focus`.
    mounted unless the destination leaves the authenticated app (for example
    sign-out → [login/authentication](login-authentication.md)).
 5. Narrow viewports: Sidebar collapses per its component contract; Header keeps
-   brand/home and essential global actions. A product with three to five
+   brand/home and essential global actions. A scope switcher collapses to
+   one compact trigger that still reaches every level. A product with three to five
    primary destinations can move them to BottomNav on phones instead. An
    inset frame meets the screen edges below 700px.
+
+## Scope in Header
+
+A product whose pages work inside nested scopes, such as organization,
+project and server, shows them in Header with a
+[ScopeSwitcher](../components/scope-switcher.md), right after the brand.
+Sidebar keeps the pages of the current scope. Pages drop their own scope
+Selects and keep only their filters.
+
+- **The URL holds the scope.** Use a path segment for a hard boundary, such
+  as separate data or billing. Use a query param, such as `?project=`, for a
+  scope people compare across. An "All" choice is an explicit value in the
+  URL, not a missing one.
+- **A switch keeps the page.** After a switch, stay on the same page in the
+  new scope when it exists there. Otherwise go to the front page of the new
+  scope. Do not send people to an overview on every switch.
+- **Deeper levels follow.** Changing a level resets each level below it to
+  its "All" choice, or to its default when it has no "All".
+- **History.** Every switch is a new history entry, so Back returns to the
+  earlier scope. Fixing an invalid or remembered scope replaces the entry
+  instead, so Back does not loop.
+- **Page filters stay.** A scope change keeps the page's own filters, such as
+  time range or search, unless they are invalid in the new scope.
+- **No hidden scope.** A remembered scope must always show in Header. Do not
+  narrow a page by a scope the person cannot see.
+- **Pages that do not use a level** omit that segment. An org-level page,
+  such as Projects or account settings, shows only the organization.
+- **Errors.** The switcher loads its own data. When the page's data fails,
+  the switcher still works, so the person can leave the broken scope.
 
 ## States
 
@@ -53,7 +84,7 @@ destinations. Focus rings use `--color-focus`.
 | default | Header, Sidebar, and main are visible; current nav item is marked. |
 | loading (main) | Chrome stays; main shows the page pattern's loading treatment (usually [Skeleton](../components/skeleton.md) for known layout). Do not replace the whole shell with a full-page [Spinner](../components/spinner.md). |
 | empty (main) | Chrome stays; the page pattern owns [EmptyState](../components/empty-state.md) inside main. |
-| error (main) | Chrome stays; the page pattern shows [Alert](../components/alert.md) (what / why / now per [voice-and-tone](../voice-and-tone.md)). Shell navigation remains usable so the person can leave the broken view. |
+| error (main) | Chrome stays; the page pattern shows [Alert](../components/alert.md) (what / why / now per [voice-and-tone](../voice-and-tone.md)). Shell navigation and the scope switcher remain usable so the person can leave the broken view. |
 | Sidebar collapsed | Compact navigation per the Sidebar contract. |
 | unauthorized route | Prefer redirect or an in-main explanation of what is blocked; do not silently strip Sidebar destinations without explanation. |
 
@@ -62,7 +93,7 @@ destinations. Focus rings use `--color-focus`.
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Header                                                               │
-│ [Brand Link]     (optional top Nav Links)     [⌘K] [?] [Account ▾] │
+│ [Brand] Acme ▾ / Checkout ▾ / db-prod-01 ▾      [⌘K] [?] [Account ▾] │
 ├────────────────┬─────────────────────────────────────────────────────┤
 │ Sidebar        │ Main                                                │
 │                │ ┌─────────────────────────────────────────────────┐ │
@@ -82,7 +113,7 @@ Narrow viewport (Sidebar collapsed):
 
 ```text
 ┌────────────────────────────────────────┐
-│ Header  [Brand]          [☰] [Account] │
+│ Header  [Brand] ≡ db-p… ▾ [☰] [Account] │
 ├────────────────────────────────────────┤
 │ Main                                   │
 │  PageHeader + page pattern             │
