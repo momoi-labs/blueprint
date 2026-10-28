@@ -4,7 +4,9 @@ import * as React from "react"
 import { clsx as cn } from "clsx"
 import { Check, ChevronDown, Globe, Pause, Play, Radio } from "lucide-react"
 import { Button } from "./button.js"
-import { FormField } from "./form-field.js"
+import { Label } from "./label.js"
+import { RangeCalendar } from "./time-range-calendar.js"
+import { ValidationMessage } from "./validation-message.js"
 import { Input } from "./input.js"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover.js"
 import { Search } from "./search.js"
@@ -315,6 +317,7 @@ function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { val
   maxDuration: number; formats: Formats; escape: React.RefObject<EscapeHandlers>; onApply: (value: LiveTimeRange) => void }) {
   const { zone, text } = formats
   const form = React.useRef<HTMLFormElement>(null)
+  const baseId = React.useId()
   const [draft, setDraft] = React.useState<Draft | null>(null)
   const [error, setError] = React.useState<FieldError | null>(null)
   const shown = value?.kind === "relative"
@@ -371,13 +374,35 @@ function LiveFields({ value, now, maxDuration, formats, escape, onApply }: { val
     return validInstant(at) ? text.resolvedHint(formats.hint(at), parsed.kind === "relative") : text.fieldHint
   }
   const fieldZone = zoneName(validInstant(now) ? now : Date.now(), zone, formats.language)
+  const day = (instant: number) => wallString(instant, zone, "second").slice(0, 10)
+  // The calendar appears when retention covers more than one calendar day.
+  const days = validInstant(now) && positive(maxDuration) && validInstant(now - maxDuration)
+    ? { min: day(now - maxDuration), max: day(now) } : null
+  // A picked day keeps the field's time; a relative expression resolves first.
+  const pickDay = (field: "from" | "to", input: string, picked: string) => {
+    const parsed = parseRangeText(input, zone, now)
+    const at = parsed ? resolveRangeText(parsed, now) : now
+    change(field, `${picked} ${wallString(validInstant(at) ? at : now, zone, "second").slice(11)}`)
+  }
   return <form ref={form} className="time-range-live-fields" noValidate onSubmit={submit}>
     {(["from", "to"] as const).map(field => {
       const input = field === "from" ? from : to
-      return <FormField key={field} label={text[field](fieldZone)} hint={hint(input)}
-        error={error?.field === field ? <span role="alert">{error.message}</span> : undefined}>
-        <Input value={input} autoComplete="off" spellCheck={false} onChange={event => change(field, event.target.value)} />
-      </FormField>
+      const id = `${baseId}-${field}`
+      const failed = error?.field === field
+      const parsed = parseRangeText(input, zone, now)
+      const at = parsed ? resolveRangeText(parsed, now) : NaN
+      return <div key={field} className="field">
+        <Label htmlFor={id}>{text[field](fieldZone)}</Label>
+        <div className="field-control">
+          <Input id={id} value={input} autoComplete="off" spellCheck={false} aria-invalid={failed || undefined}
+            aria-describedby={failed ? `${id}-help ${id}-error` : `${id}-help`} onChange={event => change(field, event.target.value)} />
+          {days && days.min !== days.max && <RangeCalendar min={days.min} max={days.max} locale={formats.language}
+            day={validInstant(at) ? day(at) : days.max} text={text}
+            label={field === "from" ? text.chooseStartDate : text.chooseEndDate} onPick={picked => pickDay(field, input, picked)} />}
+        </div>
+        <small className="field-hint" id={`${id}-help`}>{hint(input)}</small>
+        {failed && <ValidationMessage id={`${id}-error`} role="alert">{error.message}</ValidationMessage>}
+      </div>
     })}
     {dirty && <div className="time-range-live-actions">
       <Button type="button" variant="ghost" size="sm" onClick={reset}>{text.reset}</Button>

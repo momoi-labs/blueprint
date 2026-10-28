@@ -2919,14 +2919,31 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-live-axis { display: flex; justify-content: space-between; gap: var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-metadata); }
 .time-range-live-fields { display: grid; gap: var(--spacing-md); }
 .time-range-live-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); }
+/* The live calendar picks a field's date inside retention. */
+.time-range-live-date { flex: none; margin-inline-end: calc(-1 * var(--spacing-sm)); color: var(--color-muted-foreground); }
+.time-range-calendar[role="dialog"] { width: 18rem; max-width: calc(100vw - 2 * var(--spacing-md)); gap: var(--spacing-sm); }
+.time-range-calendar-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.time-range-calendar-head strong { font-size: var(--type-size-label); font-weight: var(--type-weight-semibold); }
+.time-range-calendar table { width: 100%; border-collapse: collapse; }
+.time-range-calendar th { padding-block: var(--spacing-2xs); color: var(--color-muted-foreground); font-size: var(--type-size-metadata); font-weight: var(--type-weight-medium); }
+.time-range-calendar td { padding: 1px; text-align: center; }
+.time-range-calendar-day { width: 100%; height: var(--size-control-sm); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-foreground); font: inherit; font-size: var(--type-size-label); cursor: pointer; }
+.time-range-calendar-day:hover { background: var(--color-accent-surface); }
+.time-range-calendar-day[data-outside] { color: var(--color-muted-foreground); }
+.time-range-calendar-day[aria-disabled="true"] { color: var(--color-disabled); text-decoration: line-through; background: transparent; cursor: not-allowed; }
+.time-range-calendar-day[aria-current="date"] { box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.time-range-calendar td[aria-selected="true"] > .time-range-calendar-day { background: var(--color-primary); color: var(--color-primary-foreground); }
+.time-range-calendar-day:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 @media (forced-colors: active) {
   .time-range-live-track { border: 1px solid CanvasText; }
   .time-range-live-segment { background: Highlight; forced-color-adjust: none; }
+  .time-range-calendar td[aria-selected="true"] > .time-range-calendar-day { outline: 2px solid Highlight; }
 }
 .meter[data-slot="progress"] .meter-track > span { background: var(--color-chart-1); }
 @media (pointer: coarse) {
   .time-range-trigger { min-height: var(--size-touch-min); }
   .time-range-live-pause { min-height: var(--size-touch-min); width: var(--size-touch-min); }
+  .time-range-calendar-day { height: var(--size-touch-min); }
   .disclosure > summary { min-height: var(--size-touch-min); display: list-item; align-content: center; }
 }
 

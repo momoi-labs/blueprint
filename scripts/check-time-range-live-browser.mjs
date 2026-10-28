@@ -308,6 +308,80 @@ test('the sliders have limits, step by 1/120 of retention, and apply each key', 
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Range start');
 });
 
+const week = 7 * 86_400_000;
+const calendar = () => page.locator('.time-range-calendar');
+const day = () => page.evaluate(() => document.activeElement?.dataset.day);
+// The calendar moves focus to the field's day a frame after it opens.
+async function openCalendar(name) {
+  await popover().getByRole('button', { name }).click();
+  await calendar().waitFor();
+  await page.waitForFunction(() => document.activeElement?.dataset.day);
+}
+
+test('the calendar appears only when retention spans days, and a pick waits for Apply', async () => {
+  await open();
+  assert.equal(await popover().getByRole('button', { name: 'Choose start date' }).count(), 0);
+  await update({ maxDuration: week });
+  await openCalendar('Choose start date');
+  assert.equal(await day(), '2026-09-12');
+  assert.equal(await calendar().locator('[aria-current="date"]').getAttribute('data-day'), '2026-09-12');
+  assert.equal(await calendar().locator('th').first().getAttribute('abbr'), 'Monday', 'en-GB weeks start on Monday');
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await day(), '2026-09-10');
+  await page.keyboard.press('Enter');
+  await calendar().waitFor({ state: 'detached' });
+  assert.equal(await from().inputValue(), '2026-09-10 11:12:40', 'the relative start resolved to its time first');
+  assert.deepEqual(await changes(), []);
+  await button('Apply range').click();
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 8, 10, 14, 12, 40), to: now }]);
+});
+
+test('days outside retention cannot be picked and months stop at retention', async () => {
+  await update({ maxDuration: week });
+  await open();
+  await openCalendar('Choose start date');
+  for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowLeft');
+  assert.equal(await day(), '2026-09-04');
+  assert.match(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), /outside the data kept/);
+  await page.keyboard.press('Enter');
+  assert.equal(await calendar().count(), 1);
+  assert.equal(await calendar().getByRole('button', { name: 'Previous month' }).isDisabled(), true);
+  assert.equal(await calendar().getByRole('button', { name: 'Next month' }).isDisabled(), true);
+});
+
+test('Escape closes only the calendar, and a click inside it keeps the popover open', async () => {
+  await update({ maxDuration: week });
+  await open();
+  const opener = popover().getByRole('button', { name: 'Choose end date' });
+  await opener.click();
+  await calendar().waitFor();
+  await page.keyboard.press('Escape');
+  await calendar().waitFor({ state: 'detached' });
+  assert.equal(await popover().count(), 1);
+  await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Choose end date');
+  await opener.click();
+  await calendar().locator('[data-day="2026-09-11"]').click();
+  assert.equal(await to().inputValue(), '2026-09-11 11:27:40');
+  assert.equal(await popover().count(), 1);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await popover().waitFor({ state: 'detached' });
+});
+
+test('a picked day on a daylight-saving date resolves on Apply', async () => {
+  const at = Date.UTC(2026, 2, 9, 12);
+  await update({ timeZone: 'America/New_York', now: at, maxDuration: week,
+    value: { kind: 'absolute', from: Date.UTC(2026, 2, 7, 7, 30), to: at - 3_600_000 } });
+  await open();
+  await openCalendar('Choose start date');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
+  assert.equal(await from().inputValue(), '2026-03-08 02:30:00');
+  await button('Apply range').click();
+  assert.deepEqual(await changes(), [{ kind: 'absolute', from: Date.UTC(2026, 2, 8, 7), to: at - 3_600_000 }]);
+});
+
 test('a Chart with timeZone formats its axis and readout in that zone', async () => {
   await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').first().waitFor();
   const ticks = (await page.locator('.chart-plot .recharts-cartesian-axis-tick-value').allTextContents()).filter(tick => tick.includes(':'));
