@@ -262,7 +262,9 @@ for the active option, `--color-foreground` for option text and the check,
 status, `--color-danger` for the error text, `--color-focus`,
 `--motion-duration-fast`, and `--motion-easing-standard`. Items use the five
 body typography tokens; group labels use the five label typography tokens.
-No new tokens and no raw values.
+No new tokens and no raw values. The popup and its options share
+DropdownMenu's surface and item styles, so every appearance setting (border,
+corner, marks, theme) reaches them the same way.
 
 ## Radix/shadcn mapping
 

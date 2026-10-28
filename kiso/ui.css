@@ -1095,7 +1095,9 @@ table.table {
 .palette-list .menu-item[aria-selected="true"] { background: var(--color-selected); color: var(--color-selected-foreground); }
 
 /* Scope switcher: one trigger per level in Header, each opening a list of
-   choices. The active option is a fill; the selected one is a check. */
+   choices. The active option is a fill; the selected one is a check. The
+   popup is a .menu and its options are .menu-item, so appearance styles
+   reach them; these rules only add layout. */
 .scope { min-width: 0; }
 .scope-path { display: flex; align-items: center; gap: var(--spacing-2xs); min-width: 0; margin: 0; padding: 0; list-style: none; }
 .scope-segment { display: flex; align-items: center; gap: var(--spacing-2xs); min-width: 0; }
@@ -1109,12 +1111,7 @@ table.table {
   min-width: max(var(--radix-popover-trigger-width, 0px), 16rem);
   max-width: min(24rem, calc(100vw - 2 * var(--spacing-md)));
   max-height: min(28rem, var(--radix-popover-content-available-height, 28rem));
-  padding: var(--spacing-xs);
-  background: var(--color-popover);
   color: var(--color-popover-foreground);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
 }
 .scope-filter {
   flex: none;
@@ -1126,23 +1123,21 @@ table.table {
 .scope-filter input { flex: 1; min-width: 0; border: 0; background: none; color: inherit; font: inherit; outline: none; }
 .scope-filter:focus-within { box-shadow: inset 0 -2px 0 var(--color-focus); }
 .scope-list { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-radius: var(--radius-md); }
-.scope-list:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+/* The active option carries focus; the list shows a ring only when empty. */
+.scope-list:focus-visible { outline: none; }
+.scope-list:focus-visible:not(:has([data-active])) { outline: 2px solid var(--color-focus); outline-offset: 1px; }
 .scope-group + .scope-group, .scope-option + .scope-group { margin-block-start: var(--spacing-xs); }
 .scope-group-label { padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs); color: var(--color-muted-foreground); }
-.scope-option {
-  display: flex; align-items: center; gap: var(--spacing-sm);
+.scope-option.menu-item {
+  height: auto;
   min-height: var(--size-control-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
-  color: var(--color-foreground);
-  font-size: var(--type-size-body);
+  padding-block: var(--spacing-xs);
   overflow-wrap: anywhere;
-  cursor: pointer;
 }
 .scope-option[data-active] { background: var(--color-accent-surface-hover); box-shadow: inset 2px 0 0 var(--color-focus); }
 .scope-option-text { display: grid; flex: 1; min-width: 0; }
 .scope-option-description { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
-.scope-check { flex: none; visibility: hidden; color: currentColor; }
+.scope-option .scope-check { flex: none; visibility: hidden; color: inherit; }
 .scope-option[aria-selected="true"] { font-weight: var(--type-weight-medium); }
 .scope-option[aria-selected="true"] .scope-check { visibility: visible; }
 .scope-option[data-all] { position: relative; margin-block-end: calc(var(--spacing-xs) * 2 + 1px); }
@@ -1159,7 +1154,7 @@ table.table {
 .scope-compact { min-width: 0; max-width: 100%; color: var(--color-foreground); }
 .scope-compact .scope-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 @media (pointer: coarse) {
-  .scope-trigger, .scope-compact, .scope-option, .scope-destination, .scope-filter input { min-height: var(--size-touch-min); }
+  .scope-trigger, .scope-compact, .scope-option.menu-item, .scope-destination, .scope-filter input { min-height: var(--size-touch-min); }
   .scope-trigger, .scope-compact { min-width: var(--size-touch-min); }
 }
 

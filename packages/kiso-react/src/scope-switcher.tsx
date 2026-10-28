@@ -168,7 +168,7 @@ function ScopeSwitcher({
               align="start"
               sideOffset={4}
               collisionPadding={16}
-              className="scope-popover kiso-react-floating"
+              className="menu scope-popover kiso-react-floating"
               onKeyDown={(event) => {
                 const edge = boundaryTab(event, levelsRef.current);
                 if (!edge) return;
@@ -345,7 +345,7 @@ function ScopeSegment(props: ScopeSegmentProps) {
         aria-selected={option.value === value}
         data-active={option.value === active ? "" : undefined}
         data-all={isAll ? "" : undefined}
-        className="scope-option"
+        className="menu-item scope-option"
         onPointerMove={() => setActiveValue(option.value)}
         onClick={() => choose(option.value)}
       >
@@ -392,7 +392,7 @@ function ScopeSegment(props: ScopeSegmentProps) {
             align="start"
             sideOffset={4}
             collisionPadding={16}
-            className="scope-popover kiso-react-floating"
+            className="menu scope-popover kiso-react-floating"
             onOpenAutoFocus={(event) => { event.preventDefault(); focusTarget(); }}
             onCloseAutoFocus={(event) => {
               // A choice made from the compact popup returns focus to the
