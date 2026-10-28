@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { usePaneLayout } from "./use-pane-layout"
 import { BarGauge, Card, CardContent, Chart, ChartLegend, Checkbox, Label, DashboardGrid, DashboardPanel,
-  Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries, type ChartSummaryStat } from "@momoi-labs/kiso-react"
+  Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, type LiveTimeRange, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries, type ChartSummaryStat } from "@momoi-labs/kiso-react"
 
 const start = Date.UTC(2026, 8, 12, 9)
 const bounds = { from: start, to: start + 179 * 10_000 }
@@ -16,8 +16,8 @@ const series: ChartSeries[] = [
   { key: "softirq", label: "Soft IRQ", slot: 8 },
   { key: "guest", label: "Guest", slot: 9 },
 ]
-const data = Array.from({ length: 180 }, (_, index) => ({
-  timestamp: start + index * 10_000,
+const sampleAt = (index: number, timestamp: number) => ({
+  timestamp,
   values: {
     user: (index > 70 && index < 80) || index === 90 ? null : Math.round(25 + Math.sin(index / 8) * 10 + (index > 105 && index < 120 ? 22 : 0)),
     system: index > 70 && index < 80 ? null : Math.round(12 + Math.sin(index / 6) * 5),
@@ -29,7 +29,27 @@ const data = Array.from({ length: 180 }, (_, index) => ({
     softirq: index > 70 && index < 80 ? null : Math.round(2 + Math.sin(index / 5)),
     guest: index > 70 && index < 80 ? null : index > 140 ? 4 : 0,
   },
-}))
+})
+const data = Array.from({ length: 180 }, (_, index) => sampleAt(index, start + index * 10_000))
+// The live demo keeps 30 minutes of samples on a 10 second grid and polls
+// every 5 seconds, like a monitoring console.
+const retention = 1_800_000
+const liveData = (now: number) => {
+  const last = Math.floor(now / 10_000)
+  return Array.from({ length: retention / 10_000 }, (_, offset) => {
+    const slot = last - retention / 10_000 + 1 + offset
+    return sampleAt(slot % 180, slot * 10_000)
+  })
+}
+function useNow() {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 5000)
+    return () => clearInterval(timer)
+  }, [])
+  return now
+}
+const browserZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 const time = (value: number) => new Date(value).toISOString().slice(11, 19)
 const percent = (value: number) => `${value.toFixed(1)}%`
 const summaryColumns: ChartSummaryStat[] = ["min", "max", "avg", "current", "p50", "p75", "p90", "p95", "p99"]
@@ -111,6 +131,9 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
     <Disclosure summary="Database"><p>Connections and queries.</p></Disclosure>
   </div>
   if (component === "time-range-control") return <div className="stack">
+    <h3 className="t-h3">Live</h3>
+    <LiveRangeDemo />
+    <h3 className="t-h3">Artifact</h3>
     <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
     <TimeRangeControl label="Unavailable range" bounds={bounds} value={bounds} onValueChange={() => {}} disabled />
     <p>{filtered.length} samples in the selected window.</p>
@@ -123,13 +146,47 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
       activeTimestamp={data[110]!.timestamp} formatTime={time} formatValue={percent} />
     </Disclosure>
   </div>
+  return <LiveDashboard layout={layout} />
+}
+
+function useLiveRange() {
+  const now = useNow()
+  const [value, setValue] = useState<LiveTimeRange>({ kind: "relative", duration: 900_000 })
+  const [resume, setResume] = useState(900_000)
+  const [timeZone, setTimeZone] = useState(browserZone)
+  const change = (next: LiveTimeRange) => {
+    setValue(next)
+    if (next.kind === "relative") setResume(next.duration)
+  }
+  // Resolve a relative value from the wall clock of each poll, never from
+  // the newest sample.
+  const range = value.kind === "relative" ? { from: now - value.duration, to: now } : value
+  const control = { mode: "live" as const, value, now, maxDuration: retention, resumeDuration: resume,
+    onValueChange: change, timeZone, onTimeZoneChange: setTimeZone }
+  return { now, range, control, timeZone, pause: (selected: { from: number; to: number }) => change({ kind: "absolute", ...selected }) }
+}
+
+function LiveRangeDemo() {
+  const { now, range, control } = useLiveRange()
+  const samples = useMemo(() => liveData(now), [now])
+  return <>
+    <TimeRangeControl {...control} />
+    <p>{samples.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to).length} samples in the selected window.
+      New samples arrive every 5 seconds.</p>
+  </>
+}
+
+function LiveDashboard({ layout }: { layout: ReturnType<typeof usePaneLayout> }) {
+  const { now, range, control, timeZone, pause } = useLiveRange()
+  const samples = useMemo(() => liveData(now), [now])
+  const filtered = samples.filter(sample => sample.timestamp >= range.from && sample.timestamp <= range.to)
   return <div className="stack">
-    <TimeRangeControl bounds={bounds} value={range} onValueChange={setRange} />
+    <TimeRangeControl {...control} />
     <Disclosure summary="Operating system" open>
       <DashboardGrid aria-label="Operating system metrics" {...layout}>
         <DashboardPanel id="cpu" title="CPU by state (%)" size={8} min={4} expandable>
           <Chart label="CPU by state (%)" data={filtered} series={series} variant="stacked-area" layout="compact" legend="inline"
-            formatTime={time} formatValue={percent} min={0} max={100} syncId="metrics-demo" onRangeSelect={setRange} />
+            timeZone={timeZone} formatValue={percent} min={0} max={100} syncId="metrics-demo" onRangeSelect={pause} />
         </DashboardPanel>
         <DashboardPanel id="cpu-user" title="CPU user" size={4} min={3}>
           <Stat><StatValue>{filtered.at(-1)?.values.user == null ? "Not collected" : percent(filtered.at(-1)!.values.user!)}</StatValue>
@@ -144,15 +201,15 @@ export function MetricsDemo({ component = "chart" }: { component?: string }) {
         </DashboardPanel>
         <DashboardPanel id="single-sample" title="Single sample (%)" size={6} min={4} newRow expandable>
           <Chart label="Single sample (%)" data={[data[0]!]} series={[series[0]!]} legend="inline"
-            formatTime={time} formatValue={percent} />
+            timeZone={timeZone} formatValue={percent} />
         </DashboardPanel>
         <DashboardPanel id="empty-window" title="Empty window (%)" size={6} min={4} expandable>
           <Chart label="Empty window (%)" data={[]} series={[series[0]!]} legend="inline"
-            formatTime={time} formatValue={percent} />
+            timeZone={timeZone} formatValue={percent} />
         </DashboardPanel>
         <DashboardPanel id="unavailable" title="Unavailable collector (%)" size={12} min={6} newRow expandable>
           <Chart label="Unavailable collector (%)" data={data.map(sample => ({ ...sample, values: { user: null } }))}
-            series={[series[0]!]} legend="inline" formatTime={time} formatValue={percent} />
+            series={[series[0]!]} legend="inline" timeZone={timeZone} formatValue={percent} />
           <p>Sparkline with a collection gap</p>
           <Sparkline values={[10, 20, 15, null, null, 35, 20, 25]} height={28} label="CPU trend with a gap" />
         </DashboardPanel>

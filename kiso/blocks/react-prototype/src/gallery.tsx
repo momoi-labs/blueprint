@@ -247,7 +247,7 @@ const catalog = [
   ["meter", "Meter / Progress", "Feedback", "Measured ratios and task completion."],
   ["bar-gauge", "BarGauge", "Data", "Labelled bars on a shared scale."],
   ["disclosure", "Disclosure", "Structure", "Native collapsible sections."],
-  ["time-range-control", "TimeRangeControl", "Controls", "Presets and exact collection windows."],
+  ["time-range-control", "TimeRangeControl", "Controls", "Presets and exact ranges for a run, or live ranges that follow the clock."],
   ["dashboard-grid", "DashboardGrid", "Structure", "Responsive panels on twelve columns."],
   ["pane-grid", "PaneGrid", "Structure", "Summary panes the reader resizes and moves."],
   ["kv", "KV", "Data", "Fixed facts as terms and values."],
