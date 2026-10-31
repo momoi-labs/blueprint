@@ -209,11 +209,13 @@ per accent from the `accent.<name>` group in `tokens/tokens.json`. That block
 restates only the roles that follow the hue:
 
 - the active ramp, `--color-accent-50` to `--color-accent-950` and
-  `--color-accent-base`, remapped to the named ramp. `link`, `focus`, `ring`,
-  `accent`, and the light-theme tints alias the ramp, so they follow without
-  being restated;
+  `--color-accent-base`, remapped to the named ramp;
 - the raw-hex dark fills: `primary`, `primary-hover`, `primary-foreground`,
-  `accent-surface`, `accent-surface-hover`, and `selected`.
+  `accent-surface`, `accent-surface-hover`, and `selected`;
+- every role that reads a remapped property, such as `link`, `focus`, `ring`
+  and `accent`. A `var()` in a custom property resolves where the property is
+  declared, so without this a container would keep the `:root` ink. The build
+  adds these from the `:root` declarations; they are not in `tokens.json`.
 
 The neutral roles are not restated. The warm grey carries the interface under
 every hue accent, and only the accent changes: a teal product and a violet
