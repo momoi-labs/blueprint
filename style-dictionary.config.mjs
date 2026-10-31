@@ -157,6 +157,23 @@ StyleDictionary.registerFormat({
       if (!accents.has(name)) accents.set(name, []);
       accents.get(name).push(declare(entry));
     }
+    // A var() in a custom property resolves where the property is declared, so
+    // :root's --color-link keeps the default ink under a nested [data-accent].
+    // Restate every root property that reads, directly or through another,
+    // one the accent remaps, so a container takes the accent as <html> does.
+    for (const entries of accents.values()) {
+      const remapped = new Set(entries.map(([name]) => name));
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const [name, value] of rendered) {
+          if (remapped.has(name) || ![...value.matchAll(/var\((--[\w-]+)\)/g)].some(([, ref]) => remapped.has(ref))) continue;
+          entries.push([name, value]);
+          remapped.add(name);
+          grew = true;
+        }
+      }
+    }
 
     const reducedMotion = tokens
       .filter(({ path }) => path[0] === 'motion' && path[1] === 'duration')
