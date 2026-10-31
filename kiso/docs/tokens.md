@@ -83,7 +83,7 @@ outline — which is how a violet design system ends up rendering grey.
 | Role | Meaning and use | Dark primitive | Light primitive |
 | --- | --- | --- | --- |
 | `primary-foreground` | Text and icons on a `primary` fill. | near-white `#f7f5fe` | `white` |
-| `primary-hover` | `primary` fill on hover. | `#795dc9` | `accent.800` |
+| `primary-hover` | `primary` fill on hover. | `#7458c3` | `accent.800` |
 | `danger-foreground` | Text and icons on a `danger` fill. | `dark.950` | `white` |
 | `secondary` | Neutral button fill, range track, count badge; never text. | `dark.700` | `neutral.300` |
 | `secondary-foreground` | Text on a `secondary` fill. | `foreground` | `foreground` |
@@ -190,7 +190,8 @@ it was gated at.
 default.
 
 `nocturne` is different in kind. It is the marketing site's palette: the
-violet ramp and ink over cool slate neutrals (hue 278) instead of the warm
+muted indigo ramp and ink (`color.nocturne.*`, at about 60% of violet's
+chroma) over cool slate neutrals (hue 278) instead of the warm
 ones. It is the one accent that restates the neutral roles, surfaces, text,
 borders, and neutral fills alike, because the slate is the palette, not a
 tint on it. A hue accent nested inside a nocturne container keeps the slate

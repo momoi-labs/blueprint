@@ -85,16 +85,16 @@ $color-status-success: #5bd295; // Success status primitive.
 $color-status-warning: #efc05b; // Warning status primitive.
 $color-status-danger: #f5807f; // Danger status primitive. The dark step sits at 4.6:1 on elevated-surface; a darker red missed AA there.
 $color-status-info: #75c4fa; // Info status primitive.
-$color-tangerine-50: #fef4ed;
-$color-tangerine-200: #fce7da;
-$color-tangerine-300: #f8d3bb;
-$color-tangerine-400: #eeb086;
-$color-tangerine-500: #df894b;
-$color-tangerine-600: #bc6000;
-$color-tangerine-700: #9b4e00;
-$color-tangerine-800: #713700;
-$color-tangerine-900: #502500;
-$color-tangerine-950: #351700;
+$color-tangerine-50: #fdf3eb;
+$color-tangerine-200: #fce7d6;
+$color-tangerine-300: #f8d3b3;
+$color-tangerine-400: #f1b27a;
+$color-tangerine-500: #e18a2d;
+$color-tangerine-600: #b56701;
+$color-tangerine-700: #945401;
+$color-tangerine-800: #6d3d02;
+$color-tangerine-900: #4c2901;
+$color-tangerine-950: #311800;
 $color-tangerine-base: #ffab64; // Text and focus ink, independent of the bright primary fill.
 $color-red-50: #fdf2f1;
 $color-red-200: #fbdcda;
@@ -129,6 +129,17 @@ $color-lime-800: #3f5300;
 $color-lime-900: #2b3900;
 $color-lime-950: #1c2600;
 $color-lime-base: #ceff76; // Text and focus ink, independent of the bright primary fill.
+$color-nocturne-50: #f3f5fb;
+$color-nocturne-200: #e8eaf7;
+$color-nocturne-300: #d5d9f0;
+$color-nocturne-400: #b8bee5;
+$color-nocturne-500: #969dd2;
+$color-nocturne-600: #7077b4;
+$color-nocturne-700: #5a609b;
+$color-nocturne-800: #3f4380;
+$color-nocturne-900: #2a2d59;
+$color-nocturne-950: #1a1d35;
+$color-nocturne-base: #abb3eb; // The nocturne ink: the site's link colour, text-eligible in both themes.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -154,7 +165,7 @@ $semantic-sidebar-border: #494744; // Divider between sidebar and content.
 $semantic-border-strong: #94928e; // Emphasised line: hover outlines, switch tracks, chart gridlines, corner marks. Non-text role, >=3:1 on background, surface and elevated-surface in both themes. On dark this is dark.450, sharing the subtle-text step as neutral.500 does on light.
 $semantic-input: #494744; // Form control outline at rest.
 $semantic-primary-foreground: #f7f5fe; // Text and icons on a primary fill. Near-white on the deep violet fill in both themes. Passes AA on primary in both themes.
-$semantic-primary-hover: #795dc9; // Primary fill on hover - one step brighter than primary, keeping primary-foreground legible.
+$semantic-primary-hover: #7458c3; // Primary fill on hover - one step brighter than primary, keeping primary-foreground legible.
 $semantic-link: #5b3fc4; // Inline and standalone links. The light ink: alias of accent.base in both themes, so links stay text-eligible where the primary fill is not.
 $semantic-accent-surface: #2d2843; // Faintest accent tint: row hover, ghost-button hover. Non-text role.
 $semantic-accent-surface-hover: #3a3356; // Accent tint one step stronger. Non-text role.
@@ -206,7 +217,7 @@ $accent-violet-accent-900: #2e2170;
 $accent-violet-accent-950: #211741;
 $accent-violet-accent-base: #5b3fc4;
 $accent-violet-primary: #684bb5; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
-$accent-violet-primary-hover: #795dc9;
+$accent-violet-primary-hover: #7458c3;
 $accent-violet-primary-foreground: #f7f5fe;
 $accent-violet-accent-surface: #2d2843;
 $accent-violet-accent-surface-hover: #3a3356;
@@ -240,7 +251,7 @@ $accent-teal-accent-900: #003c36;
 $accent-teal-accent-950: #002723;
 $accent-teal-accent-base: #05c3b4;
 $accent-teal-primary: #00736a; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
-$accent-teal-primary-hover: #00877c;
+$accent-teal-primary-hover: #027d73;
 $accent-teal-primary-foreground: #eef9f7;
 $accent-teal-accent-surface: #053430;
 $accent-teal-accent-surface-hover: #00433d;
@@ -257,29 +268,29 @@ $accent-cobalt-accent-900: #002d72;
 $accent-cobalt-accent-950: #051f43;
 $accent-cobalt-accent-base: #71aafe;
 $accent-cobalt-primary: #1c5fbc; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
-$accent-cobalt-primary-hover: #2f72d0;
+$accent-cobalt-primary-hover: #296cc9;
 $accent-cobalt-primary-foreground: #f2f7ff;
 $accent-cobalt-accent-surface: #1d2d45;
 $accent-cobalt-accent-surface-hover: #253a59;
 $accent-cobalt-selected: #2d4870;
-$accent-nocturne-accent-50: #f7f4ff;
-$accent-nocturne-accent-200: #ede8fd;
-$accent-nocturne-accent-300: #ded5fb;
-$accent-nocturne-accent-400: #c4b4f5;
-$accent-nocturne-accent-500: #a690ea;
-$accent-nocturne-accent-600: #7d68d1;
-$accent-nocturne-accent-700: #6552b8;
-$accent-nocturne-accent-800: #46309e;
-$accent-nocturne-accent-900: #2e2170;
-$accent-nocturne-accent-950: #211741;
-$accent-nocturne-accent-base: #b4a9e6; // The nocturne ink: the site's link colour, text-eligible in both themes.
-$accent-nocturne-primary: #6d5fc2; // The site's primary fill.
-$accent-nocturne-primary-hover: #7e71d6;
+$accent-nocturne-accent-50: #f3f5fb;
+$accent-nocturne-accent-200: #e8eaf7;
+$accent-nocturne-accent-300: #d5d9f0;
+$accent-nocturne-accent-400: #b8bee5;
+$accent-nocturne-accent-500: #969dd2;
+$accent-nocturne-accent-600: #7077b4;
+$accent-nocturne-accent-700: #5a609b;
+$accent-nocturne-accent-800: #3f4380;
+$accent-nocturne-accent-900: #2a2d59;
+$accent-nocturne-accent-950: #1a1d35;
+$accent-nocturne-accent-base: #abb3eb;
+$accent-nocturne-primary: #4c518f; // The site's primary fill.
+$accent-nocturne-primary-hover: #595f9e;
 $accent-nocturne-primary-foreground: #f7f5fe;
-$accent-nocturne-accent-surface: #2a2944;
-$accent-nocturne-accent-surface-hover: #373457;
-$accent-nocturne-selected: #372f6b;
-$accent-nocturne-focus: #9184d9;
+$accent-nocturne-accent-surface: #272a3d;
+$accent-nocturne-accent-surface-hover: #32364f;
+$accent-nocturne-selected: #3e4262;
+$accent-nocturne-focus: #abb3eb;
 $accent-nocturne-background: #161826;
 $accent-nocturne-surface: #232532;
 $accent-nocturne-elevated-surface: #292b31;
@@ -298,16 +309,16 @@ $accent-nocturne-disabled: #454752;
 $accent-nocturne-disabled-surface: #292b35;
 $accent-nocturne-skeleton: #363743;
 $accent-nocturne-hatch: #363743;
-$accent-tangerine-accent-50: #fef4ed;
-$accent-tangerine-accent-200: #fce7da;
-$accent-tangerine-accent-300: #f8d3bb;
-$accent-tangerine-accent-400: #eeb086;
-$accent-tangerine-accent-500: #df894b;
-$accent-tangerine-accent-600: #bc6000;
-$accent-tangerine-accent-700: #9b4e00;
-$accent-tangerine-accent-800: #713700;
-$accent-tangerine-accent-900: #502500;
-$accent-tangerine-accent-950: #351700;
+$accent-tangerine-accent-50: #fdf3eb;
+$accent-tangerine-accent-200: #fce7d6;
+$accent-tangerine-accent-300: #f8d3b3;
+$accent-tangerine-accent-400: #f1b27a;
+$accent-tangerine-accent-500: #e18a2d;
+$accent-tangerine-accent-600: #b56701;
+$accent-tangerine-accent-700: #945401;
+$accent-tangerine-accent-800: #6d3d02;
+$accent-tangerine-accent-900: #4c2901;
+$accent-tangerine-accent-950: #311800;
 $accent-tangerine-accent-base: #ffab64;
 $accent-tangerine-primary: #ff8a1f; // Bright action fill with dark text in both themes.
 $accent-tangerine-primary-hover: #ffa34d;
