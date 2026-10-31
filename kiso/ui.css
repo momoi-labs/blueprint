@@ -3216,6 +3216,28 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 
 .filter-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
+/* Combobox: a searchable single choice. The list is a .menu surface; each option
+   has the label and an optional note on one line and a description under it. */
+.combobox { position: relative; min-width: 0; }
+.combobox > .input { width: 100%; }
+.combobox-content { min-width: 0; overflow-y: auto; overscroll-behavior: contain; color: var(--color-foreground); }
+.combobox-group-label { padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-2xs); color: var(--color-muted-foreground); }
+.combobox-option { display: grid; gap: var(--spacing-2xs); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-md); cursor: pointer; }
+.combobox-option:hover { background: var(--color-accent-surface-hover); }
+.combobox-option[aria-selected="true"] { background: var(--color-selected); color: var(--color-selected-foreground); }
+.combobox-option-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--spacing-2xs) var(--spacing-sm); min-width: 0; }
+.combobox-option-label { min-width: 0; overflow-wrap: anywhere; font-size: var(--type-size-body); }
+.combobox-content[data-mono] .combobox-option-label { font-family: var(--font-mono); font-size: var(--type-size-label); }
+.combobox-option-note, .combobox-option-description { color: var(--color-muted-foreground); font-size: var(--type-size-label); }
+.combobox-option[aria-selected="true"] :is(.combobox-option-note, .combobox-option-description) { color: inherit; }
+.combobox-message { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-label); }
+@media (pointer: coarse) {
+  .combobox-option { min-height: var(--size-touch-min); align-content: center; }
+}
+@media (forced-colors: active) {
+  .combobox-option[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
 /* Canvas backgrounds belong to one shell, never to its cards or overlays. */
 [data-background-style] { --canvas-mask: none; --canvas-mask-color: transparent; --canvas-pattern: none; --canvas-size: auto; --canvas-repeat: repeat; --canvas-position: left top; }
 [data-background-strength="quiet"] { --canvas-opacity: .14; }

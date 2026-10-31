@@ -91,8 +91,8 @@ the current value.
 - Do not use for one boolean setting; use Switch.
 - Do not hide two or three important options when visible choices would be
   faster to compare.
-- Do not use as autocomplete for a very large or remote dataset without a
-  dedicated combobox/search pattern.
+- Do not use for a long, large, or remote list that people search by typing;
+  use [Combobox](combobox.md).
 
 ## Tokens
 

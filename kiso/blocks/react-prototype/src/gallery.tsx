@@ -15,6 +15,7 @@ import { PaneGridDemo } from "./pane-grid-demo";
 import { FilterInputDemo } from "./filter-input-demo";
 import { ScopeSwitcherDemo } from "./scope-switcher-demo";
 import { DetailSelectDemo } from "./detail-select-demo";
+import { ComboboxDemo } from "./combobox-demo";
 import { MediaPreviewDemo } from "./media-preview-demo";
 import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
@@ -200,6 +201,7 @@ const catalog = [
     "Controls",
     "Single selection with keyboard navigation.",
   ],
+  ["combobox", "Combobox", "Controls", "Search a long list and pick one option."],
   ["detail-select", "DetailSelect", "Controls", "Illustrated options with rich descriptions in a bounded overlay."],
   ["media-preview", "MediaPreview", "Controls", "Image thumbnails and audio you can play inside an option."],
   [
@@ -353,6 +355,7 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "radio-group": "wide",
   "file-dropzone": "wide",
   select: "wide",
+  combobox: "wide",
   "detail-select": "wide",
   "media-preview": "wide",
   "chip-input": "wide",
@@ -425,6 +428,7 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<Label htmlFor="notes">Notes</Label>\n<Textarea id="notes" rows={4} />',
   select:
     '<Select defaultValue="English" onValueChange={setLanguage}>\n  <SelectTrigger aria-label="Language"><SelectValue /></SelectTrigger>\n  <SelectContent>\n    <SelectItem value="English">English</SelectItem>\n  </SelectContent>\n</Select>',
+  combobox: '<FormField label="Setting" error={error}>\n  <Combobox\n    options={[{ value: "work_mem", label: "work_mem", note: "memory",\n      group: "Memory", description: "Memory for each sort or hash." }]}\n    value={setting} onValueChange={setSetting}\n    query={query} onQueryChange={setQuery}\n    emptyText={q => `No setting matches "${q}".`}\n    mono\n  />\n</FormField>',
   "detail-select": '<DetailSelect\n  label="Definition"\n  value={definition}\n  onValueChange={setDefinition}\n  options={[{\n    value: "image",\n    label: "Container image",\n    icon: <TerminalIcon />,\n    illustration: <ImageDiagram />,\n    description: <><p>Run a published image.</p><a href="/docs/images">Read the guide</a></>,\n  }]}\n/>',
   "media-preview": '<DetailSelect label="Voice" value={voice} onValueChange={setVoice}\n  options={voices.map(voice => ({\n    value: voice.name, label: voice.name, description: voice.about,\n    illustration: <AudioPreview src={voice.url} label={voice.name} />,\n  }))} />\n\n<div role="listbox" aria-activedescendant={activeId} onKeyDown={event => {\n  if (isPlayPreviewKey(event)) toggleAudioPreview(document.getElementById(activeId))\n}}>\n  <DetailOption role="option" size="sm" aria-selected label="dawn"\n    illustration={<ImagePreview src="/library/dawn.png" alt="" />} />\n</div>',
   checkbox:
@@ -1346,6 +1350,8 @@ const Demo = memo(function Demo({
           </p>
         </div>
       );
+    case "combobox":
+      return <ComboboxDemo />;
     case "detail-select":
       return <DetailSelectDemo />;
     case "media-preview":
