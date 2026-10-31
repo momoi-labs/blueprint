@@ -3259,9 +3259,11 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --canvas-size: 100px 80px;
   --canvas-mask-color: var(--color-foreground);
 }
+/* On the warm light paper a pale accent mixes to gray, so light mode uses the
+   deeper accent at about half the strength. */
 [data-background-style="momoi"] {
   --canvas-mask: url("./assets/momoi-symbol.svg");
-  --canvas-mask-color: var(--color-accent-400);
+  --canvas-mask-color: light-dark(color-mix(in srgb, var(--color-accent-600) 57%, transparent), var(--color-accent-400));
   --canvas-size: min(calc(5 * var(--spacing-2xl)), calc(100% - 2 * var(--spacing-lg))) auto;
   /* A signature in the corner, a few pixels in from both edges. */
   --canvas-position: right var(--spacing-sm) bottom var(--spacing-sm);
@@ -3269,7 +3271,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 [data-background-style="momoi-repeat"] {
   --canvas-mask: url("./assets/momoi-repeat.svg");
-  --canvas-mask-color: var(--color-accent-400);
+  --canvas-mask-color: light-dark(color-mix(in srgb, var(--color-accent-600) 57%, transparent), var(--color-accent-400));
   --canvas-size: calc(18 * var(--spacing-2xl)) calc(18 * var(--spacing-2xl));
 }
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)),

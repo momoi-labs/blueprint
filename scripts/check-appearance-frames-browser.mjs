@@ -516,12 +516,13 @@ for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accen
   try {
     for (const accent of ['violet', 'tangerine', 'red', 'gold', 'lime']) for (const background of ['momoi', 'momoi-repeat']) {
       await page.evaluate(({ accent, background }) => Object.assign(document.documentElement.dataset, { accent, backgroundStyle: background }), { accent, background });
-      const paint = await page.locator('#canvas').evaluate(el => {
+      const paint = await page.locator('#canvas').evaluate((el, theme) => {
         const style = getComputedStyle(el, '::before');
-        const probe = document.createElement('span'); probe.style.color = 'var(--color-accent-400)'; el.append(probe);
+        // Light paper takes the deeper accent at reduced strength.
+        const probe = document.createElement('span'); probe.style.color = theme === 'light' ? 'color-mix(in srgb, var(--color-accent-600) 57%, transparent)' : 'var(--color-accent-400)'; el.append(probe);
         const accent = getComputedStyle(probe).color; probe.remove();
         return { color: style.backgroundColor, accent, image: style.backgroundImage, mask: style.maskImage, position: style.maskPosition, repeat: style.maskRepeat };
-      });
+      }, theme);
       assert.equal(paint.color, paint.accent);
       assert.equal(paint.image, 'none');
       assert(paint.mask.includes('svg'));
