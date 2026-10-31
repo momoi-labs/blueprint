@@ -1,5 +1,22 @@
 # kiso-tokens
 
+## 0.4.0
+
+### Minor Changes
+
+- 580c85f: Add three accents: `plum`, `stone` (a warm gray in the paper's hue) and
+  `steel` (a blue-gray). Under the gray accents, plain links are underlined at
+  rest, because a gray link has about the color of muted text. The
+  `kiso-tokens` crate gains the three accents, and the tui-kiso theme picker
+  lists them.
+
+### Patch Changes
+
+- 7f1c5e2: Tune the existing accents. The tangerine ramp moves toward orange, so its
+  tints no longer match terracotta. Nocturne gets its own muted indigo ramp,
+  apart from violet. The dark `primary-hover` of violet, teal, cobalt and
+  nocturne now keeps its text at 4.5:1.
+
 ## 0.3.0
 
 ### Minor Changes
