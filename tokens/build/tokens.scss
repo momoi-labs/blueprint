@@ -140,6 +140,39 @@ $color-nocturne-800: #3f4380;
 $color-nocturne-900: #2a2d59;
 $color-nocturne-950: #1a1d35;
 $color-nocturne-base: #abb3eb; // The nocturne ink: the site's link colour, text-eligible in both themes.
+$color-plum-50: #fbf2f7;
+$color-plum-200: #fbe3f2;
+$color-plum-300: #f7cce7;
+$color-plum-400: #eea7d6;
+$color-plum-500: #df78bf;
+$color-plum-600: #bb4d9c;
+$color-plum-700: #9b3c80;
+$color-plum-800: #74285f;
+$color-plum-900: #521a42;
+$color-plum-950: #350d2a;
+$color-plum-base: #e18fc6; // Text and focus ink, text-eligible in both themes.
+$color-stone-50: #f7f5f1;
+$color-stone-200: #eeeae5;
+$color-stone-300: #dfdad4;
+$color-stone-400: #c6c0b9;
+$color-stone-500: #a7a098;
+$color-stone-600: #827c74;
+$color-stone-700: #6b655e;
+$color-stone-800: #4e4a43;
+$color-stone-900: #36322d;
+$color-stone-950: #221f1b;
+$color-stone-base: #c2bdb5; // Text and focus ink, text-eligible in both themes.
+$color-steel-50: #f1f6fa;
+$color-steel-200: #e4ecf4;
+$color-steel-300: #d1dce8;
+$color-steel-400: #b5c3d2;
+$color-steel-500: #94a3b4;
+$color-steel-600: #6f7f90;
+$color-steel-700: #586878;
+$color-steel-800: #3e4c5a;
+$color-steel-900: #293440;
+$color-steel-950: #182029;
+$color-steel-base: #adc0d4; // Text and focus ink, text-eligible in both themes.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -377,6 +410,57 @@ $accent-lime-primary-foreground: #1b1a1e;
 $accent-lime-accent-surface: #2b3418;
 $accent-lime-accent-surface-hover: #37441e;
 $accent-lime-selected: #2b3418;
+$accent-plum-accent-50: #fbf2f7;
+$accent-plum-accent-200: #fbe3f2;
+$accent-plum-accent-300: #f7cce7;
+$accent-plum-accent-400: #eea7d6;
+$accent-plum-accent-500: #df78bf;
+$accent-plum-accent-600: #bb4d9c;
+$accent-plum-accent-700: #9b3c80;
+$accent-plum-accent-800: #74285f;
+$accent-plum-accent-900: #521a42;
+$accent-plum-accent-950: #350d2a;
+$accent-plum-accent-base: #e18fc6;
+$accent-plum-primary: #8e3776; // The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible.
+$accent-plum-primary-hover: #9f4685;
+$accent-plum-primary-foreground: #fdf2f1;
+$accent-plum-accent-surface: #3b2634;
+$accent-plum-accent-surface-hover: #4c3043;
+$accent-plum-selected: #5d3b52;
+$accent-stone-accent-50: #f7f5f1;
+$accent-stone-accent-200: #eeeae5;
+$accent-stone-accent-300: #dfdad4;
+$accent-stone-accent-400: #c6c0b9;
+$accent-stone-accent-500: #a7a098;
+$accent-stone-accent-600: #827c74;
+$accent-stone-accent-700: #6b655e;
+$accent-stone-accent-800: #4e4a43;
+$accent-stone-accent-900: #36322d;
+$accent-stone-accent-950: #221f1b;
+$accent-stone-accent-base: #c2bdb5;
+$accent-stone-primary: #d6d0c9; // Ink fill in light; in dark a light stone fill with dark text.
+$accent-stone-primary-hover: #e9e4dd;
+$accent-stone-primary-foreground: #1b1a1e;
+$accent-stone-accent-surface: #3a342e;
+$accent-stone-accent-surface-hover: #443f37;
+$accent-stone-selected: #524c44;
+$accent-steel-accent-50: #f1f6fa;
+$accent-steel-accent-200: #e4ecf4;
+$accent-steel-accent-300: #d1dce8;
+$accent-steel-accent-400: #b5c3d2;
+$accent-steel-accent-500: #94a3b4;
+$accent-steel-accent-600: #6f7f90;
+$accent-steel-accent-700: #586878;
+$accent-steel-accent-800: #3e4c5a;
+$accent-steel-accent-900: #293440;
+$accent-steel-accent-950: #182029;
+$accent-steel-accent-base: #adc0d4;
+$accent-steel-primary: #46607c; // The primary fill. Light: deep steel. Dark: a deeper fill that is not text-eligible.
+$accent-steel-primary-hover: #536f8b;
+$accent-steel-primary-foreground: #f5f6f8;
+$accent-steel-accent-surface: #2a343e;
+$accent-steel-accent-surface-hover: #333e4b;
+$accent-steel-selected: #3e4c5a;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

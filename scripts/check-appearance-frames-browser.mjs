@@ -554,7 +554,7 @@ test('Panel translucency retains contrast across every background, paper tone, t
   const page = await open('canvas&backgroundStyle=momoi&panelFill=translucent&corners=square');
   try {
     let minimumText = Infinity, minimumFocus = Infinity;
-    for (const background of ['solid', 'dots', 'grid', 'crosses', 'construction', 'guides', 'fibers', 'momoi', 'momoi-repeat']) for (const tone of ['theme', 'accent']) for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime']) for (const strength of ['quiet', 'visible']) for (const fill of ['solid', 'translucent']) {
+    for (const background of ['solid', 'dots', 'grid', 'crosses', 'construction', 'guides', 'fibers', 'momoi', 'momoi-repeat']) for (const tone of ['theme', 'accent']) for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime', 'plum', 'stone', 'steel']) for (const strength of ['quiet', 'visible']) for (const fill of ['solid', 'translucent']) {
       const ratios = await page.evaluate(({ background, tone, theme, accent, strength, fill }) => {
         Object.assign(document.documentElement.dataset, { theme, accent, backgroundStyle: background, paperTone: tone, backgroundStrength: strength, panelFill: fill });
         const outer = document.querySelector('#outer'), card = document.querySelector('#sample');
@@ -644,7 +644,7 @@ test('Manga ink forms one continuous outline at wide and tall aspect ratios', as
 test('Accent paper and drawing guides retain placement, theme contrast and matching rails', async () => {
   const page = await open('canvas&paperTone=accent&backgroundStyle=guides&backgroundPlacement=inside&corners=square');
   try {
-    for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime']) {
+    for (const theme of ['light', 'dark']) for (const accent of ['violet', 'terracotta', 'teal', 'cobalt', 'nocturne', 'tangerine', 'red', 'gold', 'lime', 'plum', 'stone', 'steel']) {
       const colors = await page.evaluate(({ theme, accent }) => {
         Object.assign(document.documentElement.dataset, { theme, accent });
         const main = document.querySelector('#outer'), card = document.querySelector('#sample'), shell = document.querySelector('#canvas');

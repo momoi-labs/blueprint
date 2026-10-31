@@ -84,7 +84,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
   const outer = random() < .5 ? null : frame();
   return {
     ...current,
-    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime"]),
+    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel"]),
     chartLine: pick(["straight", "stepped", "curved"]),
     chartFill: pick(["none", "dots", "tint", "squares", "scanlines"]),
     chartLayout: pick(["standard", "compact", "split"]),
