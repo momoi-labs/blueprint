@@ -5,6 +5,7 @@ import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/galle
 import { LayoutExamples, layouts, phoneFrame } from "./layout-examples";
 import { Intro } from "./intro";
 import { TuiGallery, useTuiGallery } from "./tui-gallery";
+import { Accents } from "./accents";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, shareParam, type ShareResult } from "./appearance-share";
@@ -14,6 +15,7 @@ import "../../../kiso/blocks/react-prototype/src/gallery.css";
 import "./app.css";
 import "./appearance.css";
 import "./gallery-settings.css";
+import "./accents.css";
 
 // A share link applies and saves its look, then drops the code from the URL.
 // The hash keeps the route, so the code lives in the query string.
@@ -75,6 +77,7 @@ function App() {
         terminal={terminal}
         terminalPages={terminalPages}
         intro={intro}
+        accents={<Accents />}
         settingsEnabled
       />}
     </GallerySettings>

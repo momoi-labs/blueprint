@@ -2064,6 +2064,7 @@ export function ComponentGallery({
   terminal,
   terminalPages = [],
   intro,
+  accents,
   settingsEnabled = false,
   panel,
   settingsToggle,
@@ -2080,6 +2081,8 @@ export function ComponentGallery({
   terminal?: ReactNode;
   terminalPages?: readonly { id: string; label: string }[];
   intro?: ReactNode;
+  /** The accents page, at #accents. */
+  accents?: ReactNode;
   settingsEnabled?: boolean;
   panel?: ReactNode;
   settingsToggle?: ReactNode;
@@ -2111,9 +2114,10 @@ export function ComponentGallery({
   const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
   const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
+  const showingAccents = route === "accents" && accents !== undefined;
   const navigationCollapsed = showingTerminal ? terminalCollapsed : pagesCollapsed;
   const setNavigationCollapsed = showingTerminal ? setTerminalCollapsed : setPagesCollapsed;
-  const browsing = !showingExample && !showingIntro && !showingTerminal && selected === "all";
+  const browsing = !showingExample && !showingIntro && !showingTerminal && !showingAccents && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
@@ -2292,7 +2296,7 @@ export function ComponentGallery({
                 </NavigationItem>
               )}
               <NavigationItem>
-                <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal} onClick={showAll}>
+                <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
                   Components
                 </NavigationLink>
               </NavigationItem>
@@ -2303,8 +2307,13 @@ export function ComponentGallery({
               )}
               {terminal !== undefined && (
                 <NavigationItem>
-                  <NavigationLink href="#tui" active={showingTerminal}>
-                    TUI <Badge variant="info">New</Badge>
+                  <NavigationLink href="#tui" active={showingTerminal}>TUI</NavigationLink>
+                </NavigationItem>
+              )}
+              {accents !== undefined && (
+                <NavigationItem>
+                  <NavigationLink href="#accents" active={showingAccents}>
+                    Accents <Badge variant="info">New</Badge>
                   </NavigationLink>
                 </NavigationItem>
               )}
@@ -2344,9 +2353,9 @@ export function ComponentGallery({
           </div>
           </>}
         </Header>
-        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
-          {!browsing && !showingExample && !showingTerminal && (
+          {!browsing && !showingExample && !showingTerminal && !showingAccents && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -2377,7 +2386,7 @@ export function ComponentGallery({
           )}
           <PageHeader
             actions={
-              showingExample || showingTerminal ? undefined : browsing ? (
+              showingExample || showingTerminal || showingAccents ? undefined : browsing ? (
                 <p className="muted t-label" role="status">
                   {visible.length} {visible.length === 1 ? "component" : "components"}
                 </p>
@@ -2391,6 +2400,8 @@ export function ComponentGallery({
                 ? "Layout examples"
                 : showingTerminal
                 ? "TUI gallery"
+                : showingAccents
+                ? "Accents"
                 : browsing
                 ? group === "all" ? "Component gallery" : group
                 : current?.[1] || "Component not found"}
@@ -2400,17 +2411,20 @@ export function ComponentGallery({
                 ? "Complete interface examples, composed with Kiso components."
                 : showingTerminal
                 ? "Kiso in a terminal, drawn by tui-kiso with ratatui. The gallery follows your accent and theme."
+                : showingAccents
+                ? "Every accent in light and dark, on the shipped tokens. Contrast is read from the rendered colors."
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
-              {!browsing && !showingExample && !showingTerminal && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
+              {!browsing && !showingExample && !showingTerminal && !showingAccents && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
         {terminal !== undefined && <div hidden={!showingTerminal}>{terminal}</div>}
-        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal}>
+        {showingAccents && accents}
+        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal || showingAccents}>
           {visible.map(([id, name, category, description]) => (
             <CatalogPane
               id={id}
@@ -2461,7 +2475,7 @@ export function ComponentGallery({
             </CatalogPane>
           ))}
         </CatalogGrid>
-        {!showingExample && !showingIntro && !showingTerminal && visible.length === 0 && (
+        {!showingExample && !showingIntro && !showingTerminal && !showingAccents && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
@@ -2472,6 +2486,8 @@ export function ComponentGallery({
             ? "Visual examples only. Actions do not save or send data."
             : showingTerminal
             ? "Snapshots of the tui-kiso gallery. Run it in a terminal to try every key."
+            : showingAccents
+            ? "Contrast is WCAG 2 ratio, measured in this browser."
             : "Preview only. All actions use sample data."}
         </p>
         </div>
@@ -2483,7 +2499,7 @@ export function ComponentGallery({
             <span className="bottom-nav-icon" aria-hidden="true"><BookOpen className="icon" /></span>
             <span>Intro</span>
           </BottomNavLink>}
-          <BottomNavLink href="#components" active={!showingExample && !showingIntro && !showingTerminal} onClick={showAll}>
+          <BottomNavLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
             <span className="bottom-nav-icon" aria-hidden="true"><Boxes className="icon" /></span>
             <span>Components</span>
           </BottomNavLink>
@@ -2508,14 +2524,21 @@ export function ComponentGallery({
             >
               {destinations}
               {/* The bottom bar has no room for a fifth page. */}
-              {terminal !== undefined && !showingTerminal && (
+              {((terminal !== undefined && !showingTerminal) || (accents !== undefined && !showingAccents)) && (
                 <Navigation aria-label="More pages">
                   <NavigationList>
-                    <NavigationItem>
-                      <NavigationLink href="#tui">
-                        TUI gallery <Badge variant="info">New</Badge>
-                      </NavigationLink>
-                    </NavigationItem>
+                    {terminal !== undefined && !showingTerminal && (
+                      <NavigationItem>
+                        <NavigationLink href="#tui">TUI gallery</NavigationLink>
+                      </NavigationItem>
+                    )}
+                    {accents !== undefined && !showingAccents && (
+                      <NavigationItem>
+                        <NavigationLink href="#accents">
+                          Accents <Badge variant="info">New</Badge>
+                        </NavigationLink>
+                      </NavigationItem>
+                    )}
                   </NavigationList>
                 </Navigation>
               )}

@@ -1,0 +1,77 @@
+/* Accents page: every accent in light and dark, one below the other. Each
+   sample sets its own data-accent and data-theme, so it renders the shipped
+   tokens, and paints the momoi-repeat glyphs with the canvas variables. */
+.accents-page { display: grid; gap: var(--spacing-2xl); }
+.accents-section { display: grid; gap: var(--spacing-md); }
+.accents-section h2 { margin: 0; }
+.accents-section p { margin: 0; }
+.accents-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--spacing-md); }
+.accent-sample {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+.accent-sample::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--canvas-mask-color, transparent);
+  mask-image: var(--canvas-mask, none);
+  mask-size: var(--canvas-size);
+  mask-position: var(--canvas-position);
+  mask-repeat: var(--canvas-repeat);
+  opacity: var(--canvas-opacity, .14);
+}
+/* A hue accent nested in nocturne keeps nocturne's slate, by design. With the
+   gallery set to nocturne, every sample would take that slate, so the other
+   samples restate the :root values of the roles nocturne restates. */
+.accent-sample:not([data-accent="nocturne"]) {
+  --color-background: light-dark(var(--color-neutral-200), var(--color-dark-900));
+  --color-surface: light-dark(var(--color-neutral-100), var(--color-dark-800));
+  --color-elevated-surface: light-dark(var(--color-white), var(--color-dark-700));
+  --color-muted: light-dark(var(--color-neutral-200), var(--color-dark-700));
+  --color-sidebar: light-dark(var(--color-neutral-100), var(--color-dark-950));
+  --color-card: light-dark(var(--color-neutral-100), var(--color-dark-800));
+  --color-popover: light-dark(var(--color-white), var(--color-dark-700));
+  --color-foreground: light-dark(var(--color-neutral-900), var(--color-dark-100));
+  --color-muted-foreground: light-dark(var(--color-neutral-600), var(--color-dark-400));
+  --color-subtle-foreground: light-dark(var(--color-neutral-500), var(--color-dark-450));
+  --color-border: light-dark(var(--color-neutral-300), var(--color-dark-600));
+  --color-border-strong: light-dark(var(--color-neutral-500), var(--color-dark-450));
+  --color-secondary: light-dark(var(--color-neutral-300), var(--color-dark-700));
+  --color-secondary-hover: light-dark(var(--color-neutral-400), var(--color-dark-600));
+  --color-disabled: light-dark(var(--color-neutral-400), var(--color-dark-600));
+  --color-disabled-surface: light-dark(var(--color-neutral-200), var(--color-dark-800));
+  --color-skeleton: light-dark(var(--color-neutral-300), var(--color-dark-700));
+  --color-hatch: light-dark(var(--color-neutral-300), var(--color-dark-700));
+  --color-card-foreground: var(--color-foreground);
+  --color-popover-foreground: var(--color-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-input: var(--color-border);
+  --color-selected-foreground: var(--color-foreground);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-corner-mark: var(--color-border-strong);
+  --color-code-comment: var(--color-muted-foreground);
+}
+.accent-sample-theme { margin: 0; color: var(--color-muted-foreground); }
+.accent-sample-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); }
+.accent-sample-field { display: inline-flex; align-items: center; gap: var(--spacing-xs); }
+/* Static stand-ins for states a pointer or keyboard would show. */
+.btn-primary.accent-sample-hover { background: var(--color-primary-hover); }
+.accent-sample-focus { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+.accent-sample-badge { background: var(--color-accent-surface-hover); color: var(--color-accent); }
+.table tbody tr.accent-sample-row-hover { background: var(--color-accent-surface); }
+.accent-sample-scale { display: flex; overflow: hidden; border-radius: var(--radius-md); }
+.accent-sample-scale > span { flex: 1; height: var(--spacing-xl); display: flex; align-items: end; padding: 0 var(--spacing-2xs); }
+.accent-sample-scale > span > span { font-size: var(--type-size-metadata); color: var(--color-black); opacity: .55; }
+.accent-sample-scale > span:nth-child(n + 6) > span { color: var(--color-white); opacity: .7; }
