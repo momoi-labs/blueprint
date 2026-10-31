@@ -1,5 +1,25 @@
 # @momoi-labs/kiso
 
+## 1.2.0
+
+### Minor Changes
+
+- 580c85f: Add three accents: `plum`, `stone` (a warm gray in the paper's hue) and
+  `steel` (a blue-gray). Under the gray accents, plain links are underlined at
+  rest, because a gray link has about the color of muted text. The
+  `kiso-tokens` crate gains the three accents, and the tui-kiso theme picker
+  lists them.
+
+### Patch Changes
+
+- 7f1c5e2: Tune the existing accents. The tangerine ramp moves toward orange, so its
+  tints no longer match terracotta. Nocturne gets its own muted indigo ramp,
+  apart from violet. The dark `primary-hover` of violet, teal, cobalt and
+  nocturne now keeps its text at 4.5:1.
+- a505ff7: Fix accents set on a container: `link`, `focus`, `ring`, `accent` and the
+  other roles that read the accent now follow it, as they do on `<html>`.
+- 76ccc3b: Keep the Momoi background glyphs in the accent hue in light mode. The pale accent mixed with the warm paper and read as gray, most visibly with cobalt, teal and violet. Light mode now paints the glyphs with the deeper accent at about half the strength. Dark mode is unchanged.
+
 ## 1.1.0
 
 ### Minor Changes

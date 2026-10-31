@@ -1,5 +1,23 @@
 # @momoi-labs/kiso-react
 
+## 0.24.0
+
+### Minor Changes
+
+- 580c85f: Add three accents: `plum`, `stone` (a warm gray in the paper's hue) and
+  `steel` (a blue-gray). Under the gray accents, plain links are underlined at
+  rest, because a gray link has about the color of muted text. The
+  `kiso-tokens` crate gains the three accents, and the tui-kiso theme picker
+  lists them.
+
+### Patch Changes
+
+- Updated dependencies [7f1c5e2]
+- Updated dependencies [580c85f]
+- Updated dependencies [a505ff7]
+- Updated dependencies [76ccc3b]
+  - @momoi-labs/kiso@1.2.0
+
 ## 0.23.0
 
 ### Minor Changes

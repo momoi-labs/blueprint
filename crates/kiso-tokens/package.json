@@ -1,6 +1,6 @@
 {
   "name": "kiso-tokens",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Changesets versions the kiso-tokens crate through this file. The release workflow copies the version into Cargo.toml and publishes to crates.io."
 }
