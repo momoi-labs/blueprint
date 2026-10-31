@@ -19,7 +19,7 @@ own control, [ThemeSelector](theme-selector.md); the two compose.
 | `lime` | Neon lime fill and dark text, with separate ink. | `data-accent="lime"` |
 | `red` | Red ink and fill, close to the danger color. | `data-accent="red"` |
 | `tangerine` | Bright orange fill and dark text, with separate ink. | `data-accent="tangerine"` |
-| `nocturne` | The marketing site's palette: cool slate neutrals under the violet ink. | `data-accent="nocturne"` |
+| `nocturne` | The marketing site's palette: cool slate neutrals under a muted indigo ink. | `data-accent="nocturne"` |
 
 The attribute may also sit on a container, in which case only that subtree
 takes the accent. A nested `data-accent="violet"` resets to the default. See

@@ -163,6 +163,18 @@ export const colorLime900: string;
 export const colorLime950: string;
 /** Text and focus ink, independent of the bright primary fill. */
 export const colorLimeBase: string;
+export const colorNocturne50: string;
+export const colorNocturne200: string;
+export const colorNocturne300: string;
+export const colorNocturne400: string;
+export const colorNocturne500: string;
+export const colorNocturne600: string;
+export const colorNocturne700: string;
+export const colorNocturne800: string;
+export const colorNocturne900: string;
+export const colorNocturne950: string;
+/** The nocturne ink: the site's link colour, text-eligible in both themes. */
+export const colorNocturneBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -375,7 +387,6 @@ export const accentNocturneAccent700: string;
 export const accentNocturneAccent800: string;
 export const accentNocturneAccent900: string;
 export const accentNocturneAccent950: string;
-/** The nocturne ink: the site's link colour, text-eligible in both themes. */
 export const accentNocturneAccentBase: string;
 /** The site's primary fill. */
 export const accentNocturnePrimary: string;
