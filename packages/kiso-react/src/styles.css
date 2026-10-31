@@ -292,6 +292,12 @@
 }
 [data-slot="select-viewport"] { min-height: 0; }
 
+/* The combobox list matches the input width and fits the space Radix measures, up to 20rem. */
+.combobox-content {
+  width: var(--radix-popover-trigger-width);
+  max-height: min(20rem, var(--radix-popover-content-available-height));
+}
+
 /* Portalled surfaces: above the page, never wider than it. */
 .kiso-react-floating {
   z-index: 70;

@@ -27,6 +27,7 @@ behavioral reference where one exists.
 - [Label](label.md): Gives a form control its visible, programmatically associated name.
 - [Link](link.md): Navigates to a URL while preserving native link behavior.
 - [Select](select.md): Chooses one value from a predefined set of options.
+- [Combobox](combobox.md): Chooses one value from a long list by typing part of its name or description.
 - [DetailSelect](detail-select.md): Chooses one value from illustrated options with rich explanations.
 - [DetailOption](detail-option.md): Lays out an illustrated option in a list the product owns, such as an autocomplete.
 - [MediaPreview](media-preview.md): Shows an image thumbnail or plays a short sound inside an option.
