@@ -54,6 +54,9 @@
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-header { flex-wrap: wrap; gap: var(--spacing-sm); }
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools { flex: 1; justify-content: end; }
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools > [data-slot="search"] { width: min(100%, 240px); }
+  /* With both rails open, the page links and tools only fit on one row
+     without the version link. */
+  .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-version { display: none; }
 }
 @media (max-width: 699px) {
   .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) { display: flex; flex: none; }
