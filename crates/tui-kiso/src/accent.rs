@@ -8,7 +8,7 @@ pub struct Accent {
 
 /// Every accent, in the order the [`ThemePicker`](crate::ThemePicker)
 /// lists them.
-pub const ACCENTS: [Accent; 9] = [
+pub const ACCENTS: [Accent; 12] = [
     Accent { name: "violet", dark: kiso_tokens::VIOLET_DARK, light: kiso_tokens::VIOLET_LIGHT },
     Accent { name: "terracotta", dark: kiso_tokens::TERRACOTTA_DARK, light: kiso_tokens::TERRACOTTA_LIGHT },
     Accent { name: "teal", dark: kiso_tokens::TEAL_DARK, light: kiso_tokens::TEAL_LIGHT },
@@ -18,6 +18,9 @@ pub const ACCENTS: [Accent; 9] = [
     Accent { name: "red", dark: kiso_tokens::RED_DARK, light: kiso_tokens::RED_LIGHT },
     Accent { name: "gold", dark: kiso_tokens::GOLD_DARK, light: kiso_tokens::GOLD_LIGHT },
     Accent { name: "lime", dark: kiso_tokens::LIME_DARK, light: kiso_tokens::LIME_LIGHT },
+    Accent { name: "plum", dark: kiso_tokens::PLUM_DARK, light: kiso_tokens::PLUM_LIGHT },
+    Accent { name: "stone", dark: kiso_tokens::STONE_DARK, light: kiso_tokens::STONE_LIGHT },
+    Accent { name: "steel", dark: kiso_tokens::STEEL_DARK, light: kiso_tokens::STEEL_LIGHT },
 ];
 
 impl Accent {

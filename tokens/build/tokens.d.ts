@@ -175,6 +175,42 @@ export const colorNocturne900: string;
 export const colorNocturne950: string;
 /** The nocturne ink: the site's link colour, text-eligible in both themes. */
 export const colorNocturneBase: string;
+export const colorPlum50: string;
+export const colorPlum200: string;
+export const colorPlum300: string;
+export const colorPlum400: string;
+export const colorPlum500: string;
+export const colorPlum600: string;
+export const colorPlum700: string;
+export const colorPlum800: string;
+export const colorPlum900: string;
+export const colorPlum950: string;
+/** Text and focus ink, text-eligible in both themes. */
+export const colorPlumBase: string;
+export const colorStone50: string;
+export const colorStone200: string;
+export const colorStone300: string;
+export const colorStone400: string;
+export const colorStone500: string;
+export const colorStone600: string;
+export const colorStone700: string;
+export const colorStone800: string;
+export const colorStone900: string;
+export const colorStone950: string;
+/** Text and focus ink, text-eligible in both themes. */
+export const colorStoneBase: string;
+export const colorSteel50: string;
+export const colorSteel200: string;
+export const colorSteel300: string;
+export const colorSteel400: string;
+export const colorSteel500: string;
+export const colorSteel600: string;
+export const colorSteel700: string;
+export const colorSteel800: string;
+export const colorSteel900: string;
+export const colorSteel950: string;
+/** Text and focus ink, text-eligible in both themes. */
+export const colorSteelBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -485,6 +521,60 @@ export const accentLimePrimaryForeground: string;
 export const accentLimeAccentSurface: string;
 export const accentLimeAccentSurfaceHover: string;
 export const accentLimeSelected: string;
+export const accentPlumAccent50: string;
+export const accentPlumAccent200: string;
+export const accentPlumAccent300: string;
+export const accentPlumAccent400: string;
+export const accentPlumAccent500: string;
+export const accentPlumAccent600: string;
+export const accentPlumAccent700: string;
+export const accentPlumAccent800: string;
+export const accentPlumAccent900: string;
+export const accentPlumAccent950: string;
+export const accentPlumAccentBase: string;
+/** The primary fill. Light: the ink. Dark: a deeper fill that is not text-eligible. */
+export const accentPlumPrimary: string;
+export const accentPlumPrimaryHover: string;
+export const accentPlumPrimaryForeground: string;
+export const accentPlumAccentSurface: string;
+export const accentPlumAccentSurfaceHover: string;
+export const accentPlumSelected: string;
+export const accentStoneAccent50: string;
+export const accentStoneAccent200: string;
+export const accentStoneAccent300: string;
+export const accentStoneAccent400: string;
+export const accentStoneAccent500: string;
+export const accentStoneAccent600: string;
+export const accentStoneAccent700: string;
+export const accentStoneAccent800: string;
+export const accentStoneAccent900: string;
+export const accentStoneAccent950: string;
+export const accentStoneAccentBase: string;
+/** Ink fill in light; in dark a light stone fill with dark text. */
+export const accentStonePrimary: string;
+export const accentStonePrimaryHover: string;
+export const accentStonePrimaryForeground: string;
+export const accentStoneAccentSurface: string;
+export const accentStoneAccentSurfaceHover: string;
+export const accentStoneSelected: string;
+export const accentSteelAccent50: string;
+export const accentSteelAccent200: string;
+export const accentSteelAccent300: string;
+export const accentSteelAccent400: string;
+export const accentSteelAccent500: string;
+export const accentSteelAccent600: string;
+export const accentSteelAccent700: string;
+export const accentSteelAccent800: string;
+export const accentSteelAccent900: string;
+export const accentSteelAccent950: string;
+export const accentSteelAccentBase: string;
+/** The primary fill. Light: deep steel. Dark: a deeper fill that is not text-eligible. */
+export const accentSteelPrimary: string;
+export const accentSteelPrimaryHover: string;
+export const accentSteelPrimaryForeground: string;
+export const accentSteelAccentSurface: string;
+export const accentSteelAccentSurfaceHover: string;
+export const accentSteelSelected: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */

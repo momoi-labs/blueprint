@@ -2,7 +2,7 @@
 (() => {
   const options = {
     theme: ["system", "light", "dark"],
-    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime"],
+    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel"],
     chartLine: ["straight", "stepped", "curved"],
     chartFill: ["none", "dots", "tint", "squares", "scanlines"],
     chartLayout: ["standard", "compact", "split"],

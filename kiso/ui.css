@@ -154,6 +154,9 @@ a, .link {
   text-decoration-thickness: 1px;
 }
 a:hover, .link:hover { text-decoration: underline; }
+/* A gray link has about the colour of muted text, so under the gray accents
+   plain links carry an underline at rest. */
+:where([data-accent="stone"], [data-accent="steel"]) :is(a:not([class]), .link) { text-decoration: underline; }
 
 /* --- layout helpers ------------------------------------------------------ */
 /* One explicit column of minmax(0, 1fr), so a wide table, chart, or log line
