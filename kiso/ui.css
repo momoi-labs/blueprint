@@ -2664,7 +2664,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border-radius: var(--appearance-corners, var(--radius-lg));
 }
 .diagram-group-title {
-  position: absolute; z-index: 1; inset-block-start: 0; inset-inline-start: var(--group-padding); translate: 0 -50%;
+  position: absolute; z-index: 2; inset-block-start: 0; inset-inline-start: var(--group-padding); translate: 0 -50%;
   display: inline-flex; align-items: baseline; gap: var(--spacing-xs); padding-inline: var(--spacing-xs);
   background: var(--color-card); color: var(--color-muted-foreground); font-size: var(--type-size-label); white-space: nowrap;
 }
@@ -2869,7 +2869,9 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .diagram-node-group:has(> .diagram-node[data-accent]) { --diagram-ink: var(--color-primary); }
 .diagram-node-group:has(> .diagram-node[data-status="stopped"]) { --diagram-ink: var(--color-border-strong); }
 .diagram-node-group:has(> .diagram-node[data-status="failed"]) { --diagram-ink: var(--color-danger); }
-.diagram-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--color-border-strong); }
+/* Edges share the layer of a node's frame (its ::before) and come after the
+   nodes, so a head stays above an offset or cast shadow. */
+.diagram-edges { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--color-border-strong); }
 .diagram-edges > path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
 .diagram-edges > path[data-line="dashed"] { stroke-dasharray: 6 4; }
 .diagram-edges > path[data-line="dotted"] { stroke-dasharray: 0 4; }
