@@ -5,7 +5,7 @@ import {
   DiagramNodeGroup, DiagramSection, StatusBadge,
   type DiagramArrow, type DiagramBackground, type DiagramBorderStyle, type DiagramCrossings, type DiagramEdgeShape, type DiagramLabels, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
 } from "@momoi-labs/kiso-react";
-import { DemoChoice, DemoSettings, DemoSettingsHint } from "./demo-settings";
+import { DemoChoice, DemoSettings, DemoSettingsHint, useDemoOptions } from "./demo-settings";
 
 const backgrounds: [DiagramBackground, string][] = [
   ["construction", "Construction lines"], ["solid", "Solid"], ["dots", "Dot grid"], ["grid", "Fine grid"],
@@ -23,45 +23,37 @@ const marks: [DiagramCornerMarks, string][] = [
 ];
 
 export function DiagramDemo() {
-  const [background, setBackground] = useState<DiagramBackground>();
-  const [strength, setStrength] = useState<"quiet" | "visible">();
-  const [borderStyle, setBorderStyle] = useState<DiagramBorderStyle>();
-  const [cornerStyle, setCornerStyle] = useState<DiagramCornerStyle>();
-  const [cornerSize, setCornerSize] = useState<DiagramCornerSize>();
-  const [cornerMarks, setCornerMarks] = useState<DiagramCornerMarks>();
+  // Keys are Diagram props, so a copied look reads as the props to set.
+  const [options, setOptions] = useDemoOptions<DiagramOptions>("diagram", { crossings: "none", labels: "auto", edges: "orthogonal", direction: "right" });
+  const { background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, crossings, labels, edges: shape, arrow, direction: layout } = options;
   const [example, setExample] = useState("basic");
-  const [layout, setLayout] = useState<Layout>("right");
-  const [crossings, setCrossings] = useState<DiagramCrossings>("none");
-  const [labels, setLabels] = useState<DiagramLabels>("auto");
-  const [shape, setShape] = useState<DiagramEdgeShape>("orthogonal");
-  const [arrow, setArrow] = useState<DiagramArrow>();
   const frame = { borderStyle, cornerStyle, cornerSize, cornerMarks };
   const edges = { crossings, labels, edges: shape, arrow };
   return (
     <div className="stack">
       <DemoSettings title="Diagram">
         <DemoChoice label="Node border" kind="border" inherit value={borderStyle} options={borders} with={{ corner: cornerStyle }}
-          onChange={(value) => setBorderStyle(value as DiagramBorderStyle | undefined)} />
+          onChange={(value) => setOptions({ borderStyle: value as DiagramBorderStyle | undefined })} />
         <DemoChoice label="Node corners" kind="corner" inherit value={cornerStyle} options={corners} with={{ border: borderStyle }}
-          onChange={(value) => setCornerStyle(value as DiagramCornerStyle | undefined)} />
+          onChange={(value) => setOptions({ cornerStyle: value as DiagramCornerStyle | undefined })} />
         <DemoChoice label="Node corner size" kind="cornerSize" inherit value={cornerSize} options={sizes}
-          onChange={(value) => setCornerSize(value as DiagramCornerSize | undefined)} />
+          onChange={(value) => setOptions({ cornerSize: value as DiagramCornerSize | undefined })} />
         <DemoChoice label="Node corner marks" kind="marks" inherit value={cornerMarks} options={marks} with={{ border: borderStyle, corner: cornerStyle }}
-          onChange={(value) => setCornerMarks(value as DiagramCornerMarks | undefined)} />
+          onChange={(value) => setOptions({ cornerMarks: value as DiagramCornerMarks | undefined })} />
         <DemoChoice label="Background" kind="background" inherit value={background} options={backgrounds} with={{ strength }}
-          onChange={(value) => setBackground(value as DiagramBackground | undefined)} />
+          onChange={(value) => setOptions({ background: value as DiagramBackground | undefined })} />
         <DemoChoice label="Strength" kind="strength" inherit value={strength} options={[["quiet", "Quiet"], ["visible", "Visible"]]} with={{ background }}
-          onChange={(value) => setStrength(value as "quiet" | "visible" | undefined)} />
+          onChange={(value) => setOptions({ strength: value as "quiet" | "visible" | undefined })} />
         <DemoChoice label="Crossings" kind="custom" value={crossings} options={crossingOptions} previews={crossingPreviews}
-          onChange={(value) => setCrossings((value ?? "none") as DiagramCrossings)} />
+          onChange={(value) => setOptions({ crossings: (value ?? "none") as DiagramCrossings })} />
         <DemoChoice label="Edge labels" kind="custom" value={labels} options={labelOptions} previews={labelPreviews}
-          onChange={(value) => setLabels((value ?? "auto") as DiagramLabels)} />
+          onChange={(value) => setOptions({ labels: (value ?? "auto") as DiagramLabels })} />
         <DemoChoice label="Edge shape" kind="custom" value={shape} options={shapeOptions} previews={shapePreviews}
-          onChange={(value) => setShape((value ?? "orthogonal") as DiagramEdgeShape)} />
+          onChange={(value) => setOptions({ edges: (value ?? "orthogonal") as DiagramEdgeShape })} />
         <DemoChoice label="Arrowhead" kind="custom" inherit value={arrow} options={arrowOptions} previews={arrowPreviews}
-          onChange={(value) => setArrow(value as DiagramArrow | undefined)} />
+          onChange={(value) => setOptions({ arrow: value as DiagramArrow | undefined })} />
         <DemoChoice label="Layout" kind="custom" value={layout} options={layoutOptions} previews={layoutPreviews}
-          onChange={(value) => setLayout((value ?? "right") as Layout)} />
+          onChange={(value) => setOptions({ direction: (value ?? "right") as Layout })} />
       </DemoSettings>
       <DemoSettingsHint title="Diagram" />
       {/* One store, Varejo, in three examples that build on each other: its
@@ -248,6 +240,11 @@ const arrowPreviews: Record<DiagramArrow, ReactNode> = {
 // to bottom, and bands on shared columns in a grid. The cluster's sites and
 // clusters are groups, so they do not change with the layout.
 type Layout = "right" | "down" | "grid";
+type DiagramOptions = {
+  background?: DiagramBackground; strength?: "quiet" | "visible";
+  borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks;
+  crossings: DiagramCrossings; labels: DiagramLabels; edges: DiagramEdgeShape; arrow?: DiagramArrow; direction: Layout;
+};
 const flow = (layout: Layout, widths: number[]) => ({ direction: layout, columns: layout === "grid" ? Math.max(...widths) : undefined });
 const stages = (layout: Layout, list: ReactNode[][]) => list.map((nodes, index) => layout === "right"
   ? <DiagramColumn key={index}>{nodes}</DiagramColumn>
@@ -255,6 +252,13 @@ const stages = (layout: Layout, list: ReactNode[][]) => list.map((nodes, index) 
     ? <DiagramRow key={index}>{nodes}</DiagramRow>
     : <DiagramRow key={index}>{nodes.map((node, cell) => <DiagramColumn key={cell}>{node}</DiagramColumn>)}</DiagramRow>);
 const layoutOptions: [Layout, string][] = [["right", "Left to right"], ["down", "Top to bottom"], ["grid", "Grid"]];
+// The values a shared look may set, so the gallery can check a pasted one.
+const values = (options: readonly (readonly [string, string])[]) => options.map(([value]) => value);
+export const diagramShareOptions: Record<keyof DiagramOptions, readonly string[]> = {
+  borderStyle: values(borders), cornerStyle: values(corners), cornerSize: values(sizes), cornerMarks: values(marks),
+  background: values(backgrounds), strength: ["quiet", "visible"], crossings: values(crossingOptions), labels: values(labelOptions),
+  edges: values(shapeOptions), arrow: values(arrowOptions), direction: values(layoutOptions),
+};
 const layoutPreviews: Record<Layout, ReactNode> = {
   right: sketch(<><rect x="3" y="12" width="10" height="8" rx="1" /><rect x="35" y="4" width="10" height="8" rx="1" /><rect x="35" y="20" width="10" height="8" rx="1" /><path d="M 13 16 H 24 M 24 8 V 24 M 24 8 H 35 M 24 24 H 35" opacity=".6" /></>),
   down: sketch(<><rect x="18" y="3" width="12" height="7" rx="1" /><rect x="6" y="22" width="12" height="7" rx="1" /><rect x="30" y="22" width="12" height="7" rx="1" /><path d="M 24 10 V 16 M 12 16 H 36 M 12 16 V 22 M 36 16 V 22" opacity=".6" /></>),

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useId, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@momoi-labs/kiso-react";
 
@@ -29,7 +29,28 @@ export const DemoSettingsContext = createContext<{
   /** Bumped by `show`, so an already open panel still scrolls to the section. */
   revision: number;
   choice?: (props: DemoChoiceProps) => ReactNode;
+  /** Demo options the gallery keeps, so its Share actions carry them. */
+  options?: DemoOptions;
+  setOptions?: (scope: string, patch: Record<string, string | undefined>) => void;
 } | null>(null);
+
+/** Each demo's chosen options by scope, unset ones left out. */
+export type DemoOptions = Record<string, Record<string, string>>;
+
+// A demo's options. In the gallery they live with the appearance settings,
+// so Share copies them and a pasted or linked look sets them; elsewhere they
+// are the demo's own state. Unset values fall back to `initial`.
+export function useDemoOptions<T extends Record<string, string | undefined>>(scope: string, initial: T) {
+  const settings = useContext(DemoSettingsContext);
+  const [local, setLocal] = useState<Partial<T>>({});
+  const shared = settings?.setOptions;
+  const values = { ...initial, ...(shared ? settings.options?.[scope] : local) } as T;
+  const set = useCallback((patch: Partial<T>) => {
+    if (shared) shared(scope, patch);
+    else setLocal(current => ({ ...current, ...patch }));
+  }, [shared, scope]);
+  return [values, set] as const;
+}
 
 const inherit = "inherit";
 

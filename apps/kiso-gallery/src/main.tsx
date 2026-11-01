@@ -9,7 +9,8 @@ import { Accents } from "./accents";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, shareParam, type ShareResult } from "./appearance-share";
-import { announceShare } from "./appearance-share-ui";
+import { announceShare, demoSchema } from "./appearance-share-ui";
+import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import "@momoi-labs/kiso-react/styles.css";
 import "../../../kiso/blocks/react-prototype/src/gallery.css";
 import "./app.css";
@@ -20,12 +21,14 @@ import "./accents.css";
 // A share link applies and saves its look, then drops the code from the URL.
 // The hash keeps the route, so the code lives in the query string.
 let incomingLook: ShareResult | null = null;
+let incomingDemos: DemoOptions = {};
 if (!phoneFrame) {
   const url = new URL(window.location.href);
   const code = url.searchParams.get(shareParam);
   if (code !== null) {
-    incomingLook = readShare(code, window.kisoAppearance);
+    incomingLook = readShare(code, window.kisoAppearance, demoSchema);
     if (incomingLook.settings) window.kisoAppearance.save(incomingLook.settings);
+    incomingDemos = incomingLook.demos;
     url.searchParams.delete(shareParam);
     window.history.replaceState(null, "", url);
   }
@@ -42,6 +45,7 @@ function App() {
     () => window.location.hash.slice(1) || "intro"
   );
   const [settings, setSettings] = useState(window.kisoAppearance.read);
+  const [demos, setDemos] = useState(incomingDemos);
   const update = useCallback((patch: Partial<AppearanceSettings>) => setSettings(current => ({ ...current, ...patch })), []);
   const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
@@ -62,7 +66,8 @@ function App() {
   }, [settings]);
 
   return (
-    <GallerySettings route={route} settings={settings} onChange={update} onReset={() => setSettings({ ...window.kisoAppearance.defaults })}>
+    <GallerySettings route={route} settings={settings} onChange={update} demos={demos} onDemosChange={setDemos}
+      onReset={() => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); }}>
       {(panel, toggle) => <ComponentGallery
         panel={panel}
         settingsToggle={toggle}

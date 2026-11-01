@@ -22,7 +22,14 @@ function HighlightedCode({ source, language }: { source: string; language: "html
   return <pre><code data-language={language}>{parts}</code></pre>;
 }
 
-export function AppearanceUsage({ settings }: { settings: AppearanceSettings }) {
+// Diagram options are props, not page attributes. Keys match the props.
+function diagramCode(options: Record<string, string>) {
+  const props = Object.entries(options).map(([key, value]) => ` ${key}="${value}"`).join("");
+  const columns = options.direction === "grid" ? " columns={2}" : "";
+  return `<Diagram label="..."${props}${columns}>\n  ...\n</Diagram>`;
+}
+
+export function AppearanceUsage({ settings, diagram }: { settings: AppearanceSettings; diagram?: Record<string, string> }) {
   const code = appearanceCode(settings);
   const [copyStatus, setCopyStatus] = useState("");
   async function copy(label: string, value: string) {
@@ -58,6 +65,14 @@ export function AppearanceUsage({ settings }: { settings: AppearanceSettings }) 
       <HighlightedCode language="javascript" source={code.javascript} />
       <p className="muted t-label">This updates the current page, including chart styles. In your app, save and restore preferences if they should survive reloads. The gallery uses <code>appearance-init.js</code> to restore its saved settings before first paint.</p>
     </section>
+    {diagram && Object.keys(diagram).length > 0 && <section aria-labelledby="appearance-diagram-title">
+      <div className="appearance-code-heading">
+        <h3 id="appearance-diagram-title" className="t-label">Set the Diagram options</h3>
+        <Button size="sm" onClick={() => copy("Diagram", diagramCode(diagram))}>Copy Diagram</Button>
+      </div>
+      <p className="muted t-label">Diagram options are props on each <code>Diagram</code>. The <code>diagram</code> key in copied settings holds the same props, so <code>{"<Diagram {...copied.diagram}>"}</code> also works. Options left on Pane defaults are omitted and follow the page.{diagram.direction === "grid" && " A grid also needs columns, the number of cells in a row."}</p>
+      <HighlightedCode language="html" source={diagramCode(diagram)} />
+    </section>}
     <p role="status" className="muted t-label">{copyStatus}</p>
   </section>;
 }
