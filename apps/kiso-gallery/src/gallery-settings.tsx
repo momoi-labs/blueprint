@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Settings } from "lucide-react";
 import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
-import { DemoSettingsContext, type DemoChoiceProps } from "../../../kiso/blocks/react-prototype/src/demo-settings";
+import { DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
 import { AppearanceControls, VisualSelector, type AppearanceSectionId } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
@@ -20,11 +20,13 @@ const appearanceTabs: { value: string; label: string; sections?: AppearanceSecti
   { value: "code", label: "Code" },
 ];
 
-export function GallerySettings({ children, route, settings, onChange, onReset }: {
+export function GallerySettings({ children, route, settings, onChange, demos, onDemosChange, onReset }: {
   children: (panel: ReactNode, toggle: ReactNode) => ReactNode;
   route: string;
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  demos: DemoOptions;
+  onDemosChange: Dispatch<SetStateAction<DemoOptions>>;
   onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -94,7 +96,14 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
       onChange={next => onChange(next === "inherit" ? undefined : next)} preview={preview} disabledOptions={disabledOptions}
       layout={kind === "strength" ? "wide" : "compact"} />;
   }, [settings]);
-  const context = useMemo(() => ({ target, register, open, show, revision, choice }), [target, register, open, show, revision, choice]);
+  // Demo options live here, so Share carries them. Unset drops the key.
+  const setOptions = useCallback((scope: string, patch: Record<string, string | undefined>) => onDemosChange(current => {
+    const next = { ...current[scope], ...patch };
+    for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key];
+    return { ...current, [scope]: next as Record<string, string> };
+  }), [onDemosChange]);
+  const context = useMemo(() => ({ target, register, open, show, revision, choice, options: demos, setOptions }),
+    [target, register, open, show, revision, choice, demos, setOptions]);
 
   useEffect(() => {
     const media = matchMedia("(min-width: 1200px)");
@@ -125,7 +134,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
     <div className="gallery-settings-actions">
       <div className="gallery-settings-buttons">
         <Button size="sm" onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
-        <AppearanceShare settings={settings} onApply={onChange} />
+        <AppearanceShare settings={settings} demos={demos} onApply={(next, nextDemos) => { onChange(next); onDemosChange(nextDemos); }} />
       </div>
       <p role="status" className="muted t-label">{message}</p>
     </div>
@@ -137,7 +146,7 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
         </TabsList>
         {appearanceTabs.map(item => <TabsContent key={item.value} value={item.value} forceMount hidden={tab !== item.value}>
           {item.sections ? <AppearanceControls settings={settings} onChange={onChange} sections={item.sections} collapsed={["scope", "layout"]} />
-            : <AppearanceUsage settings={settings} />}
+            : <AppearanceUsage settings={settings} diagram={demos.diagram} />}
         </TabsContent>)}
       </Tabs>
     </div>

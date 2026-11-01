@@ -28,7 +28,7 @@ test("copied settings carry every value, defaults included", () => {
 
 test("a look round-trips through a link, a code and copied JSON, phone overrides included", () => {
   const look = { ...defaults, theme: "dark", accent: "gold", borderStyle: "manga", phoneBackgroundStyle: "grid", phoneCornerStyle: "rounded", phonePanelFill: "translucent" };
-  const link = shareLink(look, kit, "https://example.test/gallery/?x=1#components/button");
+  const link = shareLink(look, kit, {}, "https://example.test/gallery/?x=1#components/button");
   assert.equal(new URL(link).hash, "#components/button");
   for (const input of [link, shareCode(look, kit), shareText(look, kit), settingsText(look)]) {
     const result = readShare(input, kit);
@@ -70,6 +70,25 @@ test("a malformed code never throws and applies nothing", () => {
     assert.equal(result.settings, null, input);
     assert(result.error, input);
   }
+});
+
+const schema = { diagram: { edges: ["orthogonal", "curve"], direction: ["right", "down", "grid"] } };
+
+test("demo options travel in their own key, through a link, a code and copied JSON", () => {
+  const diagram = { edges: "curve", direction: "down" };
+  assert.deepEqual(JSON.parse(shareText(defaults, kit, { diagram, table: {} })), { v: 1, s: {}, diagram });
+  assert.deepEqual(JSON.parse(settingsText(defaults, { diagram })).diagram, diagram);
+  for (const input of [shareLink(defaults, kit, { diagram }, "https://example.test/"), shareCode(defaults, kit, { diagram }), settingsText(defaults, { diagram })]) {
+    const result = readShare(input, kit, schema);
+    assert.deepEqual(plain(result.demos), { diagram });
+    assert.deepEqual(result.skipped, []);
+  }
+});
+
+test("a bad demo option is skipped and the rest applies", () => {
+  const result = readShare(JSON.stringify({ v: 1, s: {}, diagram: { edges: "zigzag", direction: "grid", glow: "on" }, sparkle: {} }), kit, schema);
+  assert.deepEqual(plain(result.demos), { diagram: { direction: "grid" } });
+  assert.deepEqual(result.skipped, ["diagram.edges (invalid value)", "diagram.glow (unknown setting)", "sparkle (unknown setting)"]);
 });
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
@@ -156,3 +175,26 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
     } finally { await page.context().close(); }
   });
 }
+
+test("Share copies the Diagram options and Paste sets them", async () => {
+  const page = await open("#components/diagram");
+  try {
+    const options = page.locator("#gallery-settings .gallery-component-settings");
+    const pick = (label, name) => options.getByRole("group", { name: label, exact: true }).getByRole("radio", { name, exact: true }).check({ force: true });
+    await pick("Node corners", "Rounded");
+    await pick("Edge shape", "Curve");
+    await pick("Layout", "Top to bottom");
+    const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
+    await menu.click();
+    await page.getByRole("menuitem", { name: "Copy settings" }).click();
+    await page.getByText("Settings copied", { exact: true }).waitFor();
+    assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).diagram, { cornerStyle: "rounded", edges: "curve", direction: "down" });
+    await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{},"diagram":{"edges":"straight","arrow":"dot"}}'));
+    await menu.click();
+    await page.getByRole("menuitem", { name: "Paste settings" }).click();
+    await page.getByText("Appearance applied", { exact: true }).waitFor();
+    assert(await options.getByRole("group", { name: "Edge shape", exact: true }).getByRole("radio", { name: "Straight", exact: true }).isChecked());
+    assert(await options.getByRole("group", { name: "Arrowhead", exact: true }).getByRole("radio", { name: "Dot", exact: true }).isChecked());
+    assert.equal(await page.locator(".diagram").first().getAttribute("data-direction"), "right", "A pasted look replaces the earlier options");
+  } finally { await page.context().close(); }
+});

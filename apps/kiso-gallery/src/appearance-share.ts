@@ -1,3 +1,4 @@
+import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 
 const chartPresets: Record<string, { line: string; fill: string }> = {
@@ -7,15 +8,20 @@ const chartPresets: Record<string, { line: string; fill: string }> = {
   rounded: { line: "curved", fill: "none" },
 };
 
-// A shared look is `{ v: 1, s: { ...settings that differ from the defaults } }`.
+// A shared look is `{ v: 1, s: { ...settings that differ from the defaults } }`,
+// plus one key per demo with options set, such as `diagram: { edges: "curve" }`.
+// A demo's keys are its component's props.
 // A link carries it as base64url JSON in the `appearance` query parameter.
 // The hash already holds the gallery route, so the code cannot live there.
 export const shareVersion = 1;
 export const shareParam = "appearance";
 
 type Source = Pick<Window["kisoAppearance"], "defaults" | "options">;
+/** The values each demo option accepts, by scope. */
+export type DemoSchema = Record<string, Record<string, readonly string[]>>;
 export interface ShareResult {
   settings: AppearanceSettings | null;
+  demos: DemoOptions;
   skipped: string[];
   error?: string;
 }
@@ -31,31 +37,33 @@ function fromBase64Url(code: string) {
   return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, char => char.charCodeAt(0)));
 }
 
-export function shareText(settings: AppearanceSettings, { defaults }: Source) {
+const setDemos = (demos: DemoOptions) => Object.fromEntries(Object.entries(demos).filter(([, values]) => Object.keys(values).length));
+
+export function shareText(settings: AppearanceSettings, { defaults }: Source, demos: DemoOptions = {}) {
   const changed = Object.fromEntries(Object.entries(settings).filter(([key, value]) => value !== defaults[key as keyof AppearanceSettings]));
-  return JSON.stringify({ v: shareVersion, s: changed });
+  return JSON.stringify({ v: shareVersion, s: changed, ...setDemos(demos) });
 }
 
 // Copied settings leave the gallery, where its defaults are unknown and Kiso's
 // own defaults differ (cornerSize is medium there), so they carry every value.
-export function settingsText(settings: AppearanceSettings) {
-  return JSON.stringify({ v: shareVersion, s: settings });
+export function settingsText(settings: AppearanceSettings, demos: DemoOptions = {}) {
+  return JSON.stringify({ v: shareVersion, s: settings, ...setDemos(demos) });
 }
 
-export function shareCode(settings: AppearanceSettings, source: Source) {
-  return toBase64Url(shareText(settings, source));
+export function shareCode(settings: AppearanceSettings, source: Source, demos: DemoOptions = {}) {
+  return toBase64Url(shareText(settings, source, demos));
 }
 
-export function shareLink(settings: AppearanceSettings, source: Source, base = window.location.href) {
+export function shareLink(settings: AppearanceSettings, source: Source, demos: DemoOptions = {}, base = window.location.href) {
   const url = new URL(base);
   url.search = "";
-  url.searchParams.set(shareParam, shareCode(settings, source));
+  url.searchParams.set(shareParam, shareCode(settings, source, demos));
   return url.toString();
 }
 
 // Accepts a share link, a bare code or the copied JSON.
-export function readShare(input: string, { defaults, options }: Source): ShareResult {
-  const fail = (error: string): ShareResult => ({ settings: null, skipped: [], error });
+export function readShare(input: string, { defaults, options }: Source, schema: DemoSchema = {}): ShareResult {
+  const fail = (error: string): ShareResult => ({ settings: null, demos: {}, skipped: [], error });
   let text = input.trim();
   if (!text) return fail("Nothing to apply.");
   try {
@@ -69,7 +77,7 @@ export function readShare(input: string, { defaults, options }: Source): ShareRe
   let data: unknown;
   try { data = JSON.parse(text); } catch { return fail("The code is not valid."); }
   if (!data || typeof data !== "object" || Array.isArray(data)) return fail("The code is not valid.");
-  const { v, s } = data as { v?: unknown; s?: unknown };
+  const { v, s, ...rest } = data as { v?: unknown; s?: unknown; [scope: string]: unknown };
   if (!s || typeof s !== "object" || Array.isArray(s)) return fail("The code has no settings.");
   const skipped: string[] = [];
   if (v !== shareVersion) skipped.push("version (made by another release)");
@@ -88,5 +96,20 @@ export function readShare(input: string, { defaults, options }: Source): ShareRe
     else if (typeof value !== "string" || !values.includes(value)) skipped.push(`${key} (invalid value)`);
     else settings[key] = value;
   }
-  return { settings: settings as unknown as AppearanceSettings, skipped };
+  const demos: DemoOptions = {};
+  for (const [scope, values] of Object.entries(rest)) {
+    const accepted = Object.hasOwn(schema, scope) ? schema[scope] : undefined;
+    if (!accepted || !values || typeof values !== "object" || Array.isArray(values)) {
+      skipped.push(`${scope} (unknown setting)`);
+      continue;
+    }
+    demos[scope] = {};
+    for (const [key, value] of Object.entries(values)) {
+      const allowed = Object.hasOwn(accepted, key) ? accepted[key] : undefined;
+      if (!allowed) skipped.push(`${scope}.${key} (unknown setting)`);
+      else if (typeof value !== "string" || !allowed.includes(value)) skipped.push(`${scope}.${key} (invalid value)`);
+      else demos[scope][key] = value;
+    }
+  }
+  return { settings: settings as unknown as AppearanceSettings, demos, skipped };
 }
