@@ -74,7 +74,7 @@ test('Copy copies the exact value and confirms with a Toast', async () => {
  const page = await open('', { permissions: ['clipboard-read', 'clipboard-write'] });
  try {
   await page.getByRole('button', { name: 'Copy command' }).click();
-  await page.getByText('Command copied').waitFor();
+  await page.getByText('Command copied', { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), command);
   await page.getByRole('button', { name: 'Copied command' }).waitFor();
  } finally { await page.close(); }
