@@ -245,3 +245,24 @@ for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["tabl
     } finally { await page.context().close(); }
   });
 }
+
+test("catalog cards keep their inline options with Share and Reset", async () => {
+  const page = await open("#components");
+  try {
+    const density = page.locator(".catalog-pane", { has: page.getByRole("table", { name: "Memory comparison" }) }).getByLabel("Density");
+    await density.selectOption("compact");
+    if (!await page.locator("#gallery-settings").isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+    const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
+    await menu.click();
+    await page.getByRole("menuitem", { name: "Copy settings" }).click();
+    await page.getByText("Settings copied", { exact: true }).waitFor();
+    assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).table, { density: "compact" });
+    await page.locator("#gallery-settings").getByRole("button", { name: "Reset appearance" }).click();
+    assert.equal(await density.inputValue(), "comfortable", "Reset clears a catalog card's option");
+    await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{},"table":{"density":"spacious"}}'));
+    await menu.click();
+    await page.getByRole("menuitem", { name: "Paste settings" }).click();
+    await page.getByText("Appearance applied", { exact: true }).waitFor();
+    assert.equal(await density.inputValue(), "spacious", "A pasted look sets a catalog card's option");
+  } finally { await page.context().close(); }
+});
