@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Settings } from "lucide-react";
 import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
-import { DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
+import { DemoOptionsContext, DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
 import { AppearanceControls, VisualSelector, type AppearanceSectionId } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
@@ -102,8 +102,8 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
     for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key];
     return { ...current, [scope]: next as Record<string, string> };
   }), [onDemosChange]);
-  const context = useMemo(() => ({ target, register, open, show, revision, choice, options: demos, setOptions }),
-    [target, register, open, show, revision, choice, demos, setOptions]);
+  const context = useMemo(() => ({ target, register, open, show, revision, choice }), [target, register, open, show, revision, choice]);
+  const optionsContext = useMemo(() => ({ options: demos, setOptions }), [demos, setOptions]);
 
   useEffect(() => {
     const media = matchMedia("(min-width: 1200px)");
@@ -172,7 +172,7 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
     {controls}
   </AppShellPanel> : null;
 
-  return <DemoSettingsContext.Provider value={context}>
+  return <DemoOptionsContext.Provider value={optionsContext}><DemoSettingsContext.Provider value={context}>
     <Drawer open={!desktop && open} onOpenChange={setOpen}>
       {children(panel, desktop ? toggle : <DrawerTrigger asChild>{toggle}</DrawerTrigger>)}
       {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}>
@@ -183,5 +183,5 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
         {controls}
       </DrawerContent>}
     </Drawer>
-  </DemoSettingsContext.Provider>;
+  </DemoSettingsContext.Provider></DemoOptionsContext.Provider>;
 }
