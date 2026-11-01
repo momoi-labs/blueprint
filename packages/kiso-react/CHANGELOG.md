@@ -1,5 +1,20 @@
 # @momoi-labs/kiso-react
 
+## 0.25.1
+
+### Patch Changes
+
+- 89ee5be: Diagram edge heads now draw above a node's offset or cast shadow. Before,
+  a head arriving from below or the right hid under it. Group titles still
+  draw above edges.
+- a7d668c: Radio tiles keep their corner marks apart. With sheet clearance, the marks
+  of neighbouring tiles meet at the centre of the tile gap, as panels do in a
+  page grid. Without it, the tile gap grows just enough to keep neighbours'
+  marks from overlapping.
+- Updated dependencies [89ee5be]
+- Updated dependencies [a7d668c]
+  - @momoi-labs/kiso@1.3.1
+
 ## 0.25.0
 
 ### Minor Changes
