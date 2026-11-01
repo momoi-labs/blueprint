@@ -1936,13 +1936,17 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .radio-indicator > span { width: var(--spacing-sm); height: var(--spacing-sm); border-radius: var(--radius-full); background: var(--color-primary-foreground); }
 .radio-item[data-state="checked"] .radio-indicator { background: var(--color-primary); border-color: var(--color-link); }
 /* Tiles set the grid gap their sheet marks read, so neighbours' marks meet
-   at the centre of this gap and not the page grid's wider one. Without sheet
-   clearance the gap grows to hold both neighbours' marks apart. */
-.radio-group[data-variant="tiles"] {
-  --presentation-grid-gap: var(--spacing-md);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  gap: max(var(--presentation-grid-gap), calc((1 - var(--appearance-sheet, 0)) * var(--corner-mark, 0) * 2 * (var(--corner-mark-tick, 0px) + var(--corner-mark-gap, 0px) + var(--appearance-effect-clearance, 0px) + 1px)));
+   at the centre of this gap and not the page grid's wider one. */
+.radio-group[data-variant="tiles"] { --presentation-grid-gap: var(--spacing-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--presentation-grid-gap); }
+/* Tiles carry panel marks only with every frame on. Without sheet clearance,
+   the gap then grows to hold both neighbours' marks apart, by the reach the
+   tile marks take (see the panel marks' `--mark-reach`). */
+:where([data-frame-scope="all"]) .radio-group[data-variant="tiles"] {
+  --appearance-cast-k: calc(var(--appearance-cast, 0) * var(--appearance-rounded, 0) * clamp(0, var(--appearance-scale, 1) * 100, 1) * (1 - var(--appearance-pixel, 0)));
+  --tile-marks: calc(var(--corner-mark, 0) * (1 - var(--appearance-mark-curve, 0) * max(var(--appearance-pixel, 0), var(--appearance-expressive, 0))) * (1 - var(--appearance-mark-excludes-brush, 0) * var(--appearance-brush, 0)));
+  gap: max(var(--presentation-grid-gap), calc((1 - var(--appearance-sheet, 0)) * var(--tile-marks) * 2 * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-k) * var(--appearance-cast-inside, 0) * var(--spacing-xs) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick, 0px) + var(--corner-mark-gap, 0px)))) + 1px)));
 }
+:where([data-mark-scope="outer"]) .radio-group[data-variant="tiles"] { gap: var(--presentation-grid-gap); }
 :where(.radio-group[data-variant="tiles"]) > .radio-item { padding: var(--spacing-lg); align-items: flex-start; --choice-border: var(--color-border-strong); --choice-fill: var(--color-card); }
 :where(.radio-group[data-variant="tiles"]) > .radio-item[data-state="checked"] { --choice-border: var(--color-link); --choice-fill: var(--color-accent-surface); }
 .radio-group[data-variant="segmented"] { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); padding: var(--spacing-xs); background: var(--color-muted); border-radius: var(--radius-lg); }
