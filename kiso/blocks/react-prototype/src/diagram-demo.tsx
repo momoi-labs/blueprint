@@ -3,7 +3,7 @@ import { Cloud, CornerDownRight, Database, HardDrive, FileCode, Forward, GitBran
 import {
   Badge, Button, Diagram, DiagramGroup, Tabs, TabsContent, TabsList, TabsTrigger, DiagramColumn, DiagramEdge, DiagramEdgeKey, DiagramRow, DiagramFact, DiagramFilter, DiagramFold, DiagramLine, DiagramNode,
   DiagramNodeGroup, DiagramSection, StatusBadge,
-  type DiagramBackground, type DiagramBorderStyle, type DiagramCrossings, type DiagramLabels, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
+  type DiagramArrow, type DiagramBackground, type DiagramBorderStyle, type DiagramCrossings, type DiagramEdgeShape, type DiagramLabels, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
 } from "@momoi-labs/kiso-react";
 import { DemoChoice, DemoSettings, DemoSettingsHint } from "./demo-settings";
 
@@ -33,8 +33,10 @@ export function DiagramDemo() {
   const [layout, setLayout] = useState<Layout>("right");
   const [crossings, setCrossings] = useState<DiagramCrossings>("none");
   const [labels, setLabels] = useState<DiagramLabels>("auto");
+  const [shape, setShape] = useState<DiagramEdgeShape>("orthogonal");
+  const [arrow, setArrow] = useState<DiagramArrow>();
   const frame = { borderStyle, cornerStyle, cornerSize, cornerMarks };
-  const edges = { crossings, labels };
+  const edges = { crossings, labels, edges: shape, arrow };
   return (
     <div className="stack">
       <DemoSettings title="Diagram">
@@ -54,6 +56,10 @@ export function DiagramDemo() {
           onChange={(value) => setCrossings((value ?? "none") as DiagramCrossings)} />
         <DemoChoice label="Edge labels" kind="custom" value={labels} options={labelOptions} previews={labelPreviews}
           onChange={(value) => setLabels((value ?? "auto") as DiagramLabels)} />
+        <DemoChoice label="Edge shape" kind="custom" value={shape} options={shapeOptions} previews={shapePreviews}
+          onChange={(value) => setShape((value ?? "orthogonal") as DiagramEdgeShape)} />
+        <DemoChoice label="Arrowhead" kind="custom" inherit value={arrow} options={arrowOptions} previews={arrowPreviews}
+          onChange={(value) => setArrow(value as DiagramArrow | undefined)} />
         <DemoChoice label="Layout" kind="custom" value={layout} options={layoutOptions} previews={layoutPreviews}
           onChange={(value) => setLayout((value ?? "right") as Layout)} />
       </DemoSettings>
@@ -199,7 +205,7 @@ type ExampleProps = {
   background?: DiagramBackground;
   strength?: "quiet" | "visible";
   frame: { borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks };
-  edges: { crossings: DiagramCrossings; labels: DiagramLabels };
+  edges: { crossings: DiagramCrossings; labels: DiagramLabels; edges: DiagramEdgeShape; arrow?: DiagramArrow };
 };
 
 // Small drawings of each edge option, for the gallery's Appearance panel.
@@ -217,6 +223,25 @@ const labelPreviews: Record<DiagramLabels, ReactNode> = {
   auto: sketch(<><path d="M 14 3 V 9 M 14 23 V 29" /><path d="M 14 11 V 21" strokeWidth="3" opacity=".6" /><path d="M 28 16 H 44" /><path d="M 30 10 H 42" strokeWidth="3" opacity=".6" /></>),
   horizontal: sketch(<><path d="M 14 3 V 12 M 14 20 V 29" /><path d="M 7 16 H 21" strokeWidth="3" opacity=".6" /><path d="M 28 16 H 44" /><path d="M 30 10 H 42" strokeWidth="3" opacity=".6" /></>),
   vertical: sketch(<><path d="M 14 3 V 9 M 14 23 V 29" /><path d="M 14 11 V 21" strokeWidth="3" opacity=".6" /><path d="M 34 3 V 9 M 34 23 V 29" /><path d="M 34 11 V 21" strokeWidth="3" opacity=".6" /></>),
+};
+
+const shapeOptions: [DiagramEdgeShape, string][] = [["orthogonal", "Orthogonal"], ["curve", "Curve"], ["straight", "Straight"], ["sketch", "Sketch"]];
+const shapePreviews: Record<DiagramEdgeShape, ReactNode> = {
+  orthogonal: sketch(<path d="M 4 6 H 18 Q 24 6 24 12 V 20 Q 24 26 30 26 H 44" />),
+  curve: sketch(<path d="M 4 6 C 28 6 20 26 44 26" />),
+  straight: sketch(<path d="M 4 6 L 44 26" />),
+  sketch: sketch(<path d="M 4 6.5 C 9 5.4 14 6.8 18.5 6 Q 24 6.2 23.6 12 C 24.6 15 23.4 18 24.3 20.5 Q 24 26 30 26.3 C 35 25.4 39 26.8 44 26" />),
+};
+// Unset follows the shape: a triangle, or the sketched head on a sketch.
+const arrowOptions: [DiagramArrow, string][] = [["triangle", "Triangle"], ["chevron", "Chevron"], ["stealth", "Stealth"], ["dot", "Dot"], ["sketch", "Sketched"], ["none", "None"]];
+const head = (children: ReactNode) => sketch(<><path d="M 4 16 H 40" />{children}</>);
+const arrowPreviews: Record<DiagramArrow, ReactNode> = {
+  triangle: head(<path d="M 36 11 L 45 16 L 36 21 z" fill="currentColor" stroke="none" />),
+  chevron: head(<path d="M 37 11 L 45 16 L 37 21" strokeLinejoin="round" />),
+  stealth: head(<path d="M 35 11 L 45 16 L 35 21 L 38 16 z" fill="currentColor" stroke="none" />),
+  dot: head(<circle cx="41" cy="16" r="3.5" fill="currentColor" stroke="none" />),
+  sketch: head(<path d="M 36 11.5 Q 40 13 45 16.4 M 37 21 Q 40.5 18 45.4 15.6" />),
+  none: sketch(<path d="M 4 16 H 44" />),
 };
 
 // Every example in each layout. Stages are columns left to right, rows top
