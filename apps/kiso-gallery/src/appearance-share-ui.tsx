@@ -1,11 +1,20 @@
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, useToast, type ToastNotify } from "@momoi-labs/kiso-react";
+import { alertShareOptions } from "../../../kiso/blocks/react-prototype/src/alert-demo";
 import { diagramShareOptions } from "../../../kiso/blocks/react-prototype/src/diagram-demo";
+import { applicationShellShareOptions } from "../../../kiso/blocks/react-prototype/src/gallery";
+import { inlineFieldsShareOptions } from "../../../kiso/blocks/react-prototype/src/inline-fields-demo";
+import { paneGridShareOptions } from "../../../kiso/blocks/react-prototype/src/pane-grid-demo";
+import { scopeSwitcherShareOptions } from "../../../kiso/blocks/react-prototype/src/scope-switcher-demo";
+import { tableShareOptions } from "../../../kiso/blocks/react-prototype/src/table-demo";
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, settingsText, shareLink, type DemoSchema, type ShareResult } from "./appearance-share";
 
 // The demos whose options a shared look carries.
-export const demoSchema: DemoSchema = { diagram: diagramShareOptions };
+export const demoSchema: DemoSchema = {
+  alert: alertShareOptions, applicationShell: applicationShellShareOptions, diagram: diagramShareOptions, inlineFields: inlineFieldsShareOptions,
+  paneGrid: paneGridShareOptions, scopeSwitcher: scopeSwitcherShareOptions, table: tableShareOptions,
+};
 
 export function announceShare(result: ShareResult, notify: ToastNotify) {
   if (!result.settings) {

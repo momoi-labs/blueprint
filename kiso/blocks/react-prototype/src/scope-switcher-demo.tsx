@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DemoSettings } from "./demo-settings";
+import { DemoSettings, useDemoOptions } from "./demo-settings";
 import { Header, ScopeDestination, ScopeSegment, ScopeSwitcher, type ScopeOption } from "@momoi-labs/kiso-react";
 
 const orgs: ScopeOption[] = [{ value: "acme", label: "Acme" }, { value: "umbrella", label: "Umbrella Corporation" }];
@@ -17,6 +17,7 @@ const servers: ScopeOption[] = [
   }),
 ];
 type State = "ready" | "loading" | "error" | "empty";
+export const scopeSwitcherShareOptions = { state: ["ready", "loading", "error", "empty"] satisfies State[] };
 
 // The demo owns the scope the way a product's router would: a project switch
 // resets the server to "All servers", and the page itself never changes.
@@ -24,7 +25,8 @@ export function ScopeSwitcherDemo() {
   const [org, setOrg] = useState("acme");
   const [project, setProject] = useState("checkout");
   const [server, setServer] = useState("db-prod-01");
-  const [state, setState] = useState<State>("ready");
+  const [{ state }, setOptions] = useDemoOptions<{ state: State }>("scopeSwitcher", { state: "ready" });
+  const setState = (next: State) => setOptions({ state: next });
   const shown = project === "all" ? servers : servers.filter((option) => option.group === projects.find((p) => p.value === project)?.label);
   const status = state === "empty" ? "ready" : state;
   return (

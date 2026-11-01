@@ -1,23 +1,24 @@
 import { useId, useState } from "react";
 import { Button, Table, TableFrame, TableBody, TableCell, TableHead, TableHeader, TableRow, type TableProps } from "@momoi-labs/kiso-react";
 
-import { DemoSettings } from "./demo-settings";
+import { DemoSettings, useDemoOptions } from "./demo-settings";
+
+type TableOptions = { density: NonNullable<TableProps["density"]>; frame: "default" | "none"; header: NonNullable<TableProps["header"]> };
+export const tableShareOptions: Record<keyof TableOptions, readonly string[]> = { density: ["compact", "comfortable", "spacious"], frame: ["default", "none"], header: ["tinted", "plain"] };
 
 export function TableDemo() {
   const id = useId();
-  const [density, setDensity] = useState<NonNullable<TableProps["density"]>>("comfortable");
-  const [frame, setFrame] = useState<"default" | "none">("default");
-  const [header, setHeader] = useState<NonNullable<TableProps["header"]>>("tinted");
+  const [{ density, frame, header }, setOptions] = useDemoOptions<TableOptions>("table", { density: "comfortable", frame: "default", header: "tinted" });
   const [expanded, setExpanded] = useState(false);
   return <div className="stack">
     <DemoSettings title="Table">
-      <label className="field">Density<select className="select" value={density} onChange={event => setDensity(event.target.value as typeof density)}>
+      <label className="field">Density<select className="select" value={density} onChange={event => setOptions({ density: event.target.value as typeof density })}>
         <option value="compact">Compact</option><option value="comfortable">Comfortable</option><option value="spacious">Spacious</option>
       </select></label>
-      <label className="field">Frame<select className="select" value={frame} onChange={event => setFrame(event.target.value as typeof frame)}>
+      <label className="field">Frame<select className="select" value={frame} onChange={event => setOptions({ frame: event.target.value as typeof frame })}>
         <option value="default">Default</option><option value="none">None</option>
       </select></label>
-      <label className="field">Header<select className="select" value={header} onChange={event => setHeader(event.target.value as typeof header)}>
+      <label className="field">Header<select className="select" value={header} onChange={event => setOptions({ header: event.target.value as typeof header })}>
         <option value="tinted">Tinted</option><option value="plain">Plain</option>
       </select></label>
     </DemoSettings>
