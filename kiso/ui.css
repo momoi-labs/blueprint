@@ -2575,7 +2575,20 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 /* ===========================================================================
    Diagram: columns of Cards joined by elbow edges on its own canvas
    =========================================================================== */
-.diagram { padding: 0; }
+/* A grid with one flexible track, so the card never collapses to its
+   content's minimum inside a narrow grid, and the footer sits under the
+   drawing. */
+.diagram { padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+/* The footer holds the product's key: one row on a wide card, one item per
+   line on a narrow one. */
+.diagram-footer {
+  container: kiso-diagram-footer / inline-size;
+  padding: var(--spacing-sm) var(--spacing-lg); border-block-start: 1px solid var(--color-border);
+}
+.diagram-footer-items { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-xs) var(--spacing-lg); }
+@container kiso-diagram-footer (max-width: 36rem) {
+  .diagram-footer-items { flex-direction: column; align-items: flex-start; }
+}
 /* Scrolling lives on the inner element, so the card keeps its corner marks
    outside the frame. The radius is inherited so the clip follows the theme. */
 .diagram-scroll { overflow-x: auto; border-radius: inherit; }
@@ -2612,6 +2625,128 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .diagram-lanes { display: grid; grid-auto-flow: column; grid-auto-columns: auto; justify-content: center; gap: var(--spacing-4xl); }
 .diagram-lanes[data-edge-labels] { gap: calc(var(--spacing-4xl) + var(--spacing-xl)); }
 .diagram-column { display: grid; align-content: center; gap: var(--spacing-lg); }
+/* Top to bottom: rows stack, as wide as the widest one and no wider than
+   the panel, so `justify` places a node under the one it hangs from and
+   node text still wraps before the drawing scrolls. */
+.diagram-lanes[data-direction="down"] { grid-auto-flow: row; grid-template-columns: fit-content(100%); }
+/* Nodes side by side sit --spacing-4xl apart, so an edge between them is
+   at least 64px long and reads as an arrow. */
+.diagram-row { display: flex; align-items: flex-start; justify-content: center; gap: var(--spacing-4xl); min-inline-size: 0; }
+.diagram-row[data-justify="start"] { justify-content: flex-start; }
+.diagram-row[data-justify="end"] { justify-content: flex-end; }
+.diagram-row[data-justify="between"] { justify-content: space-between; }
+/* A group frames one or more nodes, or other groups, and carries its name
+   on the top border. The name knocks the line out with the card colour, the
+   way an edge label does, and sits above the edges, so an edge into a node
+   passes under it. Its nodes stack in a column and sit side by side
+   in a row. Its line is dashed by default, solid or dotted, in the strong
+   border colour or a tone. */
+.diagram-group {
+  --group-padding: var(--spacing-md);
+  --group-line: dashed;
+  --group-ink: var(--color-border-strong);
+  position: relative; display: grid; gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--group-padding) var(--group-padding);
+  border: 1px var(--group-line) var(--group-ink); border-radius: var(--appearance-corners, var(--radius-md));
+}
+.diagram-group[data-line="solid"] { --group-line: solid; }
+.diagram-group[data-line="dotted"] { --group-line: dotted; }
+.diagram-group[data-tone="primary"] { --group-ink: var(--color-primary); }
+.diagram-group[data-tone="info"] { --group-ink: var(--color-info); }
+.diagram-group[data-tone="success"] { --group-ink: var(--color-success); }
+.diagram-group[data-tone="warning"] { --group-ink: var(--color-warning); }
+.diagram-group[data-tone="danger"] { --group-ink: var(--color-danger); }
+/* A group that holds groups has more room inside, since it holds frames,
+   not cards. */
+.diagram-group:has(.diagram-group) {
+  --group-padding: var(--spacing-lg);
+  padding-block-start: var(--spacing-xl);
+  border-radius: var(--appearance-corners, var(--radius-lg));
+}
+.diagram-group-title {
+  position: absolute; z-index: 1; inset-block-start: 0; inset-inline-start: var(--group-padding); translate: 0 -50%;
+  display: inline-flex; align-items: baseline; gap: var(--spacing-xs); padding-inline: var(--spacing-xs);
+  background: var(--color-card); color: var(--color-muted-foreground); font-size: var(--type-size-label); white-space: nowrap;
+}
+.diagram-group-title strong { color: var(--color-foreground); font-weight: var(--type-weight-semibold); }
+.diagram-group-name { display: inline-flex; align-items: baseline; gap: var(--spacing-xs); }
+/* A collapsible group's title is its toggle: the name, the count of the
+   nodes it hides while folded, and a chevron. */
+.diagram-group-toggle {
+  display: inline-flex; align-items: center; gap: var(--spacing-xs); padding: 0;
+  border: 0; background: none; color: inherit; font: inherit; cursor: pointer;
+}
+.diagram-group-toggle:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; border-radius: var(--radius-xs); }
+.diagram-group-toggle > .icon { color: var(--color-muted-foreground); }
+.diagram-group-toggle:hover strong { text-decoration: underline; }
+.diagram-group-body { display: grid; gap: var(--spacing-lg); }
+.diagram-row .diagram-group-body { display: flex; align-items: flex-start; gap: var(--spacing-4xl); }
+/* A group can hold stages of its own: columns side by side, left to right,
+   or rows one under another, top to bottom. They keep the gap of the
+   stages around them, so its edges are as long as any other. */
+.diagram-lanes:not([data-direction="grid"]) .diagram-group-body:has(> .diagram-column) { grid-auto-flow: column; align-items: center; gap: var(--spacing-4xl); }
+.diagram-lanes[data-edge-labels]:not([data-direction="grid"]) .diagram-group-body:has(> .diagram-column) { gap: calc(var(--spacing-4xl) + var(--spacing-xl)); }
+.diagram-group-body:has(> .diagram-row) { gap: var(--spacing-4xl); }
+/* Left to right, nodes a group stacks sit --spacing-4xl apart, as nodes
+   side by side do, so an edge between them reads as an arrow. */
+.diagram-lanes[data-direction="right"] .diagram-column .diagram-group-body { gap: var(--spacing-4xl); }
+/* The footer is a compact band under the nodes: it reaches the frame's
+   bottom edge, so its content sits centred between the rule and the border.
+   Its text starts where the title's text does, whatever room the sides
+   keep for edges. */
+.diagram-group-foot {
+  --group-text: calc(var(--group-padding) + var(--spacing-xs));
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm);
+  margin: 0 calc(-1 * var(--group-padding)) calc(-1 * var(--group-padding));
+  padding: var(--spacing-xs) var(--group-padding) var(--spacing-xs) var(--group-text);
+  border-block-start: 1px var(--group-line) var(--group-ink);
+  font-size: var(--type-size-label); line-height: 1;
+}
+/* A side where an edge comes in keeps --spacing-xl between the border and
+   the node, so the line runs straight after it crosses the border. The
+   Diagram marks those sides; the others keep their padding. */
+.diagram-group[data-entry~="left"] { padding-left: var(--spacing-xl); }
+.diagram-group[data-entry~="right"] { padding-right: var(--spacing-xl); }
+.diagram-group[data-entry~="left"] > .diagram-group-foot { margin-left: calc(-1 * var(--spacing-xl)); }
+.diagram-group[data-entry~="right"] > .diagram-group-foot { margin-right: calc(-1 * var(--spacing-xl)); padding-right: var(--spacing-xl); }
+/* Folded, the body becomes one line of its nodes, icon and title side by
+   side. Groups inside open into that line and drop their frame, title and
+   footer; each node drops its frame and everything but its icon and title.
+   Edges to those nodes reach the folded frame. */
+.diagram .diagram-lanes .diagram-group[data-open="false"] > .diagram-group-body {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-xs) var(--spacing-lg);
+}
+.diagram .diagram-group[data-open="false"] > .diagram-group-body :is(.diagram-group, .diagram-group-body, .diagram-column, .diagram-row, .diagram-node-group) { display: contents; }
+.diagram .diagram-group[data-open="false"] > .diagram-group-body :is(.diagram-group-title, .diagram-group-foot) { display: none; }
+.diagram .diagram-group[data-open="false"] .diagram-node.diagram-node {
+  display: inline-flex; align-items: center; gap: var(--spacing-sm); padding: 0;
+  border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+.diagram .diagram-group[data-open="false"] .diagram-node.diagram-node::before,
+.diagram .diagram-group[data-open="false"] .diagram-node.diagram-node::after,
+.diagram .diagram-group[data-open="false"] .diagram-node-group.diagram-node-group::before,
+.diagram .diagram-group[data-open="false"] .diagram-node-group.diagram-node-group::after { content: none; }
+.diagram .diagram-group[data-open="false"] .diagram-node > :not(.diagram-node-kind, .diagram-node-title),
+.diagram .diagram-group[data-open="false"] .diagram-node-kind > .t-caps { display: none; }
+.diagram-group[data-open="false"] { min-inline-size: 12rem; }
+.diagram-lanes[data-direction="right"] .diagram-group[data-open="false"] { align-content: center; }
+/* Grid: bands stack, each a group or a plain row, and share the
+   columns through subgrid, so a node in one band lines up under a node in
+   the band above. A DiagramColumn is one cell, its nodes top to bottom with
+   room for a lane and a label between them. A group in a cell holds its
+   nodes side by side. */
+.diagram-lanes[data-direction="grid"] {
+  grid-auto-flow: row; grid-template-columns: repeat(var(--diagram-columns, 2), auto);
+  column-gap: calc(var(--spacing-3xl) + var(--spacing-md)); row-gap: var(--spacing-3xl);
+}
+.diagram-lanes[data-direction="grid"] > :is(.diagram-group, .diagram-row),
+.diagram-lanes[data-direction="grid"] > .diagram-group > .diagram-group-body {
+  grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; column-gap: normal; align-items: start;
+}
+.diagram-lanes[data-direction="grid"] > .diagram-group > .diagram-group-foot { grid-column: 1 / -1; }
+.diagram-lanes[data-direction="grid"] .diagram-column { align-content: start; justify-items: center; gap: var(--spacing-4xl); }
+.diagram-lanes[data-direction="grid"] .diagram-column > .diagram-group { justify-self: stretch; }
+.diagram-lanes[data-direction="grid"] .diagram-column .diagram-group-body { display: flex; align-items: flex-start; gap: var(--spacing-4xl); }
 .diagram-node { --diagram-tone: var(--color-border-strong); --diagram-padding: var(--presentation-panel-padding); display: grid; align-content: start; gap: var(--spacing-xs); padding: var(--diagram-padding); }
 .diagram-node[data-tone="primary"] { --diagram-tone: var(--color-primary); }
 .diagram-node[data-tone="info"] { --diagram-tone: var(--color-info); }
@@ -2652,6 +2787,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    It breaks between words first, so names stay whole. */
 .diagram-node-text { white-space: pre-line; max-inline-size: 48ch; overflow-wrap: break-word; color: var(--color-muted-foreground); }
 .diagram-node-status { justify-self: start; margin-block-start: var(--spacing-xs); }
+/* A badge passed as a part keeps its own width, like the status badge. */
+.diagram-node > .badge { justify-self: start; }
 /* Facts: the name muted on the left, the value in mono on the right. A value
    that does not fit wraps onto its own line, still right-aligned. */
 .diagram-fact { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--spacing-lg); max-inline-size: 26rem; }
@@ -2712,6 +2849,10 @@ button.diagram-line:hover > .diagram-line-name { text-decoration: underline; }
 button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 1px; }
 @media (pointer: coarse) {
   .diagram-filter > button, button.diagram-line { min-height: var(--size-touch-min); }
+  /* A group's title keeps its height, so its knockout does not cover the
+     title of the group around it; the touch target grows past it. */
+  .diagram-group-toggle { position: relative; }
+  .diagram-group-toggle::after { content: ""; position: absolute; inset-inline: 0; inset-block-start: 50%; block-size: var(--size-touch-min); translate: 0 -50%; }
 }
 /* A node group is one card holding several nodes, split by a rule. The
    group carries the frame, so every border, corner and mark style draws it
@@ -2735,8 +2876,13 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 /* The arrowhead is a filled triangle in the edge's tone. A marker paints
    with its own colour, so the tone sits on the marker as well as the path. */
 .diagram-arrow path { fill: currentColor; stroke: none; }
-.diagram-edges :is(path, .diagram-arrow)[data-tone="success"] { color: var(--color-success); }
-.diagram-edges :is(path, .diagram-arrow)[data-tone="danger"] { color: var(--color-danger); }
+.diagram-edges :is(path, .diagram-arrow, .diagram-junction)[data-tone="success"] { color: var(--color-success); }
+.diagram-edges :is(path, .diagram-arrow, .diagram-junction)[data-tone="danger"] { color: var(--color-danger); }
+/* The dot where a shared trunk splits, in the edge's colour. */
+.diagram-junction { fill: currentColor; stroke: none; }
+/* A plate in the card colour breaks a line: a crossed frame under a gap, or
+   the edge behind a turned label. */
+.diagram-edge-plate { fill: var(--color-card); stroke: none; }
 /* The label knocks the line out behind it with a stroke in the card colour. */
 .diagram-edge-label {
   fill: var(--color-muted-foreground);
@@ -2747,6 +2893,30 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
   stroke-width: 4;
   paint-order: stroke;
 }
+/* Beside a vertical run, the label starts at the line instead. */
+.diagram-edge-label[data-anchor="start"] { text-anchor: start; }
+/* Turned to read along a vertical run, or flat on it, centred on the line. */
+.diagram-edge-label:is([data-orient="vertical"], [data-orient="inline"]) { dominant-baseline: central; }
+/* A series edge names a kind of link: the chart colour of its slot, set by
+   the component, and a dash of its own, so colour is never the only sign.
+   Five dashes; later slots reuse one with a new colour. The period is the
+   dash's length, so the flow loops without a jump. */
+:is(.diagram-edges > path, .diagram-edge-key path)[data-series] { stroke-width: 2; }
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="1"] { stroke-dasharray: 5 5; --diagram-dash-period: 10; }
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="2"] { stroke-dasharray: 0 5; --diagram-dash-period: 5; }
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="3"] { stroke-dasharray: 10 5 0 5; --diagram-dash-period: 20; }
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="4"] { stroke-dasharray: 16 6; --diagram-dash-period: 22; }
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="5"] { stroke-dasharray: 10 5 0 5 0 5; --diagram-dash-period: 25; }
+/* Flow moves the dash toward the target, at the same speed for every dash. */
+.diagram-edges > path[data-flow] { animation: diagram-flow calc(var(--diagram-dash-period, 10) * 80ms) linear infinite; }
+@keyframes diagram-flow { to { stroke-dashoffset: calc(-1px * var(--diagram-dash-period, 10)); } }
+@media (prefers-reduced-motion: reduce) {
+  .diagram-edges > path[data-flow] { animation: none; }
+}
+/* A key entry: a still sample of the edge, then what it means. */
+.diagram-edge-key { display: inline-flex; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); }
+.diagram-edge-key > svg { inline-size: 1.75rem; block-size: 0.375rem; flex: none; overflow: visible; }
+.diagram-edge-key path { fill: none; stroke: currentColor; stroke-linecap: round; }
 
 /* ===========================================================================
    Hatch — "this region is not data"

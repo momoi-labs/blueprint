@@ -65,8 +65,10 @@ export function GallerySettings({ children, route, settings, onChange, onReset }
   }, []);
   // Demo choices draw with the same previews as the sections above. "Pane
   // defaults" previews the current global choice, so inherit reads as a value.
-  const choice = useCallback(({ label, kind, value, options, onChange, inherit, with: other }: DemoChoiceProps) => {
+  const choice = useCallback(({ label, kind, value, options, onChange, inherit, with: other, previews }: DemoChoiceProps) => {
     const preview = (key: string) => {
+      // A demo's own setting brings its own previews.
+      if (kind === "custom") return previews?.[key] ?? null;
       const pick = key === "inherit" ? undefined : key;
       if (kind === "background" || kind === "strength") {
         const background = (kind === "background" ? pick : other?.background) as AppearanceSettings["backgroundStyle"] | undefined;
