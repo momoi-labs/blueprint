@@ -1935,7 +1935,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .radio-indicator { display: grid; place-items: center; flex: none; width: var(--size-icon-md); height: var(--size-icon-md); border: 1px solid var(--color-border-strong); border-radius: var(--radius-full); background: var(--color-card); }
 .radio-indicator > span { width: var(--spacing-sm); height: var(--spacing-sm); border-radius: var(--radius-full); background: var(--color-primary-foreground); }
 .radio-item[data-state="checked"] .radio-indicator { background: var(--color-primary); border-color: var(--color-link); }
-.radio-group[data-variant="tiles"] { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--spacing-md); }
+/* Tiles set the grid gap their sheet marks read, so neighbours' marks meet
+   at the centre of this gap and not the page grid's wider one. Without sheet
+   clearance the gap grows to hold both neighbours' marks apart. */
+.radio-group[data-variant="tiles"] {
+  --presentation-grid-gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: max(var(--presentation-grid-gap), calc((1 - var(--appearance-sheet, 0)) * var(--corner-mark, 0) * 2 * (var(--corner-mark-tick, 0px) + var(--corner-mark-gap, 0px) + var(--appearance-effect-clearance, 0px) + 1px)));
+}
 :where(.radio-group[data-variant="tiles"]) > .radio-item { padding: var(--spacing-lg); align-items: flex-start; --choice-border: var(--color-border-strong); --choice-fill: var(--color-card); }
 :where(.radio-group[data-variant="tiles"]) > .radio-item[data-state="checked"] { --choice-border: var(--color-link); --choice-fill: var(--color-accent-surface); }
 .radio-group[data-variant="segmented"] { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); padding: var(--spacing-xs); background: var(--color-muted); border-radius: var(--radius-lg); }
