@@ -220,7 +220,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         if (!to) return []
         // Each source and target pair is drawn once per look, so edges whose
         // source lists overlap after folding do not repeat a connection.
-        const looks = `${edge.series ?? ""}|${edge.line ?? ""}|${edge.tone ?? ""}`
+        const looks = `${edge.series ?? ""}|${edge.line ?? ""}|${edge.tone ?? ""}|${edge.shape ?? ""}|${edge.head ?? ""}`
         const resolved = [...new Set(edge.from.map(resolve))].filter((id): id is string => !!id && id !== to)
         const folded = to !== edge.to || resolved.length !== edge.from.length || resolved.some((id, index) => id !== edge.from[index])
         const from = folded ? resolved.filter((id) => !seen.has(`${id}->${to}|${looks}`)) : resolved
