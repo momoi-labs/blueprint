@@ -374,6 +374,24 @@ for (const theme of ['light', 'dark']) test(`Square markers, panel marks on choi
  } finally { await page.close(); }
 });
 
+test('Tile marks stay apart, or meet at the centre of the tile gap with sheet clearance', async () => {
+ const page = await open('corners=square');
+ try {
+  for (const markClearance of ['normal', 'sheet']) for (const markSize of ['small', 'medium', 'large']) {
+   await page.evaluate(settings => Object.assign(document.documentElement.dataset, settings), { frameScope: 'all', markScope: 'all', cornerMarks: 'ticks', markClearance, markSize });
+   const { gap, reach, overshoot, tick } = await page.evaluate(() => {
+    const [a, b] = [...document.querySelectorAll('.radio-group[data-variant="tiles"] > .radio-item')].filter((item, _, all) => item.getBoundingClientRect().top === all[0].getBoundingClientRect().top);
+    const box = item => { const r = item.getBoundingClientRect(), s = getComputedStyle(item, '::after'); return { left: r.left, right: r.right, markLeft: r.left + parseFloat(s.left), markRight: r.right - parseFloat(s.right) }; };
+    const [first, second] = [box(a), box(b)], centre = (first.right + second.left) / 2, root = getComputedStyle(a);
+    return { gap: second.left - first.right, reach: [first.markRight, second.markLeft], overshoot: [first.markRight - centre, centre - second.markLeft], tick: parseFloat(root.getPropertyValue('--corner-mark-tick')) + parseFloat(root.getPropertyValue('--corner-mark-gap')) };
+   });
+   const where = `${markClearance}/${markSize}`;
+   if (markClearance === 'normal') assert(reach[0] < reach[1], `${where}: neighbours' marks do not overlap in a ${gap}px gap`);
+   else for (const past of overshoot) assert(past >= tick && past <= tick + 2, `${where}: marks pass the gap centre by one tick, not ${past}px`);
+  }
+ } finally { await page.close(); }
+});
+
 for (const border of ['manga', 'brush']) test(`${border} buttons, markers and switches use the irregular control contour with a visible focus ring`, async () => {
  const page = await open(`border=${border}&corners=square`);
  try {
