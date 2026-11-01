@@ -132,6 +132,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
   const refresh = React.useCallback(() => setVersion((value) => value + 1), [])
   const context = React.useMemo(() => ({ nodes, register, addEdge, refresh, direction }), [nodes, register, addEdge, refresh, direction])
 
+  const labelSizes = React.useRef(new Map<string, { width: number; height: number }>())
   useIsomorphicLayoutEffect(() => {
     const root = frame.current
     const region = scroll.current
@@ -258,21 +259,26 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         ...place(element.getBoundingClientRect()),
         radius: parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0,
       }))
-      const sizes = new Map<string, { width: number; height: number }>()
-      const measure = (text: string) => {
-        const known = sizes.get(text)
-        if (known) return known
-        const host = svg.current
-        if (!host) return { width: text.length * 7, height: 12 }
-        const probe = document.createElementNS("http://www.w3.org/2000/svg", "text")
-        probe.setAttribute("class", "diagram-edge-label")
-        probe.textContent = text
-        host.appendChild(probe)
-        const { width, height } = probe.getBBox()
-        probe.remove()
-        sizes.set(text, { width, height })
-        return { width, height }
+      // Labels are measured once and kept, since measuring makes the page lay
+      // out again. New labels are measured in one batch: the probes go in
+      // together and are read together. A loaded font clears what was kept.
+      const sizes = labelSizes.current
+      const host = svg.current
+      if (host) {
+        const probes = [...new Set(routes.flatMap((item) => item.label && !sizes.has(item.label.text) ? [item.label.text] : []))].map((text) => {
+          const probe = document.createElementNS("http://www.w3.org/2000/svg", "text")
+          probe.setAttribute("class", "diagram-edge-label")
+          probe.textContent = text
+          host.appendChild(probe)
+          return [text, probe] as const
+        })
+        for (const [text, probe] of probes) {
+          const { width, height } = probe.getBBox()
+          sizes.set(text, { width, height })
+        }
+        for (const [, probe] of probes) probe.remove()
       }
+      const measure = (text: string) => sizes.get(text) ?? { width: text.length * 7, height: 12 }
       setDrawn(draw(routes, frames, crossings, labels, measure))
     }
     const measure = () => layout(0)
@@ -281,7 +287,16 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
     observer.observe(root)
     observer.observe(region)
     nodes.forEach((element) => observer.observe(element))
-    return () => observer.disconnect()
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined
+    const refont = () => {
+      labelSizes.current.clear()
+      measure()
+    }
+    fonts?.addEventListener("loadingdone", refont)
+    return () => {
+      observer.disconnect()
+      fonts?.removeEventListener("loadingdone", refont)
+    }
   }, [direction, crossings, labels, edges, nodes, version])
 
   return (
