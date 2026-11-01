@@ -30,8 +30,10 @@ Diagram (.card.diagram, optional data-background-style and data-background-stren
         │       │   a button (.diagram-group-toggle) with a chevron when collapsible
         │       ├── body (.diagram-group-body): its nodes
         │       └── footer (.diagram-group-foot, optional)
-        └── edges (svg.diagram-edges): one elbow path per source, junction dots,
-            plates (.diagram-edge-plate) and labels
+        └── edges (svg.diagram-edges): one path per source (data-shape when not
+            orthogonal), its head (marker.diagram-arrow, data-arrow), junction
+            dots, plates (.diagram-edge-plate), knockouts (.diagram-edge-knock)
+            and labels
 └── footer (.diagram-footer, optional): under a rule, such as the key of the series edges
 
 DiagramEdgeKey (.diagram-edge-key): a still sample of a series edge and its meaning
@@ -194,6 +196,68 @@ the branches part along it; the dot sits where the nearest branch turns
 down, or at the fork when they part both ways. The trunk carries the series
 dash and flow; the dot stays still.
 
+### Edge shapes
+
+`edges` on the Diagram sets how every edge is drawn, and `shape` on a
+`DiagramEdge` overrides it for that edge. Routing does not change: each edge
+keeps its exit, its entry, its trunk and its dot. The shape only changes the
+line between them.
+
+| `edges` | Line |
+| --- | --- |
+| `orthogonal` (default) | runs and elbows with an 8px radius |
+| `curve` | one smooth curve, as in a node editor |
+| `straight` | one straight segment |
+| `sketch` | the orthogonal line, drawn by hand |
+
+- **Shared runs stay orthogonal.** The part of an edge that lies on another
+  edge, a trunk up to its dot or the stub that leaves it, keeps its right
+  angles, so the dot stays on every line through it. The shape starts where
+  the edge parts from the others.
+- **`curve`** leaves along the run it parts from and comes in along its
+  entry, then runs straight for its last 12px, so the arrowhead points along
+  the line. Each handle is the larger of 60% of the distance along its own
+  axis and 30% of the span, from 32px to 160px, so short links still arch.
+- **`straight`** goes direct. When it would come into a node's side at a
+  steep angle, steeper than 1.5 to 1, it comes in through the top or bottom
+  instead, 20px clear of the corners, with a straight 12px run. A straight
+  line takes no detour, so it can cross a node in between; Diagram reports
+  it once in the console, as it does for any run through a node.
+- **`sketch`** wobbles about 1.4px across the line. The wobble depends only
+  on where a point is, so it is the same on every render, and two edges on
+  one stem wobble alike. It fades out near ends, corners, dots and crossing
+  marks, so heads, dots and hops sit on the line. It pairs with the Manga
+  and Brush frames.
+
+Series dashes, flow and reduced motion work the same on every shape.
+
+```tsx
+<Diagram direction="grid" columns={2} edges="curve" arrow="chevron" label="Varejo Prod: replication and storage">
+  {/* ...groups and nodes... */}
+  <DiagramEdge from="db1" to="db2" series={1} flow />
+  <DiagramEdge from="db1" to="s3" series={3} shape="orthogonal" arrow="triangle" />
+</Diagram>
+```
+
+### Arrowheads
+
+`arrow` on the Diagram picks the head every edge ends in, and `arrow` on a
+`DiagramEdge` overrides it. Unset is `triangle`, or `sketch` on a sketched
+edge. Every head has the edge's colour and the same size and tip as the
+triangle.
+
+| `arrow` | Head |
+| --- | --- |
+| `triangle` | a filled triangle |
+| `chevron` | an open chevron |
+| `stealth` | a notched, filled head |
+| `dot` | a filled dot at the end |
+| `sketch` | two uneven strokes, drawn by hand |
+| `none` | no head; the line ends with its round cap |
+
+A dot or no head drops the sign of direction. Use them where the direction
+is clear from the drawing or does not matter.
+
 ### Crossings
 
 `crossings` says how an edge draws where it crosses a frame or another edge.
@@ -216,6 +280,13 @@ straight line; when there is no room for that, the mark is left out rather
 than squeezed. A group's 24px entry room leaves enough for it. It applies to
 every direction.
 
+A curve or a straight line has no runs, so its crossings are found on the
+drawn line, and they are always gaps: a hop on a slanted line reads as a
+bump. The later edge crosses the earlier one and a short stroke in the card
+colour under it, the knockout, breaks the earlier line. The same holds when
+an orthogonal edge crosses a curve. A crossed frame gets a plate as wide as
+the slanted line needs. A sketched edge hops and gaps as an orthogonal one.
+
 ### Labels
 
 `labels` sets how edge labels read, in every direction:
@@ -232,6 +303,11 @@ every direction.
   runs sit close.
 - **`vertical`**. A label on a vertical run always turns, even when it is
   longer than the run.
+
+On a curve or a straight line there is no run to turn a label along, so it
+sits flat, centred on the line, on a plate, in the middle of the edge's own
+part, past any shared stretch. `labels` does not change it. A curve that is
+one straight run along an axis keeps the rules above.
 
 A flat label between two nodes that does not fit the gap, less the
 arrowhead, breaks at its first space into two lines, both above the arrow:
@@ -459,8 +535,8 @@ use `--type-weight-semibold`; free text and edge labels use `--font-mono`,
 with labels at `--type-size-metadata`. The background pattern reads the
 canvas variables that `data-background-style` sets for the shell. Groups
 use `--color-border-strong` for the dashed frame and footer rule and
-`--color-card` behind the title, the plates of turned labels and the gaps of
-crossings. Series edges use `--color-chart-1` to
+`--color-card` behind the title, the plates of turned labels, the gaps of
+crossings and the knockouts under curved and straight edges. Series edges use `--color-chart-1` to
 `--color-chart-5`, then the chart's generated colours.
 
 ```tsx

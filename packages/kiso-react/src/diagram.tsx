@@ -9,11 +9,11 @@ import { StatusBadge, type StatusTone } from "./status-badge.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 import {
   draw, route,
-  type Box, type DiagramCrossings, type DiagramEdgeLine, type DiagramEdgeRoute, type DiagramEdgeTone, type DiagramLabels,
+  type Box, type DiagramArrow, type DiagramCrossings, type DiagramEdgeLine, type DiagramEdgeRoute, type DiagramEdgeShape, type DiagramEdgeTone, type DiagramLabels,
   type Drawn, type EdgeSpec, type Frame, type Measured,
 } from "./diagram-routes.js"
 
-export type { DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeTone, DiagramLabels }
+export type { DiagramArrow, DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeShape, DiagramEdgeTone, DiagramLabels }
 
 /* A Diagram is stages of nodes, columns read left to right or rows read top
    to bottom, with edges drawn between them. Nodes are Cards, so they take the theme's frame, marks and corners.
@@ -67,6 +67,16 @@ const kinds: Record<DiagramKind, { label: string; tone: "neutral" | "primary" | 
   database: { label: "Database", tone: "info", icon: Database },
 }
 
+/* Heads other than the triangle, in the same 10 by 10 box with the tip at
+   x 10 and the marker's reference at x 9, so each sits where the triangle
+   does. Open heads are strokes; ui.css paints them. */
+const heads: Record<Exclude<DiagramArrow, "triangle" | "none">, React.ReactNode> = {
+  chevron: <path d="M 2 1.5 L 9.5 5 L 2 8.5" />,
+  stealth: <path d="M 0 0 L 10 5 L 0 10 L 3 5 z" />,
+  dot: <circle cx="6.6" cy="5" r="3.4" />,
+  sketch: <path d="M 0.6 1.8 Q 4.6 2.6 9.4 5.4 M 2 9.8 Q 5 6.8 9.6 4.9" />,
+}
+
 const statuses: Record<DiagramStatus, { label: string; tone: StatusTone }> = {
   stopped: { label: "Stopped", tone: "neutral" },
   failed: { label: "Failed", tone: "danger" },
@@ -100,6 +110,13 @@ export type DiagramProps = Omit<React.ComponentProps<"div">, "children"> & Diagr
   crossings?: DiagramCrossings
   /** `auto` turns a label on a vertical run when it fits. */
   labels?: DiagramLabels
+  /** How edges are drawn: `orthogonal` (default) with rounded elbows,
+      `curve`, `straight`, or `sketch`, hand drawn. A DiagramEdge's `shape`
+      overrides it. */
+  edges?: DiagramEdgeShape
+  /** The head at the end of each edge. Unset is `triangle`, or `sketch` on a
+      sketched edge. A DiagramEdge's `arrow` overrides it. */
+  arrow?: DiagramArrow
   /** A footer inside the card, under a rule, such as the key of the series
       edges built from DiagramEdgeKey. */
   footer?: React.ReactNode
@@ -109,13 +126,13 @@ export type DiagramProps = Omit<React.ComponentProps<"div">, "children"> & Diagr
   children: React.ReactNode
 }
 
-function Diagram({ label, direction = "right", columns, crossings = "none", labels = "auto", footer, background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, className, children, ...props }: DiagramProps) {
+function Diagram({ label, direction = "right", columns, crossings = "none", labels = "auto", edges: shape, arrow, footer, background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, className, children, ...props }: DiagramProps) {
   const frame = React.useRef<HTMLDivElement>(null)
   const scroll = React.useRef<HTMLDivElement>(null)
   const lanes = React.useRef<HTMLDivElement>(null)
   const svg = React.useRef<SVGSVGElement>(null)
   const nodes = React.useRef(new Map<string, HTMLElement>()).current
-  const [edges, setEdges] = React.useState<EdgeSpec[]>([])
+  const [registered, setRegistered] = React.useState<EdgeSpec[]>([])
   const [version, setVersion] = React.useState(0)
   const [drawn, setDrawn] = React.useState<Drawn>({ paths: [], labels: [], plates: [], dots: [] })
   const marker = `${React.useId()}arrow`
@@ -126,8 +143,8 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
     setVersion((value) => value + 1)
   }, [nodes])
   const addEdge = React.useCallback((edge: EdgeSpec) => {
-    setEdges((list) => [...list, edge])
-    return () => setEdges((list) => list.filter((item) => item !== edge))
+    setRegistered((list) => [...list, edge])
+    return () => setRegistered((list) => list.filter((item) => item !== edge))
   }, [])
   const refresh = React.useCallback(() => setVersion((value) => value + 1), [])
   const context = React.useMemo(() => ({ nodes, register, addEdge, refresh, direction }), [nodes, register, addEdge, refresh, direction])
@@ -198,7 +215,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
       // An edge inside one folded group is not drawn, and edges that now
       // join the same ends with the same look are drawn once.
       const seen = new Set<string>()
-      const measured: Measured[] = edges.flatMap((edge) => {
+      const measured: Measured[] = registered.flatMap((edge) => {
         const to = resolve(edge.to)
         if (!to) return []
         // Each source and target pair is drawn once per look, so edges whose
@@ -279,7 +296,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         for (const [, probe] of probes) probe.remove()
       }
       const measure = (text: string) => sizes.get(text) ?? { width: text.length * 7, height: 12 }
-      setDrawn(draw(routes, frames, crossings, labels, measure))
+      setDrawn(draw(routes, frames, crossings, labels, measure, { shape, arrow, boxes: new Map(all.map((item) => [item.id, item])) }))
     }
     const measure = () => layout(0)
     measure()
@@ -297,7 +314,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
       observer.disconnect()
       fonts?.removeEventListener("loadingdone", refont)
     }
-  }, [direction, crossings, labels, edges, nodes, version])
+  }, [direction, crossings, labels, shape, arrow, registered, nodes, version])
 
   return (
     <DiagramContext.Provider value={context}>
@@ -326,7 +343,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
               data-corner-style={cornerStyle}
               data-corner-size={cornerSize}
               data-corner-marks={cornerMarks}
-              data-edge-labels={edges.some((edge) => edge.label) || undefined}
+              data-edge-labels={registered.some((edge) => edge.label) || undefined}
             >
               {children}
             </div>
@@ -340,12 +357,26 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
                     <path d="M 0 0 L 10 5 L 0 10 z" />
                   </marker>
                 ))}
-                {[...new Set(edges.flatMap((edge) => edge.series ? [edge.series] : []))].map((series) => (
+                {[...new Set(registered.flatMap((edge) => edge.series ? [edge.series] : []))].map((series) => (
                   <marker key={series} id={`${marker}-s${series}`} className="diagram-arrow" style={{ color: chartColor(series) }}
                     viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
                   </marker>
                 ))}
+                {/* Other heads, only those in use, the same size and tip. */}
+                {[...new Set(drawn.paths.flatMap((path) => path.arrow && path.head !== "triangle" && path.head !== "none"
+                  ? [`${path.head}|${path.series ? `s${path.series}` : path.tone ?? "neutral"}`] : []))].map((id) => {
+                  const [head, paint] = id.split("|") as [Exclude<DiagramArrow, "triangle" | "none">, string]
+                  const series = paint.startsWith("s") ? Number(paint.slice(1)) : undefined
+                  const size = series ? "6" : "7"
+                  return (
+                    <marker key={id} id={`${marker}-${head}-${paint}`} className="diagram-arrow" data-arrow={head}
+                      data-tone={series ? undefined : paint} style={series ? { color: chartColor(series) } : undefined}
+                      viewBox="0 0 10 10" refX="9" refY="5" markerWidth={size} markerHeight={size} orient="auto-start-reverse">
+                      {heads[head]}
+                    </marker>
+                  )
+                })}
               </defs>
               {/* Gaps in crossed frames sit under the edges. */}
               {drawn.plates.map((plate) => (
@@ -353,12 +384,18 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
               ))}
               {drawn.paths.map((path) => {
                 const series = path.series
+                const paint = series ? `s${series}` : path.tone ?? "neutral"
                 return (
-                  <path key={path.key} d={path.d}
+                  <React.Fragment key={path.key}>
+                  {/* Under the edge, a stroke in the card colour breaks the
+                      lines it crosses. */}
+                  {path.knock && <path className="diagram-edge-knock" d={path.knock} />}
+                  <path d={path.d} data-shape={path.shape && path.shape !== "orthogonal" ? path.shape : undefined}
                     data-line={series ? undefined : path.line} data-tone={series ? undefined : path.tone}
                     data-series={series} data-dash={series ? dashOf(series) : undefined} data-flow={(series && path.flow) || undefined}
                     style={series ? { color: chartColor(series) } : undefined}
-                    markerEnd={path.arrow ? `url(#${marker}-${series ? `s${series}` : path.tone ?? "neutral"})` : undefined} />
+                    markerEnd={!path.arrow || path.head === "none" ? undefined : `url(#${marker}-${path.head === "triangle" ? "" : `${path.head}-`}${paint})`} />
+                  </React.Fragment>
                 )
               })}
               {/* A dot marks where a shared trunk splits. */}
@@ -708,6 +745,10 @@ export type DiagramEdgeProps = {
   /** In a grid, forces the route the edge would otherwise pick from where
       its nodes are: `side`, `down` or `drop`. */
   route?: DiagramEdgeRoute
+  /** Overrides the Diagram's `edges` for this edge. */
+  shape?: DiagramEdgeShape
+  /** Overrides the Diagram's `arrow` for this edge. */
+  arrow?: DiagramArrow
 } & (
   | { line?: DiagramEdgeLine; tone?: DiagramEdgeTone; series?: never; flow?: never }
   /** A kind of link, such as replication or backups: the chart colour of the
@@ -717,13 +758,13 @@ export type DiagramEdgeProps = {
 
 /* An edge renders nothing itself: it registers with the Diagram, which draws
    it once the nodes are measured. */
-function DiagramEdge({ from, to, label, route, line, tone, series, flow }: DiagramEdgeProps) {
+function DiagramEdge({ from, to, label, route, line, tone, series, flow, shape, arrow }: DiagramEdgeProps) {
   const { addEdge } = useRegistry("DiagramEdge")
   // Ids never contain a newline, so the join is a stable dependency.
   const sources = (Array.isArray(from) ? from : [from]).join("\n")
   React.useEffect(
-    () => addEdge({ key: `${sources}->${to}${series ? `#${series}` : ""}`, from: sources.split("\n"), to, label, route, line, tone, series, flow }),
-    [addEdge, sources, to, label, route, line, tone, series, flow],
+    () => addEdge({ key: `${sources}->${to}${series ? `#${series}` : ""}`, from: sources.split("\n"), to, label, route, line, tone, series, flow, shape, head: arrow }),
+    [addEdge, sources, to, label, route, line, tone, series, flow, shape, arrow],
   )
   return null
 }
