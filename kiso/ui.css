@@ -2875,7 +2875,13 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .diagram-edges > path[data-line="dotted"] { stroke-dasharray: 0 4; }
 /* The arrowhead is a filled triangle in the edge's tone. A marker paints
    with its own colour, so the tone sits on the marker as well as the path. */
-.diagram-arrow path { fill: currentColor; stroke: none; }
+.diagram-arrow :is(path, circle) { fill: currentColor; stroke: none; }
+/* Open heads, the chevron and the sketched head, are strokes. */
+.diagram-arrow:is([data-arrow="chevron"], [data-arrow="sketch"]) path { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.diagram-arrow[data-arrow="sketch"] path { stroke-width: 1.5; }
+/* A curved or straight edge breaks the lines it crosses with a short stroke
+   in the card colour, drawn just under it. */
+.diagram-edges > path.diagram-edge-knock { stroke: var(--color-card); stroke-width: 8; stroke-linecap: butt; stroke-dasharray: none; }
 .diagram-edges :is(path, .diagram-arrow, .diagram-junction)[data-tone="success"] { color: var(--color-success); }
 .diagram-edges :is(path, .diagram-arrow, .diagram-junction)[data-tone="danger"] { color: var(--color-danger); }
 /* The dot where a shared trunk splits, in the edge's colour. */

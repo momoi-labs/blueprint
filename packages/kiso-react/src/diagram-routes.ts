@@ -7,8 +7,10 @@ export type DiagramEdgeTone = "neutral" | "success" | "danger"
 export type DiagramEdgeRoute = "side" | "down" | "drop"
 export type DiagramCrossings = "none" | "hop" | "gap"
 export type DiagramLabels = "auto" | "horizontal" | "vertical"
+export type DiagramEdgeShape = "orthogonal" | "curve" | "straight" | "sketch"
+export type DiagramArrow = "triangle" | "chevron" | "stealth" | "dot" | "sketch" | "none"
 
-export type EdgeLook = { line?: DiagramEdgeLine; tone?: DiagramEdgeTone; series?: number; flow?: boolean }
+export type EdgeLook = { line?: DiagramEdgeLine; tone?: DiagramEdgeTone; series?: number; flow?: boolean; shape?: DiagramEdgeShape; head?: DiagramArrow }
 export type EdgeSpec = EdgeLook & { key: string; from: string[]; to: string; label?: string; route?: DiagramEdgeRoute }
 
 export type Pt = [number, number]
@@ -32,7 +34,10 @@ export type Route = { key: string; points: Pt[]; arrow: boolean; look: EdgeLook;
 
 export type Rect = { key: string; x: number; y: number; width: number; height: number }
 export type Drawn = {
-  paths: (EdgeLook & { key: string; d: string; arrow: boolean })[]
+  /** `arrow` says whether the path gets a head, `head` which one. `knock`
+      is drawn just before the path, in the card colour, to break the lines
+      it crosses. */
+  paths: (EdgeLook & { key: string; d: string; arrow: boolean; head: DiagramArrow; knock?: string })[]
   labels: { key: string; x: number; y: number; lines: string[]; anchor?: "start"; rotate?: boolean; middle?: boolean; plate?: Rect }[]
   plates: Rect[]
   dots: (EdgeLook & { key: string; x: number; y: number })[]
@@ -56,7 +61,7 @@ const CLEAR = 12
    straight line. The same room a group keeps where an edge comes in. */
 const SIDE_RUN = 24
 
-export const look = (edge: EdgeSpec): EdgeLook => ({ line: edge.line, tone: edge.tone, series: edge.series, flow: edge.flow })
+export const look = (edge: EdgeSpec): EdgeLook => ({ line: edge.line, tone: edge.tone, series: edge.series, flow: edge.flow, shape: edge.shape, head: edge.head })
 
 const dist = (a: Pt, b: Pt) => Math.hypot(b[0] - a[0], b[1] - a[1])
 const towards = (a: Pt, b: Pt, d: number): Pt => {
@@ -513,6 +518,361 @@ function checkNodes(routes: Route[], nodes: Box[]) {
   }
 }
 
+
+/* ------------------------------------------------------------------------
+   Edge shapes. Routing is the same for every shape; a shape only changes how
+   a route's polyline is drawn.
+   ------------------------------------------------------------------------ */
+
+/* Samples of a drawn line: x, y and the distance along it. */
+type Sample = [number, number, number]
+
+const unit = (a: Pt, b: Pt): Pt => {
+  const n = dist(a, b) || 1
+  return [(b[0] - a[0]) / n, (b[1] - a[1]) / n]
+}
+
+function push(out: Sample[], p: Pt) {
+  const last = out[out.length - 1]
+  out.push([p[0], p[1], last ? last[2] + Math.hypot(p[0] - last[0], p[1] - last[1]) : 0])
+}
+
+/* The drawn line of an orthogonal route: its runs and rounded corners. */
+function dense(points: Pt[], rad: number[], step = 4): Sample[] {
+  const out: Sample[] = []
+  for (let j = 0; j < points.length - 1; j++) {
+    const s = towards(points[j]!, points[j + 1]!, rad[j]!)
+    const e = towards(points[j + 1]!, points[j]!, rad[j + 1]!)
+    const n = Math.max(1, Math.ceil(dist(s, e) / step))
+    for (let k = 0; k <= n; k++) push(out, [s[0] + ((e[0] - s[0]) * k) / n, s[1] + ((e[1] - s[1]) * k) / n])
+    if (j + 1 < points.length - 1) {
+      const q = points[j + 1]!
+      const m = towards(q, points[j + 2]!, rad[j + 1]!)
+      for (let k = 1; k < 4; k++) {
+        const t = k / 4
+        push(out, [(1 - t) ** 2 * e[0] + 2 * (1 - t) * t * q[0] + t * t * m[0], (1 - t) ** 2 * e[1] + 2 * (1 - t) * t * q[1] + t * t * m[1]])
+      }
+    }
+  }
+  return out
+}
+
+/* An orthogonal path with rounded corners and no marks. */
+function orthogonal(points: Pt[]) {
+  const rad = radii(points)
+  let d = `M ${points[0]![0]} ${points[0]![1]}`
+  for (let j = 0; j < points.length - 1; j++) {
+    const e = towards(points[j + 1]!, points[j]!, rad[j + 1]!)
+    d += ` L ${e[0]} ${e[1]}`
+    if (j + 1 < points.length - 1) {
+      const q = points[j + 1]!
+      const n = towards(q, points[j + 2]!, rad[j + 1]!)
+      d += ` Q ${q[0]} ${q[1]} ${n[0]} ${n[1]}`
+    }
+  }
+  return d
+}
+
+/* Where a route parts from the others: the farthest junction dot on it, or
+   the end of the stretch from its start that lies on another route. Before
+   that point the route is shared, so it stays orthogonal in every shape. */
+function parting(routes: Route[], i: number) {
+  const points = routes[i]!.points
+  const cum = [0]
+  for (let k = 1; k < points.length; k++) cum.push(cum[k - 1]! + dist(points[k - 1]!, points[k]!))
+  const arcOf = (at: Pt) => {
+    const k = holding(points, at)
+    return k < 0 ? -1 : cum[k]! + dist(points[k]!, at)
+  }
+  let at = 0
+  for (const other of routes) if (other.dot) at = Math.max(at, arcOf(other.dot))
+  const spans: [number, number][] = []
+  routes.forEach((other, j) => {
+    if (j === i) return
+    for (let k = 0; k < points.length - 1; k++) {
+      const a = points[k]!
+      const b = points[k + 1]!
+      for (let m = 0; m < other.points.length - 1; m++) {
+        const c = other.points[m]!
+        const d = other.points[m + 1]!
+        const vertical = isVertical(a, b) && isVertical(c, d) && Math.abs(a[0] - c[0]) < 0.5
+        const flat = !isVertical(a, b) && !isVertical(c, d) && Math.abs(a[1] - b[1]) < 0.5 && Math.abs(c[1] - d[1]) < 0.5 && Math.abs(a[1] - c[1]) < 0.5
+        if (!vertical && !flat) continue
+        const axis = vertical ? 1 : 0
+        const dir = Math.sign(b[axis] - a[axis]) || 1
+        const lo = Math.max(Math.min(a[axis], b[axis]), Math.min(c[axis], d[axis]))
+        const hi = Math.min(Math.max(a[axis], b[axis]), Math.max(c[axis], d[axis]))
+        if (hi - lo < 0.5) continue
+        const t0 = cum[k]! + (dir > 0 ? lo - a[axis] : a[axis] - hi)
+        spans.push([t0, t0 + hi - lo])
+      }
+    }
+  })
+  let reach = 0
+  for (const [lo, hi] of spans.sort((a, b) => a[0] - b[0])) if (lo <= reach + 0.5) reach = Math.max(reach, hi)
+  at = Math.max(at, reach)
+  let k = 0
+  while (k < points.length - 2 && cum[k + 1]! < at - 0.01) k++
+  const point = towards(points[k]!, points[k + 1]!, Math.min(at - cum[k]!, dist(points[k]!, points[k + 1]!)))
+  return { at, k, point, dir: unit(points[k]!, points[k + 1]!) }
+}
+
+type Free = { d: string; samples: Sample[]; from: number }
+
+/* A curve or a straight line from where the route parts to its end. Null
+   when what is left is one straight run along an axis: that edge draws as
+   it does orthogonally. */
+function shaped(routes: Route[], i: number, shape: "curve" | "straight", boxes?: Map<string, Box>): Free | null {
+  const route = routes[i]!
+  const { points } = route
+  const { at, k, point: P, dir } = parting(routes, i)
+  const E = points[points.length - 1]!
+  const dE = unit(points[points.length - 2]!, E)
+  if (dist(P, E) < 1) return null
+  const along = Math.abs(dir[0] * dE[0] + dir[1] * dE[1]) > 0.99
+  const level = Math.abs(P[0] - E[0]) < 0.5 || Math.abs(P[1] - E[1]) < 0.5
+  const ahead = (E[0] - P[0]) * dE[0] + (E[1] - P[1]) * dE[1] > 0
+  if (along && level && ahead) return null
+  // The shared stretch, orthogonal.
+  const head = clean([...points.slice(0, k + 1), P])
+  let d = head.length > 1 ? orthogonal(head) : `M ${P[0]} ${P[1]}`
+  const samples = head.length > 1 ? dense(head, radii(head), 2) : [[P[0], P[1], 0] as Sample]
+  const from = samples[samples.length - 1]![2]
+  const add = (p: Pt) => push(samples, p)
+  if (shape === "curve") {
+    // A cubic to a point SETTLE short of the end, then straight into the
+    // port, so the arrowhead sits on a straight line and points along it.
+    const settle = Math.min(SETTLE, dist(P, E) / 2)
+    const F: Pt = [E[0] - dE[0] * settle, E[1] - dE[1] * settle]
+    const delta: Pt = [F[0] - P[0], F[1] - P[1]]
+    const span = Math.hypot(delta[0], delta[1])
+    const axial = (v: Pt) => Math.abs(delta[0] * v[0] + delta[1] * v[1])
+    // Each handle is the larger of 60% of the distance along its port's axis
+    // and 30% of the span, so short links still arch.
+    let kS = Math.min(160, Math.max(32, 0.6 * axial(dir), 0.3 * span))
+    let kE = Math.min(160, Math.max(32, 0.6 * axial(dE), 0.3 * span))
+    // Ends that face the same way make an S; handles longer than the run
+    // would make it double back.
+    if (dir[0] * dE[0] + dir[1] * dE[1] > 0.9) {
+      kS = Math.min(kS, axial(dir))
+      kE = Math.min(kE, axial(dE))
+    }
+    const c1: Pt = [P[0] + dir[0] * kS, P[1] + dir[1] * kS]
+    const c2: Pt = [F[0] - dE[0] * kE, F[1] - dE[1] * kE]
+    d += ` C ${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${F[0]} ${F[1]} L ${E[0]} ${E[1]}`
+    const n = Math.max(8, Math.ceil(span / 3))
+    for (let m = 1; m <= n; m++) {
+      const t = m / n
+      const u = 1 - t
+      add([
+        u ** 3 * P[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t ** 3 * F[0],
+        u ** 3 * P[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t ** 3 * F[1],
+      ])
+    }
+    add(E)
+    return { d, samples, from }
+  }
+  // Straight. Ports are picked for elbows, so a steep line into a side comes
+  // in through the top or bottom instead, 20px clear of the corners, with a
+  // straight SETTLE run into it.
+  let end = E
+  let stub: Pt | null = null
+  const box = route.ends ? boxes?.get(route.ends[1]) : undefined
+  if (box) {
+    const v: Pt = [E[0] - P[0], E[1] - P[1]]
+    const intoSide = Math.abs(dE[0]) > 0.5
+    const clampTo = (value: number, lo: number, hi: number) => lo > hi ? (lo + hi) / 2 : Math.min(Math.max(value, lo), hi)
+    if (intoSide && Math.abs(v[1]) > 1.5 * Math.abs(v[0])) {
+      const x = clampTo(E[0], box.left + 20, box.right - 20)
+      const y = v[1] > 0 ? box.top : box.bottom
+      const run: Pt = [x, y - Math.sign(v[1]) * SETTLE]
+      // Only when the new face still lies ahead, steeply: a target stacked
+      // close beside the source keeps its side.
+      if (Math.abs(run[1] - P[1]) > Math.abs(run[0] - P[0])) {
+        end = [x, y]
+        stub = run
+      }
+    }
+  }
+  for (const p of stub ? [stub, end] : [end]) {
+    d += ` L ${p[0]} ${p[1]}`
+    const last = samples[samples.length - 1]!
+    const n = Math.max(1, Math.ceil(dist([last[0], last[1]], p) / 3))
+    for (let m = 1; m <= n; m++) add([last[0] + ((p[0] - last[0]) * m) / n, last[1] + ((p[1] - last[1]) * m) / n])
+  }
+  if (boxes) {
+    // Kiso does not route around nodes, and a straight line takes no detour.
+    const line = [P, ...(stub ? [stub] : []), end]
+    for (const node of boxes.values()) {
+      if (route.ends?.includes(node.id)) continue
+      for (let m = 0; m < line.length - 1; m++) {
+        if (crosses(line[m]!, line[m + 1]!, node)) warn(`${route.key}>${node.id}`, `Diagram: the edge ${route.key.split(":")[0]} runs through the node "${node.id}". Move the node, or set route on the edge.`)
+      }
+    }
+  }
+  return { d, samples, from }
+}
+
+/* Whether a segment passes through the inside of a box. */
+function crosses(a: Pt, b: Pt, box: Box) {
+  let lo = 0
+  let hi = 1
+  const dx = b[0] - a[0]
+  const dy = b[1] - a[1]
+  for (const [p, q] of [[-dx, a[0] - (box.left + 1)], [dx, box.right - 1 - a[0]], [-dy, a[1] - (box.top + 1)], [dy, box.bottom - 1 - a[1]]] as const) {
+    if (Math.abs(p) < 1e-9) {
+      if (q < 0) return false
+      continue
+    }
+    const r = q / p
+    if (p < 0) lo = Math.max(lo, r)
+    else hi = Math.min(hi, r)
+    if (lo > hi) return false
+  }
+  return true
+}
+
+/* Where two sampled lines cross, as distances along the first. */
+function meets(a: Sample[], b: Sample[]) {
+  const out: number[] = []
+  const box = (list: Sample[]) => list.reduce((r, p) => [Math.min(r[0], p[0]), Math.min(r[1], p[1]), Math.max(r[2], p[0]), Math.max(r[3], p[1])], [Infinity, Infinity, -Infinity, -Infinity])
+  const [bx0, by0, bx1, by1] = box(b)
+  for (let k = 1; k < a.length; k++) {
+    const p = a[k - 1]!
+    const q = a[k]!
+    if (Math.max(p[0], q[0]) < bx0 || Math.min(p[0], q[0]) > bx1 || Math.max(p[1], q[1]) < by0 || Math.min(p[1], q[1]) > by1) continue
+    for (let m = 1; m < b.length; m++) {
+      const c = b[m - 1]!
+      const d = b[m]!
+      const t = segmentsMeet(p, q, c, d)
+      if (t !== null) out.push(p[2] + (q[2] - p[2]) * t)
+    }
+  }
+  return out
+}
+
+function segmentsMeet(a: Sample | Pt, b: Sample | Pt, c: Sample | Pt, d: Sample | Pt) {
+  const rx = b[0] - a[0]
+  const ry = b[1] - a[1]
+  const sx = d[0] - c[0]
+  const sy = d[1] - c[1]
+  const den = rx * sy - ry * sx
+  if (Math.abs(den) < 1e-9) return null
+  const t = ((c[0] - a[0]) * sy - (c[1] - a[1]) * sx) / den
+  const u = ((c[0] - a[0]) * ry - (c[1] - a[1]) * rx) / den
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null
+}
+
+/* Sketch: the orthogonal line, hand drawn. The wobble is a function of where
+   a point is, the coordinate along its run and the run's own line, so two
+   edges on one stem wobble alike. It fades out near every route's ends and
+   corners, every dot and every crossing mark, so dots, heads, hops and the
+   joins between edges sit on the line. Same drawing on every render. */
+const WOBBLE = 1.4
+const STEP = 7
+type Anchor = [number, number, number]
+
+function hash(n: number) {
+  let h = Math.imul(Math.round(n) ^ 0x9e3779b9, 0x85ebca6b)
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35)
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296
+}
+
+function wobble(u: number, line: number) {
+  const a = hash(line) * 6.283
+  const b = hash(line + 7919) * 6.283
+  return WOBBLE * (0.9 * Math.sin(u / 23 + a) + 0.45 * Math.sin(u / 9.5 + b) + 0.35 * (hash(line * 31 + Math.round(u / STEP)) - 0.5))
+}
+
+function fade(p: Pt, anchors: Anchor[]) {
+  let f = 1
+  for (const [x, y, r] of anchors) f = Math.min(f, Math.hypot(p[0] - x, p[1] - y) / r)
+  return Math.max(0, f)
+}
+
+function sketch(points: Pt[], rad: number[], hops: Map<number, number[]>, gaps: Map<number, number[]>, anchors: Anchor[]) {
+  const parts: Pt[][] = [[]]
+  const add = (p: Pt) => parts[parts.length - 1]!.push(p)
+  const moved = (p: Pt, vertical: boolean) => {
+    const w = wobble(vertical ? p[1] : p[0], vertical ? p[0] : p[1]) * fade(p, anchors)
+    return (vertical ? [p[0] + w, p[1]] : [p[0], p[1] + w]) as Pt
+  }
+  for (let j = 0; j < points.length - 1; j++) {
+    const p = points[j]!
+    const q = points[j + 1]!
+    const s = towards(p, q, rad[j]!)
+    const e = towards(q, p, rad[j + 1]!)
+    const vertical = isVertical(p, q)
+    const axis = vertical ? 1 : 0
+    const dir = Math.sign(e[axis] - s[axis]) || 1
+    const at = (v: number): Pt => vertical ? [s[0], v] : [v, s[1]]
+    // Marks along the run: hops (a half circle, like the orthogonal line)
+    // and breaks (a gap left for a crossing edge).
+    const marks = [
+      ...(hops.get(j) ?? []).map((t) => ({ v: s[axis] + dir * t, hop: true })),
+      ...(gaps.get(j) ?? []).map((v) => ({ v, hop: false })),
+    ].sort((a, b) => (a.v - b.v) * dir)
+    let v = s[axis]
+    // Anchors on this run, such as a dot or where another edge joins it,
+    // are samples too, so the line passes through them exactly.
+    const pinned = anchors.filter(([x, y]) => Math.abs((vertical ? x : y) - s[1 - axis]!) < 0.5).map((a) => a[axis]!)
+    const run = (to: number) => {
+      // Samples on a grid shared by every edge, plus the pinned points, so
+      // shared runs match.
+      const marks: number[] = []
+      for (let g = (dir > 0 ? Math.floor(v / STEP) + 1 : Math.ceil(v / STEP) - 1) * STEP; (g - to) * dir < 0; g += dir * STEP) marks.push(g)
+      for (const a of pinned) if ((a - v) * dir > 0.5 && (to - a) * dir > 0.5) marks.push(a)
+      add(moved(at(v), vertical))
+      for (const m of marks.sort((a, b) => (a - b) * dir)) add(moved(at(m), vertical))
+      add(moved(at(to), vertical))
+      v = to
+    }
+    for (const mark of marks) {
+      if (mark.hop) {
+        run(mark.v - dir * HOP)
+        // Vertical runs hop to the right, flat runs up, as the arc does.
+        const c = at(mark.v)
+        for (let m = 1; m <= 8; m++) {
+          const ang = (Math.PI * m) / 8
+          const back = -HOP * Math.cos(ang) * dir
+          const out = HOP * Math.sin(ang)
+          add(vertical ? [c[0] + out, c[1] + back] : [c[0] + back, c[1] - out])
+        }
+        v = mark.v + dir * HOP
+      } else {
+        run(mark.v - dir * (GAP + 1))
+        parts.push([])
+        v = mark.v + dir * (GAP + 1)
+      }
+    }
+    run(e[axis])
+    if (j + 1 < points.length - 1) {
+      const n = towards(q, points[j + 2]!, rad[j + 1]!)
+      for (let k = 1; k < 4; k++) {
+        const t = k / 4
+        add([(1 - t) ** 2 * e[0] + 2 * (1 - t) * t * q[0] + t * t * n[0], (1 - t) ** 2 * e[1] + 2 * (1 - t) * t * q[1] + t * t * n[1]])
+      }
+    }
+  }
+  return parts.map(spline).join(" ")
+}
+
+/* A smooth path through points: Catmull-Rom as cubics. */
+function spline(raw: Pt[]) {
+  const pts = raw.filter((p, k) => k === 0 || dist(raw[k - 1]!, p) > 0.2)
+  if (!pts.length) return ""
+  const f = (n: number) => Math.round(n * 100) / 100
+  let d = `M ${f(pts[0]![0])} ${f(pts[0]![1])}`
+  for (let k = 0; k < pts.length - 1; k++) {
+    const p0 = pts[Math.max(0, k - 1)]!
+    const p1 = pts[k]!
+    const p2 = pts[k + 1]!
+    const p3 = pts[Math.min(pts.length - 1, k + 2)]!
+    d += ` C ${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])} ${f(p2[1])}`
+  }
+  return d
+}
+
 /* ------------------------------------------------------------------------
    Drawing: crossings, paths and labels for any layout.
    ------------------------------------------------------------------------ */
@@ -521,16 +881,31 @@ type Straight = { route: number; seg: number; vertical: boolean; at: number; a: 
 type Line = { at: number; lo: number; hi: number; route?: number; seg?: number }
 type Crossing = { t: number; at: number; line: Line }
 
+/* The Diagram's own shape and head, and the measured boxes a straight edge
+   needs to pick its entry face. */
+export type DrawStyle = { shape?: DiagramEdgeShape; arrow?: DiagramArrow; boxes?: Map<string, Box> }
+
 export function draw(
   routes: Route[],
   frames: Frame[],
   crossings: DiagramCrossings,
   labels: DiagramLabels,
   measure: (text: string) => { width: number; height: number },
+  style: DrawStyle = {},
 ): Drawn {
   const shapes = routes.map((route) => ({ points: route.points, rad: radii(route.points) }))
+  // A trunk is the shared run of several edges: it keeps its right angles,
+  // unless the drawing is sketched.
+  const kinds = routes.map((route) => {
+    const shape = route.look.shape ?? style.shape ?? "orthogonal"
+    return !route.arrow && shape !== "sketch" ? "orthogonal" : shape
+  })
+  const heads = routes.map((route, i) => route.look.head ?? style.arrow ?? (kinds[i] === "sketch" ? "sketch" : "triangle"))
+  const free = routes.map((_, i) => kinds[i] === "curve" || kinds[i] === "straight" ? shaped(routes, i, kinds[i] as "curve" | "straight", style.boxes) : null)
   const straights: Straight[] = []
   shapes.forEach(({ points, rad }, i) => {
+    // Curves and straight lines have no runs; their crossings come below.
+    if (free[i]) return
     for (let j = 0; j < points.length - 1; j++) {
       const s = towards(points[j]!, points[j + 1]!, rad[j]!)
       const e = towards(points[j + 1]!, points[j]!, rad[j + 1]!)
@@ -594,9 +969,115 @@ export function draw(
     }
   }
 
+  // Crossings that involve a curve or a straight line, found on the drawn
+  // lines. They are always gaps: a hop on a slanted line reads as a bump.
+  // The later edge crosses the earlier one, so the knockout under it breaks
+  // the earlier line. Edges on one stem only touch where they part, which
+  // the clearance at their start leaves out.
+  const knocks = new Map<number, string>()
+  if (crossings !== "none" && free.some(Boolean)) {
+    const lines = routes.map((_, i) => free[i]?.samples ?? dense(shapes[i]!.points, shapes[i]!.rad))
+    routes.forEach((route, i) => {
+      const mine = lines[i]!
+      const length = mine[mine.length - 1]![2]
+      const list: { t: number; plate?: Rect }[] = []
+      if (free[i]) {
+        for (const f of frames) {
+          const sides: [Pt, Pt, boolean][] = [
+            [[f.left + f.radius, f.top], [f.right - f.radius, f.top], false],
+            [[f.left + f.radius, f.bottom], [f.right - f.radius, f.bottom], false],
+            [[f.left, f.top + f.radius], [f.left, f.bottom - f.radius], true],
+            [[f.right, f.top + f.radius], [f.right, f.bottom - f.radius], true],
+          ]
+          for (const [a, b, upright] of sides) {
+            for (const t of meets(mine, [[...a, 0], [...b, 0]])) {
+              const k = mine.findIndex((p) => p[2] >= t)
+              const p = mine[Math.max(0, k)]!
+              const q = mine[Math.max(0, k - 1)]!
+              // The break in the border widens as the line slants.
+              const slant = Math.max(0.3, upright ? Math.abs(unit([q[0], q[1]], [p[0], p[1]])[0]) : Math.abs(unit([q[0], q[1]], [p[0], p[1]])[1]))
+              const half = (GAP + 1) / slant
+              list.push({ t, plate: upright
+                ? { key: `${i}:${t}`, x: a[0] - 2, y: p[1] - half, width: 4, height: 2 * half }
+                : { key: `${i}:${t}`, x: p[0] - half, y: a[1] - 2, width: 2 * half, height: 4 } })
+            }
+          }
+        }
+      }
+      for (let j = 0; j < i; j++) {
+        if (!free[i] && !free[j]) continue
+        for (const t of meets(mine, lines[j]!)) list.push({ t })
+      }
+      const start = (free[i]?.from ?? 0) + HOP + 4
+      const end = length - (route.arrow ? HOP + SETTLE : HOP + 4)
+      const sorted = list.filter((item) => item.t > start && item.t < end).sort((a, b) => a.t - b.t)
+      const kept = sorted.filter((item, index) => index === 0 || item.t - sorted[index - 1]!.t >= 2 * HOP + 2)
+      const parts: string[] = []
+      for (const item of kept) {
+        if (item.plate) {
+          plates.push(item.plate)
+          continue
+        }
+        const near = mine.filter((p) => Math.abs(p[2] - item.t) <= GAP + 2)
+        if (near.length > 1) parts.push(near.map((p, k) => `${k ? "L" : "M"} ${p[0]} ${p[1]}`).join(" "))
+      }
+      if (parts.length) knocks.set(i, parts.join(" "))
+    })
+  }
+
+  // Sketched lines fade their wobble out near these points.
+  const anchors: Anchor[] = []
+  if (kinds.includes("sketch")) {
+    for (const route of routes) {
+      route.points.forEach((p, k) => anchors.push([p[0], p[1], k === 0 || k === route.points.length - 1 ? 18 : 12]))
+      if (route.dot) anchors.push([route.dot[0], route.dot[1], 18])
+    }
+    shapes.forEach(({ points, rad }, i) => {
+      for (let j = 0; j < points.length - 1; j++) {
+        const s = towards(points[j]!, points[j + 1]!, rad[j]!)
+        const vertical = isVertical(points[j]!, points[j + 1]!)
+        const dir = Math.sign(vertical ? points[j + 1]![1] - s[1] : points[j + 1]![0] - s[0]) || 1
+        for (const item of found.get(`${i}:${j}`) ?? []) anchors.push(vertical ? [s[0], s[1] + dir * item.t, 12] : [s[0] + dir * item.t, s[1], 12])
+        for (const x of gaps.get(`${i}:${j}`) ?? []) anchors.push([x, s[1], 12])
+      }
+    })
+  }
+
   const drawn: Drawn = { paths: [], labels: [], plates, dots: [] }
   routes.forEach((route, i) => {
     const { points, rad } = shapes[i]!
+    const shaped = free[i]
+    if (shaped || kinds[i] === "sketch") {
+      let d: string
+      if (shaped) d = shaped.d
+      else {
+        const hops = new Map<number, number[]>()
+        const breaks = new Map<number, number[]>()
+        for (let j = 0; j < points.length - 1; j++) {
+          if (crossings === "hop") hops.set(j, (found.get(`${i}:${j}`) ?? []).map((item) => item.t))
+          if (!isVertical(points[j]!, points[j + 1]!)) breaks.set(j, gaps.get(`${i}:${j}`) ?? [])
+        }
+        d = sketch(points, rad, hops, breaks, anchors)
+      }
+      drawn.paths.push({ key: route.key, d, arrow: route.arrow, ...route.look, shape: kinds[i], head: heads[i]!, knock: knocks.get(i) })
+      if (route.dot) drawn.dots.push({ key: route.key, x: route.dot[0], y: route.dot[1], ...route.look })
+      if (route.label && shaped) {
+        // A curve has no run to turn a label along: it sits flat, on a
+        // plate, in the middle of the edge's own part.
+        const list = shaped.samples
+        const total = list[list.length - 1]![2]
+        const mid = list.find((p) => p[2] >= shaped.from + (total - shaped.from) / 2) ?? list[list.length - 1]!
+        const size = measure(route.label.text)
+        drawn.labels.push({
+          key: route.key, x: mid[0], y: mid[1], lines: [route.label.text], middle: true,
+          plate: { key: route.key, x: mid[0] - size.width / 2 - 3, y: mid[1] - size.height / 2, width: size.width + 6, height: size.height },
+        })
+      } else if (route.label) {
+        const placed = place(route, found, i, labels, measure, frames)
+        if (placed) drawn.labels.push(placed)
+      }
+      return
+    }
     let d = `M ${points[0]![0]} ${points[0]![1]}`
     for (let j = 0; j < points.length - 1; j++) {
       const p = points[j]!
@@ -625,7 +1106,7 @@ export function draw(
         d += ` Q ${q[0]} ${q[1]} ${n[0]} ${n[1]}`
       }
     }
-    drawn.paths.push({ key: route.key, d, arrow: route.arrow, ...route.look })
+    drawn.paths.push({ key: route.key, d, arrow: route.arrow, ...route.look, head: heads[i]!, knock: knocks.get(i) })
     if (route.dot) drawn.dots.push({ key: route.key, x: route.dot[0], y: route.dot[1], ...route.look })
     if (route.label) {
       const placed = place(route, found, i, labels, measure, frames)
