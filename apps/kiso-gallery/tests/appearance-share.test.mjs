@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -89,6 +89,13 @@ test("a bad demo option is skipped and the rest applies", () => {
   const result = readShare(JSON.stringify({ v: 1, s: {}, diagram: { edges: "zigzag", direction: "grid", glow: "on" }, sparkle: {} }), kit, schema);
   assert.deepEqual(plain(result.demos), { diagram: { direction: "grid" } });
   assert.deepEqual(result.skipped, ["diagram.edges (invalid value)", "diagram.glow (unknown setting)", "sparkle (unknown setting)"]);
+});
+
+test("every demo with options in the panel keeps them where Share can read them", () => {
+  const folder = new URL("../../../kiso/blocks/react-prototype/src/", import.meta.url);
+  const demos = readdirSync(folder).filter(file => file.endsWith(".tsx") && readFileSync(new URL(file, folder), "utf8").includes("<DemoSettings "));
+  assert(demos.length >= 7);
+  for (const file of demos) assert.match(readFileSync(new URL(file, folder), "utf8"), /useDemoOptions</, `${file} keeps panel options in local state`);
 });
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
@@ -198,3 +205,43 @@ test("Share copies the Diagram options and Paste sets them", async () => {
     assert.equal(await page.locator(".diagram").first().getAttribute("data-direction"), "right", "A pasted look replaces the earlier options");
   } finally { await page.context().close(); }
 });
+
+// Every option a demo puts in the panel must travel with Share and clear on
+// Reset. Changing each control and counting the copied keys catches a demo
+// that keeps an option to itself.
+for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["table", "table"], ["pane-grid", "paneGrid"],
+  ["scope-switcher", "scopeSwitcher"], ["form-field", "inlineFields"], ["app-shell", "applicationShell"]]) {
+  test(`every ${route} option in the panel is shared and reset`, async () => {
+    const page = await open(`#components/${route}`);
+    try {
+      const panel = page.locator("#gallery-settings");
+      // PaneGrid does not open the panel by itself; wait for it to slide in.
+      if (!await panel.isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+      await panel.waitFor();
+      await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+      const section = panel.locator(".gallery-component-settings");
+      await section.locator("select, fieldset").first().waitFor();
+      let controls = 0;
+      for (const select of await section.locator("select").all()) {
+        const values = await select.locator("option").evaluateAll(options => options.map(option => option.value));
+        await select.selectOption(values.find(value => value !== "inherit" && value !== values[0]) ?? values[1]);
+        controls++;
+      }
+      for (const group of await section.getByRole("group").all()) {
+        const radio = group.locator("input[type=radio]:not(:checked):not(:disabled):not([value=inherit])").last();
+        await radio.check({ force: true });
+        controls++;
+      }
+      const copied = async () => {
+        await panel.getByRole("button", { name: "Share", exact: true }).click();
+        await page.getByRole("menuitem", { name: "Copy settings" }).click();
+        await page.getByText("Settings copied", { exact: true }).last().waitFor();
+        return JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
+      };
+      assert(controls > 0);
+      assert.equal(Object.keys((await copied())[scope] ?? {}).length, controls, "Each changed control is in the copied settings");
+      await panel.getByRole("button", { name: "Reset appearance" }).click();
+      assert.deepEqual(Object.keys(await copied()), ["v", "s"], "Reset clears every demo option");
+    } finally { await page.context().close(); }
+  });
+}

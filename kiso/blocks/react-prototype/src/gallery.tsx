@@ -4,7 +4,7 @@ import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo
 import { AlertDemo } from "./alert-demo";
 import { CodeBlockDemo } from "./code-block-demo";
 import { CodeEditorDemo } from "./code-editor-demo";
-import { DemoSettings, DemoSettingsContext } from "./demo-settings";
+import { DemoSettings, DemoSettingsContext, useDemoOptions } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
 import { useNarrow } from "./use-narrow";
 import { InlineFieldsDemo } from "./inline-fields-demo";
@@ -1073,11 +1073,13 @@ function SplitDemo() {
   );
 }
 
+
+export const applicationShellShareOptions = { togglePlacement: ["sidebar", "header"] };
 function AppShellDemo() {
-  const [togglePlacement, setTogglePlacement] = useState<"sidebar" | "header">("sidebar");
+  const [{ togglePlacement }, setOptions] = useDemoOptions<{ togglePlacement: "sidebar" | "header" }>("applicationShell", { togglePlacement: "sidebar" });
   return (
     <div className="stack">
-      <DemoSettings title="ApplicationShell"><label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setTogglePlacement(event.target.value as typeof togglePlacement)}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label></DemoSettings>
+      <DemoSettings title="ApplicationShell"><label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setOptions({ togglePlacement: event.target.value as typeof togglePlacement })}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label></DemoSettings>
       <ApplicationShell
         collapsible
         togglePlacement={togglePlacement}

@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { Badge, Button, GridPane, Label, PaneGrid, Switch, type PaneGridLayout, type PaneGridOverflow } from "@momoi-labs/kiso-react";
 
-import { DemoSettings } from "./demo-settings";
+import { DemoSettings, useDemoOptions } from "./demo-settings";
 
 /* Illustrated options, in the gallery panel's own tile language: a radio per
    choice with a small drawing of the result. The standalone prototype shows
@@ -36,29 +36,29 @@ function GridPreview({ panes, scroll = false }: { panes: readonly (readonly [x: 
   </svg>;
 }
 
+type PaneGridOptions = { flow: "rows" | "masonry"; overflow: PaneGridOverflow; fill: "off" | "on"; pack: "off" | "on" };
+export const paneGridShareOptions: Record<keyof PaneGridOptions, readonly string[]> = { flow: ["rows", "masonry"], overflow: ["wrap", "scroll"], fill: ["off", "on"], pack: ["off", "on"] };
+
 export function PaneGridDemo() {
-  const [flow, setFlow] = useState<"rows" | "masonry">("rows");
-  const [overflow, setOverflow] = useState<PaneGridOverflow>("wrap");
-  const [fill, setFill] = useState<"off" | "on">("off");
-  const [pack, setPack] = useState<"off" | "on">("off");
+  const [{ flow, overflow, fill, pack }, setOptions] = useDemoOptions<PaneGridOptions>("paneGrid", { flow: "rows", overflow: "wrap", fill: "off", pack: "off" });
   const [debug, setDebug] = useState(false);
   const [layout, setLayout] = useState<PaneGridLayout>();
   const debugId = useId();
   return <div className="stack">
     <DemoSettings title="PaneGrid" manual>
-      <Tiles label="Pane heights" value={flow} onChange={setFlow} options={[["rows", "Aligned rows"], ["masonry", "Masonry"]]}
+      <Tiles label="Pane heights" value={flow} onChange={flow => setOptions({ flow })} options={[["rows", "Aligned rows"], ["masonry", "Masonry"]]}
         preview={value => value === "rows"
           ? <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 48]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [48, 28, 48]]} />} />
-      <Tiles label="Row wider than twelve columns" value={overflow} onChange={setOverflow} options={[["wrap", "Wrap onto lines"], ["scroll", "Scroll the row"]]}
+      <Tiles label="Row wider than twelve columns" value={overflow} onChange={overflow => setOptions({ overflow })} options={[["wrap", "Wrap onto lines"], ["scroll", "Scroll the row"]]}
         preview={value => value === "wrap"
           ? <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [96, 0, 24]]} scroll />} />
-      <Tiles label="Free columns on a line" value={fill} onChange={setFill} options={[["off", "Leave free"], ["on", "Fill lines"]]}
+      <Tiles label="Free columns on a line" value={fill} onChange={fill => setOptions({ fill })} options={[["off", "Leave free"], ["on", "Fill lines"]]}
         preview={value => value === "off"
           ? <GridPreview panes={[[0, 0, 48], [48, 0, 32], [0, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 56], [56, 0, 40], [0, 28, 96]]} />} />
-      <Tiles label="Order within a row" value={pack} onChange={setPack} options={[["off", "As arranged"], ["on", "Pack by size"]]}
+      <Tiles label="Order within a row" value={pack} onChange={pack => setOptions({ pack })} options={[["off", "As arranged"], ["on", "Pack by size"]]}
         preview={value => value === "off"
           ? <GridPreview panes={[[0, 0, 24], [24, 0, 48], [0, 28, 48], [48, 28, 24]]} />
           : <GridPreview panes={[[0, 0, 48], [48, 0, 48], [0, 28, 24], [24, 28, 24]]} />} />
