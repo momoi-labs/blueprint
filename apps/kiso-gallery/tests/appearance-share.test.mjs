@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { preview } from "vite";
 import { settingsText, shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
+// Load Playwright before any test is registered. An await between the tests
+// and the hooks below lets the runner start the tests first, and the after
+// hook can then run before the before hook, leaving a browser and a server
+// open that keep the process alive.
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 
 const source = readFileSync(new URL("../public/appearance-init.js", import.meta.url), "utf8");
 const window = { matchMedia: () => ({ matches: false, addEventListener() {} }) };
@@ -98,7 +103,6 @@ test("every demo with options in the panel keeps them where Share can read them"
   for (const file of demos) assert.match(readFileSync(new URL(file, folder), "utf8"), /useDemoOptions</, `${file} keeps panel options in local state`);
 });
 
-const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 const screenshots = process.env.SCREENSHOT_DIR;
 let server, browser, url;
 before(async () => {
