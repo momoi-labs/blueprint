@@ -27,6 +27,12 @@ export const chartColor = (slot: number) => {
   const shift = extra >= gapHues.length && extra % 2 ? 0.08 : 0
   return `light-dark(oklch(${0.55 - shift} 0.13 ${hue}), oklch(${0.8 + shift} 0.12 ${hue}))`
 }
+/* A Diagram series is a chart slot, or the one neutral series: a link that
+   should not draw the eye, in the muted text grey, which reads in both
+   themes and never as a status. */
+export type DiagramSeries = number | "neutral"
+export const seriesColor = (series: DiagramSeries) =>
+  series === "neutral" ? "var(--color-muted-foreground)" : chartColor(series)
 export const measured = (value: number | null | undefined): value is number =>
   typeof value === "number" && Number.isFinite(value)
 

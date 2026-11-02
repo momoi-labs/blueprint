@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
+import { Archive, Waves } from "lucide-react";
 import { CreateProjectForm } from "./forms-demo";
 import {
   Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, Form, FormActions, FormField, Lifecycle, LogView, LogViewLevel, LogViewLine,
@@ -34,6 +35,9 @@ export function StatusBadgeDemo() {
     <StatusBadge tone="success" pulse>Provisioning</StatusBadge>
     <StatusBadge tone="danger">Failed</StatusBadge>
     <StatusBadge tone="neutral">Stopped</StatusBadge>
+    <StatusBadge series={1} icon={Waves} pulse>Streaming</StatusBadge>
+    <StatusBadge series="neutral" icon={Archive} pulse>Archiving</StatusBadge>
+    <StatusBadge series={4}>Backup scheduled</StatusBadge>
   </div>;
 }
 
