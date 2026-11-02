@@ -2421,7 +2421,7 @@ export function ComponentGallery({
               {showingExample
                 ? "Complete interface examples, composed with Kiso components."
                 : showingTerminal
-                ? "Kiso in a terminal, drawn by tui-kiso with ratatui. The gallery follows your accent and theme."
+                ? "Kiso in a terminal, drawn by tui-kiso with ratatui."
                 : showingAccents
                 ? "Every accent in light and dark, on the shipped tokens. Contrast is read from the rendered colors."
                 : browsing
@@ -2490,11 +2490,9 @@ export function ComponentGallery({
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingTerminal}>
           {showingExample
             ? "Visual examples only. Actions do not save or send data."
-            : showingTerminal
-            ? "Snapshots of the tui-kiso gallery. Run it in a terminal to try every key."
             : showingAccents
             ? "Contrast is WCAG 2 ratio, measured in this browser."
             : "Preview only. All actions use sample data."}
