@@ -273,7 +273,7 @@ export function TuiGallery({
     <section className="tui-gallery" aria-label={page.name}>
       <div className="layout-preview-caption">
         <p className="muted t-label">
-          <strong>{page.name}</strong>. {page.about}
+          <strong>{page.name}</strong>
         </p>
         <Badge variant="neutral">Snapshot</Badge>
       </div>
@@ -294,9 +294,8 @@ export function TuiGallery({
         <div className="tui-stage hatch">{screen}</div>
       </Card>
       <p className="muted t-label">
-        On the screen, <kbd className="kbd">↑</kbd> <kbd className="kbd">↓</kbd> change the component,{" "}
-        <kbd className="kbd">←</kbd> <kbd className="kbd">→</kbd> its state, and <kbd className="kbd">j</kbd>{" "}
-        <kbd className="kbd">k</kbd> or the wheel scroll its page. To run it:
+        <kbd className="kbd">↑</kbd> <kbd className="kbd">↓</kbd> component, <kbd className="kbd">←</kbd>{" "}
+        <kbd className="kbd">→</kbd> state, <kbd className="kbd">j</kbd> <kbd className="kbd">k</kbd> scroll
       </p>
       <pre className="tui-run">
         <code>cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery</code>
