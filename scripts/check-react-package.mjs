@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appearanceCode } from '../apps/kiso-gallery/src/appearance-settings.ts';
+import { runInNewContext } from 'node:vm';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const fixture = await mkdtemp(path.join(tmpdir(), 'kiso-consumer-'));
@@ -226,8 +227,8 @@ try {
     assert.match(terminal, /class="icon custom"/);
     assert.match(terminal, /id="terminal"/);
     assert.match(terminal, /aria-hidden="true"/);
-    assert.match(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
-      /class="app-shell"><main [^>]*class="grow">Overview/);
+    assert.equal(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
+      '<div data-slot="app-shell" class="app-shell"><main data-slot="app-shell-main" class="grow"><span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>Overview</main></div>');
     assert.match(render(h(AppShellPanel, { hidden: true, 'aria-label': 'Settings' }, 'Controls')), /data-slot="app-shell-panel"[^>]*hidden=""/);
     assert.match(render(h(AppShellPanelToggle, { placement: 'floating', 'aria-controls': 'settings', 'aria-expanded': false })), /aria-label="Open panel"/);
     const applicationShell = render(h(ApplicationShell, {
@@ -300,24 +301,33 @@ try {
     // The scroller is inside the frame, which is what lets LogView follow the tail.
     const log = render(h(LogView, null, h(LogViewLine, null,
       h(LogViewTime, null, '09:41:02.114'), h(LogViewLevel, { level: 'error' }, 'ERROR'), ' denied')));
-    assert.match(log, /class="logview"><div [^>]*class="log-scroll">/);
+    assert.match(log, /class="logview"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><[/]span><div [^>]*class="log-scroll">/);
     assert.match(log, /data-follow="true"/);
     assert.match(log, /class="log-time">09:41:02.114<[/]span>/);
     assert.match(log, /class="log-error"[^>]*>ERROR<[/]span>/);
   `);
   run(process.execPath, ['verify.mjs']);
-  await writeFile(path.join(fixture, 'index.html'), appearanceHTML.replace('<!-- Your application -->',
+  await writeFile(path.join(fixture, 'index.html'), appearanceHTML.replace('<!-- Your panel content -->',
     '<div id="root"></div><script type="module" src="/main.tsx"></script>'));
+  const gallerySource = await readFile(path.join(root, 'kiso/blocks/react-prototype/src/gallery.tsx'), 'utf8');
+  const diagramUsage = runInNewContext(gallerySource.match(/^  diagram: ('[^\n]+'),$/m)[1]);
   await writeFile(path.join(fixture, 'main.tsx'), `
     import { createRoot } from 'react-dom/client';
     import { ApplicationShell, AppShellPanel, AppShellPanelToggle, PageHeader, PageHeaderTitle, Button, FormField, BrandMark, TerminalIcon, Textarea, Table, TableFrame, Alert, Input, Select, SelectTrigger, SelectValue,
-      Toasts, useToast, Steps, RadioGroup, RadioGroupItem, FileDropzone, DetailSelect, Sparkline, type ChartStyle } from '@momoi-labs/kiso-react';
+      Toasts, useToast, Steps, RadioGroup, RadioGroupItem, FileDropzone, DetailSelect, Sparkline, type ChartStyle,
+      Diagram, DiagramColumn, DiagramNode, DiagramNodeGroup, DiagramEdge, PanelShadow, type DiagramShadowStyle } from '@momoi-labs/kiso-react';
+    import { Zap } from 'lucide-react';
     import '@momoi-labs/kiso-react/styles.css';
     function NoticeButton() {
       const notify = useToast();
       return <Button onClick={() => notify('success', 'Saved')}>Save</Button>;
     }
     createRoot(document.getElementById('root')!).render(<>
+      ${diagramUsage}
+      <Diagram label="Local shadows" shadowStyle={'hard' satisfies DiagramShadowStyle}>
+        <DiagramNodeGroup aria-label="Group" shadowStyle="soft"><DiagramNode id="local" title="Node" borderStyle="rail" shadowStyle="none" /></DiagramNodeGroup>
+      </Diagram>
+      <div className="card"><PanelShadow />Native contour</div>
       <Steps label="Progress" current="first" items={[{ id: 'first', label: 'Start' }]} />
       <RadioGroup label="Format" defaultValue="compact" variant="tiles" controlSize="xl"><RadioGroupItem value="compact" label="Compact" /></RadioGroup>
       <DetailSelect label="Definition" defaultValue="image" options={[{ value: "image", label: "Container image", icon: <TerminalIcon />, illustration: <span>Image</span>, description: <><p>Run a published image.</p><a href="/guide">Read the guide</a></> }]} />

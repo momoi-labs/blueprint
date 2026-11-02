@@ -4,9 +4,9 @@
 const tabs = {
   Look: ["Colors", "Presets", "Theme", "Accent"],
   Canvas: ["Background", "Charts", "Canvas background", "Paper tone", "Pattern placement", "Background strength", "Panel fill"],
-  Frame: ["Main style", "Where to apply", "Layout", "Border style", "Border detail", "Corner type", "Corner size", "Corner marks", "Mark size",
-    "Apply frames to", "Apply marks to", "Mark clearance", "Outer border", "Outer corners", "Outer marks", "Visual style", "Application frame", "Outer frame"],
-  Phone: ["Phone", "Phone background", "Phone border", "Phone corners", "Phone marks", "Phone panel fill"],
+  Frame: ["Main style", "Where to apply", "Layout", "Border style", "Panel shadow", "Border detail", "Corner type", "Corner size", "Corner marks", "Mark size",
+    "Apply frames to", "Apply marks to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks", "Visual style", "Application frame", "Outer frame"],
+  Phone: ["Phone", "Phone shadow", "Phone background", "Phone border", "Phone corners", "Phone marks", "Phone panel fill"],
   Code: ["Use in code"],
 };
 

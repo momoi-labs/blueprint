@@ -6,7 +6,7 @@ import { Button } from "@momoi-labs/kiso-react";
    previews as its own sections; the fallback is a native select. */
 export type DemoChoiceProps = {
   label: string;
-  kind: "border" | "corner" | "cornerSize" | "marks" | "background" | "strength" | "custom";
+  kind: "shadow" | "border" | "corner" | "cornerSize" | "marks" | "background" | "strength" | "custom";
   /** For a `custom` choice, the preview of each option. */
   previews?: Readonly<Record<string, ReactNode>>;
   /** Unset means "follow the panels around it", offered when `inherit` is on. */

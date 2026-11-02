@@ -9,6 +9,7 @@ export * from "./brand-mark.js";
 export * from "./breadcrumb.js";
 export * from "./button.js";
 export * from "./card.js";
+export * from "./panel-shadow.js";
 export * from "./checkbox.js";
 export * from "./chip-input.js";
 export * from "./code-block.js";

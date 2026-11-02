@@ -411,7 +411,7 @@ test('New border contours, clearance, patterns and frameless suppression compose
 
 // Side rail, Weighted base and Offset outline are hard shadows: light from the
 // right, from above, and from the top left. Each frame is compared with Solid
-// in flat test colors: shadow red, border blue, outside and fill distinct.
+// in flat test colors: border and shadow red, outside and fill distinct.
 const casts = { rail: [-1, 0], base: [0, 1], offset: [1, 1] };
 const shadowFrames = [
   ...['rounded', 'asym', 'square'].flatMap(corners => Object.keys(casts).map(border => ({ query: `corners=${corners}`, border, shapes: { '#sample': corners, '#outer': corners } }))),
@@ -419,10 +419,10 @@ const shadowFrames = [
   { query: 'corners=rounded&outerCornerStyle=square', border: 'rail', shapes: { '#sample': 'rounded', '#outer': 'square' } },
   { query: 'corners=square&outerCornerStyle=rounded', border: 'base', shapes: { '#sample': 'square', '#outer': 'rounded' } },
 ];
-test('Shadow border styles cast away from the light and keep the panel border', async () => {
+test('Shadow border styles cast away from the light and keep the panel geometry', async () => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 2 });
   page.setDefaultTimeout(5000); await page.route('https://fonts.googleapis.com/**', route => route.abort());
-  const colors = ':root, [data-theme] { --color-border-strong: rgb(255, 0, 0) !important; --color-border: rgb(0, 0, 255) !important; --color-card: rgb(255, 255, 255) !important; --color-background: rgb(0, 160, 0) !important; --color-sidebar: rgb(0, 0, 0) !important; --color-accent-surface: rgb(0, 0, 0) !important; } .card { box-shadow: none !important; }';
+  const colors = ':root, [data-theme] { --color-border-strong: rgb(255, 0, 0) !important; --color-border: rgb(255, 0, 0) !important; --color-card: rgb(255, 255, 255) !important; --color-background: rgb(0, 160, 0) !important; --color-sidebar: rgb(0, 0, 0) !important; --color-accent-surface: rgb(0, 0, 0) !important; } :root { --shadow-xs: 0 0 transparent; }';
   const failures = [];
   try {
     let loaded;
@@ -467,7 +467,8 @@ test('Shadow border styles cast away from the light and keep the panel border', 
             return points.filter(([x, y]) => red(at(img, x, y))).length / points.length;
           };
           const sides = ['left', 'right', 'top', 'bottom'];
-          const out = Object.fromEntries(sides.map(side => [side, strip(T, side, 1, 2.5)]));
+          // Skip the border's antialiased outer row, now the same red as the cast.
+          const out = Object.fromEntries(sides.map(side => [side, strip(T, side, 1.5, 2.5)]));
           const inside = Object.fromEntries(sides.map(side => [side, strip(T, side, -2.5, -1.5)]));
           // The panel's own edge: pixels up to 6px inside the border box that are
           // not outside in Solid and not next to the outside.
@@ -476,7 +477,7 @@ test('Shadow border styles cast away from the light and keep the panel border', 
           const isOutside = (x, y) => near(at(S, x, y), outside);
           for (let y = 1; y < S.height - 1; y++) for (let x = 1; x < S.width - 1; x++) {
             const s = at(S, x, y), t = at(T, x, y);
-            if (ring(x, y) && !isOutside(x, y) && ![[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]].some(([dx, dy]) => isOutside(x + dx, y + dy)) && (near(s, [0, 0, 255], 40) || near(s, fill, 40)) && !near(s, t, 40)) changed++;
+            if (ring(x, y) && !isOutside(x, y) && ![[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]].some(([dx, dy]) => isOutside(x + dx, y + dy)) && (near(s, [255, 0, 0], 40) || near(s, fill, 40)) && !near(s, t, 40)) changed++;
             // From every shadow pixel, the way back toward the panel stays shadow or panel.
             if (red(t) && isOutside(x, y)) {
               const length = Math.hypot(...direction);
@@ -509,6 +510,97 @@ test('Shadow border styles cast away from the light and keep the panel border', 
     }
   } finally { await page.close(); }
   assert.deepEqual(failures, []);
+});
+
+// At the curved joint, an opaque translated frame must cover the background
+// underneath the antialiased border. A separate shadow overlay leaks green here.
+for (const dpr of [1, 2]) test(`Curved Card and Diagram casts have no background seam at DPR ${dpr}`, async () => {
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 }, deviceScaleFactor: dpr });
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  try {
+    await page.goto(`${url}?casts&corners=rounded&marks=none`);
+    await page.locator('#cast-card').waitFor();
+    await page.addStyleTag({ content: ':root, [data-theme] { --color-border-strong: red !important; --color-border: blue !important; --color-card: black !important; --color-background: rgb(0,160,0) !important; --shadow-xs: 0 0 transparent; } body { background: rgb(0,160,0); } .diagram { background: rgb(0,160,0); }' });
+    for (const corners of ['rounded', 'asym']) for (const border of Object.keys(casts)) for (const fraction of [0, .25]) {
+      await page.evaluate(({ corners, fraction }) => {
+        Object.assign(document.documentElement.dataset, { cornerStyle: corners });
+        document.querySelector('#sample').style.transform = `translate(${fraction}px, ${fraction}px)`;
+      }, { corners, fraction });
+      for (const selector of ['#cast-card', '.diagram-node']) {
+        const box = await page.locator(selector).boundingBox();
+        const clip = { x: Math.floor(box.x - 8), y: Math.floor(box.y - 8), width: Math.ceil(box.width + 17), height: Math.ceil(box.height + 17) };
+        const shot = async style => {
+          await page.evaluate(style => { document.documentElement.dataset.borderStyle = style; }, style);
+          return `data:image/png;base64,${(await page.screenshot({ clip })).toString('base64')}`;
+        };
+        const solid = await shot('solid'), cast = await shot(border);
+        const contact = await page.evaluate(async ({ solid, cast, direction, dpr }) => {
+          const pixels = async source => {
+            const image = new Image(); image.src = source; await image.decode();
+            const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+            return { width: image.width, height: image.height, data: ctx.getImageData(0, 0, image.width, image.height).data };
+          };
+          const s = await pixels(solid), t = await pixels(cast);
+          const at = (image, x, y, channel) => image.data[(y * image.width + x) * 4 + channel];
+          let samples = 0, leaks = 0, maxGreen = 0;
+          for (let y = 3 * dpr; y < s.height - 3 * dpr; y++) for (let x = 3 * dpr; x < s.width - 3 * dpr; x++) {
+            const green = at(s, x, y, 1);
+            // A partly covered blue border, backed by the full 3px cast shape.
+            const bx = x - direction[0] * 3 * dpr, by = y - direction[1] * 3 * dpr;
+            if (green > 1 && green < 159 && at(s, x, y, 2) > 1 && at(s, bx, by, 1) === 0) {
+              samples++;
+              const g = at(t, x, y, 1); maxGreen = Math.max(maxGreen, g);
+              if (g > 1) leaks++;
+            }
+          }
+          return { samples, leaks, maxGreen };
+        }, { solid, cast, direction: casts[border], dpr });
+        assert(contact.samples > 0, `${selector}/${corners}/${border}/${fraction}: contact pixels were sampled`);
+        assert.equal(contact.leaks, 0, `${selector}/${corners}/${border}/${fraction}: ${JSON.stringify(contact)}`);
+      }
+    }
+  } finally { await page.close(); }
+});
+
+for (const theme of ['light', 'dark']) test(`Hard shadow borders match their cast with real ${theme} theme colors`, async () => {
+  const page = await open(`casts&corners=rounded&marks=none&frameScope=all&theme=${theme}`);
+  const paint = el => {
+    const style = getComputedStyle(el), probe = document.createElement('span'); el.append(probe);
+    const ctx = document.createElement('canvas').getContext('2d');
+    const rgb = color => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = color; ctx.fillRect(0, 0, 1, 1); return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3); };
+    const token = name => { probe.style.color = `var(${name})`; return rgb(getComputedStyle(probe).color); };
+    const result = { border: rgb(style.borderBottomColor), ink: token('--appearance-cast-ink'), strong: token('--color-border-strong'), normal: token('--color-border'), shadow: style.boxShadow };
+    probe.remove(); return result;
+  };
+  try {
+    for (const accent of ['stone', 'nocturne']) for (const corners of ['rounded', 'asym']) for (const border of Object.keys(casts)) {
+      await page.evaluate(({ accent, corners, border }) => Object.assign(document.documentElement.dataset, { accent, cornerStyle: corners, borderStyle: border }), { accent, corners, border });
+      for (const selector of ['#cast-card', '.diagram-node', '.radio-item']) {
+        for (const el of await page.locator(selector).all()) {
+          const p = await el.evaluate(paint), name = `${theme}/${accent}/${corners}/${border}/${selector}`;
+          assert.deepEqual(p.border, p.ink, `${name}: border and cast share a color`);
+          if (selector !== '.radio-item') assert.deepEqual(p.border, p.strong, `${name}: neutral frames use the strong border`);
+          assert(p.shadow.includes('3px'), `${name}: the surface paints the exterior cast`);
+        }
+      }
+      for (const status of ['accent', 'failed']) {
+        await page.locator('.diagram-node').evaluate((node, status) => {
+          node.toggleAttribute('data-accent', status === 'accent');
+          if (status === 'failed') node.dataset.status = 'failed'; else delete node.dataset.status;
+        }, status);
+        const p = await page.locator('.diagram-node').evaluate(paint);
+        assert.deepEqual(p.border, p.ink, `${theme}/${border}/${status}: explicit frame color reaches its shadow`);
+        assert.notDeepEqual(p.border, p.strong, `${theme}/${border}/${status}: explicit frame color still wins`);
+      }
+      await page.locator('.diagram-node').evaluate(node => { node.removeAttribute('data-accent'); delete node.dataset.status; });
+    }
+    for (const border of ['solid', 'dash', 'double', 'bevel']) {
+      await page.evaluate(border => { document.documentElement.dataset.borderStyle = border; }, border);
+      const p = await page.locator('#cast-card').evaluate(paint);
+      assert.deepEqual(p.border, p.normal, `${theme}/${border}: other border styles keep their color`);
+    }
+  } finally { await page.close(); }
 });
 
 for (const theme of ['light', 'dark']) test(`Momoi masks follow the active accent in ${theme}`, async () => {

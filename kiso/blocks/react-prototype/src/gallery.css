@@ -157,10 +157,8 @@
   color: var(--color-muted-foreground);
   cursor: pointer;
 }
-.catalog-code pre {
-  margin-top: var(--spacing-md);
-  overflow-x: auto;
-}
+.catalog-code { margin-block-start: var(--spacing-lg); min-width: 0; }
+.catalog-code > .code-block { margin-block-start: var(--spacing-md); }
 .catalog-footnote {
   margin-top: var(--spacing-xl);
 }

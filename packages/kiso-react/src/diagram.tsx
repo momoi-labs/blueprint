@@ -1,3 +1,4 @@
+import { PanelShadow } from "./panel-shadow.js"
 import * as React from "react"
 import { clsx as cn } from "clsx"
 import { ChevronDown, ChevronUp, Container, Database, GitBranch, Route, Server, type LucideIcon } from "lucide-react"
@@ -98,7 +99,10 @@ export type DiagramCornerStyle = "square" | "rounded" | "asym" | "pixel"
 export type DiagramCornerSize = "off" | "small" | "medium" | "large"
 export type DiagramCornerMarks = "none" | "ticks" | "brackets" | "arcs" | "diagonal" | "dots"
 
+export type DiagramShadowStyle = "auto" | "none" | "hard" | "soft"
+
 export type DiagramFrameProps = {
+  shadowStyle?: DiagramShadowStyle
   borderStyle?: DiagramBorderStyle
   cornerStyle?: DiagramCornerStyle
   cornerSize?: DiagramCornerSize
@@ -134,7 +138,7 @@ export type DiagramProps = Omit<React.ComponentProps<"div">, "children"> & Diagr
   children: React.ReactNode
 }
 
-function Diagram({ label, direction = "right", columns, crossings = "none", labels = "auto", edges: shape, arrow, footer, background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, className, children, ...props }: DiagramProps) {
+function Diagram({ label, direction = "right", columns, crossings = "none", labels = "auto", edges: shape, arrow, footer, background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle, className, children, ...props }: DiagramProps) {
   const frame = React.useRef<HTMLDivElement>(null)
   const scroll = React.useRef<HTMLDivElement>(null)
   const lanes = React.useRef<HTMLDivElement>(null)
@@ -334,6 +338,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         data-background-style={background}
         data-background-strength={strength}
       >
+        <PanelShadow />
         {/* A drawing too wide to wrap scrolls, so the scroll region is the
             thing a keyboard user reaches. It is a group, not an image: nodes
             carry text and controls that assistive technology must reach. */}
@@ -351,6 +356,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
               data-corner-style={cornerStyle}
               data-corner-size={cornerSize}
               data-corner-marks={cornerMarks}
+              data-shadow-style={shadowStyle}
               data-edge-labels={registered.some((edge) => edge.label) || undefined}
             >
               {children}
@@ -531,7 +537,7 @@ export type DiagramNodeGroupProps = React.ComponentProps<"div"> & DiagramFramePr
    container that receives requests with the other containers under it.
    Edges still reach each node on its own. The group carries the frame, so
    its frame props replace the nodes' own. */
-function DiagramNodeGroup({ borderStyle, cornerStyle, cornerSize, cornerMarks, className, ...props }: DiagramNodeGroupProps) {
+function DiagramNodeGroup({ borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle, className, ...props }: DiagramNodeGroupProps) {
   return (
     <Card
       {...props}
@@ -541,6 +547,7 @@ function DiagramNodeGroup({ borderStyle, cornerStyle, cornerSize, cornerMarks, c
       data-corner-style={cornerStyle}
       data-corner-size={cornerSize}
       data-corner-marks={cornerMarks}
+              data-shadow-style={shadowStyle}
     />
   )
 }
@@ -564,7 +571,7 @@ export type DiagramNodeProps = Omit<React.ComponentProps<"div">, "title" | "chil
   children?: React.ReactNode
 }
 
-function DiagramNode({ id, title, kind, icon, label, accent, status, borderStyle, cornerStyle, cornerSize, cornerMarks, className, children, ...props }: DiagramNodeProps) {
+function DiagramNode({ id, title, kind, icon, label, accent, status, borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle, className, children, ...props }: DiagramNodeProps) {
   const { register } = useRegistry("DiagramNode")
   const ref = React.useCallback((element: HTMLElement | null) => register(id, element), [id, register])
   const spec = kind ? kinds[kind] : undefined
@@ -588,6 +595,7 @@ function DiagramNode({ id, title, kind, icon, label, accent, status, borderStyle
       data-corner-style={cornerStyle}
       data-corner-size={cornerSize}
       data-corner-marks={cornerMarks}
+              data-shadow-style={shadowStyle}
     >
       {caption && (
         <span className="diagram-node-kind">

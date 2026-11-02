@@ -1,5 +1,7 @@
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
 "use client"
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
@@ -16,6 +18,7 @@ function TableFrame({
   ...props
 }: React.ComponentProps<"div"> & { frame?: "default" | "none" }) {
   return <div data-slot="table-frame" data-frame={frame} className={cn("table-wrap", className)} {...props}>
+    <PanelShadow />
     <div className="table-surface">{children}</div>
   </div>
 }

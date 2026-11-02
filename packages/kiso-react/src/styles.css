@@ -178,9 +178,9 @@
   width: min(32rem, calc(100vw - 2 * var(--spacing-lg)));
   --frame-fill: var(--color-elevated-surface);
   background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
-  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
+  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--appearance-cast-border, var(--color-border))));
   border-radius: var(--appearance-corners, var(--radius-surface));
-  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md)));
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
 }
 .dialog-scroll {
   max-height: calc(100dvh - 2 * var(--spacing-xl));
@@ -476,8 +476,8 @@
   flex-direction: column;
   --frame-fill: var(--color-elevated-surface);
   background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--appearance-expressive, 0)) * (1 - var(--pixel-enabled, 0)) * 100%), transparent);
-  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
-  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md)));
+  border: 1px var(--appearance-panel-border, solid) var(--appearance-border-color, var(--corner-border-color, var(--appearance-cast-border, var(--color-border))));
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
 }
 .kiso-react-drawer[data-placement="side"] {
   inset-block: 0;

@@ -6,6 +6,7 @@ import { clsx as cn } from "clsx"
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 
 import { Button } from "./button.js"
+import { PanelShadow } from "./panel-shadow.js"
 
 function AlertDialog({
   ...props
@@ -53,6 +54,7 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
   return (
@@ -66,7 +68,10 @@ function AlertDialogContent({
           className
         )}
         {...props}
-      />
+      >
+        <PanelShadow />
+        {children}
+      </AlertDialogPrimitive.Content>
     </AlertDialogPortal>
   )
 }

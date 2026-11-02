@@ -23,19 +23,44 @@ function boot(values = {}, blocked = false, phone = false) {
   return { api: window.kisoAppearance, dataset, storage, resize };
 }
 
+test("shadow migration preserves legacy elevation without rerunning Pixel size migration", () => {
+  for (const version of [undefined, 1, 2]) {
+    const saved = { version, borderStyle: "solid", cornerStyle: "pixel", cornerSize: "large", frameDetail: "small" };
+    const first = boot({ "kiso-gallery-appearance": JSON.stringify(saved) });
+    assert.equal(first.dataset.shadowStyle, "auto");
+    if (version === 2) assert.equal(first.dataset.cornerSize, "large");
+    first.api.save({ ...first.api.read(), shadowStyle: "soft", cornerSize: "large", frameDetail: "small", outerShadowStyle: "hard", phoneShadowStyle: "none" });
+    const second = boot(Object.fromEntries(first.storage));
+    assert.equal(second.dataset.shadowStyle, "soft");
+    assert.equal(second.dataset.outerShadowStyle, "hard");
+    assert.equal(second.dataset.cornerSize, "large");
+    assert.equal(second.dataset.frameDetail, "small");
+    assert.equal(JSON.parse(second.storage.get("kiso-gallery-appearance")).version, 3);
+    second.resize(true);
+    assert.equal(second.dataset.shadowStyle, "none");
+    second.resize(false);
+    assert.equal(second.dataset.shadowStyle, "soft");
+    second.api.save(second.api.defaults);
+    assert.equal(second.dataset.shadowStyle, "none");
+  }
+  for (const value of ["{", "null", "[]", "{}", '{"shadowStyle":"invalid"}']) {
+    assert.equal(boot({ "kiso-gallery-appearance": value }).dataset.shadowStyle, "none");
+  }
+});
+
 test("new visits use the approved Pixel everywhere settings before React starts", () => {
   const { api, dataset } = boot();
   const expected = {
-    theme: "system", accent: "violet", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", borderStyle: "solid", cornerStyle: "pixel",
+    theme: "system", accent: "violet", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "none", borderStyle: "solid", cornerStyle: "pixel",
     cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
     appShell: "inset", appShellOuter: "auto", frameScope: "all", markScope: "panels", markClearance: "normal",
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
     frameDetail: "medium", paperTone: "theme", panelFill: "solid",
-    outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit",
-    phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit",
+    outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit", outerShadowStyle: "inherit",
+    phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit",
   };
   assert.deepEqual(JSON.parse(JSON.stringify(api.read())), expected);
-  const { theme, phoneBackgroundStyle, phoneBorderStyle, phoneCornerStyle, phoneCornerMarks, phonePanelFill, ...attributes } = expected;
+  const { theme, phoneBackgroundStyle, phoneBorderStyle, phoneCornerStyle, phoneCornerMarks, phonePanelFill, phoneShadowStyle, ...attributes } = expected;
   assert.deepEqual(dataset, attributes);
 });
 
@@ -72,7 +97,7 @@ test("restores the complete appearance before React starts", () => {
   const saved = { theme: "dark", accent: "teal", borderStyle: "solid", cornerStyle: "asym", cornerMarks: "arcs", cornerSize: "large", markSize: "small", visualStyle: "editorial", appShell: "inset" };
   const { api, dataset } = boot({ "kiso-gallery-appearance": JSON.stringify(saved) });
   const attributes = Object.fromEntries(Object.entries(api.defaults).filter(([key]) => !key.startsWith("phone")));
-  assert.deepEqual(dataset, { ...attributes, ...saved });
+  assert.deepEqual(dataset, { ...attributes, ...saved, shadowStyle: "auto" });
 });
 
 test("phone overrides replace main choices only below 700px", () => {

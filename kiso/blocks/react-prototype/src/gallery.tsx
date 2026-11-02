@@ -3,6 +3,7 @@ import { BookOpen, Boxes, ChevronDown, FileText, LayoutDashboard, ListTree, Pane
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { CodeBlockDemo } from "./code-block-demo";
+import { tsx } from "./code-highlight";
 import { CodeEditorDemo } from "./code-editor-demo";
 import { DemoSettings, DemoSettingsContext, useDemoOptions } from "./demo-settings";
 import { animateGalleryPanels } from "./gallery-motion";
@@ -50,10 +51,12 @@ import {
   PaneGrid,
   GridPane,
   Card,
+  PanelShadow,
   CardContent,
   CardFooter,
   CardHeader,
   Checkbox,
+  CodeBlock,
   Chip,
   ChipInput,
   ChipInputBox,
@@ -395,7 +398,7 @@ const shortcuts: Record<string, readonly (readonly [keys: string[], action: stri
 };
 
 const snippets: Record<string, string> = {
-  diagram: '<Diagram label="storefront topology">\n  <DiagramColumn>\n    <DiagramNode id="host" kind="route" label="Hostname" title="loja.varejo.com.br">\n      https://loja.varejo.com.br\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="repo" kind="repository" title="storefront" accent>\n      {"github.com/varejo/storefront\\nport: 8000"}\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="db" kind="database" title="varejo-prod">postgres:17</DiagramNode>\n    <DiagramNode id="cache" icon={Zap} label="Cache" title="varejo-cache" status="failed" borderStyle="dash">redis:7</DiagramNode>\n  </DiagramColumn>\n  <DiagramEdge from="host" to="repo" label=":8000" />\n  <DiagramEdge from="repo" to="db" label="DATABASE_URL" />\n  <DiagramEdge from="repo" to="cache" label="REDIS_URL" line="dotted" tone="danger" />\n</Diagram>',
+  diagram: '<Diagram label="storefront topology" shadowStyle="hard">\n  <DiagramColumn>\n    <DiagramNode id="host" kind="route" label="Hostname" title="loja.varejo.com.br">\n      https://loja.varejo.com.br\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="repo" kind="repository" title="storefront" accent>\n      {"github.com/varejo/storefront\\nport: 8000"}\n    </DiagramNode>\n  </DiagramColumn>\n  <DiagramColumn>\n    <DiagramNode id="db" kind="database" title="varejo-prod">postgres:17</DiagramNode>\n    <DiagramNode id="cache" icon={Zap} label="Cache" title="varejo-cache" status="failed" borderStyle="dash">redis:7</DiagramNode>\n  </DiagramColumn>\n  <DiagramEdge from="host" to="repo" label=":8000" />\n  <DiagramEdge from="repo" to="db" label="DATABASE_URL" />\n  <DiagramEdge from="repo" to="cache" label="REDIS_URL" line="dotted" tone="danger" />\n</Diagram>',
   steps: '<Steps label="Progress" items={items} current={current} onStepChange={setCurrent} />',
   "radio-group": '<RadioGroup label="Format" value={format} onValueChange={setFormat} variant="tiles">\n  <RadioGroupItem value="compact" label="Compact" />\n  <RadioGroupItem value="full" label="Full" />\n</RadioGroup>',
   "password-input": '<FormField label="Password">\n  <PasswordInput name="password" />\n</FormField>',
@@ -1002,7 +1005,7 @@ function ChipInputDemo() {
       <p className="muted t-label" role="status">
         {deps.length} dependencies.
       </p>
-      <pre>
+      <pre><PanelShadow />
         <code>{miseToml(deps)}</code>
       </pre>
     </div>
@@ -1685,7 +1688,7 @@ const Demo = memo(function Demo({
             <FormField label="Project name" defaultValue="Website refresh" />
           </TabsContent>
           <TabsContent value="logs">
-            <pre>
+            <pre><PanelShadow />
               <code>14:14:47 [info] Project ready on port 80.</code>
             </pre>
           </TabsContent>
@@ -2460,7 +2463,6 @@ export function ComponentGallery({
                   onAccentChange={onAccentChange}
                 />
                 </DemoSettingsContext.Provider>
-              </div>
               {!browsing && shortcuts[id] && (
                 <section className="catalog-shortcuts" aria-labelledby={`${id}-shortcuts`}>
                   <h2 id={`${id}-shortcuts`} className="t-h3">Shortcuts</h2>
@@ -2475,11 +2477,10 @@ export function ComponentGallery({
               {!browsing && snippets[id] && (
                 <details className="catalog-code">
                   <summary>Usage example</summary>
-                  <pre>
-                    <code>{snippets[id]}</code>
-                  </pre>
+                  <CodeBlock code={snippets[id]} highlight={tsx} title="React / TSX" copy="example" />
                 </details>
               )}
+              </div>
             </CatalogPane>
           ))}
         </CatalogGrid>

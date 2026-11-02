@@ -1,11 +1,11 @@
 import { createElement as h, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Form, FormActions, Button, TableFrame, Table, TableHeader, TableHead, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input, Checkbox, Switch, Textarea, ChipInput, ChipInputBox, ChipInputField, Chip, ChipName, ChipValue, ChipRemove, FilterInput, Lifecycle, StatusBadge, ThemeSelector, BrandMark, Badge, Skeleton } from '../../packages/kiso-react/dist/index.js';
+import { PanelShadow, Card, CardHeader, CardTitle, CardContent, CardFooter, FormField, Form, FormActions, Button, TableFrame, Table, TableHeader, TableHead, TableBody, TableRow, TableCell, Alert, AlertContent, AlertTitle, Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogBody, DialogFooter, Drawer, DrawerTrigger, DrawerContent, AppShell, AppShellMain, AppShellPanel, Header, Input, Checkbox, Switch, Textarea, ChipInput, ChipInputBox, ChipInputField, Chip, ChipName, ChipValue, ChipRemove, FilterInput, Lifecycle, StatusBadge, ThemeSelector, BrandMark, Badge, Skeleton, Diagram, DiagramNode, RadioGroup, RadioGroupItem } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
 if (params.has('corners')) document.documentElement.dataset.cornerStyle = params.get('corners');
-for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail']) {
+for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail', 'appShellOuter', 'shadowStyle']) {
   if (params.has(key)) document.documentElement.dataset[key] = params.get(key);
 }
 function Sample({ id = 'sample', title = 'Environment' }) {
@@ -22,7 +22,28 @@ function Sample({ id = 'sample', title = 'Environment' }) {
     h(CardFooter, null, h(Button, { variant: 'primary' }, 'Apply')),
   );
 }
+function ShadowMatrix() {
+  const [tuples, setTuples] = useState([]);
+  window.setShadowTuples = setTuples;
+  return h('main', { id: 'sample', style: { display: 'grid', gridTemplateColumns: 'repeat(4, 240px)', gap: '40px', padding: '40px' } }, ...tuples.map((tuple, index) =>
+    h('section', { key: index, id: `tuple-${index}`, ...Object.fromEntries(Object.entries(tuple).map(([key, value]) => [`data-${key.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`)}`, value])) },
+      h(Card, { style: { width: '180px', height: '120px' } }, h(Input, { 'aria-label': 'Matrix field', defaultValue: 'Keep focus', style: { width: '120px' } })),
+      h(Diagram, { label: `Matrix ${index}` }, h(DiagramNode, { id: `node-${index}`, title: 'Node', style: { width: '180px', height: '120px' } })),
+    )));
+}
 function Fixture() {
+  if (params.has('shadowMatrix')) return h(ShadowMatrix);
+  if (params.has('shadowPaint')) return h('main', { id: 'sample', style: { padding: '48px', display: 'grid', gap: '48px', width: '400px' } },
+    h(Card, { id: 'paint-card', style: { width: '200px', height: '140px' } }, h(CardContent, null, 'Panel text', h(Input, { 'aria-label': 'Paint field', defaultValue: 'Unchanged', style: { width: '140px' } }))),
+    h(Diagram, { label: 'Paint nodes', background: 'solid' }, h(DiagramNode, { id: 'paint-node', title: 'Node text', style: { width: '200px', height: '140px' } }, h(Input, { 'aria-label': 'Node field', defaultValue: 'Unchanged', style: { width: '140px' } }))),
+  );
+  if (params.has('casts')) return h('main', { id: 'sample', style: { padding: '32px' } },
+    h(Card, { id: 'cast-card', style: { width: '160px', height: '96px', marginBottom: '32px' } }),
+    h(Diagram, { label: 'Shadow contact', style: { width: '300px' } }, h(DiagramNode, { id: 'cast-node', style: { width: '160px', height: '96px' } })),
+    h(RadioGroup, { label: 'Shadow choices', variant: 'tiles', defaultValue: 'selected' },
+      h(RadioGroupItem, { value: 'selected', label: 'Selected' }),
+      h(RadioGroupItem, { value: 'other', label: 'Other' })),
+  );
   if (params.has('contents')) return h(ContentFixture);
   if (params.has('controls')) return h('main', { id: 'controls', className: 'page', style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '24px' } },
     h(Checkbox, { 'aria-label': 'Unchecked' }),
@@ -70,10 +91,10 @@ function Fixture() {
     h('h1', null, 'Panel appearance'),
     h(Sample),
     h('div', { id: 'nested', 'data-border-style': 'double' }, h(Card, null, h(CardContent, null, 'A nested frame retains the selected corners.'))),
-    h('pre', { id: 'code' }, h('code', null, 'work_mem = 4MB')),
-    h('div', { className: 'logview', id: 'log' }, h('div', { className: 'log-scroll' }, 'Ready')),
-    h('div', { className: 'palette', id: 'palette' }, h('div', { className: 'palette-list' }, 'Command palette frame')),
-    h('div', { className: 'app-shell', 'data-layout': 'topbar', 'data-variant': 'inset' }, h('main', { id: 'inset', 'data-slot': 'app-shell-main' }, 'Inset shell content')),
+    h('pre', { id: 'code' }, h(PanelShadow), h('code', null, 'work_mem = 4MB')),
+    h('div', { className: 'logview', id: 'log' }, h(PanelShadow), h('div', { className: 'log-scroll' }, 'Ready')),
+    h('div', { className: 'palette', id: 'palette' }, h(PanelShadow), h('div', { className: 'palette-list' }, 'Command palette frame')),
+    h('div', { className: 'app-shell', 'data-layout': 'topbar', 'data-variant': 'inset' }, h('main', { id: 'inset', 'data-slot': 'app-shell-main' }, h(PanelShadow), 'Inset shell content')),
     h(Dialog, null, h(DialogTrigger, { asChild: true }, h(Button, null, 'Open dialog')), h(DialogContent, null, h(DialogHeader, null, h(DialogTitle, null, 'Dialog frame')), h(DialogBody, null, h(FormField, { label: 'Dialog value', defaultValue: 'Retained border' })))),
     h(Drawer, null, h(DrawerTrigger, { asChild: true }, h(Button, null, 'Open drawer')), h(DrawerContent, null, h(DialogHeader, null, h(DialogTitle, null, 'Drawer frame')), h(DialogBody, null, 'Drawer content'))),
   );

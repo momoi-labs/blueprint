@@ -163,28 +163,30 @@ test('Border choices update existing panels and guided controls without resettin
   } finally { await page.close(); }
 });
 
-for (const theme of ['light', 'dark']) test(`Fresh visits, reset and Pixel everywhere share the approved default in ${theme}`, async () => {
+for (const theme of ['light', 'dark']) test(`Fresh visits and reset use None; Pixel everywhere adds Hard in ${theme}`, async () => {
   const page = await open('intro', 1440, theme);
   try {
     const initial = await page.evaluate(() => window.kisoAppearance.read());
     const panel = await settings(page);
     const preset = panel.getByRole('button', { name: 'Pixel everywhere', exact: true });
-    assert.equal(await preset.getAttribute('aria-pressed'), 'true');
+    assert.equal(await preset.getAttribute('aria-pressed'), 'false');
+    assert.equal(initial.shadowStyle, 'none');
+    const pixelPreset = { ...initial, shadowStyle: 'hard' };
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined);
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light dark');
     await panel.getByRole('button', { name: 'Default', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), {
-      ...initial, cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default', frameScope: 'panels',
+      ...initial, shadowStyle: 'soft', cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default', frameScope: 'panels',
     }, 'Default preserves the previous appearance as a separate preset');
     await page.reload();
     assert.equal(await page.evaluate(() => window.kisoAppearance.read().cornerStyle), 'square', 'Saved appearance is not overwritten by the new default');
     await settings(page);
     await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
     await preset.click();
-    assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), initial);
+    assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), pixelPreset);
     await panel.getByRole('radio', { name: 'Dark theme', exact: true }).check();
     await preset.click();
-    assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), initial, 'The default preset restores system theme');
+    assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), pixelPreset, 'The preset restores system theme with Hard shadows');
     await panel.getByRole('button', { name: 'Manga board', exact: true }).click();
     await panel.getByRole('button', { name: 'Reset appearance', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), initial);
@@ -223,7 +225,9 @@ for (const width of [390, 1440]) test(`Random changes appearance without losing 
       await close(page);
       assert.equal(await ram.inputValue(), '24');
       assert(await ram.evaluate(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; }));
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      const overflow = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth,
+        elements: [...document.querySelectorAll('body *')].filter(el => el.getBoundingClientRect().right > innerWidth && getComputedStyle(el).display !== 'none').slice(-12).map(el => [el.className, el.parentElement?.className, el.getBoundingClientRect().right]) }));
+      assert(overflow.scroll <= overflow.width, JSON.stringify({ next, overflow }));
       previous = next;
     }
     await page.reload();

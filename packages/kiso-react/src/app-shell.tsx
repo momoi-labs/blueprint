@@ -1,5 +1,7 @@
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
 "use client"
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react"
 import { clsx as cn } from "clsx"
@@ -36,13 +38,13 @@ function AppShell({
 
 /* `grow` carries the `min-width: 0` the main column needs so a wide table or
    log line cannot push the sidebar off the screen. */
-function AppShellMain({ className, ...props }: React.ComponentProps<"main">) {
+function AppShellMain({ className, children, ...props }: React.ComponentProps<"main">) {
   return (
     <main
       data-slot="app-shell-main"
       className={cn("grow", className)}
       {...props}
-    />
+    ><PanelShadow />{children}</main>
   )
 }
 

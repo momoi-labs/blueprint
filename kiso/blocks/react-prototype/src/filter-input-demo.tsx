@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Badge, Button, FilterInput, parseFilterExpression, serializeFilterExpression,
+  PanelShadow, Badge, Button, FilterInput, parseFilterExpression, serializeFilterExpression,
   type FilterCondition, type FilterField, type FilterNode,
 } from "@momoi-labs/kiso-react";
 
@@ -69,7 +69,7 @@ export function FilterInputDemo() {
     <div className="between"><h3 className="t-h3">Replicas</h3><p className="muted t-label" role="status">{rows.length} of {replicas.length} results{draft ? ". Draft pending." : ""}</p></div>
     <div className="filter-demo-table"><table className="table"><thead><tr><th>Name</th><th>Status</th><th>Region</th><th>Lag (ms)</th><th>Owner</th></tr></thead><tbody>{rows.map(row => <tr key={row.name}><td className="mono">{row.name}</td><td><Badge variant={row.status === "failed" ? "danger" : row.status === "active" ? "success" : "neutral"}>{row.status}</Badge></td><td>{row.region}</td><td>{row.lag}</td><td>{row.owner ?? "Unassigned"}</td></tr>)}</tbody></table></div>
     {!rows.length && <p className="muted">No replicas match. Edit a condition or clear the filters.</p>}
-    <details className="catalog-code"><summary>Expression and structured value</summary><pre>{serializeFilterExpression(value) || "No filters"}</pre><pre>{JSON.stringify(value, null, 2)}</pre></details>
+    <details className="catalog-code"><summary>Expression and structured value</summary><pre><PanelShadow />{serializeFilterExpression(value) || "No filters"}</pre><pre><PanelShadow />{JSON.stringify(value, null, 2)}</pre></details>
     <details><summary className="t-label">Disabled state</summary><FilterInput label="Inherited filters" fields={fields} value={parsed(examples[2].text)} onValueChange={() => {}} disabled /></details>
     <p className="muted t-label">The product owns fetching, loading, pagination, and SQL translation. This example filters eight local records. Incomplete text stays in the input until it can be confirmed.</p>
   </div>;

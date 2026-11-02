@@ -1,5 +1,7 @@
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
 "use client";
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
@@ -54,6 +56,7 @@ function DialogContent({
         className={cn("kiso-react-dialog marked", className)}
         {...props}
       >
+        <PanelShadow />
         {children}
       </DialogPrimitive.Content>
     </DialogPortal>

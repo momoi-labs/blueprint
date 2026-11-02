@@ -1,4 +1,6 @@
 "use client";
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import { cloneElement, createElement, isValidElement, useState, type ComponentProps, type CSSProperties,
   type ReactElement, type ReactNode } from "react";
@@ -171,6 +173,7 @@ export function CodeBlock({ code, highlight, title, terminal = false, lineNumber
   return (
     <figure className={cn("code-block", className)} data-slot="code-block" data-terminal={terminal || undefined}
       style={{ "--code-block-digits": String(lines.length).length } as CSSProperties} {...props}>
+      <PanelShadow />
       {(title != null || terminal || copy) && <Header className="code-block-header">
         {terminal && <TerminalIcon />}
         {title != null && <span className="code-block-title">{title}</span>}
