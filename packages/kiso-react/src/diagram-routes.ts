@@ -148,7 +148,12 @@ function classify(source: Box, target: Box): DiagramEdgeRoute | null {
   return null
 }
 
-type Pair = { edge: EdgeSpec; source: Box; target: Box; kind: DiagramEdgeRoute; labelled: boolean; blocked?: boolean }
+/* An edge to a node above its source is routed as the edge down from that
+   node, then drawn backward, so it leaves the top or a side of its source
+   and comes into the bottom of its target. Such a pair holds the two boxes
+   swapped and is marked up. */
+type Pair = { edge: EdgeSpec; source: Box; target: Box; kind: DiagramEdgeRoute; labelled: boolean; blocked?: boolean; up?: boolean }
+const keyOf = (pair: Pair) => `${pair.edge.key}:${pair.up ? pair.target.id : pair.source.id}`
 
 /* Picks a point for each exit along a source's bottom: as close to an even
    spread as it can, in the order of their targets, and clear of every node
@@ -207,21 +212,24 @@ function routeGrid(measured: Measured[], nodes: Box[], frames: Box[], stages: bo
     && node.top >= source.bottom - 1 && node.bottom <= target.top + 1 && node.right > lo && node.left < hi)
   const pairs: Pair[] = []
   for (const { edge, target, sources } of measured) {
-    sources.forEach((source, index) => {
-      if (source.id === target.id) return
-      let kind = edge.route ?? classify(source, target)
+    sources.forEach((start, index) => {
+      if (start.id === target.id) return
+      const up = edge.route !== "side" && !classify(start, target) && !!classify(target, start)
+      const [source, end] = up ? [target, start] : [start, target]
+      let kind = edge.route ?? classify(source, end)
       let blocked = false
-      if (stages && !edge.route && kind === "drop" && !between(source, target, Math.min(source.left, target.left), Math.max(source.right, target.right))) kind = "down"
-      else if (stages && !edge.route && kind === "down") blocked = between(source, target, Math.max(source.left, target.left), Math.min(source.right, target.right))
-      if (kind) pairs.push({ edge, source, target, kind, labelled: index === 0, blocked })
-      else warn(`${edge.key}:${backward}`, `Diagram: the edge ${source.id} -> ${target.id} goes ${backward}, so it is not drawn. Put the target ${backward === "up" ? "lower" : "further right"}.`)
+      if (stages && !edge.route && kind === "drop" && !between(source, end, Math.min(source.left, end.left), Math.max(source.right, end.right))) kind = "down"
+      else if (stages && !edge.route && kind === "down") blocked = between(source, end, Math.max(source.left, end.left), Math.min(source.right, end.right))
+      if (kind) pairs.push({ edge, source, target: end, kind, labelled: index === 0, blocked, up })
+      else warn(`${edge.key}:${backward}`, `Diagram: the edge ${start.id} -> ${target.id} goes ${backward}, so it is not drawn. Put the target ${backward === "up" ? "lower" : "further right"}.`)
     })
   }
 
   // Edges down from one source with one series share an exit and a trunk.
   const groups = new Map<string, Pair[]>()
   for (const pair of pairs.filter((item) => item.kind !== "side")) {
-    const key = `${pair.source.id}\n${pair.edge.series ?? (stages ? "plain" : `#${pair.edge.key}`)}`
+    // An edge up keeps its own exit: it never shares a trunk.
+    const key = pair.up ? `^${keyOf(pair)}` : `${pair.source.id}\n${pair.edge.series ?? (stages ? "plain" : `#${pair.edge.key}`)}`
     groups.set(key, [...(groups.get(key) ?? []), pair])
   }
   for (const list of groups.values()) list.sort((a, b) => a.target.top - b.target.top || a.target.y - b.target.y)
@@ -341,8 +349,8 @@ function routeGrid(measured: Measured[], nodes: Box[], frames: Box[], stages: bo
   for (const plan of plans) {
     const { pair } = plan
     const { edge, source, target } = pair
-    const key = `${edge.key}:${source.id}`
-    const ends: [string, string] = [source.id, target.id]
+    const key = keyOf(pair)
+    const ends: [string, string] = pair.up ? [target.id, source.id] : [source.id, target.id]
     let points: Pt[]
     const at = entry.get(plan)!
     if (pair.kind === "side") {
@@ -393,13 +401,17 @@ function routeGrid(measured: Measured[], nodes: Box[], frames: Box[], stages: bo
       const list = [...exitOf.keys()].find((item) => item.includes(pair))!
       splits.set(list, Math.max(splits.get(list) ?? 0, dot[1] - source.bottom + RADIUS))
     }
-    const run = longestVertical(points)
+    let run = longestVertical(points)
+    if (pair.up) {
+      points = points.reverse()
+      run = points.length - 2 - run
+    }
     routes.push({ key, points, arrow: true, look: look(edge), ends, dot, label: pair.labelled && edge.label ? { text: edge.label, run } : undefined })
   }
   // The far edge's label keeps clear of the stub above its splits.
   for (const [list, from] of splits) {
     const far = list[list.length - 1]!
-    const route = routes.find((item) => item.key === `${far.edge.key}:${far.source.id}`)
+    const route = routes.find((item) => item.key === keyOf(far))
     if (route?.label && route.label.run === 0) route.label.from = from + 4
   }
   if (stages) fork(routes, plans, listOf)
@@ -429,7 +441,6 @@ function reshape(route: Route, points: Pt[]) {
    A trunk whose edges differ in look is drawn plain up to where the last
    branch leaves it, whatever way the branches go. */
 function fork(routes: Route[], plans: { pair: Pair; enter: string; fixed?: number }[], listOf: Map<Pair, Pair[]>) {
-  const keyOf = (pair: Pair) => `${pair.edge.key}:${pair.source.id}`
   for (const list of new Set(listOf.values())) {
     if (list.length < 2) continue
     const here = list.map((pair) => ({ pair, route: routes.find((item) => item.key === keyOf(pair))! })).filter((item) => item.route)
