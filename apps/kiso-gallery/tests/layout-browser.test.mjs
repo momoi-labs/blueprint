@@ -374,9 +374,10 @@ for (const width of [390, 320]) for (const theme of fullSweep ? ["light", "dark"
 for (const width of [1440, 390]) for (const theme of ["light", "dark"]) test(`Layout previews draw no partial Momoi glyph at ${width}px in ${theme}`, async () => {
   const page = await open(width, "default", theme);
   try {
+    // Saved before the page loads, so the preview frame reads it on its own
+    // load instead of racing a storage event.
+    await page.addInitScript(() => { if (window === window.top) { const key = "kiso-gallery-appearance"; localStorage.setItem(key, JSON.stringify({ ...JSON.parse(localStorage.getItem(key)), backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" })); } });
     await page.goto(`${url}#example/dashboard`);
-    await page.waitForFunction(() => window.kisoAppearance);
-    await page.evaluate(() => { const k = window.kisoAppearance; k.save({ ...k.read(), backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" }); });
     await page.waitForFunction(() => document.documentElement.dataset.backgroundStyle === "momoi");
     // The dialog draws the example in a frame of its own.
     const frame = page.frameLocator(".layout-dialog iframe");
