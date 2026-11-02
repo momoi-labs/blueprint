@@ -29,7 +29,9 @@ pub fn buffer(buffer: &Buffer) -> String {
     let mut out = String::from("<div class=\"term\">");
     for y in 0..area.height {
         out.push_str("<div class=\"row\">");
-        let mut run: Option<(String, String)> = None;
+        // A run keeps its width in cells, so a glyph the font lacks, such as
+        // braille on a phone, cannot widen the row.
+        let mut run: Option<(String, String, usize)> = None;
         // A wide character, such as 中, takes two cells; the second is a
         // blank the terminal draws over, so it is not written again.
         let mut covered = 0;
@@ -39,7 +41,8 @@ pub fn buffer(buffer: &Buffer) -> String {
                 continue;
             }
             let cell = &buffer[(x, y)];
-            covered = unicode_width::UnicodeWidthStr::width(cell.symbol()).saturating_sub(1);
+            let width = unicode_width::UnicodeWidthStr::width(cell.symbol()).max(1);
+            covered = width - 1;
             let mut style = String::new();
             if let Some(c) = css(cell.fg) {
                 style += &format!("color:{c};");
@@ -54,21 +57,28 @@ pub fn buffer(buffer: &Buffer) -> String {
                 style += "text-decoration:underline;";
             }
             match &mut run {
-                Some((s, text)) if *s == style => text.push_str(cell.symbol()),
+                Some((s, text, cells)) if *s == style => {
+                    text.push_str(cell.symbol());
+                    *cells += width;
+                }
                 _ => {
-                    if let Some((s, text)) = run.take() {
-                        out += &format!("<span style=\"{s}\">{}</span>", escape(&text));
+                    if let Some(done) = run.take() {
+                        out += &span(done);
                     }
-                    run = Some((style, cell.symbol().to_owned()));
+                    run = Some((style, cell.symbol().to_owned(), width));
                 }
             }
         }
-        if let Some((s, text)) = run {
-            out += &format!("<span style=\"{s}\">{}</span>", escape(&text));
+        if let Some(done) = run {
+            out += &span(done);
         }
         out.push_str("</div>");
     }
     out + "</div>"
+}
+
+fn span((style, text, cells): (String, String, usize)) -> String {
+    format!("<span style=\"{style}width:{cells}ch\">{}</span>", escape(&text))
 }
 
 pub fn page(title: &str, body: &str) -> String {
@@ -81,7 +91,7 @@ pub fn page(title: &str, body: &str) -> String {
 const STYLE: &str = "body{margin:0;padding:8px;background:#151411;color:#eeece9;font:14px/1.5 system-ui,sans-serif}\
 h2{font-size:15px;margin:16px 0 6px}\
 .term{font-family:\"JetBrains Mono\",\"DejaVu Sans Mono\",ui-monospace,monospace;font-size:13px;line-height:17px;white-space:pre;display:inline-block;border:1px solid #494744;font-variant-ligatures:none}\
-.row{height:17px}.row span{display:inline-block;height:17px;vertical-align:top}";
+.row{height:17px}.row{display:flex}.row span{flex:none;height:17px;overflow:hidden}";
 
 /// Gives cells left to the terminal's background the theme's colors, as
 /// OSC 11 does on a real terminal.
