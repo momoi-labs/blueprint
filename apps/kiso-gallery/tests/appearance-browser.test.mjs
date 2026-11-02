@@ -427,7 +427,7 @@ test("Component options replace each other and open on arrival without resetting
     assert.equal(await panel.locator(".gallery-component-settings").textContent(), "");
     assert.equal(await page.getByRole("link", { name: "Appearance", exact: true }).count(), 0);
     await close(page);
-    await page.goto(`${url}#example/dashboard`);
+    await page.goto(`${url}#example`);
     assert(await page.getByRole("button", { name: "Open settings", exact: true }).isVisible());
     await settings(page);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");

@@ -169,7 +169,7 @@ is a gallery convention, not a change to the published component API.
 - Open the browse gallery and the component's direct detail URL. Verify both
   render the shared component. For layout components, inspect the actual layout
   owner, not only the demo nested inside a card. PaneGrid must own the gallery
-  cards and the groups in `#example/settings`.
+  cards and the panels in `#example/dashboard`.
 - For demos with configuration controls, confirm those controls live in
   Appearance. The card and detail view expose a link that opens their options;
   they must not render the controls inline or open Appearance on mount. Keep

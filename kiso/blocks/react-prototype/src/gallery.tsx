@@ -2208,11 +2208,11 @@ export function ComponentGallery({
     <Navigation aria-label="Example layouts">
       <NavigationGroup label="Layouts">
         <NavigationList>
-          {examples.map((layout, index) => (
+          {examples.map((layout) => (
             <NavigationItem key={layout.id}>
               <NavigationLink
                 href={`#example/${layout.id}`}
-                active={selected === layout.id || (selected === "all" && index === 0)}
+                active={selected === layout.id}
               >
                 {layout.label}
               </NavigationLink>
@@ -2408,7 +2408,7 @@ export function ComponentGallery({
           >
             <PageHeaderTitle tabIndex={-1}>
               {showingExample
-                ? "Layout examples"
+                ? "Layouts"
                 : showingTerminal
                 ? "TUI gallery"
                 : showingAccents
@@ -2419,7 +2419,7 @@ export function ComponentGallery({
             </PageHeaderTitle>
             <PageHeaderDescription>
               {showingExample
-                ? "Complete interface examples, composed with Kiso components."
+                ? "Templates by use case, built from Kiso components. Open one to see its states, copy its code and read about its components."
                 : showingTerminal
                 ? "Kiso in a terminal, drawn by tui-kiso with ratatui."
                 : showingAccents

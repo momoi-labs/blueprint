@@ -121,7 +121,7 @@ The build produces `apps/kiso-gallery/dist/`. Preview it at
 <http://127.0.0.1:4175>. The deployment check validates the Cloudflare
 configuration without uploading the app.
 
-Routes use URL fragments, such as `/#components/button` and `/#example/settings`.
+Routes use URL fragments, such as `/#components/button` and `/#example/crud`.
 The selected layout is preserved in the URL, including on reload.
 Only `/` needs to serve HTML; unknown asset paths return 404.
 

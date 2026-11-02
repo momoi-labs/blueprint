@@ -30,7 +30,9 @@ async function open(width, frame = "default", theme = "dark", hasTouch = false) 
   const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: theme, hasTouch });
   page.setDefaultTimeout(5000);
   await page.route("https://fonts.googleapis.com/**", route => route.abort());
-  await page.addInitScript(({ frame, theme }) => localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ appShell: frame, theme })), { frame, theme });
+  // Only the page sets the appearance; the preview frames inside it share
+  // its storage and follow what the test saves later.
+  await page.addInitScript(({ frame, theme }) => { if (window === window.top) localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ appShell: frame, theme })); }, { frame, theme });
   return page;
 }
 async function settings(page, open) {
@@ -103,7 +105,7 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
   const failures = [], errors = [];
   page.on("pageerror", error => errors.push(error.message));
   try {
-    for (const route of [...routes, "intro", "example/dashboard", "example/list-detail", "example/settings", "example/login"]) {
+    for (const route of [...routes, "intro", "example", "example/login", "example/crud", "example/dashboard", "example/charts"]) {
       await page.goto(`${url}#${route}`);
       if (titles[route]) await page.locator('.catalog-heading [data-slot="page-header-title"]').filter({ hasText: titles[route] }).waitFor();
       else await page.locator(route === "intro" ? ".catalog-intro" : ".catalog-layouts").waitFor();
@@ -111,17 +113,14 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
       await settings(page, width >= 1200);
       await assertSettingsToggle(page);
       const issues = await layoutIssues(page, route.startsWith("components/") ? ".catalog-preview" : ".catalog-main");
-      // Below 1024px the example's sidebar is a drawer, so its main area takes the whole shell.
-      if (width < 1024 && await page.locator(".layout-shell").count()) {
-        const shell = await page.locator(".layout-shell").evaluate(el => ({ shell: el.clientWidth, main: el.querySelector(":scope > main").getBoundingClientRect().width }));
-        if (shell.main < shell.shell - 2) issues.push(`example main is ${shell.main}px of a ${shell.shell}px shell`);
-      }
-      // The gallery scrolls the example card, so its header must not stick to the gallery.
-      if (await page.locator(".layout-preview > .layout-shell > main > .topbar").count()) {
-        const position = await page.locator(".layout-preview > .layout-shell > main > .topbar").evaluate(el => getComputedStyle(el).position);
-        if (position !== "static") issues.push(`example header is ${position}`);
-      }
       if (issues.length) failures.push({ route, issues });
+    }
+    // Alone in a tab, below 1024px the example's sidebar is a drawer, so its
+    // main area takes the whole shell.
+    if (width < 1024) for (const example of ["crud", "dashboard", "charts"]) {
+      await page.goto(`${url}?frame#example/${example}`);
+      const shell = await page.locator(".layout-shell").evaluate(el => ({ shell: el.clientWidth, main: el.querySelector(":scope > main").getBoundingClientRect().width }));
+      if (shell.main < shell.shell - 2) failures.push({ route: `?frame#example/${example}`, issues: [`example main is ${shell.main}px of a ${shell.shell}px shell`] });
     }
     assert.deepEqual(errors, [], "No render or lifecycle exceptions");
     assert.deepEqual(failures, [], JSON.stringify(failures, null, 2));
@@ -293,7 +292,7 @@ for (const background of ["momoi", "momoi-repeat", "grid", "fibers", "solid"]) t
         localStorage.setItem("kiso-gallery-appearance", JSON.stringify(value));
         localStorage.setItem("kiso-gallery-layout-device", "desktop");
       }, appearance);
-      await desktop.goto(`${url}#example/${example}`);
+      await desktop.goto(`${url}?frame#example/${example}`);
       await phone.goto(`${url}?phone-frame#example/${example}`);
       for (const page of [desktop, phone]) await page.locator(selector).waitFor();
       const drawn = await desktop.evaluate(layer, selector);
@@ -379,9 +378,12 @@ for (const width of [1440, 390]) for (const theme of ["light", "dark"]) test(`La
     await page.waitForFunction(() => window.kisoAppearance);
     await page.evaluate(() => { const k = window.kisoAppearance; k.save({ ...k.read(), backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" }); });
     await page.waitForFunction(() => document.documentElement.dataset.backgroundStyle === "momoi");
-    await page.locator(".layout-preview .layout-shell").waitFor();
-    const layers = await page.evaluate(() => [...document.querySelectorAll(".app-shell")].map(el => [el.className, getComputedStyle(el, "::before").content]));
-    assert(layers.length >= 2, "The preview shell is nested in the page shell");
+    // The dialog draws the example in a frame of its own.
+    const frame = page.frameLocator(".layout-dialog iframe");
+    await frame.locator('html[data-background-style="momoi"] .layout-shell').waitFor();
+    const shells = root => [...root.ownerDocument.querySelectorAll(".app-shell")].map(el => [el.className, getComputedStyle(el, "::before").content]);
+    const layers = [...await page.locator("html").evaluate(shells), ...await frame.locator("html").evaluate(shells)];
+    assert(layers.length >= 2, "The preview shell is drawn beside the page shell");
     assert.deepEqual(layers.filter(([, content]) => content !== "none"), [], "No shell behind the preview draws the signature");
   } finally { await page.close(); }
 });

@@ -27,3 +27,7 @@ export const tsx = highlighter(
 export const yaml = highlighter(
   /(#.*$)|("(?:[^"\\]|\\.)*"|'[^']*')|^(\s*[\w.-]+)(?=:)|(\b\d+[\w.]*\b)/gm,
   ["code-comment", "code-string", "code-name", "code-constant"]);
+
+export const rust = highlighter(
+  /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|\b(fn|let|mut|const|impl|struct|enum|type|match|if|else|for|in|return|pub|use|self|Self|Some|None)\b|\b(true|false|\d[\d_.]*)\b|\b([A-Z]\w*)(?=::|\s*[({<])/g,
+  ["code-comment", "code-string", "code-keyword", "code-constant", "code-name"]);
