@@ -16,16 +16,17 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{TableState, Widget};
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
-    braille, fact, scramble, set_background, set_foreground, step, Act, Buttons, Columns, Field, FilterEdit, Filters, Form, Header,
-    Ink, KeyHints, Look, Mark, Menu, Modal, Page, Palette, Pattern, Press, Question, Scroll, Search, SideItem, Side,
-    Sidebar, StatusBadge, StepState, Stroke, Table, Tabs, Theme, ThemePicker, Title, Toast, ACCENTS,
+    braille, fact, scramble, set_background, set_foreground, step, Act, BarGauge, Buttons, Chart, ChartLegend, Columns, Field,
+    FilterEdit, Filters, Form, Header, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, Pattern, Press, Question,
+    Scroll, Search, Series, SideItem, Side, Sidebar, Sparkline, StatusBadge, StepState, Stroke, Table, Tabs, Theme, ThemePicker,
+    Title, Toast, ACCENTS,
 };
 
 const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 19] = [
+const PAGES: [(&str, &str); 23] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The brand and version, then where the person is."),
     ("Title", "Where the person is, across the width."),
@@ -45,9 +46,14 @@ const PAGES: [(&str, &str); 19] = [
     ("Filters", "One select per facet; f edits them, the page follows."),
     ("Menu", "The actions of one row, opened with a, under the row."),
     ("Detail", "A record as a page: tabs, facts, a failure and its run."),
+    ("Chart", "Series across a window, in braille, with a scale and a legend."),
+    ("Sparkline", "The shape of one series in a cell; the number is beside it."),
+    ("Meter", "A measurement against a known limit, on one row."),
+    ("BarGauge", "Labelled measurements on one scale, values aligned right."),
 ];
 const FORM: usize = 9;
 const FILTERS: usize = 16;
+const CHART: usize = 19;
 
 const SIZE: (u16, u16) = (100, 30);
 
@@ -64,7 +70,7 @@ Usage: gallery [--accent <name>] [--light] [--snapshot <dir>] [--json <file>]
                      the Kiso site, then exit.";
 
 /// The states the Kiso site shows under a page, after the page itself.
-const SITE_STATES: [(&str, usize, &str); 14] = [
+const SITE_STATES: [(&str, usize, &str); 15] = [
     ("21-form-select", FORM, "Changed select"),
     ("20-form-typing", FORM, "Typing"),
     ("23-help", 10, "Help over a page"),
@@ -79,6 +85,7 @@ const SITE_STATES: [(&str, usize, &str); 14] = [
     ("27-filtered", FILTERS, "Filtered"),
     ("34-filters-80", FILTERS, "Editing at 80 by 24"),
     ("33-menu-80", 17, "At 80 by 24"),
+    ("35-chart-80", CHART, "At 80 by 24"),
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -308,7 +315,11 @@ impl App {
                     menu.danger("Delete", "x").selected(3).render(area, buf);
                 }
             }
-            _ => detail_page(t, width).view(t, &self.scroll).render(area, buf),
+            "Detail" => detail_page(t, width).view(t, &self.scroll).render(area, buf),
+            "Chart" => chart_page(t, buf, area),
+            "Sparkline" => sparkline_page(t, width).view(t, &self.scroll).render(area, buf),
+            "Meter" => meter_page(t, width).view(t, &self.scroll).render(area, buf),
+            _ => bar_gauge_page(t, width).view(t, &self.scroll).render(area, buf),
         }
     }
 
@@ -676,6 +687,109 @@ fn detail_page(t: &Theme, width: usize) -> Page {
     page
 }
 
+/// A smooth, repeatable series of `n` samples around `base`, for the
+/// chart pages.
+fn wave(n: usize, base: f64, swing: f64, phase: f64) -> Vec<f64> {
+    (0..n).map(|i| {
+        let x = i as f64 / 6.0 + phase;
+        (base + swing * (x.sin() + 0.4 * (2.3 * x).cos())).max(0.0)
+    }).collect()
+}
+
+fn chart_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let mut replica: Vec<Option<f64>> = wave(60, 30.0, 12.0, 2.0).into_iter().map(Some).collect();
+    // The collector missed a few samples: the line breaks there.
+    for sample in &mut replica[34..39] {
+        *sample = None;
+    }
+    let cpu = Chart::new(t, "CPU by machine (%)")
+        .meta("last hour")
+        .series([
+            Series::new("pg-main-1", wave(60, 55.0, 20.0, 0.0)),
+            Series::new("pg-replica", replica),
+            Series::new("pg-archive", wave(60, 12.0, 4.0, 4.0)),
+        ])
+        .times(["18:00", "18:15", "18:30", "18:45", "19:00"])
+        .range(0.0, 100.0)
+        .format(|v| format!("{v:.0}"));
+    let height = (area.height * 3 / 5).clamp(1, 14);
+    cpu.render(Rect { height, ..area }, buf);
+    let connections = Chart::new(t, "Connections")
+        .series([Series::new("Active", wave(60, 40.0, 15.0, 1.0)).slot(4)])
+        .times(["18:00", "19:00"])
+        .legend(ChartLegend::Inline)
+        .format(|v| format!("{v:.0}"));
+    let y = area.y + height + 1;
+    connections.render(Rect { y, height: area.bottom().saturating_sub(y).min(9), ..area }.intersection(area), buf);
+}
+
+fn sparkline_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    page.section(t, width, "Applications", Some(3));
+    let columns = Columns::new(width, &[12, 7, 0]);
+    page.line(columns.head(t, &["Name", "CPU %", "Last hour"]));
+    let apps: [(&str, Vec<Option<f64>>); 3] = [
+        ("laya", wave(40, 40.0, 15.0, 0.0).into_iter().map(Some).collect()),
+        ("comfyui", wave(40, 70.0, 20.0, 3.0).into_iter().enumerate().map(|(i, v)| (!(14..20).contains(&i)).then_some(v)).collect()),
+        ("archive", vec![Some(2.0); 40]),
+    ];
+    for (name, values) in apps {
+        let current = values.last().copied().flatten().map_or("—".to_owned(), |v| format!("{v:.1}"));
+        let line = Sparkline::new(t, values).range(0.0, 100.0).line(columns.widths()[2]);
+        page.item([columns.row(vec![vec![Span::raw(name)], vec![Span::raw(format!("{current:>7}"))], line.spans])]);
+    }
+    page.blank();
+    page.line(Line::styled("  One scale, 0 to 100, for every row. comfyui missed samples.", t.muted()));
+    page.blank();
+    page.section(t, width, "Tones", None);
+    let samples = wave(30, 20.0, 8.0, 1.0);
+    page.line(fact(t, 14, "Neutral", Sparkline::new(t, samples.clone()).line(30).spans));
+    page.line(fact(t, 14, "Primary", Sparkline::new(t, samples).primary(true).line(30).spans));
+    page.line(fact(t, 14, "One sample", [Span::styled("draws nothing", t.muted())]));
+    page
+}
+
+fn meter_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    page.section(t, width, "States", None);
+    let row = width.min(64);
+    let meters = [
+        Meter::new(t, "Connections", 64.0).value_text("64 of 100"),
+        Meter::new(t, "Disk used", 0.0).value_text("0 of 512 GiB"),
+        Meter::new(t, "Memory", 18.4).range(0.0, 16.0).value_text("18.4 of 16 GiB"),
+        Meter::new(t, "Replication", None),
+    ];
+    for meter in meters {
+        page.line(meter.label_width(12).line(row));
+    }
+    page.blank();
+    page.line(Line::styled("  Memory is over its limit: the track stops full, the text keeps 18.4.", t.muted()));
+    page.blank();
+    page.section(t, width, "At 24 columns, the track drops", None);
+    page.line(Meter::new(t, "Connections", 64.0).value_text("64 of 100").line(24));
+    page
+}
+
+fn bar_gauge_page(t: &Theme, width: usize) -> Page {
+    let mut page = Page::default();
+    let gauge = BarGauge::new(t, "Disk used (GiB)", 512.0)
+        .row("pg-main-1", 412.0)
+        .row("pg-main-2", 512.0)
+        .row("pg-replica", 96.5)
+        .row("pg-archive", None)
+        .format(|v| format!("{v:.1} GiB"));
+    for line in gauge.lines(width) {
+        page.line(line);
+    }
+    page.blank();
+    page.line(Line::styled("  Rows keep their order; pg-archive did not report.", t.muted()));
+    page.blank();
+    for line in BarGauge::new(t, "Empty group", 100.0).lines(width) {
+        page.line(line);
+    }
+    page
+}
+
 fn help(t: &Theme) -> Modal<'_> {
     let keys = [
         ("j k ↑ ↓", "Move in the list, or scroll the page"),
@@ -832,6 +946,7 @@ fn states() -> Vec<State> {
     states.push(("32-question-80".into(), [vec![code(KeyCode::Down); 11], vec![code(KeyCode::Enter)]].concat(), small));
     states.push(("33-menu-80".into(), open(17), small));
     states.push(("34-filters-80".into(), filters, small));
+    states.push(("35-chart-80".into(), open(CHART), small));
     states
 }
 

@@ -64,3 +64,20 @@ falling below it on narrow screens. Both use native description lists.
 `activeTimestamp` selects the sidebar sample, otherwise it shows the last
 sample. `formatTime` formats its timestamp. A missing measurement stays
 "Not collected". Sidebar changes use a polite live region.
+
+## Terminal
+
+In a terminal, ChartLegend is part of `tui-kiso` `Chart`, set with
+`ChartLegend::Table` (the default), `Inline` or `Hidden`. Each series
+starts with a `━━` stroke in its color, its number in
+`subtle-foreground` and its label in `foreground`.
+
+- Table: column titles in `subtle-foreground`, "Series", then Min, Max,
+  Avg and Current, numbers aligned right. A narrow area drops Min, then
+  Max, then Avg. Current always stays.
+- Inline: every series and its current value on one row, cut with `…`
+  when it does not fit.
+- A missing statistic is `—` in `muted-foreground`, the unknown value of
+  [data-heavy interfaces](../data-interfaces.md), since "Not collected"
+  does not fit a terminal column. Zero stays zero.
+- The summary columns are fixed, and the legend has no keys.

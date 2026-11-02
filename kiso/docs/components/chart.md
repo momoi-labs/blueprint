@@ -216,3 +216,38 @@ and Tooltip, with animation disabled and `connectNulls={false}`. Synchronization
 uses `syncMethod="value"`. See the [Recharts API](https://recharts.github.io/en-US/api/AreaChart/).
 The existing `.chart` SVG helpers remain compatible; the component frame uses
 `.framed-chart` to avoid changing older SVG consumers.
+
+## Terminal
+
+In a terminal, Chart is `tui-kiso` `Chart`, a line chart drawn in braille.
+From the top: the caption as a section (the label in `muted-foreground`,
+then the look's rule, with optional text at its end, such as "last
+hour"), the plot, the times under it, a blank row and the
+[ChartLegend](chart-legend.md#terminal). Rows start two columns in, as on
+a page.
+
+| Part | Terminal form |
+| --- | --- |
+| Series | Braille lines in `chart-1` to `chart-5` by slot. A slot after 5 starts again at `chart-1`; its number still names it |
+| Scale | The highest and lowest value, and the middle one from five rows of plot, in `muted-foreground`, aligned right |
+| Grid | A dotted `┈` in `border` on each row of the scale |
+| Times | The labels the product passes, in `muted-foreground`, spread from the first sample to the last. A label that would touch the one before it drops |
+
+- Lines break at a missing sample, and a lone sample is a dot. The
+  component does not interpolate.
+- `range` gives a fixed scale, so charts side by side compare. Without
+  it the scale runs from the lowest sample to the highest, and a flat
+  series draws across the middle.
+- Where two series cross in one cell, the later one shows. Keep to five
+  series or fewer.
+- An empty or wholly missing window keeps the plot's rows and reads "No
+  collected samples in this window." in the middle.
+- In a short area the plot keeps its rows. The table legend needs five
+  rows of plot and the inline one four; below that the legend drops.
+  Below three rows the times go, then the caption. Any size draws without
+  a panic.
+- The terminal chart has no keys: no inspection, pinning, range selection
+  or highlight, and no exact values table. Show the exact values on
+  another page or in the legend.
+- Stacked areas, split lanes and the chart appearance options do not
+  apply.
