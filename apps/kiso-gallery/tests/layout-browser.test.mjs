@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { before, after } from "node:test";
 import { test } from "./shard.mjs";
-import { field, tab } from "./settings-tabs.mjs";
+import { field, tab, toggleSettings } from "./settings-tabs.mjs";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 
@@ -36,7 +36,7 @@ async function open(width, frame = "default", theme = "dark", hasTouch = false) 
 async function settings(page, open) {
   const panel = page.locator("#gallery-settings");
   if (await panel.isVisible() !== open) {
-    await page.getByRole("button", { name: open ? "Open settings" : "Close settings", exact: true }).click();
+    await toggleSettings(page, open ? "Open settings" : "Close settings");
   }
   await panel.waitFor({ state: open ? "visible" : "hidden" });
   if (open) await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details:not(.appearance-outer-customization)").forEach(details => { details.open = true; }));

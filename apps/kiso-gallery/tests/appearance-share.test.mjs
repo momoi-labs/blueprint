@@ -5,6 +5,7 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { preview } from "vite";
+import { toggleSettings } from "./settings-tabs.mjs";
 import { settingsText, shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
 // Load Playwright before any test is registered. An await between the tests
 // and the hooks below lets the runner start the tests first, and the after
@@ -163,7 +164,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
   test(`Share actions copy a link, copy settings and paste them at ${width}px ${colorScheme}`, async () => {
     const page = await open("#components/button", width, colorScheme);
     try {
-      if (!await page.locator("#gallery-settings").isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+      if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
       await page.locator("#gallery-settings").waitFor();
       const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
       await menu.click();
@@ -220,7 +221,7 @@ for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["tabl
     try {
       const panel = page.locator("#gallery-settings");
       // PaneGrid does not open the panel by itself; wait for it to slide in.
-      if (!await panel.isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+      if (!await panel.isVisible()) await toggleSettings(page);
       await panel.waitFor();
       await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
       const section = panel.locator(".gallery-component-settings");
@@ -255,7 +256,7 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
   try {
     const density = page.locator(".catalog-pane", { has: page.getByRole("table", { name: "Memory comparison" }) }).getByLabel("Density");
     await density.selectOption("compact");
-    if (!await page.locator("#gallery-settings").isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+    if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
     const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
     await menu.click();
     await page.getByRole("menuitem", { name: "Copy settings" }).click();
