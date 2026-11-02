@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Cloud, CornerDownRight, Database, HardDrive, FileCode, Forward, GitBranch, GitCommitHorizontal, Globe, Plug, Plus, Tag, Terminal, Zap } from "lucide-react";
+import { Archive, Cloud, CornerDownRight, Database, HardDrive, HardDriveUpload, History, Waves, FileCode, Forward, GitBranch, GitCommitHorizontal, Globe, Plug, Plus, Tag, Terminal, Zap } from "lucide-react";
 import {
   Badge, Button, Diagram, DiagramGroup, Tabs, TabsContent, TabsList, TabsTrigger, DiagramColumn, DiagramEdge, DiagramEdgeKey, DiagramRow, DiagramFact, DiagramFilter, DiagramFold, DiagramLine, DiagramNode,
   DiagramNodeGroup, DiagramSection, StatusBadge,
@@ -268,13 +268,15 @@ const layoutPreviews: Record<Layout, ReactNode> = {
 const edgeKey = <>
   <DiagramEdgeKey series={1}>Replication inside a cluster</DiagramEdgeKey>
   <DiagramEdgeKey series={2}>Replication to a standby cluster</DiagramEdgeKey>
-  <DiagramEdgeKey series={3}>WAL, to and from storage</DiagramEdgeKey>
+  <DiagramEdgeKey series="neutral">WAL, to and from storage</DiagramEdgeKey>
   <DiagramEdgeKey series={4}>Backups to storage</DiagramEdgeKey>
 </>;
 
 // A database cluster on two sites, as pg-yard draws its overview: each
 // site and each cluster is a group, and four kinds of link are told apart
-// by series, each flowing toward its target. WAL and backups leave each
+// by series, each flowing toward its target. WAL is the neutral series, grey,
+// so it does not read as a warning next to "Settings differ". A state on a
+// link takes the link's colour: Streaming, Archive recovery, Backup running. WAL and backups leave each
 // source on one trunk that splits for the nearer storage. NUV1 has stopped
 // streaming and restores WAL from s3-varejo instead. The key in the card
 // footer belongs to the product.
@@ -287,6 +289,7 @@ function ClusterOverview({ layout, background, strength, frame, edges }: Example
       </DiagramNode>
       <DiagramNode id="db2" icon={Database} label="Replica" title="DB2">
         10.0.1.12 · lag 0 B
+        <StatusBadge series={1} icon={Waves} pulse>Streaming</StatusBadge>
         <Badge variant="warning">Settings differ</Badge>
       </DiagramNode>
     </DiagramGroup>
@@ -294,7 +297,11 @@ function ClusterOverview({ layout, background, strength, frame, edges }: Example
   const backup = (
     <DiagramNode id="backup-01" icon={HardDrive} label="Backup storage · LAN" title="backup-01">
       {"10.0.1.20 · repo1\n4 TB disk · 1.8 TB used"}
-      <StatusBadge tone="success">Reachable</StatusBadge>
+      <StatusBadge series={4} icon={HardDriveUpload} pulse>Backup running</StatusBadge>
+      <DiagramFold title="Repository" count={2}>
+        <DiagramFact icon={History} label="Last WAL">12 s ago</DiagramFact>
+        <DiagramFact icon={HardDriveUpload} label="Last backup">02:00, full</DiagramFact>
+      </DiagramFold>
     </DiagramNode>
   );
   const reporting = (
@@ -315,6 +322,7 @@ function ClusterOverview({ layout, background, strength, frame, edges }: Example
     <DiagramGroup label="Standby cluster" title="cloud">
       <DiagramNode id="nuv1" icon={Cloud} label="Standby leader" title="NUV1">
         172.16.0.5 · lag 2.1 GB
+        <StatusBadge series="neutral" icon={Archive} pulse>Archive recovery</StatusBadge>
         <Badge variant="warning">Lag high</Badge>
       </DiagramNode>
     </DiagramGroup>
@@ -338,10 +346,10 @@ function ClusterOverview({ layout, background, strength, frame, edges }: Example
       {sites}
       <DiagramEdge from="db1" to="db2" series={1} flow label="Lag: 0 B" />
       <DiagramEdge from="db2" to="db3" series={2} flow label="Lag: 12 MB" />
-      <DiagramEdge from="s3-varejo" to="nuv1" series={3} flow label="WAL restore" />
-      <DiagramEdge from="db1" to="backup-01" series={3} flow />
-      <DiagramEdge from="backup-01" to="db3" series={3} flow label="WAL restore" />
-      <DiagramEdge from="db1" to="s3-varejo" series={3} flow label="WAL" />
+      <DiagramEdge from="s3-varejo" to="nuv1" series="neutral" flow label="WAL restore" />
+      <DiagramEdge from="db1" to="backup-01" series="neutral" flow />
+      <DiagramEdge from="backup-01" to="db3" series="neutral" flow label="WAL restore" />
+      <DiagramEdge from="db1" to="s3-varejo" series="neutral" flow label="WAL" />
       <DiagramEdge from="db2" to="backup-01" series={4} flow />
       <DiagramEdge from="db2" to="s3-varejo" series={4} flow label="backups" />
     </Diagram>

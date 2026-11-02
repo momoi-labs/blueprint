@@ -378,6 +378,7 @@ of that slot and a dash of its own, so colour is never the only sign:
 | 3 | dash and dot |
 | 4 | long dash |
 | 5 | dash and two dots |
+| `neutral` | long and short dash |
 
 Slots past 5 take the chart's generated colours and reuse the dashes in
 order, so each pair stays unique. A series edge is 2px wide and its
@@ -385,9 +386,34 @@ arrowhead takes its colour. `flow` moves the dash toward the target, at the
 same speed for every dash; it stops under `prefers-reduced-motion`. Only a
 series edge flows: a solid line has nothing to move.
 
+`series="neutral"` is the one series that does not take a chart colour.
+It draws in `--color-muted-foreground` with a dash no slot uses, for a link
+that must be told apart but should not draw the eye, such as WAL to and
+from storage next to replication. Use it when a slot's colour would read as
+something else on the same screen: chart slot 3 is yellow in the dark
+theme, and next to a warning badge it reads as one. It is grey, not
+`--color-border-strong`, and 2px wide, so it stays apart from a plain
+`dashed` edge, which says a link is not serving. A drawing has at most one
+neutral series. It flows, takes a key entry and shares trunks like any
+other series.
+
 A drawing with series edges needs a key. The product builds it from
 `DiagramEdgeKey`, a still sample of the edge and what it means, and places
-it in the Diagram's `footer`.
+it in the Diagram's `footer`. A key entry takes the same `series`, including
+`"neutral"`.
+
+A node state that belongs to an edge, such as "Streaming" on the replica a
+replication edge feeds, can take that edge's colour with
+`<StatusBadge series={1}>`, so the state and the edge read as one thing;
+see [StatusBadge](status-badge.md#series).
+
+```tsx
+<DiagramNode id="db3" icon={Database} title="db3">
+  <StatusBadge series="neutral" icon={Archive} pulse>Archive recovery</StatusBadge>
+</DiagramNode>
+<DiagramEdge from="backup" to="db3" series="neutral" flow label="WAL" />
+<DiagramEdgeKey series="neutral">WAL, to and from storage</DiagramEdgeKey>
+```
 
 ### Footer
 
@@ -430,7 +456,9 @@ are, after the status badge.
   folds the rest of the node. It is open by default (`defaultOpen`). Folded,
   the body keeps its width and gives up its height, so the node does not
   narrow and edges do not move sideways; hidden content leaves the tab order.
-  A fold reaches the node's edges and sits under a rule.
+  A fold reaches the node's edges and sits under a rule. DiagramFact rows
+  placed directly in a fold sit at the node's padding, with the same
+  spacing as facts in the node body.
 - **DiagramFilter.** Chips that show one section at a time, the first one
   showing all of them with their total. It is controlled: the product keeps
   the value and renders the sections that match. Render it only when there is
@@ -546,7 +574,8 @@ canvas variables that `data-background-style` sets for the shell. Groups
 use `--color-border-strong` for the dashed frame and footer rule and
 `--color-card` behind the title, the plates of turned labels, the gaps of
 crossings and the knockouts under curved and straight edges. Series edges use `--color-chart-1` to
-`--color-chart-5`, then the chart's generated colours.
+`--color-chart-5`, then the chart's generated colours; the neutral series
+uses `--color-muted-foreground`.
 
 ```tsx
 <Diagram label="honcho: two routes served by a repository backed by a database">

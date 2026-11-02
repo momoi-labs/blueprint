@@ -364,6 +364,20 @@ a:hover, .link:hover { text-decoration: underline; }
 .badge-warning { background: var(--color-warning-surface); border-color: var(--color-warning-border); color: var(--color-warning); }
 .badge-danger  { background: var(--color-danger-surface);  border-color: var(--color-danger-border);  color: var(--color-danger); }
 .badge-info    { background: var(--color-info-surface);    border-color: var(--color-info-border);    color: var(--color-info); }
+/* A state tied to a Diagram edge takes the edge's series colour, set by the
+   component as --badge-series, on the fill, the border and the mark. The
+   label stays in the foreground colour: a chart slot meets 3:1, not the
+   4.5:1 that text this small needs. Declared after the tones so it wins
+   over the neutral default. */
+.badge-series {
+  background: color-mix(in oklab, var(--badge-series) 12%, var(--color-card));
+  border-color: color-mix(in oklab, var(--badge-series) 50%, transparent);
+  color: var(--color-foreground);
+}
+.badge-series > .dot, .badge-series-icon { color: var(--badge-series); }
+/* An icon in place of the dot, which takes the dot's pulse around it. */
+.badge-series-icon { display: inline-grid; place-items: center; flex: none; }
+.badge-series-icon > .icon { width: var(--size-icon-sm); height: var(--size-icon-sm); }
 .badge-pill    { border-radius: var(--radius-full); padding-inline: var(--spacing-md); }
 .badge-count   { min-width: 20px; justify-content: center; padding-inline: var(--spacing-xs); border-radius: var(--radius-full); }
 .badge .mono   { font-size: inherit; }
@@ -2821,6 +2835,12 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 .diagram-fold-head > .icon { color: var(--color-muted-foreground); }
 .diagram-fold-title, .diagram-section-title { display: inline-flex; align-items: center; gap: var(--spacing-sm); white-space: nowrap; }
 .diagram-fold-body { display: grid; border-block-start: 1px solid var(--color-border); }
+/* Facts in a fold sit at the node's padding and keep the node's spacing,
+   as they do in the node body. */
+.diagram-fold-body > .diagram-fact { margin-inline: var(--diagram-padding); }
+.diagram-fold-body > .diagram-fact:first-child { margin-block-start: var(--spacing-sm); }
+.diagram-fold-body > .diagram-fact + .diagram-fact { margin-block-start: var(--spacing-xs); }
+.diagram-fold-body > .diagram-fact:last-child { margin-block-end: var(--spacing-md); }
 /* Folded, the body keeps its width and gives up its height, so the node
    does not narrow and the hidden content leaves the tab order. */
 .diagram-fold[data-open="false"] > .diagram-fold-body { block-size: 0; overflow: clip; visibility: hidden; border-block-start: 0; }
@@ -2926,6 +2946,8 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 :is(.diagram-edges > path, .diagram-edge-key path)[data-dash="3"] { stroke-dasharray: 10 5 0 5; --diagram-dash-period: 20; }
 :is(.diagram-edges > path, .diagram-edge-key path)[data-dash="4"] { stroke-dasharray: 16 6; --diagram-dash-period: 22; }
 :is(.diagram-edges > path, .diagram-edge-key path)[data-dash="5"] { stroke-dasharray: 10 5 0 5 0 5; --diagram-dash-period: 25; }
+/* The neutral series: a long and a short dash, a pattern no slot uses. */
+:is(.diagram-edges > path, .diagram-edge-key path)[data-dash="neutral"] { stroke-dasharray: 12 4 4 4; --diagram-dash-period: 24; }
 /* Flow moves the dash toward the target, at the same speed for every dash. */
 .diagram-edges > path[data-flow] { animation: diagram-flow calc(var(--diagram-dash-period, 10) * 80ms) linear infinite; }
 @keyframes diagram-flow { to { stroke-dashoffset: calc(-1px * var(--diagram-dash-period, 10)); } }

@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Container, Database, GitBranch, Route, Server, 
 
 import { Badge } from "./badge.js"
 import { Card } from "./card.js"
-import { chartColor } from "./chart-data.js"
+import { seriesColor, type DiagramSeries } from "./chart-data.js"
 import { StatusBadge, type StatusTone } from "./status-badge.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 import {
@@ -13,7 +13,7 @@ import {
   type Drawn, type EdgeSpec, type Frame, type Measured,
 } from "./diagram-routes.js"
 
-export type { DiagramArrow, DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeShape, DiagramEdgeTone, DiagramLabels }
+export type { DiagramArrow, DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeShape, DiagramEdgeTone, DiagramLabels, DiagramSeries }
 
 /* A Diagram is stages of nodes, columns read left to right or rows read top
    to bottom, with edges drawn between them. Nodes are Cards, so they take the theme's frame, marks and corners.
@@ -37,7 +37,15 @@ export type DiagramDirection = "right" | "down" | "grid"
 /* The number of dash patterns in ui.css. Series past it reuse a dash with a
    new colour, so the pair stays unique. */
 const DASHES = 5
-const dashOf = (series: number) => ((Math.max(1, Math.round(series)) - 1) % DASHES) + 1
+/* The router keys series by number, so the neutral series travels through
+   it as this slot. No chart slot is below 1. */
+const NEUTRAL = -1
+const slotOf = (series: DiagramSeries) => series === "neutral" ? NEUTRAL : series
+const seriesOf = (slot: number): DiagramSeries => slot === NEUTRAL ? "neutral" : slot
+/* The neutral series has a dash of its own, outside the five. */
+const dashOf = (series: DiagramSeries) =>
+  series === "neutral" ? "neutral" : ((Math.max(1, Math.round(series)) - 1) % DASHES) + 1
+const colorOf = (slot: number) => seriesColor(seriesOf(slot))
 
 type Registry = {
   nodes: Map<string, HTMLElement>
@@ -358,7 +366,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
                   </marker>
                 ))}
                 {[...new Set(registered.flatMap((edge) => edge.series ? [edge.series] : []))].map((series) => (
-                  <marker key={series} id={`${marker}-s${series}`} className="diagram-arrow" style={{ color: chartColor(series) }}
+                  <marker key={series} id={`${marker}-s${series}`} className="diagram-arrow" style={{ color: colorOf(series) }}
                     viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
                   </marker>
@@ -371,7 +379,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
                   const size = series ? "6" : "7"
                   return (
                     <marker key={id} id={`${marker}-${head}-${paint}`} className="diagram-arrow" data-arrow={head}
-                      data-tone={series ? undefined : paint} style={series ? { color: chartColor(series) } : undefined}
+                      data-tone={series ? undefined : paint} style={series ? { color: colorOf(series) } : undefined}
                       viewBox="0 0 10 10" refX="9" refY="5" markerWidth={size} markerHeight={size} orient="auto-start-reverse">
                       {heads[head]}
                     </marker>
@@ -392,8 +400,8 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
                   {path.knock && <path className="diagram-edge-knock" d={path.knock} />}
                   <path d={path.d} data-shape={path.shape && path.shape !== "orthogonal" ? path.shape : undefined}
                     data-line={series ? undefined : path.line} data-tone={series ? undefined : path.tone}
-                    data-series={series} data-dash={series ? dashOf(series) : undefined} data-flow={(series && path.flow) || undefined}
-                    style={series ? { color: chartColor(series) } : undefined}
+                    data-series={series ? seriesOf(series) : undefined} data-dash={series ? dashOf(seriesOf(series)) : undefined} data-flow={(series && path.flow) || undefined}
+                    style={series ? { color: colorOf(series) } : undefined}
                     markerEnd={!path.arrow || path.head === "none" ? undefined : `url(#${marker}-${path.head === "triangle" ? "" : `${path.head}-`}${paint})`} />
                   </React.Fragment>
                 )
@@ -401,7 +409,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
               {/* A dot marks where a shared trunk splits. */}
               {drawn.dots.map((dot) => (
                 <circle key={dot.key} className="diagram-junction" cx={dot.x} cy={dot.y} r="3"
-                  data-tone={dot.series ? undefined : dot.tone} style={dot.series ? { color: chartColor(dot.series) } : undefined} />
+                  data-tone={dot.series ? undefined : dot.tone} style={dot.series ? { color: colorOf(dot.series) } : undefined} />
               ))}
               {drawn.labels.map((item) => (
                 <React.Fragment key={item.key}>
@@ -752,14 +760,16 @@ export type DiagramEdgeProps = {
 } & (
   | { line?: DiagramEdgeLine; tone?: DiagramEdgeTone; series?: never; flow?: never }
   /** A kind of link, such as replication or backups: the chart colour of the
-      slot and a dash of its own. `flow` moves the dash toward the target. */
-  | { series: number; flow?: boolean; line?: never; tone?: never }
+      slot and a dash of its own, or `"neutral"`, grey with its own dash.
+      `flow` moves the dash toward the target. */
+  | { series: DiagramSeries; flow?: boolean; line?: never; tone?: never }
 )
 
 /* An edge renders nothing itself: it registers with the Diagram, which draws
    it once the nodes are measured. */
-function DiagramEdge({ from, to, label, route, line, tone, series, flow, shape, arrow }: DiagramEdgeProps) {
+function DiagramEdge({ from, to, label, route, line, tone, series: named, flow, shape, arrow }: DiagramEdgeProps) {
   const { addEdge } = useRegistry("DiagramEdge")
+  const series = named == null ? undefined : slotOf(named)
   // Ids never contain a newline, so the join is a stable dependency.
   const sources = (Array.isArray(from) ? from : [from]).join("\n")
   React.useEffect(
@@ -770,7 +780,8 @@ function DiagramEdge({ from, to, label, route, line, tone, series, flow, shape, 
 }
 
 export type DiagramEdgeKeyProps = Omit<React.ComponentProps<"span">, "children"> & {
-  series: number
+  /** A chart slot, or `"neutral"`. */
+  series: DiagramSeries
   /** What the series means, such as "WAL to storage". */
   children: React.ReactNode
 }
@@ -780,7 +791,7 @@ export type DiagramEdgeKeyProps = Omit<React.ComponentProps<"span">, "children">
 function DiagramEdgeKey({ series, className, children, ...props }: DiagramEdgeKeyProps) {
   return (
     <span {...props} data-slot="diagram-edge-key" className={cn("diagram-edge-key", className)}>
-      <svg viewBox="0 0 28 6" aria-hidden="true" focusable="false" style={{ color: chartColor(series) }}>
+      <svg viewBox="0 0 28 6" aria-hidden="true" focusable="false" style={{ color: seriesColor(series) }}>
         <path d="M 2 3 H 26" data-series={series} data-dash={dashOf(series)} />
       </svg>
       {children}
