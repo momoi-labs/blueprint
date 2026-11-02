@@ -45,3 +45,20 @@ curved has round ends. Dots, squares and scanlines texture the empty part of
 the track and make it 8 pixels tall; the measured value stays solid. None and
 tint keep the plain, thin track. Filled widths, labels, ARIA values, and unknown
 hatches keep their existing meaning.
+
+## Terminal
+
+In a terminal, Meter is `tui-kiso` `Meter`, one row two columns in: the
+label in `foreground`, the track, and the value at the right edge.
+
+- The track is a heavy `━`. The filled part is `secondary-foreground`, to
+  the half cell with `╸`; the rest is `secondary`.
+- The value text is the number, or the product's `value_text`, such as
+  "64 of 100". Over the limit, the track stops full and the text keeps the
+  real number.
+- A missing or nonfinite value reads "Not collected" in
+  `muted-foreground` over a `╱` hatch in `hatch`.
+- `label_width` lines up the tracks of meters one under another. The label
+  takes a third of the row at most and is cut with `…`. Below four cells,
+  the track drops and the label and value stay.
+- Progress and the chart line and fill options are not in the terminal.

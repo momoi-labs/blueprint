@@ -74,6 +74,21 @@ This is the contract, not a guess:
 
 No keymap and no tab stop. A Sparkline is never an action.
 
+## Terminal
+
+In a terminal, Sparkline is `tui-kiso` `Sparkline`: one row, one block per
+sample, from `▁` to `█`. It converts into a line for a table cell or a
+page row. Neutral is `border-strong`; primary is `primary`.
+
+- With more samples than cells, each cell shows the mean of the known
+  samples it covers. With fewer, the line is as long as the samples.
+- A missing or nonfinite sample is a blank cell. Fewer than two
+  measurements draw nothing.
+- `range` gives rows a shared scale, and values outside it stop at its
+  ends. Without it, a flat series draws `▄` across.
+- On a selected row a block is a mark: below 3:1 on `selected` it takes
+  `foreground`.
+
 ## When to use
 
 - Trend cell in a table row: is this application busier than a minute ago.

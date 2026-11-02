@@ -31,3 +31,13 @@ required. The old `.bars` vertical mini-bars are unrelated and stay compatible.
 
 Rows inherit the chart line and fill from Meter. They change the track and
 ends, while measured widths and values stay the same.
+
+## Terminal
+
+In a terminal, BarGauge is `tui-kiso` `BarGauge`: the group label as a
+section (the label in `muted-foreground` and the look's rule), then one
+[Meter](meter.md#terminal) row per measurement. Labels share one column,
+up to a third of the row, and values align right at the edge. `format`
+gives every known value the same unit and precision. A missing value reads
+"Not collected" over the hatch, and an empty group reads "No
+measurements." under the label.

@@ -18,6 +18,8 @@ contract, and each component doc has a Terminal section.
 | `Page`, `Scroll`, `Columns` | A page of rows that scrolls, with sections, items to select, columns and code blocks |
 | `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
 | `Table`, `StatusBadge` | A ratatui table with Kiso's titles and selection, and the state of a record |
+| `Chart`, `Series`, `ChartLegend`, `Sparkline` | Series over time in braille with a scale and a legend, and the trend of one series in a cell |
+| `Meter`, `BarGauge` | A measurement against its limit on one row, and labelled measurements on one scale |
 | `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |
 | `Filters`, `Menu`, `fact` | Faceted filters on `f`, the actions of a row on `a`, the facts of a record |
 | `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |

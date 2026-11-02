@@ -50,6 +50,18 @@ impl Scroll {
     }
 }
 
+/// A section title in `muted-foreground`, the look's rule to the edge and
+/// `meta` at its end, `width` cells wide. Charts and gauges use it for
+/// their caption.
+pub(crate) fn section_line(theme: &Theme, width: usize, title: &str, meta: &str) -> Line<'static> {
+    let meta = if meta.is_empty() { String::new() } else { format!(" {meta}") };
+    let rule = width.saturating_sub(cells(title) + cells(&meta) + 1);
+    let mut spans = vec![Span::styled(format!("{title} "), theme.muted())];
+    spans.extend(theme.look().rule.spans(theme, rule));
+    spans.push(Span::styled(meta, theme.muted()));
+    Line::from(spans)
+}
+
 /// How the selected item of a page is drawn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mark {
@@ -109,12 +121,7 @@ impl Page {
 
     /// `section` with any text at the end of the rule, such as "3 of 5".
     pub fn section_meta(&mut self, theme: &Theme, width: usize, title: &str, meta: &str) {
-        let meta = if meta.is_empty() { String::new() } else { format!(" {meta}") };
-        let rule = width.saturating_sub(cells(title) + cells(&meta) + 1);
-        let mut spans = vec![Span::styled(format!("{title} "), theme.muted())];
-        spans.extend(theme.look().rule.spans(theme, rule));
-        spans.push(Span::styled(meta, theme.muted()));
-        self.line(Line::from(spans));
+        self.line(section_line(theme, width, title, meta));
         self.blank();
     }
 
