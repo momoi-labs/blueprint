@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { before, after } from 'node:test';
 import { test } from './shard.mjs';
+import { toggleSettings } from './settings-tabs.mjs';
 import { fileURLToPath } from 'node:url';
 import { preview } from 'vite';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -100,9 +101,7 @@ for (const mode of ['reduce', 'unsupported']) test(`Rail toggles respond without
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    // CI runners sometimes stall on Playwright's post-click navigation wait here,
-    // though nothing navigates; the panel wait below is the real signal.
-    await page.getByRole('button', { name: 'Open settings', exact: true }).click({ noWaitAfter: true });
+    await toggleSettings(page);
     await page.locator('#gallery-settings').waitFor();
     await page.keyboard.press('Escape');
     await page.locator('#gallery-settings').waitFor({ state: 'hidden' });

@@ -28,3 +28,11 @@ export async function field(panel, name) {
   await tab(panel, name);
   return panel.getByRole("group", { name, exact: true });
 }
+
+/** Clicks the header's settings toggle, "Open settings" or "Close settings".
+    Over the full catalog the click reflows every pane before it returns:
+    about a second on a fast machine, more than the 5s default on a CI
+    runner. The panel waits that follow keep the default. */
+export function toggleSettings(page, name = "Open settings") {
+  return page.getByRole("button", { name, exact: true }).click({ timeout: 30_000 });
+}

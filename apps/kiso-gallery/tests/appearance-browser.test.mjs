@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { before, after } from "node:test";
 import { test } from "./shard.mjs";
-import { field, tab } from "./settings-tabs.mjs";
+import { field, tab, toggleSettings } from "./settings-tabs.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
@@ -31,7 +31,7 @@ async function open(route, width = 1440, colorScheme = "dark") {
 }
 async function settings(page) {
   const panel = page.locator("#gallery-settings");
-  if (!await panel.isVisible()) await page.getByRole("button", { name: "Open settings", exact: true }).click();
+  if (!await panel.isVisible()) await toggleSettings(page);
   await panel.waitFor();
   // Rarely used sections start closed; these tests work on their contents.
   await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details:not(.appearance-outer-customization)").forEach(details => { details.open = true; }));
