@@ -1,5 +1,48 @@
 # @momoi-labs/kiso
 
+## 1.4.0
+
+### Minor Changes
+
+- 0abf8bb: Diagram draws an edge to a node above its source, such as a replica that
+  restores WAL from the storage under its cluster. The edge takes the route the
+  edge down from that node would take, drawn backward: out the top or a side,
+  into the bottom of the target. Left to right, an edge to a column on the left
+  comes into the target's right side. Before, such an edge was not drawn.
+- 40b4420: Diagram has a neutral series: `series="neutral"` on `DiagramEdge` and
+  `DiagramEdgeKey` draws a link in the muted text grey with a dash no chart
+  slot uses. It is for a link that must be told apart but should not draw the
+  eye, such as WAL next to replication. A chart slot's colour can read as a
+  status next to a warning badge.
+  
+  `StatusBadge` takes `series` in place of `tone` for a state that belongs to
+  a Diagram edge, such as "Streaming" on the node a replication edge feeds.
+  The fill, the border and the mark take the series colour. An optional
+  `icon` replaces the dot and pulses like it. The StatusBadge contract says
+  when a series colour is allowed.
+  
+  `DiagramFact` rows placed directly in a `DiagramFold` now sit at the node's
+  padding, as they do in the node body.
+- 3097e08: Add independent None, Hard and Soft panel shadows. Direction follows each
+  panel's local border, while borders, marks and status colors stay independent.
+  Pixel, Manga and Brush casts follow their silhouettes without filtering
+  content or darkening translucent interiors. React panels include the paint
+  layer; native frames can use the exported PanelShadow component.
+  
+  Add Diagram shadowStyle overrides on lanes, nodes and node groups. Omitted
+  or auto settings retain legacy elevation. Keep surface-owned legacy casts
+  in contact with antialiased borders in both themes.
+
+### Patch Changes
+
+- 89ee5be: Diagram edge heads now draw above a node's offset or cast shadow. Before,
+  a head arriving from below or the right hid under it. Group titles still
+  draw above edges.
+- a7d668c: Radio tiles keep their corner marks apart. With sheet clearance, the marks
+  of neighbouring tiles meet at the centre of the tile gap, as panels do in a
+  page grid. Without it, the tile gap grows just enough to keep neighbours'
+  marks from overlapping.
+
 ## 1.3.0
 
 ### Minor Changes
