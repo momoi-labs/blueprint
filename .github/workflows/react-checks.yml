@@ -32,6 +32,12 @@ on:
     - cron: '17 3 * * *'
   workflow_dispatch:
 
+# A new push to a pull request cancels the run still going for the old one.
+# Runs on main keep going: each is the full sweep for its commit.
+concurrency:
+  group: react-checks-${{ github.event.pull_request.number || format('{0}-{1}', github.event_name, github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
   # A failed job cancels the rest of the run.
