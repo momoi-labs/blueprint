@@ -42,5 +42,5 @@ if (allChecks || checks.size) {
 }
 if (allTests || tests.size) {
   run('npm', ['run', 'build:gallery']);
-  run(process.execPath, ['--test', ...(allTests ? ['apps/kiso-gallery/tests/*.test.mjs'] : [...tests])]);
+  run(process.execPath, ['scripts/run-gallery-tests.mjs', ...(allTests ? [] : [...tests])]);
 }
