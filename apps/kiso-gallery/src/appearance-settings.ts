@@ -1,6 +1,7 @@
 import type { Accent, ChartFill, ChartLayout, ChartLegendPlacement, ChartLine } from "@momoi-labs/kiso-react";
 
 export type BorderStyle = "solid" | "none" | "rail" | "dash" | "bevel" | "double" | "base" | "offset" | "manga" | "brush";
+export type ShadowStyle = "none" | "hard" | "soft" | "auto";
 export type CornerStyle = "square" | "rounded" | "asym" | "pixel";
 export type CornerMarks = "none" | "ticks" | "brackets" | "arcs" | "dots" | "diagonal";
 export type Size = "off" | "small" | "medium" | "large";
@@ -13,6 +14,7 @@ export interface AppearanceSettings {
   chartLayout: ChartLayout;
   chartLegend: ChartLegendPlacement;
   borderStyle: BorderStyle;
+  shadowStyle: ShadowStyle;
   cornerStyle: CornerStyle;
   cornerMarks: CornerMarks;
   cornerSize: Size;
@@ -20,6 +22,7 @@ export interface AppearanceSettings {
   visualStyle: "default" | "editorial";
   appShell: "default" | "inset";
   appShellOuter: "auto" | "full" | "compact" | "none";
+  outerShadowStyle: "inherit" | ShadowStyle;
   outerBorderStyle: "inherit" | BorderStyle;
   outerCornerStyle: "inherit" | CornerStyle;
   outerCornerMarks: "inherit" | CornerMarks;
@@ -33,6 +36,7 @@ export interface AppearanceSettings {
   paperTone: "theme" | "accent";
   panelFill: "solid" | "translucent";
   phoneBackgroundStyle: "inherit" | AppearanceSettings["backgroundStyle"];
+  phoneShadowStyle: "inherit" | ShadowStyle;
   phoneBorderStyle: "inherit" | BorderStyle;
   phoneCornerStyle: "inherit" | CornerStyle;
   phoneCornerMarks: "inherit" | CornerMarks;
@@ -62,7 +66,10 @@ export function appearanceCode(settings: AppearanceSettings) {
   const assign = `if (theme === "system") {\n  delete root.dataset.theme;\n} else {\n  root.dataset.theme = theme;\n}\nObject.assign(root.dataset, attributes);`;
   const hasPhone = Object.keys(phone).length > 0;
   return {
-    html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <!-- Your application -->${hasPhone ? "\n  <!-- Phone overrides need the JavaScript version. -->" : ""}\n</html>`,
+    html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <div class="card">
+    <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+    <!-- Your panel content -->
+  </div>${hasPhone ? "\n  <!-- Phone overrides need the JavaScript version. -->" : ""}\n</html>`,
     javascript: hasPhone
       ? `const appearance = ${JSON.stringify(main, null, 2)};\n\n// Below 700px wide these replace the main values.\nconst phone = ${JSON.stringify(phone, null, 2)};\nconst phoneQuery = matchMedia("(max-width: 699px)");\nconst root = document.documentElement;\n\nfunction apply() {\n  const { theme, ...attributes } = phoneQuery.matches ? { ...appearance, ...phone } : appearance;\n${assign.replace(/^/gm, "  ")}\n}\napply();\nphoneQuery.addEventListener("change", apply);`
       : `const appearance = ${JSON.stringify(main, null, 2)};\n\nconst { theme, ...attributes } = appearance;\nconst root = document.documentElement;\n\n${assign}`,
@@ -89,7 +96,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     chartFill: pick(["none", "dots", "tint", "squares", "scanlines"]),
     chartLayout: pick(["standard", "compact", "split"]),
     chartLegend: pick(["table", "inline", "sidebar"]),
-    borderStyle: inner.border, cornerStyle: inner.corner, cornerMarks: inner.marks,
+    shadowStyle: pick(["none", "hard", "soft"]), borderStyle: inner.border, cornerStyle: inner.corner, cornerMarks: inner.marks,
     cornerSize: pick(["small", "medium", "large"]), markSize: pick(["small", "medium", "large"]),
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),
     frameScope: pick(["outer", "panels", "all"]), markScope: pick(["outer", "panels", "all"]),
@@ -97,6 +104,6 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat"]),
     backgroundStrength: pick(["quiet", "visible"]), backgroundPlacement: pick(["inside", "outside", "both"]),
     frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent"]),
-    outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",
+    outerShadowStyle: "inherit", outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",
   };
 }

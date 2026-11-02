@@ -7,6 +7,7 @@
     chartFill: ["none", "dots", "tint", "squares", "scanlines"],
     chartLayout: ["standard", "compact", "split"],
     chartLegend: ["table", "inline", "sidebar"],
+    shadowStyle: ["none", "hard", "soft", "auto"],
     borderStyle: ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset", "manga", "brush"],
     cornerStyle: ["square", "rounded", "asym", "pixel"],
     cornerMarks: ["ticks", "none", "brackets", "arcs", "dots", "diagonal"],
@@ -25,11 +26,11 @@
     paperTone: ["theme", "accent"],
     panelFill: ["solid", "translucent"],
   };
-  for (const key of ["borderStyle", "cornerStyle", "cornerMarks"]) {
+  for (const key of ["borderStyle", "cornerStyle", "cornerMarks", "shadowStyle"]) {
     options[`outer${key[0].toUpperCase()}${key.slice(1)}`] = ["inherit", ...options[key]];
   }
   // Phone overrides replace a main choice below 700px wide.
-  const phoneKeys = ["backgroundStyle", "borderStyle", "cornerStyle", "cornerMarks", "panelFill"];
+  const phoneKeys = ["backgroundStyle", "borderStyle", "cornerStyle", "cornerMarks", "panelFill", "shadowStyle"];
   const phoneKey = key => `phone${key[0].toUpperCase()}${key.slice(1)}`;
   for (const key of phoneKeys) options[phoneKey(key)] = ["inherit", ...options[key]];
   const phone = window.matchMedia?.("(max-width: 699px)");
@@ -69,14 +70,24 @@
   }
   function read() {
     let saved = {};
-    try { saved = JSON.parse(localStorage.getItem("kiso-gallery-appearance") || "{}") || {}; } catch {}
+    try {
+      const parsed = JSON.parse(localStorage.getItem("kiso-gallery-appearance") || "null");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && (
+        Object.keys(options).some(key => options[key].includes(parsed[key])) ||
+        options.visualStyle.includes(parsed.pageHeader) || chartPresets[parsed.chartStyle] ||
+        ["square", "soft", "round", "asym"].includes(parsed.borderStyle) || parsed.markSize === "off"
+      )) {
+        saved = parsed;
+        if (saved.shadowStyle === undefined && (saved.version === undefined || saved.version < 3)) saved.shadowStyle = "auto";
+      }
+    } catch {}
     // Keep existing theme/accent preferences compatible with their selectors.
     for (const key of ["theme", "accent"]) {
       try { const value = localStorage.getItem(`kiso-${key}`); if (value !== null) saved[key] = value; } catch {}
     }
     // Earlier studies assigned Pixel size to frameDetail. Migrate only on read,
     // so later ink changes cannot overwrite the independent corner size.
-    if (saved.version !== 2 && (saved.cornerStyle === "pixel" || saved.outerCornerStyle === "pixel") && options.frameDetail.includes(saved.frameDetail)) {
+    if ((saved.version === undefined || saved.version < 2) && (saved.cornerStyle === "pixel" || saved.outerCornerStyle === "pixel") && options.frameDetail.includes(saved.frameDetail)) {
       saved = { ...saved, cornerSize: saved.frameDetail };
     }
     return validate(saved);
@@ -95,7 +106,7 @@
   }
   function save(value) {
     const settings = apply(value);
-    try { localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ ...settings, version: 2 })); } catch {}
+    try { localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ ...settings, version: 3 })); } catch {}
     for (const key of ["theme", "accent"]) {
       try { localStorage.setItem(`kiso-${key}`, settings[key]); } catch {}
     }

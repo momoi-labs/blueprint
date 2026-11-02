@@ -1,5 +1,7 @@
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
 "use client"
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -75,6 +77,7 @@ function LogView({
       className={cn("logview", className)}
       {...props}
     >
+      <PanelShadow />
       <div
         ref={scroller}
         data-slot="log-view-scroll"

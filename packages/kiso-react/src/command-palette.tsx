@@ -1,4 +1,6 @@
 "use client";
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
@@ -73,6 +75,7 @@ function CommandPalette({
           data-slot="command-palette-content"
           className={cn("palette kiso-react-palette", className)}
         >
+          <PanelShadow />
           <VisuallyHidden.Root asChild>
             <DialogPrimitive.Title>{label}</DialogPrimitive.Title>
           </VisuallyHidden.Root>

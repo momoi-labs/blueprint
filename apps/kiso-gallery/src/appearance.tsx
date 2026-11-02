@@ -7,12 +7,12 @@ import { BackgroundPreview, PanelPreview, PlacementPreview, ScopePreview } from 
 
 const borders: { value: BorderStyle; label: string; description: string }[] = [
   { value: "solid", label: "Solid", description: "A single outline" },
-  { value: "none", label: "None", description: "No panel outline, shadow, or marks" },
+  { value: "none", label: "None", description: "No panel outline or marks" },
   { value: "rail", label: "Side rail", description: "A stronger left edge" },
   { value: "dash", label: "Dashed outline", description: "Short dashes around the panel" },
   { value: "double", label: "Double outline", description: "Two lines, set close together" },
   { value: "base", label: "Weighted base", description: "A stronger bottom edge" },
-  { value: "offset", label: "Offset outline", description: "A solid, shifted shadow" },
+  { value: "offset", label: "Offset outline", description: "A down-right frame direction" },
 ];
 const expressiveBorders: typeof borders = [
   { value: "manga", label: "Manga panel", description: "An angled, heavy ink outline" },
@@ -54,15 +54,15 @@ const outerFrames = [
 ] as const;
 
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
-  { label: "Default", settings: { theme: "system", appShell: "default" } },
-  { label: "Blueprint", settings: { accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
-  { label: "Drawing plate", settings: { accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
-  { label: "Drafting sheet", settings: { backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
-  { label: "Pixel workshop", settings: { backgroundStyle: "dots", outerCornerStyle: "pixel", cornerMarks: "none", outerCornerMarks: "brackets", markScope: "outer" } },
-  { label: "Manga board", settings: { backgroundStyle: "grid", phoneBackgroundStyle: "dots", outerBorderStyle: "manga", cornerMarks: "none", outerCornerMarks: "diagonal", markScope: "outer" } },
-  { label: "Brush study", settings: { backgroundStyle: "fibers", outerBorderStyle: "brush", cornerMarks: "none", frameScope: "outer", markScope: "outer" } },
-  { label: "Momoi signature", settings: { backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" } },
-  { label: "Pixel everywhere", settings: { theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
+  { label: "Default", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
+  { label: "Blueprint", settings: { shadowStyle: "hard", accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
+  { label: "Drawing plate", settings: { shadowStyle: "hard", accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
+  { label: "Drafting sheet", settings: { shadowStyle: "none", backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
+  { label: "Pixel workshop", settings: { shadowStyle: "hard", backgroundStyle: "dots", outerCornerStyle: "pixel", cornerMarks: "none", outerCornerMarks: "brackets", markScope: "outer" } },
+  { label: "Manga board", settings: { shadowStyle: "hard", backgroundStyle: "grid", phoneBackgroundStyle: "dots", outerBorderStyle: "manga", cornerMarks: "none", outerCornerMarks: "diagonal", markScope: "outer" } },
+  { label: "Brush study", settings: { shadowStyle: "soft", backgroundStyle: "fibers", outerBorderStyle: "brush", cornerMarks: "none", frameScope: "outer", markScope: "outer" } },
+  { label: "Momoi signature", settings: { shadowStyle: "soft", backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" } },
+  { label: "Pixel everywhere", settings: { shadowStyle: "hard", theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
 ];
 
 function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false, disabledOptions = [], preview }: {
@@ -184,14 +184,14 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     </div>
   </AppearanceSection>,
   presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
-    <p className="muted t-label">Pixel everywhere is the starting appearance. Default restores the previous look. Both follow your system theme; other presets keep your theme.</p>
+    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. Both follow your system theme; other presets keep your theme. Reset starts without panel shadows.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.defaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
         return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(next).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(next)}>
           <span className="appearance-composition-preview" data-accent={next.accent} data-preview-tone={next.paperTone} aria-hidden="true">
             <BackgroundPreview background={next.backgroundStyle} tone={next.paperTone} />
-            <PanelPreview border={next.outerBorderStyle === "inherit" ? next.borderStyle : next.outerBorderStyle} corner={next.outerCornerStyle === "inherit" ? next.cornerStyle : next.outerCornerStyle} marks={next.outerCornerMarks === "inherit" ? next.cornerMarks : next.outerCornerMarks} size={next.cornerSize} markSize={next.markSize} detail={next.frameDetail} />
+            <PanelPreview shadow={next.outerShadowStyle === "inherit" ? next.shadowStyle : next.outerShadowStyle} border={next.outerBorderStyle === "inherit" ? next.borderStyle : next.outerBorderStyle} corner={next.outerCornerStyle === "inherit" ? next.cornerStyle : next.outerCornerStyle} marks={next.outerCornerMarks === "inherit" ? next.cornerMarks : next.outerCornerMarks} size={next.cornerSize} markSize={next.markSize} detail={next.frameDetail} />
           </span>
           <span>{composition.label}</span>
         </Button>;
@@ -296,6 +296,10 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
         </label>)}
       </div>
     </fieldset>
+    <ChoiceSelector label="Panel shadow" value={settings.shadowStyle} options={["none", "hard", "soft"]} onChange={shadowStyle => onChange({ shadowStyle })}
+      preview={shadow => <PanelPreview border={settings.borderStyle} corner={settings.cornerStyle} shadow={shadow} />} />
+    {settings.shadowStyle === "auto" && <p className="muted t-label">This saved look uses legacy elevation. Choose None, Hard or Soft to set panel shadows independently.</p>}
+    <p className="muted t-label">Direction follows each panel's border. Side rail casts left, Weighted base down, other styles down and right. Controls keep their own focus and elevation.</p>
     {expressive && borderDetail}
     <fieldset className="appearance-choices">
       <legend className="t-label">Corner type</legend>
@@ -343,6 +347,8 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <summary>Customize outer frame</summary>
       <div className="disclosure-content">
         <p className="muted t-label">Applies to the Inset application frame. Choose Same as main style to follow the panels again. Corner size, mark size and border detail are shared.</p>
+        <VisualSelector preview={shadow => <PanelPreview shadow={shadow === "inherit" ? settings.shadowStyle : shadow as AppearanceSettings["shadowStyle"]} />} label="Outer shadow" value={settings.outerShadowStyle} onChange={value => onChange({ outerShadowStyle: value as AppearanceSettings["outerShadowStyle"] })}
+          options={[["inherit", "Same as main style"], ["none", "None"], ["hard", "Hard"], ["soft", "Soft"], ...(settings.outerShadowStyle === "auto" ? [["auto", "Legacy elevation"]] : [])] as [string, string][]} />
         <VisualSelector disabledOptions={outerCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Outer border" value={settings.outerBorderStyle} onChange={outerBorderStyle => onChange({ outerBorderStyle })}
           preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
           options={[["inherit", "Same as main style"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string]), ...(settings.outerBorderStyle === "bevel" ? [["bevel", "Inset edge (legacy)"] as [BorderStyle, string]] : [])]} />
@@ -383,6 +389,8 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   </AppearanceSection>,
   phone: <AppearanceSection title="Phone" collapsed={collapsed.includes("phone")}>
     <p className="muted t-label">These replace the main choices below 700px wide. Same as desktop keeps them. Layouts &gt; Phone shows the result.</p>
+    <VisualSelector preview={shadow => <PanelPreview shadow={shadow === "inherit" ? settings.shadowStyle : shadow as AppearanceSettings["shadowStyle"]} />} label="Phone shadow" value={settings.phoneShadowStyle} onChange={value => onChange({ phoneShadowStyle: value as AppearanceSettings["phoneShadowStyle"] })}
+      options={[["inherit", "Same as desktop"], ["none", "None"], ["hard", "Hard"], ["soft", "Soft"], ...(settings.phoneShadowStyle === "auto" ? [["auto", "Legacy elevation"]] : [])] as [string, string][]} />
     <VisualSelector label="Phone background" value={settings.phoneBackgroundStyle} onChange={phoneBackgroundStyle => onChange({ phoneBackgroundStyle })}
       preview={background => <BackgroundPreview background={background === "inherit" ? settings.backgroundStyle : background} tone={settings.paperTone} />}
       options={[["inherit", "Same as desktop"], ...backgrounds]} />

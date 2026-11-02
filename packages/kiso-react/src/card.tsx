@@ -1,14 +1,15 @@
+import { PanelShadow } from "./panel-shadow.js"
 // Adapted from shadcn/ui new-york-v4. See ../SHADCN-LICENSE.
 import * as React from "react"
 import { clsx as cn } from "clsx"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+function Card({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn("card", className)}
       {...props}
-    />
+    ><PanelShadow />{children}</div>
   )
 }
 

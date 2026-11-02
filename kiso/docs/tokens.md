@@ -357,6 +357,7 @@ No gallery CSS or JavaScript is required.
 | Attribute | Values | Default when omitted |
 | --- | --- | --- |
 | `data-border-style` | `solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset`, `manga`, `brush` | Solid outline |
+| `data-shadow-style` | `auto`, `none`, `hard`, `soft` | `auto`, the existing resting elevation and border cast |
 | `data-chart-style` | `solid`, `pixel`, `halftone`, `rounded` | Solid chart treatment |
 | `data-chart-line` | `straight`, `stepped`, `curved` | The chart style's line, otherwise `straight` |
 | `data-chart-fill` | `none`, `dots`, `tint`, `squares`, `scanlines` | The chart style's fill, otherwise `none` |
@@ -369,29 +370,55 @@ No gallery CSS or JavaScript is required.
 | `data-visual-style` | `default`, `editorial` | `default` |
 | `data-app-shell` | `default`, `inset` | `default` |
 
-Border treatment and corner shape are independent. `none` removes panel
-outlines, decorative edges, shadows and corner marks. It keeps panel surfaces,
-internal separators, control borders, status rails and focus indicators.
-It applies to the same frames as the other border styles: cards, tables,
-dialogs, drawers, palettes, log viewers, code blocks and inset shell content.
-Menus and tooltips keep their own outlines and elevation.
+Border, corner and panel shadow choices are independent. Border `none`
+removes panel outlines, decorative edges and corner marks. An explicit `hard`
+or `soft` shadow still draws without a border. Internal separators, control
+borders, status rails and focus indicators stay intact.
 
-Side rail (`rail`), Weighted base (`base`) and Offset outline (`offset`) are
-hard shadows. Each one shows the panel floating above the page, lit from one
-direction:
+`data-shadow-style` applies to cards, tables, dialogs, drawers, palettes, log
+viewers, code blocks and inset shell content. It does not change inputs,
+buttons, badges, tiles, menus or tooltips. `none` removes panel elevation,
+including interactive hover elevation. `hard` and `soft` replace resting
+panel elevation with one neutral cast in `--color-shadow-contact`. They do
+not recolor borders, including accent and status borders.
+
+Direction follows the effective local border, including a node override:
 
 | Border style | Light comes from | Shadow falls |
 | --- | --- | --- |
 | Side rail | the right | to the left |
 | Weighted base | above | below |
-| Offset outline | the top left | to the bottom right |
+| All others, including None | the top left | to the bottom right |
 
-The panel keeps its Solid border and corners. With Rounded or Asymmetric
-corners, the shadow is 3px of the panel's own shape, outside the panel, and it
-follows each corner until it tapers into the next edge. With Square corners,
-Side rail and Weighted base paint a 3px band inside the panel edge, and Offset
-outline paints the same 3px shadow outside it. The outer inset frame follows
-its own corner style, including `data-outer-corner-style`.
+Hard uses a 3px offset and no blur. Soft uses the same offset with 8px
+box-shadow blur, or an equivalent 4px Gaussian blur for a shaped contour.
+Both follow Square, Rounded, Asymmetric, Pixel, Manga and Brush geometry.
+Neither filters panel content or changes translucent interior fills. Marks
+remain independent. Forced colors suppress projected shadows.
+
+React panel components include the empty paint layer required for Pixel,
+Manga and Brush. Native HTML panels need the same child markup. A native
+panel without this child still renders standard-corner shadows, but cannot
+paint a shaped shadow:
+
+```html
+<div class="card" data-shadow-style="soft">
+  <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+  <!-- Panel content -->
+</div>
+```
+
+For a native frame in React, use `<PanelShadow />` from
+`@momoi-labs/kiso-react` as its first child. It has no focus target or pointer
+handling. Keep overflow on the panel's inner scrolling region.
+
+Omitting the attribute, or setting `auto`, preserves existing elevation.
+Side rail, Weighted base and Offset keep their legacy border-colored cast.
+Border and cast share `--color-border-strong`, or the explicit accent/status
+ink, to avoid a light strip at their joint. Rounded and Asymmetric casts
+follow the frame contour. Square Side rail and Weighted base retain their
+3px inset bands, including with explicit shadows. The inset bands are border
+decoration, not projected elevation.
 
 Chart treatment is independent of border and corner choices, and has two
 axes. The line changes Chart and Sparkline paths, ChartLegend line ends, and
@@ -458,6 +485,7 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-frame-scope` | `outer`, `panels`, `all` | Existing panel and control styling |
 | `data-mark-scope` | `outer`, `panels`, `all` | `panels` |
 | `data-outer-border-style` | `inherit` or a border value | `inherit` |
+| `data-outer-shadow-style` | `inherit`, `auto`, `none`, `hard`, `soft` | `inherit` |
 | `data-outer-corner-style` | `inherit` or a corner value | `inherit` |
 | `data-outer-corner-marks` | `inherit` or a mark value | `inherit` |
 | `data-mark-clearance` | `normal`, `sheet` | `normal` |
@@ -471,7 +499,8 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 
 Set these on `html`, alongside theme and accent. The outer choices apply to
 inset AppShell main frames. Their children and portals retain the inner
-choices from `data-border-style`, `data-corner-style`, and `data-corner-marks`.
+choices from `data-border-style`, `data-corner-style`, `data-corner-marks`
+and `data-shadow-style`.
 A nested attribute can override its inherited inner choice.
 
 Frame scope `outer` removes inner panel decoration and uses standard control
@@ -496,8 +525,9 @@ shortens their opposite corners. Pixel cuts their corners and draws the steps
 in the surface's own border color; Badge, extra-small buttons and Skeleton
 text cap the steps at the medium size, as switch tracks do. Manga and Brush
 draw them with the irregular control contour. Under Pixel, Manga and Brush,
-menus, popovers, tooltips and toasts drop their shadow, as dialogs do. A
-focused surface drops the contour and shows the standard ring.
+menus, popovers, tooltips and toasts drop their shadow. Dialogs also drop
+legacy elevation in these contours, but explicit panel Hard and Soft still
+draw. A focused surface drops the contour and shows the standard ring.
 
 Mark scope is independent. `outer` limits marks to inset shell frames;
 `panels` includes inner panel frames; `all` adds compact internal guides to

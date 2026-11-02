@@ -3,7 +3,7 @@ import { Archive, Cloud, CornerDownRight, Database, HardDrive, HardDriveUpload, 
 import {
   Badge, Button, Diagram, DiagramGroup, Tabs, TabsContent, TabsList, TabsTrigger, DiagramColumn, DiagramEdge, DiagramEdgeKey, DiagramRow, DiagramFact, DiagramFilter, DiagramFold, DiagramLine, DiagramNode,
   DiagramNodeGroup, DiagramSection, StatusBadge,
-  type DiagramArrow, type DiagramBackground, type DiagramBorderStyle, type DiagramCrossings, type DiagramEdgeShape, type DiagramLabels, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
+  type DiagramShadowStyle, type DiagramArrow, type DiagramBackground, type DiagramBorderStyle, type DiagramCrossings, type DiagramEdgeShape, type DiagramLabels, type DiagramCornerMarks, type DiagramCornerSize, type DiagramCornerStyle,
 } from "@momoi-labs/kiso-react";
 import { DemoChoice, DemoSettings, DemoSettingsHint, useDemoOptions } from "./demo-settings";
 
@@ -25,15 +25,17 @@ const marks: [DiagramCornerMarks, string][] = [
 export function DiagramDemo() {
   // Keys are Diagram props, so a copied look reads as the props to set.
   const [options, setOptions] = useDemoOptions<DiagramOptions>("diagram", { crossings: "none", labels: "auto", edges: "orthogonal", direction: "right" });
-  const { background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, crossings, labels, edges: shape, arrow, direction: layout } = options;
+  const { background, strength, borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle, crossings, labels, edges: shape, arrow, direction: layout } = options;
   const [example, setExample] = useState("basic");
-  const frame = { borderStyle, cornerStyle, cornerSize, cornerMarks };
+  const frame = { borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle };
   const edges = { crossings, labels, edges: shape, arrow };
   return (
     <div className="stack">
       <DemoSettings title="Diagram">
         <DemoChoice label="Node border" kind="border" inherit value={borderStyle} options={borders} with={{ corner: cornerStyle }}
           onChange={(value) => setOptions({ borderStyle: value as DiagramBorderStyle | undefined })} />
+        <DemoChoice label="Node shadow" kind="shadow" inherit value={shadowStyle} options={[["none", "None"], ["hard", "Hard"], ["soft", "Soft"]]}
+          onChange={value => setOptions({ shadowStyle: value as DiagramShadowStyle | undefined })} />
         <DemoChoice label="Node corners" kind="corner" inherit value={cornerStyle} options={corners} with={{ border: borderStyle }}
           onChange={(value) => setOptions({ cornerStyle: value as DiagramCornerStyle | undefined })} />
         <DemoChoice label="Node corner size" kind="cornerSize" inherit value={cornerSize} options={sizes}
@@ -94,7 +96,7 @@ export function DiagramDemo() {
         <DiagramEdge from="repo" to="cache" label="REDIS_URL" line="dotted" tone="danger" />
       </Diagram></TabsContent>
       <TabsContent value="groups"><ClusterOverview layout={layout} background={background} strength={strength} frame={frame} edges={edges} /></TabsContent>
-      <TabsContent value="interactive"><ServiceSummary layout={layout} background={background} strength={strength} frame={frame} /></TabsContent>
+      <TabsContent value="interactive"><ServiceSummary layout={layout} background={background} strength={strength} frame={frame} edges={edges} /></TabsContent>
       </Tabs>
     </div>
   );
@@ -113,12 +115,7 @@ function AddButton({ label }: { label: string }) {
 // receives requests carries its facts with the other containers folded
 // under it, and the project around the app and its databases folds to one
 // line.
-function ServiceSummary({ layout, background, strength, frame }: {
-  layout: Layout;
-  background?: DiagramBackground;
-  strength?: "quiet" | "visible";
-  frame: { borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks };
-}) {
+function ServiceSummary({ layout, background, strength, frame, edges }: ExampleProps & { layout: Layout }) {
   const [only, setOnly] = useState<string | null>(null);
   const show = (kind: string) => only === null || only === kind;
   const domains = (
@@ -185,7 +182,7 @@ function ServiceSummary({ layout, background, strength, frame }: {
     {project(<><DiagramColumn>{app}</DiagramColumn><DiagramColumn>{databases}</DiagramColumn></>)}
   </>;
   return (
-    <Diagram label="storefront: the routes that reach it and the database it uses" background={background} strength={strength} {...frame} {...flow(layout, [2])}>
+    <Diagram label="storefront: the routes that reach it and the database it uses" background={background} strength={strength} {...frame} {...edges} {...flow(layout, [2])}>
       {body}
       <DiagramEdge from="domains" to="app" />
       <DiagramEdge from="app" to="databases" />
@@ -196,7 +193,7 @@ function ServiceSummary({ layout, background, strength, frame }: {
 type ExampleProps = {
   background?: DiagramBackground;
   strength?: "quiet" | "visible";
-  frame: { borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks };
+  frame: { shadowStyle?: DiagramShadowStyle; borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks };
   edges: { crossings: DiagramCrossings; labels: DiagramLabels; edges: DiagramEdgeShape; arrow?: DiagramArrow };
 };
 
@@ -241,6 +238,7 @@ const arrowPreviews: Record<DiagramArrow, ReactNode> = {
 // clusters are groups, so they do not change with the layout.
 type Layout = "right" | "down" | "grid";
 type DiagramOptions = {
+  shadowStyle?: DiagramShadowStyle;
   background?: DiagramBackground; strength?: "quiet" | "visible";
   borderStyle?: DiagramBorderStyle; cornerStyle?: DiagramCornerStyle; cornerSize?: DiagramCornerSize; cornerMarks?: DiagramCornerMarks;
   crossings: DiagramCrossings; labels: DiagramLabels; edges: DiagramEdgeShape; arrow?: DiagramArrow; direction: Layout;
@@ -255,6 +253,7 @@ const layoutOptions: [Layout, string][] = [["right", "Left to right"], ["down", 
 // The values a shared look may set, so the gallery can check a pasted one.
 const values = (options: readonly (readonly [string, string])[]) => options.map(([value]) => value);
 export const diagramShareOptions: Record<keyof DiagramOptions, readonly string[]> = {
+  shadowStyle: ["none", "hard", "soft", "auto"],
   borderStyle: values(borders), cornerStyle: values(corners), cornerSize: values(sizes), cornerMarks: values(marks),
   background: values(backgrounds), strength: ["quiet", "visible"], crossings: values(crossingOptions), labels: values(labelOptions),
   edges: values(shapeOptions), arrow: values(arrowOptions), direction: values(layoutOptions),

@@ -1,4 +1,6 @@
 "use client";
+import { PanelShadow } from "./panel-shadow.js"
+
 
 import * as React from "react";
 import { clsx as cn } from "clsx";
@@ -45,6 +47,7 @@ function DrawerContent({
         className={cn("kiso-react-drawer marked", className)}
         {...props}
       >
+        <PanelShadow />
         {children}
       </DialogPrimitive.Content>
     </DialogPortal>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { usePaneLayout } from "./use-pane-layout"
-import { BarGauge, Card, CardContent, Chart, ChartLegend, Checkbox, Label, DashboardGrid, DashboardPanel,
+import { PanelShadow, BarGauge, Card, CardContent, Chart, ChartLegend, Checkbox, Label, DashboardGrid, DashboardPanel,
   Disclosure, Meter, Progress, Sparkline, Stat, StatValue, StatFoot, TimeRangeControl, type LiveTimeRange, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, type ChartProps, type ChartSeries, type ChartSummaryStat } from "@momoi-labs/kiso-react"
 
 const start = Date.UTC(2026, 8, 12, 9)
@@ -101,7 +101,7 @@ function ChartOptionsDemo() {
     <p className="muted t-label">Both charts share a syncId. Hover one to mark the same time in the other. Click, or press Enter on a focused plot, to pin it; click again or press Escape to clear.</p>
     <Card><CardContent><Chart label="I/O wait and steal (%)" data={filtered} series={series.slice(2, 4)} legend="inline"
       min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} syncId="chart-demo" /></CardContent></Card>
-    <pre><code>{code}</code></pre>
+    <pre><PanelShadow /><code>{code}</code></pre>
   </div>
 }
 

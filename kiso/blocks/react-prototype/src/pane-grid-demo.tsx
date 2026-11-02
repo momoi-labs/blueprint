@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
-import { Badge, Button, GridPane, Label, PaneGrid, Switch, type PaneGridLayout, type PaneGridOverflow } from "@momoi-labs/kiso-react";
+import { PanelShadow, Badge, Button, GridPane, Label, PaneGrid, Switch, type PaneGridLayout, type PaneGridOverflow } from "@momoi-labs/kiso-react";
 
 import { DemoSettings, useDemoOptions } from "./demo-settings";
 
@@ -72,7 +72,7 @@ export function PaneGridDemo() {
         <code>listens on 127.0.0.1:4310</code>
       </GridPane>
       <GridPane id="start" title="Start command" min={4} size={12} newRow actions={<><Button size="sm" variant="ghost">Copy</Button><Button size="sm" variant="ghost">Edit</Button></>}>
-        <pre><code>uv run laya serve --port 4310</code></pre>
+        <pre><PanelShadow /><code>uv run laya serve --port 4310</code></pre>
         <p className="t-metadata">Runs as <code>sf-app-7e983w7ecdpd</code> in the application home</p>
       </GridPane>
       <GridPane id="packages" title="Packages" min={3} size={6} newRow>

@@ -68,16 +68,23 @@ differently, the Diagram takes the same choices as the
 [appearance attributes](../tokens.md#appearance-attributes): `borderStyle`
 (`solid`, `none`, `rail`, `dash`, `bevel`, `double`, `base`, `offset`,
 `manga`, `brush`), `cornerStyle` (`square`, `rounded`, `asym`, `pixel`),
-`cornerSize` (`off`, `small`, `medium`, `large`) and `cornerMarks` (`none`,
-`ticks`, `brackets`, `arcs`, `diagonal`, `dots`). They open a nested
-appearance scope on the lanes, so they reach every node and leave the
-diagram's own panel to the page. A node takes the same four props to
+`cornerSize` (`off`, `small`, `medium`, `large`), `cornerMarks` (`none`,
+`ticks`, `brackets`, `arcs`, `diagonal`, `dots`) and `shadowStyle` (`auto`,
+`none`, `hard`, `soft`). They open a nested appearance scope on the lanes,
+so they reach every node and leave the diagram's own panel to the page.
+DiagramNode and DiagramNodeGroup take the same five props to
 override the Diagram, which is how one node that is down gets a dashed
 frame while the rest stay solid. Unset means inherit, at both levels. The
 pairing rules of the appearance settings hold here too: a border style that
 does not pair with Pixel corners (`rail`, `dash`, `bevel`, `double`, `base`,
 `offset`) drops the Pixel contour for that scope, and curved brackets do not
 draw on Pixel, Manga or Brush.
+
+An explicit shadow follows each node's effective local border direction.
+For example, a dashed failed node casts down and right even if the lanes use
+Side rail. The cast remains neutral; status and accent color only the frame.
+A node group draws one frame and shadow. Its child nodes and the flattened
+nodes of a collapsed group do not draw their own casts.
 
 Edges leave the right edge of each source, turn in the channel before the
 next column with an 8px radius, and enter the left edge of the target with

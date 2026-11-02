@@ -78,6 +78,7 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
         return <BackgroundPreview background={background ?? settings.backgroundStyle} strength={strength ?? settings.backgroundStrength} tone={settings.paperTone} />;
       }
       return <PanelPreview
+        shadow={kind === "shadow" ? (pick as AppearanceSettings["shadowStyle"] | undefined) ?? settings.shadowStyle : settings.shadowStyle}
         border={kind === "border" ? (pick as BorderStyle | undefined) ?? settings.borderStyle : settings.borderStyle}
         corner={kind === "corner" ? (pick as CornerStyle | undefined) ?? settings.cornerStyle : settings.cornerStyle}
         size={kind === "cornerSize" ? (pick as Size | undefined) ?? settings.cornerSize : settings.cornerSize}

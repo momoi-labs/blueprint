@@ -15,6 +15,22 @@ npm run prototype
 Open <http://127.0.0.1:5173/#components>. Every component has its own route,
 for example `#components/select`. State is in memory and no request leaves the
 page. The Kiso stylesheet loads Google Fonts.
+Usage examples stay inside each component's preview panel and use CodeBlock
+with syntax colors and a copy action. Diagram options apply to Basic, Groups
+and Interactive. Explicit node overrides still take precedence.
+Diagram's Node shadow accepts None, Hard and Soft independently of its
+border and corner options. It inherits the page choice when unset. Explicit
+node overrides still determine the local cast direction.
+
+The hosted gallery adds independent main, outer and phone panel shadows.
+Hard and Soft stay neutral and follow the contour, including Pixel, Manga
+and Brush. Inputs, buttons and other internal controls keep their own paint.
+With omitted or `auto` shadows, Side rail, Weighted base and Offset retain
+legacy matching border/cast colors in both themes, including status ink.
+Share version 2 carries shadow settings in copied JSON, codes and URLs.
+Version 1 links and older saved looks retain legacy elevation. Fresh visits
+and Reset use None; the existing presets add Hard or Soft, except Drafting
+sheet. Native reference panels use the exported PanelShadow paint layer.
 
 ## What to look at
 

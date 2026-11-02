@@ -64,6 +64,20 @@ surfaces and needs that lift — not on every tile. A recessed band inside a Car
 Do not add outline/ghost Card variants. If the grouping needs no surface,
 it is a section with a heading, not a Card.
 
+## Panel shadows
+
+The [appearance attributes](../tokens.md#appearance-attributes) select panel
+shadows independently of border and corner choices. `none` removes elevation,
+`hard` draws a neutral directional cast, and `soft` blurs the same cast.
+Unset or `auto` retains existing elevation. The choice applies to every panel
+family listed below, not to internal controls. Frame scope `outer` still
+suppresses inner panel decoration.
+
+React panels include their empty silhouette paint layer. Native `.card` and
+other panel markup must include the `.panel-shadow` child shown in the token
+contract to cast Pixel, Manga and Brush shadows. Keep content out of that
+layer, and put overflow on an inner region so the cast can extend outside.
+
 ## Corner marks
 
 This is the shared panel contract. Card, [Table](table.md) wrapper,

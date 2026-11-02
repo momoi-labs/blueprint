@@ -813,7 +813,7 @@ select.select option:disabled { color: var(--color-disabled); }
   color: var(--color-card-foreground);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-xs)));
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-xs), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
 }
 .card-header { padding: var(--presentation-panel-padding) var(--presentation-panel-padding) 0; display: grid; gap: var(--presentation-heading-gap); }
 .card-body   { padding: var(--presentation-panel-padding); display: grid; gap: var(--presentation-panel-gap); }
@@ -827,7 +827,7 @@ select.select option:disabled { color: var(--color-disabled); }
 }
 .card-header + .card-body { padding-block-start: var(--presentation-panel-gap); }
 .card-interactive { cursor: pointer; transition: border-color var(--motion-duration-fast) var(--motion-easing-standard); }
-.card-interactive:hover { border-color: var(--color-border-strong); box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-sm))); }
+.card-interactive:hover { border-color: var(--color-border-strong); box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-sm), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint)); }
 
 /* stat / KPI tile */
 .stat { display: grid; min-width: 0; gap: var(--presentation-heading-gap); padding: var(--presentation-panel-padding); }
@@ -1027,7 +1027,7 @@ table.table {
   color: var(--color-popover-foreground);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg)));
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
   animation: dialog-in var(--motion-duration-normal) var(--motion-easing-standard);
 }
 @keyframes dialog-in { from { opacity: 0; translate: 0 8px; scale: .98 } }
@@ -1099,7 +1099,7 @@ table.table {
   background: var(--color-popover);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-surface);
-  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg)));
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-lg), var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
   overflow: hidden;
 }
 .palette-input {
@@ -1287,7 +1287,7 @@ table.table {
     border-end-start-radius: inherit;
     border-end-end-radius: inherit;
   }
-  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :only-child { border-radius: inherit; }
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :nth-child(1 of :not(.panel-shadow)):nth-last-child(1 of :not(.panel-shadow)) { border-radius: inherit; }
 }
 .sidebar {
   display: flex; flex-direction: column;
@@ -2005,6 +2005,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-overlay-content: none;
   --appearance-overlay-inset: 0px;
   --appearance-overlay-border: 0;
+  --panel-shadow-x: 3px;
+  --panel-shadow-y: 3px;
+  --panel-shadow-ink-contour: initial;
   --appearance-cast: 0;
   --appearance-cast-x: 0px;
   --appearance-cast-y: 0px;
@@ -2060,6 +2063,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 [data-border-style="rail"],
 :where([data-outer-border-style="rail"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-overlay-content: ""; --appearance-base-radius: 6px; --appearance-control-base: 3px;
   /* Light from the right casts the shadow to the left. */
+  --panel-shadow-x: -3px; --panel-shadow-y: 0px;
   --appearance-cast: 1; --appearance-cast-x: -3px; --appearance-cast-inside: 1;
 }
 [data-border-style="dash"],
@@ -2073,6 +2077,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   /* Match the outer frame so the thick base covers its bottom hairline. */
   --appearance-overlay-inset: -1px;
   /* Light from above casts the shadow below. */
+  --panel-shadow-x: 0px; --panel-shadow-y: 3px;
   --appearance-cast: 1; --appearance-cast-y: 3px; --appearance-cast-inside: 1;
 }
 [data-border-style="offset"],
@@ -2119,31 +2124,100 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   border-radius: var(--appearance-corners);
   border-style: var(--appearance-panel-border);
 }
-/* Side rail, Weighted base and Offset outline cast a hard shadow away from
-   the light. With rounded corners (k = 1) the overlay matches the border box
-   and the shadow is the panel's shape swept along the cast, so it follows
-   every corner and leaves the panel's border alone. Square corners (k = 0)
-   keep the flat band inside the panel. Each frame resolves k from its own
-   corners, and an outside shadow keeps the corner marks clear. */
+/* Exterior casts belong to the frame itself: a separate overlay clips its
+   shadows independently and leaks background through the antialiased joint.
+   Rounded corners (k = 1) sweep the frame's shape along the cast. Square
+   rail/base (k = 0) keep their inset band on the decorative overlay. */
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone) {
   --appearance-cast-k: calc(var(--appearance-cast, 0) * var(--appearance-rounded, 0) * clamp(0, var(--appearance-scale, 1) * 100, 1) * (1 - var(--appearance-pixel, 0)));
   --appearance-cast-clearance: calc(var(--appearance-cast-k) * var(--appearance-cast-inside, 0) * var(--spacing-xs));
+  --appearance-cast-out: calc(var(--appearance-cast, 0) * (1 - var(--appearance-cast-inside, 0) * (1 - var(--appearance-cast-k))));
+  --appearance-cast-border: var(--panel-shadow-border, color-mix(in srgb, var(--color-border-strong) calc(var(--appearance-cast, 0) * 100%), var(--color-border)));
+  --appearance-cast-ink: var(--appearance-border-color, var(--corner-border-color, var(--choice-border, var(--color-border-strong))));
+  --appearance-cast-color: color-mix(in srgb, var(--appearance-cast-ink) calc(var(--appearance-cast-out) * 100%), transparent);
+  --appearance-cast-shadow:
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k) * 2 / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k) * 2 / 3)) var(--appearance-cast-color),
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k) / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k) / 3)) var(--appearance-cast-color),
+    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out)) var(--appearance-cast-color);
 }
+/* Surfaces without resting elevation still carry the same exterior cast. */
+:where(.table-wrap, .logview, .marked, pre, .code-block, .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])),
+:where([data-frame-scope="all"]) :where(.radio-group[data-variant="tiles"] > .radio-item, .file-dropzone) {
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--appearance-cast-shadow, 0 0 transparent)));
+}
+/* Empty values select legacy paint, invalid values select explicit paint.
+   Keep the switches inherited and resolve geometry on each actual surface. */
+:root, [data-shadow-style="auto"],
+:where([data-outer-shadow-style="auto"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --panel-shadow-legacy: initial;
+  --panel-shadow-projection: ;
+  --panel-shadow-layer: none;
+  --panel-shadow-border: initial;
+  --panel-shadow-blur: 0px;
+}
+[data-shadow-style="none"],
+:where([data-outer-shadow-style="none"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --panel-shadow-border: var(--color-border);
+  --panel-shadow-legacy: ;
+  --panel-shadow-projection: none;
+  --panel-shadow-layer: none;
+}
+[data-shadow-style="hard"], [data-shadow-style="soft"],
+:where([data-outer-shadow-style="hard"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-shadow-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --panel-shadow-border: var(--color-border);
+  --panel-shadow-legacy: ;
+  --panel-shadow-projection: initial;
+  --panel-shadow-layer: block;
+  --panel-shadow-blur: 0px;
+}
+[data-shadow-style="soft"],
+:where([data-outer-shadow-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --panel-shadow-blur: 8px; }
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, .app-shell > :is(main, [data-slot="app-shell-main"])) {
+  isolation: isolate;
+  --panel-shadow-contour: var(--panel-shadow-ink-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  --panel-shadow-shaped: max(var(--appearance-pixel, 0), var(--appearance-expressive, 0));
+  --panel-shadow-paint: var(--panel-shadow-x, 3px) var(--panel-shadow-y, 3px) var(--panel-shadow-blur, 0px) 0px color-mix(in srgb, var(--color-shadow-contact) calc((1 - var(--panel-shadow-shaped)) * 100%), transparent);
+}
+:is(.table-wrap, .logview, .marked, pre:not(.code-block > pre), .code-block, .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])) {
+  box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
+}
+.panel-shadow {
+  display: var(--panel-shadow-layer, none);
+  position: absolute;
+  inset: var(--corner-overlay-inset, var(--appearance-overlay-inset, -1px));
+  pointer-events: none;
+  z-index: -2;
+  /* Remove only the original footprint, before translucent content paints. */
+  clip-path: polygon(evenodd, -32px -32px, calc(100% + 32px) -32px, calc(100% + 32px) calc(100% + 32px), -32px calc(100% + 32px), -32px -32px, var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
+}
+.panel-shadow > span {
+  position: absolute;
+  inset: 0;
+  transform: translate(var(--panel-shadow-x, 3px), var(--panel-shadow-y, 3px));
+  filter: blur(calc(var(--panel-shadow-blur, 0px) / 2));
+  opacity: var(--panel-shadow-shaped, 0);
+}
+.panel-shadow > span > span {
+  position: absolute;
+  inset: 0;
+  background: var(--color-shadow-contact);
+  clip-path: polygon(var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
+}
+/* The empty layer cannot become a flex/grid item or a direct-child divider. */
+.panel-shadow.panel-shadow { margin: 0; padding: 0; border: 0; }
+
 /* Paint decorative edges above table headers and panel footers. */
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
   content: var(--appearance-mark-content, var(--corner-overlay-content, var(--appearance-overlay-content, none)));
-  --appearance-cast-out: calc(1 - var(--appearance-cast-inside, 0) * (1 - var(--appearance-cast-k, 0)));
   position: absolute;
   inset: var(--corner-overlay-inset, calc(var(--appearance-overlay-inset) * (1 - var(--appearance-cast-k, 0)) - 1px * var(--appearance-cast-k, 0)));
   border: var(--corner-overlay-border, var(--appearance-overlay-border));
   border-radius: var(--appearance-overlay-radius);
   box-shadow: var(--appearance-ink-shadow, var(--corner-panel-shadow, var(--appearance-panel-shadow),
-    inset calc(-1 * var(--appearance-cast-x, 0px) * (1 - var(--appearance-cast-out))) calc(-1 * var(--appearance-cast-y, 0px) * (1 - var(--appearance-cast-out))) var(--color-border-strong),
-    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) * 2 / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) * 2 / 3)) var(--color-border-strong),
-    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) / 3)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out) * (1 - var(--appearance-cast-k, 0) / 3)) var(--color-border-strong),
-    calc(var(--appearance-cast-x, 0px) * var(--appearance-cast-out)) calc(var(--appearance-cast-y, 0px) * var(--appearance-cast-out)) var(--color-border-strong)));
+    inset calc(-1 * var(--appearance-cast-x, 0px) * (1 - var(--appearance-cast-out, 0))) calc(-1 * var(--appearance-cast-y, 0px) * (1 - var(--appearance-cast-out, 0))) var(--appearance-cast-ink)));
   pointer-events: none;
   background-color: color-mix(in srgb, var(--frame-fill, var(--color-card)) calc(var(--appearance-expressive, 0) * 100%), var(--appearance-ink-color, var(--corner-ink-color, transparent)));
   background-image: var(--appearance-ink-images, none);
@@ -2333,7 +2407,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where([data-outer-border-style="manga"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   /* Fill and ink share one contour. Only this decorative layer is clipped. */
   --appearance-ink-mask: none;
-  --appearance-ink-clip: polygon(0 calc(5px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 0, 100% 100%, calc(2px * var(--frame-detail, 1)) calc(100% - 3px * var(--frame-detail, 1)));
+  --panel-shadow-ink-contour: 0 calc(5px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 0, 100% 100%, calc(2px * var(--frame-detail, 1)) calc(100% - 3px * var(--frame-detail, 1)), 0 calc(5px * var(--frame-detail, 1));
+  --appearance-ink-clip: polygon(var(--panel-shadow-ink-contour));
   --appearance-ink-images:
     linear-gradient(var(--color-foreground), var(--color-foreground)),
     linear-gradient(to bottom right, var(--color-foreground) 50%, transparent 50%),
@@ -2352,7 +2427,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where([data-outer-border-style="brush"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-brush: 1;
   --appearance-ink-mask: none;
-  --appearance-ink-clip: polygon(0 calc(3px * var(--frame-detail, 1)), 18% calc(1.5px * var(--frame-detail, 1)), 43% calc(2px * var(--frame-detail, 1)), 70% calc(1.5px * var(--frame-detail, 1)), 100% calc(2.1px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 25%, calc(100% - 2.8px * var(--frame-detail, 1)) 50%, calc(100% - 1.5px * var(--frame-detail, 1)) 75%, calc(100% - 3px * var(--frame-detail, 1)) 100%, 70% calc(100% - 1.5px * var(--frame-detail, 1)), 43% calc(100% - 2px * var(--frame-detail, 1)), 18% calc(100% - 1.5px * var(--frame-detail, 1)), 0 calc(100% - 2.1px * var(--frame-detail, 1)), calc(2px * var(--frame-detail, 1)) 75%, calc(2.8px * var(--frame-detail, 1)) 50%, calc(1.5px * var(--frame-detail, 1)) 25%);
+  --panel-shadow-ink-contour: 0 calc(3px * var(--frame-detail, 1)), 18% calc(1.5px * var(--frame-detail, 1)), 43% calc(2px * var(--frame-detail, 1)), 70% calc(1.5px * var(--frame-detail, 1)), 100% calc(2.1px * var(--frame-detail, 1)), calc(100% - 2px * var(--frame-detail, 1)) 25%, calc(100% - 2.8px * var(--frame-detail, 1)) 50%, calc(100% - 1.5px * var(--frame-detail, 1)) 75%, calc(100% - 3px * var(--frame-detail, 1)) 100%, 70% calc(100% - 1.5px * var(--frame-detail, 1)), 43% calc(100% - 2px * var(--frame-detail, 1)), 18% calc(100% - 1.5px * var(--frame-detail, 1)), 0 calc(100% - 2.1px * var(--frame-detail, 1)), calc(2px * var(--frame-detail, 1)) 75%, calc(2.8px * var(--frame-detail, 1)) 50%, calc(1.5px * var(--frame-detail, 1)) 25%, 0 calc(3px * var(--frame-detail, 1));
+  --appearance-ink-clip: polygon(var(--panel-shadow-ink-contour));
   --appearance-ink-shadow: inset 0 0 0 calc(5px * var(--frame-detail, 1)) var(--color-foreground);
   --appearance-overlay-inset: calc(-6px * var(--frame-detail, 1));
   --appearance-effect-clearance: var(--spacing-sm);
@@ -2377,7 +2453,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 
 
 /* Outer overrides do not leak into nested panels or portalled content. */
-:root, [data-border-style], [data-corner-style], [data-corner-size], [data-corner-marks], [data-mark-size], [data-mark-clearance] {
+:root, [data-shadow-style], [data-border-style], [data-corner-style], [data-corner-size], [data-corner-marks], [data-mark-size], [data-mark-clearance] {
   --inner-appearance-base-opposite: var(--appearance-base-opposite);
   --inner-appearance-base-radius: var(--appearance-base-radius);
   --inner-appearance-base-rounded: var(--appearance-base-rounded);
@@ -2425,6 +2501,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --inner-appearance-palette-marks: var(--appearance-palette-marks);
   --inner-appearance-panel-border: var(--appearance-panel-border);
   --inner-appearance-panel-shadow: var(--appearance-panel-shadow);
+  --inner-panel-shadow-x: var(--panel-shadow-x);
+  --inner-panel-shadow-y: var(--panel-shadow-y);
+  --inner-panel-shadow-ink-contour: var(--panel-shadow-ink-contour);
+  --inner-panel-shadow-legacy: var(--panel-shadow-legacy);
+  --inner-panel-shadow-projection: var(--panel-shadow-projection);
+  --inner-panel-shadow-blur: var(--panel-shadow-blur);
+  --inner-panel-shadow-layer: var(--panel-shadow-layer);
+  --inner-panel-shadow-border: var(--panel-shadow-border);
   --inner-appearance-cast: var(--appearance-cast);
   --inner-appearance-cast-x: var(--appearance-cast-x);
   --inner-appearance-cast-y: var(--appearance-cast-y);
@@ -2456,7 +2540,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --inner-radius-surface: var(--radius-surface);
   --inner-radius-xs: var(--radius-xs);
 }
-:where(.app-shell > :is(main, [data-slot="app-shell-main"]) > *) {
+:where(.app-shell > :is(main, [data-slot="app-shell-main"]) > :not(.panel-shadow)) {
   --appearance-base-opposite: var(--inner-appearance-base-opposite);
   --appearance-base-radius: var(--inner-appearance-base-radius);
   --appearance-base-rounded: var(--inner-appearance-base-rounded);
@@ -2504,6 +2588,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-palette-marks: var(--inner-appearance-palette-marks);
   --appearance-panel-border: var(--inner-appearance-panel-border);
   --appearance-panel-shadow: var(--inner-appearance-panel-shadow);
+  --panel-shadow-x: var(--inner-panel-shadow-x);
+  --panel-shadow-y: var(--inner-panel-shadow-y);
+  --panel-shadow-ink-contour: var(--inner-panel-shadow-ink-contour);
+  --panel-shadow-legacy: var(--inner-panel-shadow-legacy);
+  --panel-shadow-projection: var(--inner-panel-shadow-projection);
+  --panel-shadow-blur: var(--inner-panel-shadow-blur);
+  --panel-shadow-layer: var(--inner-panel-shadow-layer);
+  --panel-shadow-border: var(--inner-panel-shadow-border);
   --appearance-cast: var(--inner-appearance-cast);
   --appearance-cast-x: var(--inner-appearance-cast-x);
   --appearance-cast-y: var(--inner-appearance-cast-y);
@@ -2541,7 +2633,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
   --appearance-corners: calc(var(--radius-surface) * (1 - var(--appearance-expressive, 0))) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)) * (1 - var(--appearance-expressive, 0)));
 }
-:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border-color: var(--appearance-border-color, var(--corner-border-color, var(--color-border))); }
+:is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])) { border-color: var(--appearance-border-color, var(--corner-border-color, var(--appearance-cast-border, var(--color-border)))); }
 
 /* Pixel geometry is painted behind content. Focus and overflow stay rectangular. */
 :where([data-corner-style="pixel"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
@@ -2549,11 +2641,12 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
   --pixel-step: round(calc(4px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
   --pixel-inner-r: max(0px, calc(var(--pixel-r) - 1px));
   --pixel-inner-step: max(0px, calc(var(--pixel-step) - 1px));
   --pixel-header-clip: polygon(var(--pixel-inner-r) 0, calc(100% - var(--pixel-inner-r)) 0, calc(100% - var(--pixel-inner-r)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-r), 100% var(--pixel-inner-r), 100% 100%, 0 100%, 0 var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-step), var(--pixel-inner-r) var(--pixel-inner-step));
   --pixel-footer-clip: polygon(0 0, 100% 0, 100% calc(100% - var(--pixel-inner-r)), calc(100% - var(--pixel-inner-step)) calc(100% - var(--pixel-inner-r)), calc(100% - var(--pixel-inner-step)) calc(100% - var(--pixel-inner-step)), calc(100% - var(--pixel-inner-r)) calc(100% - var(--pixel-inner-step)), calc(100% - var(--pixel-inner-r)) 100%, var(--pixel-inner-r) 100%, var(--pixel-inner-r) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-r)), 0 calc(100% - var(--pixel-inner-r)));
-  --frame-line: var(--appearance-border-color, var(--corner-border-color, var(--color-border)));
+  --frame-line: var(--appearance-border-color, var(--corner-border-color, var(--appearance-cast-border, var(--color-border))));
   border-color: color-mix(in srgb, var(--frame-line) calc((1 - var(--pixel-enabled)) * 100%), transparent);
   background-color: color-mix(in srgb, var(--frame-fill) calc((1 - var(--pixel-enabled)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
   /* Disjoint bands keep translucent fills at one opacity across the contour. */
@@ -2823,9 +2916,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 /* Folds and sections reach the node's edges, separated by rules. A fold
    after the title starts a full panel padding below it. */
 .diagram-fold { display: grid; margin-inline: calc(-1 * var(--diagram-padding)); }
-.diagram-fold:first-child { margin-block-start: calc(-1 * var(--diagram-padding)); }
+.diagram-fold:nth-child(1 of :not(.panel-shadow)) { margin-block-start: calc(-1 * var(--diagram-padding)); }
 .diagram-fold:last-child { margin-block-end: calc(-1 * var(--diagram-padding)); }
-.diagram-fold:not(:first-child) { margin-block-start: calc(var(--diagram-padding) - var(--spacing-xs)); border-block-start: 1px solid var(--color-border); }
+.diagram-fold:not(:nth-child(1 of :not(.panel-shadow))) { margin-block-start: calc(var(--diagram-padding) - var(--spacing-xs)); border-block-start: 1px solid var(--color-border); }
 .diagram-fold-head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--diagram-padding);
@@ -3923,20 +4016,20 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-corner-style="pixel"], [data-outer-corner-style="pixel"]) .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar {
   clip-path: var(--pixel-header-clip, none);
 }
-.table-wrap > .table-scroll:not(:first-child) { --table-top-r: 0px; --table-top-step: 0px; }
+.table-wrap > .table-scroll:not(:nth-child(1 of :not(.panel-shadow))) { --table-top-r: 0px; --table-top-step: 0px; }
 .table-wrap > .table-scroll:not(:last-child) { --table-bottom-r: 0px; --table-bottom-step: 0px; }
 .table-wrap[data-frame="none"] { --pixel-enabled: 0; --pixel-r: 0px; --pixel-step: 0px; --appearance-expressive: 0; background: transparent; }
 
 /* Content and ink use the same rectangle and contour. Keep the ink above the
    cells, and the marks on the outer frame, outside the clipped content. */
-:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap > :is(.table-surface, .table-scroll:only-child),
-:where([data-border-style="manga"], [data-border-style="brush"]) .card > .form:only-child {
+:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap > :is(.table-surface, .table-scroll:where(:nth-child(1 of :not(.panel-shadow))):last-child),
+:where([data-border-style="manga"], [data-border-style="brush"]) .card > .form:where(:nth-child(1 of :not(.panel-shadow))):last-child {
   margin: calc(var(--appearance-expressive, 0) * var(--appearance-overlay-inset, 0px));
   background: var(--frame-fill);
   clip-path: var(--appearance-ink-clip, none);
 }
-:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap:has(> :is(.table-surface, .table-scroll:only-child))::before,
-:where([data-border-style="manga"], [data-border-style="brush"]) .card:has(> .form:only-child)::before {
+:where([data-border-style="manga"], [data-border-style="brush"]) .table-wrap:has(> :is(.table-surface, .table-scroll:where(:nth-child(1 of :not(.panel-shadow))):last-child))::before,
+:where([data-border-style="manga"], [data-border-style="brush"]) .card:has(> .form:where(:nth-child(1 of :not(.panel-shadow))):last-child)::before {
   background-color: transparent;
   z-index: 3;
 }
@@ -4130,7 +4223,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   border-style: var(--appearance-panel-border);
   border-color: var(--appearance-border-color, var(--corner-border-color, var(--choice-border)));
   border-radius: var(--appearance-corners, var(--radius-surface));
-  box-shadow: none;
+  box-shadow: var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--appearance-cast-shadow, 0 0 transparent)));
   background-color: color-mix(in srgb, var(--choice-fill) calc((1 - var(--pixel-enabled)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
 }
 :where([data-frame-scope="all"][data-border-style="manga"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::before {
@@ -4448,4 +4541,20 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
 /* In its own rule: a browser without ::details-content drops only this one. */
 @media print {
   .disclosure::details-content { content-visibility: visible; }
+}
+
+/* Suppressed frames never revive through an explicit shadow choice. */
+:where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block) > .panel-shadow,
+.diagram-node-group > .diagram-node > .panel-shadow,
+.diagram .diagram-group[data-open="false"] .panel-shadow,
+.table-wrap[data-frame="none"] > .panel-shadow,
+:where([data-app-shell-outer="none"]) .app-shell > main > .panel-shadow,
+/* Only the Inset main is a framed panel. */
+.app-shell:not([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > main > .panel-shadow { display: none; }
+@media (max-width: 699px) {
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not([data-app-shell-outer]:not([data-app-shell-outer="auto"]) *)) > main > .panel-shadow { display: none; }
+}
+@media (forced-colors: active) {
+  .panel-shadow { display: none; }
+  :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, .app-shell > main) { box-shadow: none; }
 }

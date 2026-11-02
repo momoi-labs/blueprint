@@ -2,8 +2,8 @@ import { useId } from "react";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 
 // Thumbnail geometry stays independent of the gallery's live component scopes.
-export function PanelPreview({ border = "solid", corner = "square", marks = "none", size = "medium", markSize = "medium", clearance = "normal", detail = "medium" }: {
-  border?: BorderStyle; corner?: CornerStyle; marks?: CornerMarks; size?: Size;
+export function PanelPreview({ border = "solid", corner = "square", marks = "none", size = "medium", shadow = "auto", markSize = "medium", clearance = "normal", detail = "medium" }: {
+  shadow?: AppearanceSettings["shadowStyle"]; border?: BorderStyle; corner?: CornerStyle; marks?: CornerMarks; size?: Size;
   markSize?: MarkSize; clearance?: AppearanceSettings["markClearance"]; detail?: MarkSize;
 }) {
   const inkScale = { small: .7, medium: 1, large: 1.4 }[detail];
@@ -18,7 +18,8 @@ export function PanelPreview({ border = "solid", corner = "square", marks = "non
   const length = { small: 3, medium: 5, large: 7 }[markSize];
   const gap = clearance === "sheet" ? 6 : 2;
   return <svg className="appearance-panel-preview" viewBox="0 0 80 56" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
-    {border === "offset" && <path d={contour} transform="translate(3 3)" className="appearance-preview-shadow" />}
+    {(shadow === "hard" || shadow === "soft") && <path d={contour} transform={`translate(${border === "rail" ? -3 : border === "base" ? 0 : 3} ${border === "rail" ? 0 : 3})`} fill="var(--color-shadow-contact)" stroke="none" style={{ filter: shadow === "soft" ? "blur(2px)" : undefined }} />}
+    {shadow === "auto" && border === "offset" && <path d={contour} transform="translate(3 3)" className="appearance-preview-shadow" />}
     <path d={border === "brush" ? "M16 14H64V42H16Z" : contour} className="appearance-preview-paper" stroke={border === "none" || border === "brush" ? "none" : undefined}
       strokeWidth={border === "manga" ? 2.5 * inkScale : undefined} strokeDasharray={border === "dash" ? "4 3" : undefined} />
     {border === "brush" && <path fill="currentColor" strokeWidth={(inkScale - .7) * 2} d="M14 13 66 14 64 16 17 15 16 43 14 42ZM63 13 66 12 65 44 63 41ZM14 41 65 40 67 43 16 44Z" />}

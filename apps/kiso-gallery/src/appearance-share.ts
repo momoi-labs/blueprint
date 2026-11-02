@@ -8,12 +8,12 @@ const chartPresets: Record<string, { line: string; fill: string }> = {
   rounded: { line: "curved", fill: "none" },
 };
 
-// A shared look is `{ v: 1, s: { ...settings that differ from the defaults } }`,
+// A shared look is `{ v: 2, s: { ...settings that differ from the defaults } }`,
 // plus one key per demo with options set, such as `diagram: { edges: "curve" }`.
 // A demo's keys are its component's props.
 // A link carries it as base64url JSON in the `appearance` query parameter.
 // The hash already holds the gallery route, so the code cannot live there.
-export const shareVersion = 1;
+export const shareVersion = 2;
 export const shareParam = "appearance";
 
 type Source = Pick<Window["kisoAppearance"], "defaults" | "options">;
@@ -80,8 +80,8 @@ export function readShare(input: string, { defaults, options }: Source, schema: 
   const { v, s, ...rest } = data as { v?: unknown; s?: unknown; [scope: string]: unknown };
   if (!s || typeof s !== "object" || Array.isArray(s)) return fail("The code has no settings.");
   const skipped: string[] = [];
-  if (v !== shareVersion) skipped.push("version (made by another release)");
-  const settings = { ...defaults } as Record<string, string>;
+  if (v !== 1 && v !== shareVersion) skipped.push("version (made by another release)");
+  const settings = { ...defaults, ...(v === 1 ? { shadowStyle: "auto" } : {}) } as Record<string, string>;
   const entries = Object.entries(s);
   // Links made before line and fill were split carry one chart style preset.
   const preset = chartPresets[(s as Record<string, unknown>).chartStyle as string];

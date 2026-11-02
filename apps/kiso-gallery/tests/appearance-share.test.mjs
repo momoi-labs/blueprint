@@ -5,7 +5,7 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { preview } from "vite";
-import { toggleSettings } from "./settings-tabs.mjs";
+import { tab, toggleSettings } from "./settings-tabs.mjs";
 import { settingsText, shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
 // Load Playwright before any test is registered. An await between the tests
 // and the hooks below lets the runner start the tests first, and the after
@@ -20,9 +20,43 @@ const { defaults, options } = window.kisoAppearance;
 const kit = { defaults, options };
 const plain = value => JSON.parse(JSON.stringify(value));
 
+test("all 5,760 appearance tuples preserve shadows through JSON, code and URLs", () => {
+  let count = 0;
+  for (const theme of ["light", "dark"]) for (const borderStyle of options.borderStyle)
+    for (const cornerStyle of options.cornerStyle) for (const cornerSize of options.cornerSize)
+      for (const cornerMarks of options.cornerMarks) for (const shadowStyle of ["none", "hard", "soft"]) {
+        const look = { ...defaults, theme, borderStyle, cornerStyle, cornerSize, cornerMarks, shadowStyle };
+        for (const input of [settingsText(look), shareText(look, kit), shareCode(look, kit), shareLink(look, kit, {}, "https://example.test/#components/diagram")]) {
+          const result = readShare(input, kit);
+          assert.deepEqual(plain(result.settings), look);
+          assert.deepEqual(result.skipped, []);
+        }
+        count++;
+      }
+  assert.equal(count, 5760);
+});
+
+test("main, outer, phone and Diagram shadow overrides round-trip independently", () => {
+  const modes = ["none", "hard", "soft", "auto"];
+  const schema = { diagram: { shadowStyle: modes } };
+  for (const shadowStyle of modes) for (const outerShadowStyle of ["inherit", ...modes])
+    for (const phoneShadowStyle of ["inherit", ...modes]) for (const local of [undefined, ...modes]) {
+      const look = { ...defaults, shadowStyle, outerShadowStyle, phoneShadowStyle };
+      const demos = local === undefined ? {} : { diagram: { shadowStyle: local } };
+      for (const input of [settingsText(look, demos), shareCode(look, kit, demos), shareLink(look, kit, demos, "https://example.test/")]) {
+        const result = readShare(input, kit, schema);
+        assert.deepEqual(plain(result.settings), look);
+        assert.deepEqual(result.demos, demos);
+        assert.deepEqual(result.skipped, []);
+      }
+    }
+  assert.equal(readShare('{"v":1,"s":{}}', kit).settings.shadowStyle, "auto");
+  assert.equal(readShare('{"v":2,"s":{}}', kit).settings.shadowStyle, "none");
+});
+
 test("a share code holds only the settings that differ from the defaults", () => {
-  assert.equal(shareText(defaults, kit), '{"v":1,"s":{}}');
-  assert.deepEqual(JSON.parse(shareText({ ...defaults, accent: "teal" }, kit)), { v: 1, s: { accent: "teal" } });
+  assert.equal(shareText(defaults, kit), '{"v":2,"s":{}}');
+  assert.deepEqual(JSON.parse(shareText({ ...defaults, accent: "teal" }, kit)), { v: 2, s: { accent: "teal" } });
   assert.match(shareCode({ ...defaults, accent: "teal" }, kit), /^[A-Za-z0-9_-]+$/);
 });
 
@@ -82,7 +116,7 @@ const schema = { diagram: { edges: ["orthogonal", "curve"], direction: ["right",
 
 test("demo options travel in their own key, through a link, a code and copied JSON", () => {
   const diagram = { edges: "curve", direction: "down" };
-  assert.deepEqual(JSON.parse(shareText(defaults, kit, { diagram, table: {} })), { v: 1, s: {}, diagram });
+  assert.deepEqual(JSON.parse(shareText(defaults, kit, { diagram, table: {} })), { v: 2, s: {}, diagram });
   assert.deepEqual(JSON.parse(settingsText(defaults, { diagram })).diagram, diagram);
   for (const input of [shareLink(defaults, kit, { diagram }, "https://example.test/"), shareCode(defaults, kit, { diagram }), settingsText(defaults, { diagram })]) {
     const result = readShare(input, kit, schema);
@@ -188,19 +222,114 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
   });
 }
 
+test("every preset retains its shadow through actual clipboard and fresh-context URLs", async () => {
+  const presets = [["Default", "soft"], ["Blueprint", "hard"], ["Drawing plate", "hard"],
+    ["Drafting sheet", "none"], ["Pixel workshop", "hard"], ["Manga board", "hard"],
+    ["Brush study", "soft"], ["Momoi signature", "soft"], ["Pixel everywhere", "hard"]];
+  const page = await open("#components/card");
+  try {
+    const panel = page.locator("#gallery-settings");
+    if (!await panel.isVisible()) await toggleSettings(page);
+    await panel.getByRole("tab", { name: "Look", exact: true }).click();
+    const copy = async action => {
+      await panel.getByRole("button", { name: "Share", exact: true }).click();
+      await page.getByRole("menuitem", { name: action, exact: true }).click();
+      await page.getByText(action === "Copy link" ? "Link copied" : "Settings copied", { exact: true }).last().waitFor();
+      return page.evaluate(() => navigator.clipboard.readText());
+    };
+    for (const [name, shadow] of presets) {
+      // Repeated export notifications can cover lower presets. Activate them
+      // through the keyboard rather than bypassing pointer hit testing.
+      await panel.getByRole("button", { name, exact: true }).focus();
+      await panel.getByRole("button", { name, exact: true }).press("Enter");
+      const expected = await page.evaluate(() => window.kisoAppearance.read());
+      assert.equal(expected.shadowStyle, shadow, name);
+      const copied = await copy("Copy settings");
+      assert.deepEqual(JSON.parse(copied).s, expected, name);
+      const link = await copy("Copy link");
+      const fresh = await open(link.slice(url.length));
+      try {
+        await fresh.waitForFunction(shadow => window.kisoAppearance?.read().shadowStyle === shadow, shadow);
+        assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected, name);
+        await fresh.reload();
+        assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected, `${name} reload`);
+      } finally { await fresh.context().close(); }
+      await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
+      assert.equal(await page.evaluate(() => window.kisoAppearance.read().shadowStyle), "none");
+      await page.evaluate(text => navigator.clipboard.writeText(text), copied);
+      await panel.getByRole("button", { name: "Share", exact: true }).click();
+      await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
+      await page.getByText("Appearance applied", { exact: true }).last().waitFor();
+      assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), expected, `${name} paste`);
+    }
+  } finally { await page.context().close(); }
+});
+
+for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "light"], [390, "dark"]]) {
+  test(`all shadow scopes survive clipboard and a clean URL at ${width}px ${colorScheme}`, async () => {
+    const page = await open("#components/diagram", width, colorScheme);
+    try {
+      const panel = page.locator("#gallery-settings");
+      if (!await panel.isVisible()) await toggleSettings(page);
+      const pick = (label, value) => panel.getByRole("group", { name: label, exact: true }).locator(`input[value="${value}"]`).check({ force: true });
+      await tab(panel, "Frame");
+      await pick("Panel shadow", "hard");
+      await panel.locator("summary").filter({ hasText: /^Where to apply$/ }).click();
+      await panel.locator("summary").filter({ hasText: "Customize outer frame" }).click();
+      await pick("Outer shadow", "soft");
+      await tab(panel, "Phone");
+      await pick("Phone shadow", "none");
+      await pick("Node shadow", "soft");
+      const expected = await page.evaluate(() => window.kisoAppearance.read());
+      assert.equal(expected.shadowStyle, "hard");
+      assert.equal(expected.outerShadowStyle, "soft");
+      assert.equal(expected.phoneShadowStyle, "none");
+      const copy = async action => {
+        await panel.getByRole("button", { name: "Share", exact: true }).click();
+        await page.getByRole("menuitem", { name: action, exact: true }).click();
+        await page.getByText(action === "Copy link" ? "Link copied" : "Settings copied", { exact: true }).last().waitFor();
+        return page.evaluate(() => navigator.clipboard.readText());
+      };
+      const copied = await copy("Copy settings");
+      assert.deepEqual(JSON.parse(copied).s, expected);
+      assert.equal(JSON.parse(copied).diagram.shadowStyle, "soft");
+      const link = await copy("Copy link");
+      const fresh = await open(link.slice(url.length), width, colorScheme);
+      try {
+        await fresh.locator('.diagram-lanes[data-shadow-style="soft"]').first().waitFor();
+        assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected);
+        assert.equal(await fresh.evaluate(() => document.documentElement.dataset.shadowStyle), width < 700 ? "none" : "hard");
+        await fresh.reload();
+        // Demo options retain their existing in-memory lifetime. The global,
+        // outer and phone appearance settings persist after the URL is cleaned.
+        await fresh.locator('.diagram-lanes').first().waitFor();
+        assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected);
+      } finally { await fresh.context().close(); }
+      await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
+      await page.evaluate(text => navigator.clipboard.writeText(text), copied);
+      await panel.getByRole("button", { name: "Share", exact: true }).click();
+      await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
+      await page.getByText("Appearance applied", { exact: true }).last().waitFor();
+      assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), expected);
+      assert.equal(await page.locator(".diagram-lanes").first().getAttribute("data-shadow-style"), "soft");
+    } finally { await page.context().close(); }
+  });
+}
+
 test("Share copies the Diagram options and Paste sets them", async () => {
   const page = await open("#components/diagram");
   try {
     const options = page.locator("#gallery-settings .gallery-component-settings");
     const pick = (label, name) => options.getByRole("group", { name: label, exact: true }).getByRole("radio", { name, exact: true }).check({ force: true });
     await pick("Node corners", "Rounded");
+    await pick("Node shadow", "Hard");
     await pick("Edge shape", "Curve");
     await pick("Layout", "Top to bottom");
     const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
     await menu.click();
     await page.getByRole("menuitem", { name: "Copy settings" }).click();
     await page.getByText("Settings copied", { exact: true }).waitFor();
-    assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).diagram, { cornerStyle: "rounded", edges: "curve", direction: "down" });
+    assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).diagram, { cornerStyle: "rounded", shadowStyle: "hard", edges: "curve", direction: "down" });
     await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{},"diagram":{"edges":"straight","arrow":"dot"}}'));
     await menu.click();
     await page.getByRole("menuitem", { name: "Paste settings" }).click();

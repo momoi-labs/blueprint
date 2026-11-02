@@ -20,6 +20,10 @@ export const shell = highlighter(
   /(#.*$)|("(?:[^"\\]|\\.)*"|'[^']*')|(\$\{?\w+\}?)|\b(if|then|else|fi|for|in|do|done|until|echo|export|set|exec)\b|(\s--?[\w-]+)/gm,
   ["code-comment", "code-string", "code-name", "code-keyword", "code-constant"]);
 
+export const tsx = highlighter(
+  /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(<\/?[A-Za-z][\w.]*)|\b(const|let|import|from|export|return|function|type|interface|if|else)\b|\b(true|false|null|undefined|\d+)\b|([\w-]+(?=\s*=))/g,
+  ["code-comment", "code-string", "code-keyword", "code-keyword", "code-constant", "code-name"]);
+
 export const yaml = highlighter(
   /(#.*$)|("(?:[^"\\]|\\.)*"|'[^']*')|^(\s*[\w.-]+)(?=:)|(\b\d+[\w.]*\b)/gm,
   ["code-comment", "code-string", "code-name", "code-constant"]);
