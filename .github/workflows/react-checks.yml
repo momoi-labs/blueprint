@@ -34,6 +34,8 @@ on:
 
 permissions:
   contents: read
+  # A failed job cancels the rest of the run.
+  actions: write
 
 env:
   # Pull requests run one representative case per gallery sweep. Pushes to main,
@@ -52,12 +54,17 @@ jobs:
       - run: npm run check:react
       - run: npm run build:gallery
       - run: npm run check:deploy --workspace=kiso-gallery
+      - name: Cancel the run
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   browser:
     name: Browser checks ${{ matrix.shard }}/3
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         shard: [1, 2, 3]
     steps:
@@ -69,12 +76,17 @@ jobs:
       - run: node scripts/run-browser-checks.mjs --shard=${{ matrix.shard }}/3
         env:
           KISO_BROWSER_CONCURRENCY: 2
+      - name: Cancel the run
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   gallery:
     name: Gallery tests ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         shard: [1, 2, 3, 4]
     env:
@@ -86,6 +98,11 @@ jobs:
           playwright: true
       - run: npm run build:gallery
       - run: node --test apps/kiso-gallery/tests/*.test.mjs
+      - name: Cancel the run
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   check:
     name: Build and install React package
