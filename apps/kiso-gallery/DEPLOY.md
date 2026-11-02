@@ -39,7 +39,7 @@ settings, deploy `main` once the gallery changes have merged.
 `momoi-labs.dev` zone. Confirm the domain becomes active under the Worker's
 **Settings > Domains & Routes** before sharing the URL.
 
-The gallery uses fragment routes such as `/#components` and `/#example/settings`.
+The gallery uses fragment routes such as `/#components` and `/#example/crud`.
 It needs no SPA fallback or redirect rules. Unmatched asset paths return 404.
 
 ## Ongoing deployments

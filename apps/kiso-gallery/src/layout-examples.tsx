@@ -1,1017 +1,125 @@
-import { usePaneLayout } from "../../../kiso/blocks/react-prototype/src/use-pane-layout";
-import { GuidedFlowDemo } from "../../../kiso/blocks/react-prototype/src/guided-input-demo";
-import { CreateProjectDialog, CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
-import { createContext, useContext, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ChevronDown, FileText, Folder, LayoutDashboard, Monitor, Printer, Settings, Smartphone, Users, type LucideIcon } from "lucide-react";
+import { CreateScreen, DetailScreen, ListScreen } from "../../../kiso/blocks/react-prototype/src/screens-demo";
+import { rust, tsx } from "../../../kiso/blocks/react-prototype/src/code-highlight";
+import { useNarrow } from "../../../kiso/blocks/react-prototype/src/use-narrow";
+import { createContext, Fragment, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { Monitor, Smartphone, SquareArrowOutUpRight, SquareTerminal, X } from "lucide-react";
+import { TuiScreen, useTuiGallery, type TuiData } from "./tui-gallery";
+import screensUrl from "./generated/tui-screens.json?url";
+import { docsUrl, templates, type SourceFile, type Template } from "./templates/catalog";
+import { LoginLayout, loginResults, type LoginResult } from "./templates/login";
+import { ListDetailLayout } from "./templates/crud";
+import { DashboardLayout } from "./templates/dashboard";
+import { ChartsLayout } from "./templates/charts";
+import { ReportLayout } from "./templates/report";
+import { WorkspacePreview } from "./templates/workspace";
 import {
-  Alert,
-  AlertContent,
-  AlertTitle,
-  AlertDescription,
-  AppShell,
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Dot,
-  Header,
-  KV,
-  KVKey,
-  KVValue,
-  Navigation,
-  NavigationLink,
-  PageHeader,
-  PageHeaderDescription,
-  PageHeaderTitle,
-  Chart,
-  DashboardGrid,
-  DashboardPanel,
-  Meter,
-  type ChartSeries,
+  Badge,
+  Button,
+  Card,
+  CodeBlock,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  FormField,
+  Link,
+  RadioGroup,
+  RadioGroupItem,
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
   Separator,
-  Sidebar,
-  Stat,
-  StatHeader,
-  StatLabel,
-  StatValue,
-  StatFoot,
-  StatDelta,
-  Switch,
-  Textarea,
-  Badge,
-  BrandMark,
-  Button,
-  PaneGrid,
-  GridPane,
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  Checkbox,
-  Disclosure,
-  FormField,
-  Input,
-  Label,
-  Link,
-  PasswordInput,
-  Spinner,
   Table,
-  TableFrame,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-  ApplicationShell,
-  RadioGroup,
-  RadioGroupItem,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  useToast,
 } from "@momoi-labs/kiso-react";
 
-export const layouts = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    description:
-      "A workspace overview with sidebar, metrics, chart and data table.",
-  },
-  {
-    id: "list-detail",
-    label: "List & detail",
-    description:
-      "A project collection as a split, or as separate list, detail and create screens. New project opens a dialog.",
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    description:
-      "Workspace settings with grouped fields, preferences and account details.",
-  },
-  {
-    id: "login",
-    label: "Login",
-    description:
-      "A focused sign-in screen with access help, a revealable password, pending protection and recoverable errors.",
-  },
-  { id: "guided-flow", label: "Guided flow", description: "A generic input flow with explicit steps, choices and file selection." },
-  {
-    id: "report",
-    label: "Report",
-    description:
-      "A monthly report read in order and printed: a cover, then sections that each start a page. Print it to see the paper layout.",
-  },
-] as const;
+export const layouts = templates.map(({ id, label, description }) => ({ id, label, description }));
 
-const projects = [
-  {
-    name: "Website refresh",
-    category: "Design",
-    status: "In progress",
-    owner: "Alex Morgan",
-    due: "Sep 18",
-    tasks: "18 / 24",
-  },
-  {
-    name: "Getting started guide",
-    category: "Content",
-    status: "In review",
-    owner: "Sam Rivera",
-    due: "Sep 20",
-    tasks: "12 / 14",
-  },
-  {
-    name: "Customer interviews",
-    category: "Research",
-    status: "Completed",
-    owner: "Jordan Lee",
-    due: "Sep 22",
-    tasks: "8 / 8",
-  },
-  {
-    name: "Mobile experience",
-    category: "Product",
-    status: "In progress",
-    owner: "Casey Park",
-    due: "Sep 25",
-    tasks: "6 / 18",
-  },
-  {
-    name: "Brand guidelines",
-    category: "Design",
-    status: "Planned",
-    owner: "Alex Morgan",
-    due: "Sep 28",
-    tasks: "0 / 12",
-  },
-];
-
-function Status({ value }: { value: string }) {
-  return (
-    <Badge
-      variant={
-        value === "Completed"
-          ? "success"
-          : value === "In review"
-          ? "warning"
-          : value === "In progress"
-          ? "info"
-          : "neutral"
-      }
-    >
-      {value}
-    </Badge>
-  );
-}
-
-function LayoutIcon({ name }: { name: string }) {
-  const icons: Record<string, LucideIcon> = {
-    dashboard: LayoutDashboard,
-    projects: Folder,
-    team: Users,
-    reports: FileText,
-    settings: Settings,
-  };
-  const Icon = icons[name];
-  return <Icon className="icon icon-sm" aria-hidden="true" />;
-}
-
-function WorkspacePreview({
-  page,
-  children,
-}: {
-  page: string;
-  children: ReactNode;
-}) {
-  const destination = (label: string, icon: string) => ({
-    href: `#example/${icon}`,
-    label,
-    active: page === label,
-    leading: <LayoutIcon name={icon} />,
-    // A static preview: the links show where a page would go.
-    onClick: () => {},
-  });
-  return (
-    <ApplicationShell
-      className="layout-shell"
-      // A preview of a whole application: it draws the chosen background
-      // itself, as it does when it is the page in the phone preview.
-      data-background-canvas=""
-      phoneNavigation="bottom"
-      navigationLabel="Example workspace"
-      brand={
-        <div className="brand">
-          <BrandMark>N</BrandMark>
-          <div>
-            <p className="t-label">Northstar</p>
-            <p className="muted t-label">Team workspace</p>
-          </div>
-        </div>
-      }
-      navigation={[
-        { label: "Workspace", destinations: [
-          destination("Overview", "dashboard"),
-          destination("Projects", "projects"),
-          destination("Team", "team"),
-          destination("Reports", "reports"),
-        ] },
-        { label: "Manage", destinations: [
-          destination("Settings", "settings"),
-          destination("Help & resources", "reports"),
-        ] },
-      ]}
-      footer={
-        <div className="layout-account">
-          <BrandMark>A</BrandMark>
-          <div>
-            <p className="t-label">Alex Morgan</p>
-            <p className="muted t-label">Personal account</p>
-          </div>
-        </div>
-      }
-      header={<>
-        <Breadcrumb aria-label="Example location">
-          <BreadcrumbList>
-            <BreadcrumbItem>Workspace</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{page}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="layout-inline">
-          <Badge variant="neutral">Pro plan</Badge>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="btn-icon"
-            aria-label="Example notifications"
-          >
-            <span aria-hidden="true">◇</span>
-          </Button>
-        </div>
-      </>}
-    >
-      <div className="layout-content">{children}</div>
-    </ApplicationShell>
-  );
-}
-
-function ProjectTable({ compact = false }: { compact?: boolean }) {
-  return (
-    <TableFrame>
-      <Table aria-label="Sample projects">
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Checkbox aria-label="Select all sample projects" />
-            </TableHead>
-            <TableHead>Project</TableHead>
-            {!compact && <TableHead>Category</TableHead>}
-            <TableHead>Status</TableHead>
-            {!compact && <TableHead>Owner</TableHead>}
-            <TableHead>{compact ? "Due" : "Tasks"}</TableHead>
-            <TableHead>
-              <span className="muted">Actions</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {projects.map((project, index) => (
-            <TableRow
-              key={project.name}
-              className={
-                compact && index === 0 ? "layout-selected-row" : undefined
-              }
-            >
-              <TableCell>
-                <Checkbox
-                  aria-label={`Select ${project.name}`}
-                  defaultChecked={compact && index === 0}
-                />
-              </TableCell>
-              <TableCell>
-                <span className="layout-project-name">{project.name}</span>
-                {compact && <p className="muted t-label">{project.category}</p>}
-              </TableCell>
-              {!compact && (
-                <TableCell>
-                  <Badge variant="neutral">{project.category}</Badge>
-                </TableCell>
-              )}
-              <TableCell>
-                <Status value={project.status} />
-              </TableCell>
-              {!compact && <TableCell>{project.owner}</TableCell>}
-              <TableCell className="mono">
-                {compact ? project.due : project.tasks}
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  className="btn-icon"
-                  aria-label={`Example actions for ${project.name}`}
-                >
-                  ⋯
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <div className="table-footer layout-table-footer">
-        <span>Showing 5 of 24 projects</span>
-        <div className="layout-inline">
-          <Button size="xs" disabled>
-            Previous
-          </Button>
-          <span>Page 1 of 5</span>
-          <Button size="xs">Next</Button>
-        </div>
-      </div>
-    </TableFrame>
-  );
-}
-
-function ActivityChart() {
-  const gradient = useId();
-  const line =
-    "M0 158 L24 143 L48 160 L72 108 L96 130 L120 84 L144 116 L168 99 L192 150 L216 114 L240 126 L264 69 L288 93 L312 61 L336 86 L360 116 L384 71 L408 99 L432 45 L456 62 L480 82 L504 48 L528 79 L552 30 L576 64 L600 50 L624 83 L648 46 L672 25 L696 54 L720 18";
-  return (
-    <section className="layout-section" aria-label="Workspace activity">
-      <div className="layout-between">
-        <div>
-          <h3 className="t-h3">Workspace activity</h3>
-          <p className="muted t-label">Tasks completed over the last 30 days</p>
-        </div>
-        <StatDelta variant="success">↑ 18.6%</StatDelta>
-      </div>
-      <Card>
-        <CardContent>
-          <div className="layout-chart-legend">
-            <span>
-              <Dot />
-              This month
-            </span>
-            <span>
-              <Dot />
-              Last month
-            </span>
-          </div>
-          <svg
-            className="chart layout-chart"
-            viewBox="0 0 720 200"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Illustrative activity chart. Completed tasks increase over the month and finish above the previous month."
-          >
-            <defs>
-              <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {[40, 90, 140, 199].map((y) => (
-              <line className="grid" key={y} x1="0" y1={y} x2="720" y2={y} />
-            ))}
-            <path d={`${line} L720 200 L0 200 Z`} fill={`url(#${gradient})`} />
-            <path
-              d="M0 178 L24 165 L48 173 L72 145 L96 162 L120 128 L144 143 L168 137 L192 169 L216 143 L240 154 L264 109 L288 125 L312 111 L336 129 L360 155 L384 120 L408 135 L432 90 L456 111 L480 129 L504 101 L528 124 L552 79 L576 108 L600 98 L624 124 L648 100 L672 80 L696 105 L720 69"
-              className="layout-chart-comparison"
-            />
-            <path d={line} className="line" />
-          </svg>
-          <div className="layout-chart-axis">
-            <span>Sep 1</span>
-            <span>Sep 5</span>
-            <span>Sep 10</span>
-            <span>Sep 15</span>
-            <span>Sep 20</span>
-            <span>Sep 30</span>
-          </div>
-        </CardContent>
-      </Card>
-    </section>
-  );
-}
-
-function DashboardLayout() {
-  return (
-    <WorkspacePreview page="Overview">
-      <div className="layout-between">
-        <PageHeader>
-          <h2 className="t-h1">Overview</h2>
-        </PageHeader>
-        <Button size="sm">
-          September 2026 <ChevronDown className="icon icon-sm" aria-hidden="true" />
-        </Button>
-      </div>
-      <Card className="layout-stats">
-        {[
-          ["Active projects", "24", "+4", "4 projects started this month"],
-          ["Tasks completed", "186", "+18.6%", "32 more than last month"],
-          ["Team members", "12", "+2", "Across 3 working groups"],
-          ["On-time delivery", "94.2%", "+2.1%", "Above the 90% target"],
-        ].map(([label, value, delta, detail]) => (
-          <Stat key={label}>
-            <StatHeader>
-              <StatLabel>{label}</StatLabel>
-              <StatDelta variant="success">{delta}</StatDelta>
-            </StatHeader>
-            <StatValue>{value}</StatValue>
-            <StatFoot>{detail}</StatFoot>
-          </Stat>
-        ))}
-      </Card>
-      <ActivityChart />
-      <section className="layout-section" aria-label="Recent projects">
-        <div className="layout-between">
-          <div>
-            <h3 className="t-h3">Recent projects</h3>
-            <p className="muted t-label">The latest work across your team.</p>
-          </div>
-          <div className="layout-inline">
-            <Button size="sm">
-              Filter <ChevronDown className="icon icon-sm" aria-hidden="true" />
-            </Button>
-            <Button variant="primary" size="sm">
-              ＋ New project
-            </Button>
-          </div>
-        </div>
-        <ProjectTable />
-      </section>
-    </WorkspacePreview>
-  );
-}
-
-const reportStart = Date.UTC(2026, 8, 1);
-const reportSeries: ChartSeries[] = [
-  { key: "completed", label: "Completed", slot: 1 },
-  { key: "opened", label: "Opened", slot: 2 },
-];
-const reportData = Array.from({ length: 30 }, (_, index) => ({
-  timestamp: reportStart + index * 86_400_000,
-  values: {
-    completed: Math.round(5 + index / 4 + Math.sin(index / 2) * 2),
-    opened: Math.round(7 + Math.cos(index / 3) * 2),
-  },
-}));
-const reportDay = (value: number) => new Date(value).toISOString().slice(5, 10);
-
-// A report is read in order and printed. Its panels are one static column,
-// and the page is as wide as the sheet, so the chart draws at the size it
-// prints. The Activity section is a Disclosure, as on a screen that shares
-// it; Method stays closed and still prints its content.
-function ReportLayout() {
-  return (
-    <div className="page">
-      <PageHeader
-        actions={
-          <Button size="sm" onClick={() => window.print()}>
-            <Printer className="icon icon-sm" aria-hidden="true" /> Print report
-          </Button>
-        }
-      >
-        <p className="report-kicker">Workspace report</p>
-        <PageHeaderTitle>Northstar, September 2026</PageHeaderTitle>
-        <PageHeaderDescription>Team workspace · 1 to 30 September · prepared on 1 October</PageHeaderDescription>
-      </PageHeader>
-      <div className="report">
-        <p>
-          The team completed 186 tasks across 24 active projects. Delivery stayed
-          above the 90% target for the whole month.
-        </p>
-        <section aria-labelledby="report-summary">
-          <h2 id="report-summary">Summary</h2>
-          <Card className="layout-stats">
-            {[
-              ["Active projects", "24", "4 projects started this month"],
-              ["Tasks completed", "186", "32 more than last month"],
-              ["Team members", "12", "Across 3 working groups"],
-              ["On-time delivery", "94%", "Above the 90% target"],
-            ].map(([label, value, detail]) => (
-              <Stat key={label}>
-                <StatHeader>
-                  <StatLabel>{label}</StatLabel>
-                </StatHeader>
-                <StatValue>{value}</StatValue>
-                <StatFoot>{detail}</StatFoot>
-              </Stat>
-            ))}
-          </Card>
-        </section>
-        <Disclosure summary="Activity" open>
-          <DashboardGrid aria-label="Activity" static>
-            <DashboardPanel id="tasks" title="Tasks per day">
-              <p className="muted">Tasks completed and opened each day of the month.</p>
-              <div>
-                <Chart label="Tasks per day" data={reportData} series={reportSeries} min={0}
-                  summary={["p50", "p95", "current"]} formatTime={reportDay} formatValue={(value) => value.toFixed(0)} />
-              </div>
-            </DashboardPanel>
-            <DashboardPanel id="delivery" title="On-time delivery">
-              <Meter label="Tasks delivered on time" value={94} max={100} />
-            </DashboardPanel>
-          </DashboardGrid>
-        </Disclosure>
-        <section aria-labelledby="report-projects">
-          <h2 id="report-projects">Projects</h2>
-          <DashboardGrid aria-label="Projects" static>
-            <DashboardPanel id="projects" title="Projects by status">
-              <TableFrame>
-                <Table aria-label="Projects by status">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Owner</TableHead>
-                      <TableHead>Due</TableHead>
-                      <TableHead>Tasks</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projects.map((project) => (
-                      <TableRow key={project.name}>
-                        <TableCell>{project.name}</TableCell>
-                        <TableCell>{project.category}</TableCell>
-                        <TableCell><Status value={project.status} /></TableCell>
-                        <TableCell>{project.owner}</TableCell>
-                        <TableCell>{project.due}</TableCell>
-                        <TableCell className="mono">{project.tasks}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableFrame>
-            </DashboardPanel>
-          </DashboardGrid>
-        </section>
-        <Disclosure summary="Method">
-          <p>
-            Counts come from the project tracker at midnight UTC each day. A task
-            counts as on time when it closes on or before its due date.
-          </p>
-        </Disclosure>
-      </div>
-    </div>
-  );
-}
-
-function ListDetailLayout({ createFails = false }: { createFails?: boolean }) {
-  return (
-    <WorkspacePreview page="Projects">
-      <div className="layout-between">
-        <PageHeader>
-          <h2 className="t-h1">Projects</h2>
-          <p className="muted t-label">
-            Plan, organize and keep track of your team's work.
-          </p>
-        </PageHeader>
-        <CreateProjectDialog fail={createFails} trigger={
-          <Button variant="primary" size="sm">
-            ＋ New project
-          </Button>} />
-      </div>
-      <div className="layout-list-detail">
-        <div className="layout-section">
-          <div className="layout-list-toolbar">
-            <Input
-              type="search"
-              aria-label="Example project search"
-              placeholder="Search projects..."
-              readOnly
-            />
-            <Button size="sm">
-              All statuses <ChevronDown className="icon icon-sm" aria-hidden="true" />
-            </Button>
-          </div>
-          <ProjectTable compact />
-          <Alert variant="info">
-            <AlertContent>
-              <AlertTitle>Everything in one place</AlertTitle>
-              <AlertDescription>
-                Keep project notes, owners and milestones alongside your work.
-              </AlertDescription>
-            </AlertContent>
-          </Alert>
-        </div>
-        <Card>
-          <CardHeader>
-            <p className="t-caps">Selected project · PRJ-001</p>
-            <h3 className="t-h2">Website refresh</h3>
-            <div>
-              <Status value="In progress" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="muted">
-              Update the website with a clearer structure, new project pages and
-              a simpler contact flow.
-            </p>
-            <KV>
-              <KVKey>Owner</KVKey>
-              <KVValue>Alex Morgan</KVValue>
-              <KVKey>Due date</KVKey>
-              <KVValue>Sep 18, 2026</KVValue>
-              <KVKey>Category</KVKey>
-              <KVValue>Design</KVValue>
-              <KVKey>Priority</KVKey>
-              <KVValue>High</KVValue>
-            </KV>
-            <Separator />
-            <div className="layout-section">
-              <div className="layout-between">
-                <span className="t-label">Progress</span>
-                <span className="muted t-label">18 of 24 tasks</span>
-              </div>
-              <progress
-                className="layout-progress"
-                value={18}
-                max={24}
-                aria-label="Project progress"
-              />
-            </div>
-            <div className="layout-section">
-              <h4 className="t-label">Milestones</h4>
-              {[
-                ["Discovery & research", true],
-                ["Page structure", true],
-                ["Visual design", false],
-                ["Final review", false],
-              ].map(([label, done]) => (
-                <label className="layout-check" key={String(label)}>
-                  <Checkbox
-                    aria-label={String(label)}
-                    defaultChecked={Boolean(done)}
-                  />
-                  <span>{label}</span>
-                </label>
-              ))}
-            </div>
-            <Separator />
-            <div>
-              <p className="t-label">Latest update</p>
-              <p className="muted t-label">
-                Sam added the first draft of the project pages.
-              </p>
-              <p className="muted t-label">Today at 10:42 AM</p>
-            </div>
-          </CardContent>
-          <CardFooter>
-              <Button size="sm">View activity</Button>
-              <Button variant="primary" size="sm">
-                Edit project
-              </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    </WorkspacePreview>
-  );
-}
-
-function SettingsLayout() {
-  const id = useId();
-  const paneLayout = usePaneLayout("kiso-settings-pane-layout");
-  return (
-    <WorkspacePreview page="Settings">
-      <div className="layout-between">
-        <PageHeader>
-          <h2 className="t-h1">Workspace settings</h2>
-          <p className="muted t-label">
-            Manage your workspace details and preferences.
-          </p>
-        </PageHeader>
-        <Badge variant="neutral">Workspace owner</Badge>
-      </div>
-      <PaneGrid {...paneLayout} aria-label="Workspace settings groups">
-        <GridPane id="general" title="General" min={6} size={12}>
-          <p className="muted t-label">How your workspace appears to the team.</p>
-          <div className="layout-fields">
-            <FormField
-              label="Workspace name"
-              defaultValue="Northstar"
-              readOnly
-            />
-            <FormField
-              label="Workspace URL"
-              defaultValue="northstar.example"
-              hint="Your team's shared workspace address."
-              readOnly
-            />
-          </div>
-          <div className="field">
-            <Label htmlFor={`${id}-description`}>Description</Label>
-            <Textarea
-              id={`${id}-description`}
-              rows={3}
-              defaultValue="A shared space for ideas, projects and the people behind them."
-              readOnly
-            />
-          </div>
-          <div className="layout-fields">
-            <div className="field">
-              <Label htmlFor={`${id}-language`}>Language</Label>
-              <Select defaultValue="English">
-                <SelectTrigger id={`${id}-language`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Português">Português</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="field">
-              <Label htmlFor={`${id}-timezone`}>Time zone</Label>
-              <Select defaultValue="UTC-03:00">
-                <SelectTrigger id={`${id}-timezone`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UTC-03:00">UTC-03:00</SelectItem>
-                  <SelectItem value="UTC">UTC</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <CardFooter>
-            <Button size="sm">Cancel</Button>
-            <Button size="sm" variant="primary">
-              Save changes
-            </Button>
-          </CardFooter>
-        </GridPane>
-        <GridPane id="profile" title="Your profile" min={6} size={6} newRow>
-          <div className="layout-account">
-            <BrandMark>A</BrandMark>
-            <div>
-              <p>Alex Morgan</p>
-              <p className="muted t-label">Workspace owner</p>
-            </div>
-          </div>
-          <FormField
-            label="Display name"
-            defaultValue="Alex Morgan"
-            readOnly
-          />
-          <FormField
-            label="Email address"
-            type="email"
-            defaultValue="alex@example.com"
-            readOnly
-          />
-          <CardFooter>
-            <Button size="sm">Update profile</Button>
-          </CardFooter>
-        </GridPane>
-        <GridPane id="plan" title="Your plan" min={6} size={6} actions={<Badge variant="info">Pro</Badge>}>
-          <p className="stat-value">
-            $24<span className="muted t-label"> / member</span>
-          </p>
-          <p className="muted t-label">12 members · billed monthly</p>
-          <Separator />
-          <p className="t-label">Storage usage</p>
-          <progress
-            className="layout-progress"
-            value={24}
-            max={100}
-            aria-label="Storage used"
-          />
-          <p className="muted t-label">24 GB of 100 GB used</p>
-          <CardFooter>
-            <Button size="sm">Manage plan</Button>
-          </CardFooter>
-        </GridPane>
-        <GridPane id="notifications" title="Notifications" min={6} size={12} newRow>
-          <p className="muted t-label">Choose which updates you receive.</p>
-          {[
-            ["Project updates", "Changes to projects you follow.", true],
-            ["Weekly summary", "A recap of your team's progress.", true],
-            ["Product news", "New features and improvements.", false],
-          ].map(([title, detail, checked], index) => (
-            <div className="settings-row" key={String(title)}>
-              <div>
-                <Label htmlFor={`${id}-notification-${index}`}>
-                  {title}
-                </Label>
-                <p className="muted t-label">{detail}</p>
-              </div>
-              <Switch
-                id={`${id}-notification-${index}`}
-                defaultChecked={Boolean(checked)}
-              />
-            </div>
-          ))}
-        </GridPane>
-      </PaneGrid>
-    </WorkspacePreview>
-  );
-}
-
-type LoginResult = "success" | "refused" | "service" | "network";
-type LoginErrors = { email?: string; password?: string };
-
-const loginResults: [LoginResult, string][] = [
-  ["success", "Success"],
-  ["refused", "Credentials refused"],
-  ["service", "Service failure"],
-  ["network", "Connection failure"],
-];
-
-const loginFailures = {
-  refused: ["Email or password not accepted", "Check both and try again, or reset your password."],
-  service: ["Northstar could not sign you in", "This is a problem on our side. Your details are kept; try again in a moment."],
-  network: ["Could not reach Northstar", "Check your connection, then try again. Your details are kept."],
-} as const;
-
-function LoginBrand() {
-  return (
-    <div className="brand">
-      <BrandMark>N</BrandMark>
-      <div className="layout-login-brand">
-        <span className="t-label">Northstar</span>
-        <span className="t-metadata muted">app.northstar.example</span>
-      </div>
-    </div>
-  );
-}
-
-function LoginHelp() {
-  return (
-    <ul className="layout-login-help stack-sm">
-      <li><strong>Forgot your password?</strong> Use Reset password below the form.</li>
-      <li><strong>No account yet?</strong> Ask a workspace admin to invite your email address.</li>
-      <li><strong>Locked out?</strong> Wait 15 minutes after repeated attempts, or contact your admin.</li>
-    </ul>
-  );
-}
-
-function LoginLayout({ result }: { result: LoginResult }) {
-  const id = useId();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<LoginErrors>({});
-  const [failure, setFailure] = useState<Exclude<LoginResult, "success"> | null>(null);
-  const [pending, setPending] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (pending) return;
-    const next: LoginErrors = {};
-    if (!email.trim()) next.email = "Enter your email address.";
-    else if (!/^[^@\s]+@[^@\s]+$/.test(email.trim())) next.email = "Enter an email address like name@example.com.";
-    if (!password) next.password = "Enter your password.";
-    setErrors(next);
-    setFailure(null);
-    if (next.email || next.password) {
-      document.getElementById(next.email ? `${id}-email` : `${id}-password`)?.focus();
-      return;
-    }
-    setPending(true);
-    window.setTimeout(() => {
-      setPending(false);
-      if (result === "success") return setSignedIn(true);
-      setFailure(result);
-      if (result === "refused") {
-        setPassword("");
-        document.getElementById(`${id}-password`)?.focus();
-      }
-    }, 1200);
-  }
-
-  return (
-    <div className="layout-login">
-      <aside className="layout-login-context" aria-labelledby={`${id}-context`}>
-        <LoginBrand />
-        <div className="stack-sm">
-          <h2 className="t-h1" id={`${id}-context`}>Sign in to your workspace</h2>
-          <p className="muted">Use the email address your workspace invited.</p>
-        </div>
-        <div className="layout-login-context-help stack-sm">
-          <h3 className="t-h3">Trouble signing in?</h3>
-          <LoginHelp />
-        </div>
-      </aside>
-      <section className="layout-login-access" aria-labelledby={`${id}-title`}>
-        <div className="layout-login-panel stack">
-          <div className="layout-login-mobile"><LoginBrand /></div>
-          <Card>
-            <CardHeader>
-              <h3 className="t-h3" id={`${id}-title`}>Sign in</h3>
-            </CardHeader>
-            <CardContent>
-              {signedIn ? (
-                <div className="stack">
-                  <Alert variant="success">
-                    <AlertContent>
-                      <AlertTitle>Signed in</AlertTitle>
-                      <AlertDescription>A product would now open the application shell.</AlertDescription>
-                    </AlertContent>
-                  </Alert>
-                  <Button onClick={() => { setSignedIn(false); setPassword(""); }}>Sign out</Button>
-                </div>
-              ) : (
-                <form className="stack" noValidate aria-busy={pending} onSubmit={submit}>
-                  {failure ? (
-                    <Alert variant="error">
-                      <AlertContent>
-                        <AlertTitle>{loginFailures[failure][0]}</AlertTitle>
-                        <AlertDescription>{loginFailures[failure][1]}</AlertDescription>
-                      </AlertContent>
-                    </Alert>
-                  ) : null}
-                  <FormField id={`${id}-email`} label="Email address" type="email" name="email"
-                    autoComplete="username" autoCapitalize="none" spellCheck={false} required
-                    readOnly={pending} value={email} error={errors.email}
-                    onChange={event => { setEmail(event.target.value); setErrors(e => ({ ...e, email: undefined })); }} />
-                  <FormField label="Password" error={errors.password}>
-                    <PasswordInput id={`${id}-password`} name="password" required readOnly={pending}
-                      value={password}
-                      onChange={event => { setPassword(event.target.value); setErrors(e => ({ ...e, password: undefined })); }} />
-                  </FormField>
-                  <Button type="submit" variant="primary" aria-busy={pending}>
-                    {pending ? <Spinner size="sm" /> : null}
-                    {pending ? "Signing in..." : "Sign in"}
-                  </Button>
-                  <Link href="#example/login">Reset password</Link>
-                  <Disclosure className="layout-login-mobile" summary="Trouble signing in?">
-                    <LoginHelp />
-                  </Disclosure>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function LoginExample({ description, initialResult }: { description: string; initialResult?: string }) {
-  const [result, setResult] = useState<LoginResult>(loginResults.find(([value]) => value === initialResult)?.[0] ?? "refused");
+function LoginExample({ result: requested }: { result?: string }) {
+  const result: LoginResult = loginResults.some(([value]) => value === requested) ? (requested as LoginResult) : "refused";
   const id = useId();
   return (
     <section aria-label="Login">
       <div className="layout-preview-caption">
-        <p className="muted t-label">{description}</p>
-        <label className="row t-label layout-scene-controls" htmlFor={`${id}-result`}>
-          Sign-in result
-          <select id={`${id}-result`} className="select" value={result}
-            onChange={event => setResult(event.target.value as LoginResult)}>
-            {loginResults.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-        </label>
-        <DeviceSwitch />
+        <div className="row-wrap layout-scene-controls">
+          <Select value={result} onValueChange={value => { window.location.hash = `example/login/${value}`; }}>
+            <FormField label="Sign-in result" layout="inline" id={`${id}-result`}><SelectTrigger><SelectValue /></SelectTrigger></FormField>
+            <SelectContent>
+              {loginResults.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="row-wrap layout-scene-controls">
+          <DeviceSwitch tui />
+          <OpenAlone route={`example/login/${result}`} />
+        </div>
       </div>
-      <LayoutPreview route={`example/login/${result}`}>
-        <LoginLayout result={result} />
+      <LayoutPreview route={`example/login/${result}`} tui={{ page: "login", state: result === "success" ? "default" : result }}>
+        <LoginLayout key={result} result={result} />
       </LayoutPreview>
     </section>
   );
 }
 
 /* The same projects two ways: a split with the selected record beside the
-   list, or separate list, detail and create screens. A screen takes the
-   height the shell leaves. */
+   list, or separate list, detail and create screens. The screen in view and
+   the save result live in the route, so the preview frame and a new tab open
+   the same state; the preview itself moves between the screens. */
 const scenes = [["split", "Split"], ["list", "List"], ["detail", "Detail"], ["create", "Create"]] as const;
+type Scene = (typeof scenes)[number][0];
 
-function ListDetailExamples({ description, initialScene, initialResult }: { description: string; initialScene?: string; initialResult?: string }) {
-  const [scene, setScene] = useState(initialScene && scenes.some(([key]) => key === initialScene) ? initialScene : "split");
-  const [createFails, setCreateFails] = useState(initialResult === "error");
+function CrudExample({ scene: requested, result }: { scene?: string; result?: string }) {
+  const scene: Scene = scenes.some(([key]) => key === requested) ? (requested as Scene) : "split";
+  const createFails = result === "error";
+  const go = (next: Scene, fails = createFails) => { window.location.hash = `example/crud/${next}/${fails ? "error" : "success"}`; };
+  const projects = { label: "Projects", onClick: () => go("list") };
+  const notify = useToast();
   const id = useId();
   return (
-    <section aria-label="List & detail">
+    <section aria-label="CRUD">
       <div className="layout-preview-caption">
-        <p className="muted t-label">{description}</p>
         <div className="row-wrap layout-scene-controls">
-          {scene === "split" || scene === "list" ? (
-            <label className="row t-label" htmlFor={`${id}-result`}>
-              Save result
-              <select id={`${id}-result`} className="select" value={createFails ? "error" : "success"}
-                onChange={event => setCreateFails(event.target.value === "error")}>
-                <option value="success">Success</option>
-                <option value="error">Error, then retry succeeds</option>
-              </select>
-            </label>
-          ) : null}
-          <RadioGroup label="View" variant="segmented" value={scene} onValueChange={setScene}>
+          <RadioGroup label="Screen" variant="segmented" className="layout-scene" value={scene} onValueChange={value => go(value as Scene)}>
             {scenes.map(([key, label]) => <RadioGroupItem key={key} value={key} label={label} />)}
           </RadioGroup>
-          <DeviceSwitch />
+          <Select value={createFails ? "error" : "success"} onValueChange={value => go(scene, value === "error")}>
+            <FormField label="Save result" layout="inline" id={`${id}-result`}><SelectTrigger><SelectValue /></SelectTrigger></FormField>
+            <SelectContent>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="error">Error, then retry succeeds</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="row-wrap layout-scene-controls">
+          <DeviceSwitch tui />
+          <OpenAlone route={`example/crud/${scene}/${createFails ? "error" : "success"}`} />
         </div>
       </div>
-      <LayoutPreview route={`example/list-detail/${scene}/${createFails ? "error" : "success"}`}>
-        {scene === "split" ? <ListDetailLayout createFails={createFails} /> : (
+      <LayoutPreview route={`example/crud/${scene}/${createFails ? "error" : "success"}`} tui={{ page: "crud", state: scene === "split" ? "list" : scene }}>
+        {scene === "split" ? <ListDetailLayout createFails={createFails} /> : scene === "list" ? (
           <WorkspacePreview page="Projects">
-            {scene === "list" ? <ListScreen createFails={createFails} /> : scene === "detail" ? <DetailScreen /> : <CreateScreen />}
+            <ListScreen createFails={createFails} onOpen={() => go("detail")} onCreate={() => go("create")} />
+          </WorkspacePreview>
+        ) : scene === "detail" ? (
+          <WorkspacePreview page="Website refresh" parent={projects}>
+            <DetailScreen onDeleted={() => { go("list"); notify("success", "Project deleted", "Website refresh was removed."); }} />
+          </WorkspacePreview>
+        ) : (
+          <WorkspacePreview page="New project" parent={projects}>
+            <CreateScreen fail={createFails} onCancel={() => go("list")} onCreated={() => { go("list"); notify("success", "Project created", "Your team can start on it."); }} />
           </WorkspacePreview>
         )}
       </LayoutPreview>
@@ -1019,27 +127,103 @@ function ListDetailExamples({ description, initialScene, initialResult }: { desc
   );
 }
 
-// The phone view loads the example in a 390x844 frame, so its media queries
-// respond as they would on a phone. The frame shows the page alone; the
-// example's controls stay outside it and pass their state in the route.
-export const phoneFrame = new URLSearchParams(window.location.search).has("phone-frame");
-const PhoneView = createContext<{ phone: boolean; choose: (phone: boolean) => void }>({ phone: false, choose: () => {} });
+const standaloneUrl = (route: string) => `${window.location.pathname}?frame#${route}`;
+
+// The example alone in a tab, without the gallery around it.
+function OpenAlone({ route }: { route: string }) {
+  if (phoneFrame || standalone) return null;
+  return <Link className="t-label" href={standaloneUrl(route)} target="_blank" rel="noopener noreferrer">
+    Open in a new tab<SquareArrowOutUpRight className="icon icon-sm" aria-hidden="true" />
+  </Link>;
+}
+
+// The page alone, for the previews: the gallery loads it in a frame at a
+// desktop or a phone size, so its media queries respond as on that screen.
+// The example's controls stay outside and pass their state in the route.
+const frameParams = new URLSearchParams(window.location.search);
+export const phoneFrame = frameParams.has("phone-frame");
+const frameUrl = (route: string) => `${window.location.pathname}?phone-frame#${route}`;
+// The example alone in a tab, with its controls and the device choice.
+export const standalone = frameParams.has("frame");
+
+/* How the example is shown: at desktop width, in a phone, or in a
+   terminal, drawn by tui-kiso. */
+type Device = "desktop" | "phone" | "tui";
+const devices: Device[] = ["desktop", "phone", "tui"];
+type DeviceView = { device: Device; choose: (device: Device) => void; tui: TuiData | "failed" | null; accent: string; theme: string };
+const DeviceContext = createContext<DeviceView>({ device: "desktop", choose: () => {}, tui: null, accent: "", theme: "" });
 
 // Sits in each example's caption row, so the preview keeps the height.
-function DeviceSwitch() {
-  const { phone, choose } = useContext(PhoneView);
+// The terminal is offered where the example has terminal screens.
+function DeviceSwitch({ tui = false }: { tui?: boolean }) {
+  const { device, choose } = useContext(DeviceContext);
   if (phoneFrame) return null;
-  return <RadioGroup label="Preview width" variant="segmented" className="layout-device" value={phone ? "phone" : "desktop"} onValueChange={value => choose(value === "phone")}>
+  return <RadioGroup label="Preview device" variant="segmented" className="layout-device" value={device === "tui" && !tui ? "desktop" : device} onValueChange={value => choose(value as Device)}>
     <RadioGroupItem value="desktop" label="Desktop" icon={<Monitor className="icon" />} />
     <RadioGroupItem value="phone" label="Phone" icon={<Smartphone className="icon" />} />
+    {tui && <RadioGroupItem value="tui" label="TUI" icon={<SquareTerminal className="icon" />} />}
   </RadioGroup>;
 }
 
-function LayoutPreview({ route, children }: { route: string; children: ReactNode }) {
-  const { phone } = useContext(PhoneView);
+// The screen sizes the previews draw at, before they scale down to fit.
+const desktopSize = [1280, 800] as const;
+const phoneSize = [390, 844] as const;
+
+/* Draws its child at its own size, then scales it down to fit the stage,
+   so a whole screen shows without scrolling. Without a size, the child's
+   own size is measured, as for a terminal screen. */
+function Scaled({ size, className, children }: { size?: readonly [number, number]; className?: string; children: ReactNode }) {
+  const stage = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState<{ scale: number; width: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    const room = stage.current;
+    const screen = inner.current;
+    if (!room || !screen) return;
+    const measure = () => {
+      const style = getComputedStyle(room);
+      const width = room.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const height = room.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      const [w, h] = size ?? [screen.offsetWidth, screen.offsetHeight];
+      if (!w || !h || width <= 0 || height <= 0) return;
+      const scale = Math.min(1, width / w, height / h);
+      setFit({ scale, width: Math.floor(w * scale), height: Math.floor(h * scale) });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(room);
+    observer.observe(screen);
+    return () => observer.disconnect();
+  }, [size]);
+  return <div ref={stage} className={`layout-stage ${className ?? ""}`}>
+    <div className="layout-scaled" style={fit ? { width: fit.width, height: fit.height } : undefined}>
+      <div ref={inner} className="layout-scaled-screen"
+        style={{ ...(size ? { width: size[0], height: size[1] } : { width: "max-content" }), transform: `scale(${fit?.scale ?? 1})`, visibility: fit ? undefined : "hidden" }}>
+        {children}
+      </div>
+    </div>
+  </div>;
+}
+
+function LayoutPreview({ route, tui, paper = false, children }: { route: string; tui?: { page: string; state: string }; paper?: boolean; children: ReactNode }) {
+  const context = useContext(DeviceContext);
+  const view = paper ? { ...context, device: "desktop" as Device } : context;
   if (phoneFrame) return <div className="layout-preview">{children}</div>;
-  if (phone) return <PhoneFrame route={route} />;
-  return <Card className="layout-preview">{children}</Card>;
+  const terminal = view.device === "tui" && tui
+    ? <TuiScreen data={view.tui} page={tui.page} state={tui.state} accent={view.accent} theme={view.theme} />
+    : null;
+  if (standalone) {
+    // Alone in a tab the page is the window.
+    if (view.device === "phone") return <div className="layout-preview"><PhoneFrame route={route} /></div>;
+    if (terminal) return <Card className="tui-frame layout-tui"><div className="tui-stage hatch">{terminal}</div></Card>;
+    return <div className="layout-preview">{children}</div>;
+  }
+  // In the gallery's dialog the whole screen scales down to the room left.
+  if (terminal) return <Scaled className="hatch">{terminal}</Scaled>;
+  const phone = view.device === "phone";
+  return <Scaled size={phone ? phoneSize : desktopSize} className={phone ? "hatch layout-stage-phone" : undefined}>
+    <iframe key={route} title={`Example at ${phone ? "phone" : "desktop"} size`} src={frameUrl(route)} />
+  </Scaled>;
 }
 
 // The phone keeps a real 844px screen. Its panel takes the height left in
@@ -1067,51 +251,199 @@ function PhoneFrame({ route }: { route: string }) {
   }, []);
   return <Card className="layout-phone-frame">
     <div ref={stage} className="layout-phone-stage hatch" style={{ height }}>
-      <iframe title="Example at phone width" src={`${window.location.pathname}?phone-frame#${route}`} />
+      <iframe title="Example at phone width" src={frameUrl(route)} />
     </div>
   </Card>;
 }
 
-export function LayoutExamples({ route }: { route: string }) {
-  const [phone, setPhone] = useState(() => localStorage.getItem("kiso-gallery-layout-device") === "phone");
+export function LayoutExamples({ route, accent, theme }: { route: string; accent: string; theme: string }) {
+  const [device, setDevice] = useState<Device>(() => {
+    const saved = localStorage.getItem("kiso-gallery-layout-device");
+    return devices.includes(saved as Device) ? (saved as Device) : "desktop";
+  });
+  const [, requested] = route.split("/");
+  const open = templates.find(template => template.id === requested);
+  // The terminal screens, written by the tui-kiso `screens` example, load
+  // the first time the terminal is chosen.
+  const tui = useTuiGallery(!phoneFrame && device === "tui" && (standalone || open !== undefined), screensUrl);
   if (phoneFrame) return <LayoutExample route={route} />;
-  const choose = (next: boolean) => { setPhone(next); localStorage.setItem("kiso-gallery-layout-device", next ? "phone" : "desktop"); };
-  const guided = route.split("/")[1] === "guided-flow";
+  const choose = (next: Device) => { setDevice(next); localStorage.setItem("kiso-gallery-layout-device", next); };
   return (
-    <PhoneView.Provider value={{ phone, choose }}>
-      {guided ? <div className="stack">
-        <DeviceSwitch />
-        {phone ? <LayoutPreview route={route}>{null}</LayoutPreview> : <LayoutExample route={route} />}
-      </div> : <LayoutExample route={route} />}
-    </PhoneView.Provider>
+    <DeviceContext.Provider value={{ device, choose, tui, accent, theme }}>
+      {standalone ? <LayoutExample route={route} /> : <>
+        <TemplateList />
+        {open && <TemplateDialog key={open.id} template={open} route={route} />}
+      </>}
+    </DeviceContext.Provider>
   );
 }
 
 function LayoutExample({ route }: { route: string }) {
   const [, requested, scene, result] = route.split("/");
-  const selected =
-    layouts.find((layout) => layout.id === requested) ?? layouts[0];
-  if (selected.id === "guided-flow") return <GuidedFlowDemo />;
-  if (selected.id === "login") return <LoginExample key={scene} description={selected.description} initialResult={scene} />;
-  if (selected.id === "list-detail") return <ListDetailExamples key={route} description={selected.description} initialScene={scene} initialResult={result} />;
+  const selected = templates.find((template) => template.id === requested) ?? templates[0];
+  if (selected.id === "login") return <LoginExample result={scene} />;
+  if (selected.id === "crud") return <CrudExample scene={scene} result={result} />;
+  // The report prints from its own button; it has no phone or terminal view.
+  if (selected.id === "report") return (
+    <section aria-label={selected.label}>
+      <div className="layout-preview-caption">
+        <div className="row-wrap layout-scene-controls">
+          <OpenAlone route="example/report" />
+        </div>
+      </div>
+      <LayoutPreview route="example/report" paper><ReportLayout /></LayoutPreview>
+    </section>
+  );
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">
-        <p className="muted t-label">{selected.description}</p>
         <div className="row-wrap layout-scene-controls">
-          <Badge variant="neutral">Static preview</Badge>
-          <DeviceSwitch />
+          <DeviceSwitch tui />
+          <OpenAlone route={`example/${selected.id}`} />
         </div>
       </div>
-      <LayoutPreview route={`example/${selected.id}`}>
-        {selected.id === "dashboard" ? (
-          <DashboardLayout />
-        ) : selected.id === "report" ? (
-          <ReportLayout />
-        ) : (
-          <SettingsLayout />
-        )}
+      <LayoutPreview route={`example/${selected.id}`} tui={{ page: selected.id, state: "default" }}>
+        {selected.id === "dashboard" ? <DashboardLayout /> : <ChartsLayout />}
       </LayoutPreview>
     </section>
   );
+}
+
+/* The Layouts page: one template per row, its screen on the left and what
+   it is for on the right. Open shows it in a dialog; on a phone, where a
+   dialog has no room for a screen, it opens alone in a new tab. */
+function TemplateList() {
+  const { choose } = useContext(DeviceContext);
+  const narrow = useNarrow();
+  const open = (id: string, device: Device) => (event: MouseEvent<HTMLAnchorElement>) => {
+    choose(device);
+    if (narrow) return;
+    event.preventDefault();
+    window.location.hash = `example/${id}`;
+  };
+  const opener = { target: narrow ? "_blank" : undefined, rel: narrow ? "noopener noreferrer" : undefined };
+  return (
+    <div className="layout-list">
+      {templates.map((template, index) => (
+        <Fragment key={template.id}>
+          {index > 0 && <Separator />}
+          <article className="layout-row" aria-labelledby={`layout-${template.id}`}>
+            <a className="layout-thumb" href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "desktop")}
+              aria-label={`Open ${template.label}`}>
+              <Scaled size={desktopSize}>
+                <iframe title={`${template.label} preview`} src={frameUrl(`example/${template.id}`)} loading="lazy" tabIndex={-1} aria-hidden="true" />
+              </Scaled>
+            </a>
+            <div className="layout-row-info">
+              <div className="layout-row-title">
+                <h2 className="t-h2" id={`layout-${template.id}`}>{template.label}</h2>
+                <span className="muted t-label">
+                  {template.states.length > 0 && `${template.states.length} states · `}{"paper" in template ? "Desktop and paper" : "Desktop, phone and TUI"}
+                </span>
+              </div>
+              <p className="muted">{template.description}</p>
+              {template.states.length > 0 && <div className="stack-sm">
+                <p className="t-caps muted">States</p>
+                <div className="row-wrap">{template.states.map(state => <Badge key={state} variant="neutral">{state}</Badge>)}</div>
+              </div>}
+              <div className="stack-sm">
+                <p className="t-caps muted">Components</p>
+                <div className="row-wrap">{template.components.map(item => <Badge key={item.name} variant="neutral" title={item.does}>{item.name}</Badge>)}</div>
+              </div>
+              <div className="row-wrap">
+                <Button asChild variant="primary" size="sm">
+                  <a href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "desktop")}>Open</a>
+                </Button>
+                {!("paper" in template) && <>
+                <Button asChild variant="ghost" size="sm">
+                  <a href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "phone")}
+                    aria-label={`Open ${template.label} on a phone`}><Smartphone className="icon icon-sm" aria-hidden="true" />Phone</a>
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <a href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "tui")}
+                    aria-label={`Open ${template.label} in a terminal`}><SquareTerminal className="icon icon-sm" aria-hidden="true" />TUI</a>
+                </Button>
+                </>}
+              </div>
+            </div>
+          </article>
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+/* A template in a dialog the size of the window: the screen with its
+   states and devices, the code that draws it, and its components. The
+   route names the template, so a link opens it. */
+function TemplateDialog({ template, route }: { template: Template; route: string }) {
+  const close = () => { window.location.hash = "example"; };
+  return (
+    <Dialog open onOpenChange={open => { if (!open) close(); }}>
+      <DialogContent className="layout-dialog">
+        <DialogHeader className="layout-dialog-head">
+          <div className="layout-dialog-heading">
+            <DialogTitle>{template.label}</DialogTitle>
+            <DialogDescription>{template.description}</DialogDescription>
+          </div>
+          <DialogClose asChild>
+            <Button className="btn-icon" size="sm" variant="ghost" aria-label="Close">
+              <X className="icon icon-sm" aria-hidden="true" />
+            </Button>
+          </DialogClose>
+        </DialogHeader>
+        <Tabs defaultValue="preview" className="layout-dialog-tabs">
+          <TabsList aria-label={`${template.label} template`}>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+            <TabsTrigger value="components">Components ({template.components.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="preview"><LayoutExample route={route} /></TabsContent>
+          <TabsContent value="code"><TemplateCode files={template.files} /></TabsContent>
+          <TabsContent value="components"><TemplateComponents template={template} /></TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TemplateCode({ files }: { files: readonly SourceFile[] }) {
+  const [index, setIndex] = useState(0);
+  const file = files[index];
+  return <>
+    <RadioGroup label="File" variant="segmented" className="layout-files" value={String(index)} onValueChange={value => setIndex(Number(value))}>
+      {files.map((item, at) => <RadioGroupItem key={item.name} value={String(at)} label={item.language === "rust" ? `Terminal · ${item.name}` : item.name} />)}
+    </RadioGroup>
+    <CodeBlock key={file.path} code={file.code} highlight={file.language === "rust" ? rust : tsx} title={file.path} copy="code" lineNumbers />
+  </>;
+}
+
+function TemplateComponents({ template }: { template: Template }) {
+  return <>
+    <p className="muted">What each component does in this template, and what it leaves to another one. The link opens its full contract.</p>
+    <Table aria-label={`Components in the ${template.label} template`}>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Component</TableHead>
+          <TableHead>Does</TableHead>
+          <TableHead>Does not</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {template.components.map(item => (
+          <TableRow key={item.name}>
+            <TableCell>
+              <strong>{item.name}</strong>
+              <p><Link className="mono t-label" href={`${docsUrl}components/${item.doc}`} target="_blank" rel="noopener noreferrer">{item.doc}</Link></p>
+            </TableCell>
+            <TableCell>{item.does}</TableCell>
+            <TableCell className="muted">{item.doesNot}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+    <p className="t-label">
+      Pattern: <Link href={`${docsUrl}patterns/${template.pattern}`} target="_blank" rel="noopener noreferrer">patterns/{template.pattern}</Link>
+    </p>
+  </>;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Badge, Card, Navigation, NavigationItem, NavigationLink, NavigationList } from "@momoi-labs/kiso-react";
 import galleryUrl from "./generated/tui-gallery.json?url";
 
@@ -35,20 +35,20 @@ type Page = { id: string; name: string; about: string; states: State[] };
 export type TuiData = { themes: string[]; tokens: Record<string, Record<string, string>>; styles: Style[]; pages: Page[] };
 
 /** The gallery, fetched the first time the TUI page opens. */
-export function useTuiGallery(active: boolean): TuiData | "failed" | null {
+export function useTuiGallery(active: boolean, url: string = galleryUrl): TuiData | "failed" | null {
   const [data, setData] = useState<TuiData | "failed" | null>(null);
   const load = active && data === null;
   useEffect(() => {
     if (!load) return;
     let live = true;
-    fetch(galleryUrl)
+    fetch(url)
       .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
       .then((gallery: TuiData) => live && setData(gallery))
       .catch(() => live && setData("failed"));
     return () => {
       live = false;
     };
-  }, [load]);
+  }, [load, url]);
   return data;
 }
 
@@ -100,17 +100,8 @@ function parts(text: string, cells: number): (string | [string, number])[] {
   return out;
 }
 
-export function TuiGallery({
-  route,
-  data,
-  accent,
-  theme,
-}: {
-  route: string;
-  data: TuiData | "failed" | null;
-  accent: string;
-  theme: string;
-}) {
+/** The gallery's styles in the site's accent and theme, and the theme's name. */
+function useTuiStyles(data: TuiData | "failed" | null, accent: string, theme: string): { name: string; styles: CSSProperties[] } {
   const mode = useMode(theme);
   const name = `${accent}-${mode}`;
   const themeIndex = data && data !== "failed" ? Math.max(0, data.themes.indexOf(name)) : 0;
@@ -129,6 +120,84 @@ export function TuiGallery({
         : [],
     [data, themeIndex, tokens],
   );
+  return { name, styles };
+}
+
+/** The rows of a screen, drawn as a terminal. */
+function TuiTerm({ rows, width, style, styles, children }: { rows: Run[][]; width: number; style: CSSProperties; styles: CSSProperties[]; children?: ReactNode }) {
+  return (
+    <div className="tui-term" style={{ "--tui-cols": width, ...style } as CSSProperties} aria-hidden="true">
+      {rows.map((row, y) => (
+        <div className="tui-row" key={y}>
+          {row.map(([text, style, cells], i) => (
+            <span key={i} style={{ ...styles[style], width: `${cells}ch` }}>
+              {parts(text, cells).map((part, j) =>
+                typeof part === "string" ? (
+                  part
+                ) : (
+                  <span key={j} className="tui-drawn" data-char={part[0]} style={{ width: `${part[1]}ch` }} />
+                ),
+              )}
+            </span>
+          ))}
+        </div>
+      ))}
+      {children}
+    </div>
+  );
+}
+
+/** What a screen reader reads: the screen's text, line by line, without
+ *  the lines and blocks drawn around it. */
+function screenText(rows: Run[][]): string {
+  const drawnChars = new RegExp(`[${DRAWN}]`, "g");
+  return rows
+    .map((row) => row.map(([text]) => text).join("").replace(drawnChars, " ").replace(/ {3,}/g, "  ").trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+/** One screen of a gallery file, as it is: no keys, no scroll, no links. */
+export function TuiScreen({
+  data,
+  page: pageId,
+  state: stateId,
+  accent,
+  theme,
+}: {
+  data: TuiData | "failed" | null;
+  page: string;
+  state: string;
+  accent: string;
+  theme: string;
+}) {
+  const { name, styles } = useTuiStyles(data, accent, theme);
+  if (data === "failed") return <p className="muted">The terminal screens did not load. Reload the page to try again.</p>;
+  if (data === null) return <p className="muted" role="status">Loading the terminal screens...</p>;
+  const page = data.pages.find((p) => p.id === pageId) ?? data.pages[0];
+  const state = page.states.find((s) => s.id === stateId) ?? page.states[0];
+  const [width, height] = state.size;
+  const rows = state.rows.map((row, y) => state.variants?.[name]?.[y] ?? row);
+  return (
+    <div className="tui-screen" role="group" aria-roledescription="terminal screen" aria-label={`${page.name}, ${state.label}: in a terminal at ${width} by ${height}`}>
+      <TuiTerm rows={rows} width={width} style={styles[state.screen]} styles={styles} />
+      <pre className="tui-text">{screenText(rows)}</pre>
+    </div>
+  );
+}
+
+export function TuiGallery({
+  route,
+  data,
+  accent,
+  theme,
+}: {
+  route: string;
+  data: TuiData | "failed" | null;
+  accent: string;
+  theme: string;
+}) {
+  const { name, styles } = useTuiStyles(data, accent, theme);
   // The screen takes the focus whenever a TUI page opens, so its keys work
   // at once. It runs before the shell's own focus move, which then leaves
   // it, as the screen keeps focus.
@@ -212,13 +281,7 @@ export function TuiGallery({
   const rows = state.rows.map(
     (row, y) => frame?.variants?.[name]?.[y] ?? frame?.rows[y] ?? state.variants?.[name]?.[y] ?? row,
   );
-  // What a screen reader reads: the screen's text, line by line, without
-  // the lines and blocks drawn around it.
-  const drawnChars = new RegExp(`[${DRAWN}]`, "g");
-  const text = rows
-    .map((row) => row.map(([text]) => text).join("").replace(drawnChars, " ").replace(/ {3,}/g, "  ").trim())
-    .filter(Boolean)
-    .join("\n");
+  const text = screenText(rows);
   const screen = (
     <div
       ref={screenRef}
@@ -231,26 +294,7 @@ export function TuiGallery({
       aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight j k"
       onKeyDown={onKeyDown}
     >
-      <div
-        className="tui-term"
-        style={{ "--tui-cols": width, ...styles[state.screen] } as CSSProperties}
-        aria-hidden="true"
-      >
-        {rows.map((row, y) => (
-          <div className="tui-row" key={y}>
-            {row.map(([text, style, cells], i) => (
-              <span key={i} style={{ ...styles[style], width: `${cells}ch` }}>
-                {parts(text, cells).map((part, j) =>
-                  typeof part === "string" ? (
-                    part
-                  ) : (
-                    <span key={j} className="tui-drawn" data-char={part[0]} style={{ width: `${part[1]}ch` }} />
-                  ),
-                )}
-              </span>
-            ))}
-          </div>
-        ))}
+      <TuiTerm rows={rows} width={width} style={styles[state.screen]} styles={styles}>
         {/* A click on a name in the screen's sidebar opens it, as the site's
             navigation does. The keys and the site's navigation already
             reach them, so these stay out of the tab order. */}
@@ -264,7 +308,7 @@ export function TuiGallery({
             style={{ top: `calc(0.65em + ${y * 1.3}em)`, left: `calc(1ch + ${x}ch)`, width: `${cells}ch` }}
           />
         ))}
-      </div>
+      </TuiTerm>
       <pre className="tui-text">{text}</pre>
     </div>
   );

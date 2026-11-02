@@ -43,10 +43,17 @@ One responsive size. Content uses a readable bounded width and becomes
 viewport-limited when space is tight; use Drawer when the task needs a distinct
 small-viewport presentation instead of adding `sm` / `lg` Dialog sizes.
 
-One exception: an expanded [DashboardPanel](dashboard-grid.md#expand) fills
-the viewport less `--spacing-lg`, and edge to edge at 640 pixels and below. It
-shows one panel in detail rather than a task, keeps every Dialog behavior, and
-is not a size products may pick for other content.
+Two exceptions fill the viewport less `--spacing-lg`, and edge to edge at
+640 pixels and below:
+
+- An expanded [DashboardPanel](dashboard-grid.md#expand) shows one panel in
+  detail.
+- A screen preview, such as a template in the Kiso gallery, shows a whole
+  screen at a size a person can read, with its code and the components it
+  uses.
+
+Both show content rather than a task, keep every Dialog behavior, and are
+not a size products may pick for other content.
 
 ## States
 

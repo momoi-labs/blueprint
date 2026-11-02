@@ -9,17 +9,20 @@
   gap: var(--spacing-sm) var(--spacing-md);
   padding-block-end: var(--spacing-sm);
 }
+/* Navigation moves focus to the page title for screen readers; the ring on a
+   heading would only say "you are here" to someone who can already see it. */
+.catalog-main [data-slot="page-header-title"][tabindex="-1"]:focus-visible { outline: none; }
 /* The examples need the height; the page heading and the controls stay tight. */
 .catalog-layouts .catalog-heading { gap: var(--spacing-xs); margin-bottom: var(--spacing-md); }
 @media (pointer: fine) {
-  .radio-group.layout-device { gap: var(--spacing-2xs); padding: var(--spacing-2xs); }
-  .radio-group.layout-device > .radio-item { min-height: var(--size-control-sm); padding-block: 0; }
+  .radio-group:is(.layout-device, .layout-files) { gap: var(--spacing-2xs); padding: var(--spacing-2xs); }
+  .radio-group:is(.layout-device, .layout-files) > .radio-item { min-height: var(--size-control-sm); padding-block: 0; }
 }
 /* The icons show the choice; the checked segment shows which one. */
-.radio-group.layout-device .radio-indicator { display: none; }
+.radio-group:is(.layout-device, .layout-files) .radio-indicator { display: none; }
 .radio-group.layout-device { justify-self: start; }
 /* The icons and words name the choice; the field label is for screen readers. */
-.field:has(> .layout-device) > .t-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.field:has(> :is(.layout-device, .layout-scene, .layout-files)) > .t-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* A 390x844 screen inside a panel that follows the appearance frame. */
 /* The panel spans the example's width like the desktop preview. Around the
    phone it is an empty region, so it takes the EmptyState hatch. */
@@ -42,8 +45,9 @@
 }
 /* Login draws its own canvas; the phone frame's shell only lends it the
    paper colors. */
-.app-shell.layout-phone-document:has(.layout-login)::before { content: none; }
+.app-shell:is(.layout-phone-document, .layout-standalone-shell):has(.layout-login)::before { content: none; }
 .layout-phone-document .layout-login { min-height: 100dvh; }
+.layout-standalone .layout-login { min-height: 100%; }
 /* Inside the frame the page is the whole screen. */
 .layout-phone-document .layout-preview-caption { display: none; }
 .layout-scene-controls label { white-space: nowrap; flex-wrap: wrap; max-width: 100%; }
@@ -51,6 +55,15 @@
 .layout-scene-controls .select { width: auto; min-width: 0; max-width: 100%; }
 .layout-scene-controls > .field { min-width: 0; max-width: 100%; }
 
+/* Alone in a tab: a bar with the controls, then the page filling the window
+   and scrolling inside it, as in a product. */
+.layout-standalone { display: flex; flex-direction: column; height: 100dvh; }
+.layout-standalone > section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.layout-standalone .layout-preview-caption { padding: var(--spacing-sm) var(--spacing-md); }
+.layout-standalone .layout-preview { flex: 1; min-height: 0; overflow: auto; }
+/* The shell takes the window and its main scrolls, so the sidebar stays. */
+.layout-standalone .layout-preview > .app-shell.layout-shell { height: 100%; }
+.layout-standalone .layout-preview > .app-shell.layout-shell > [data-slot="app-shell-main"] { min-height: 0; overflow: auto; }
 .layout-preview {
   container-type: inline-size;
   background: var(--color-background);
@@ -66,12 +79,10 @@
   min-height: 740px;
 }
 .app-shell.layout-shell { min-height: 740px; }
-/* Inside a card the sidebar takes the card's height, not the viewport's. */
+.layout-phone-document .app-shell.layout-shell { min-height: 100dvh; }
+/* The sidebar takes the shell's height, not the viewport's. */
 .app-shell.layout-shell > .sidebar { position: static; height: auto; }
-/* The gallery scrolls the card past its header, so the header stays in the
-   card. The phone preview is its own document and keeps the sticky header. */
-.layout-preview:not(.layout-phone-document *) > .app-shell.layout-shell > :is(main, [data-slot="app-shell-main"]) > .topbar { position: static; }
-.layout-shell .topbar > .layout-inline { margin-inline-start: auto; }
+.layout-shell .topbar > .row { margin-inline-start: auto; }
 /* On a phone the tab bar marks the page, so the header keeps the brand and
    the plan; the location trail and the workspace subtitle would only wrap. */
 @media (max-width: 699px) {
@@ -89,8 +100,7 @@
   gap: var(--presentation-section-gap);
   padding: var(--presentation-page-padding);
 }
-.layout-content > *,
-.layout-section > * {
+.layout-content > * {
   min-width: 0;
 }
 .layout-between {
@@ -116,104 +126,15 @@
 .layout-stats .stat-value {
   margin-top: var(--spacing-sm);
 }
-.layout-section {
-  display: grid;
-  align-content: start;
-  gap: var(--presentation-grid-gap);
-}
-.layout-chart {
-  height: 220px;
-}
-.layout-chart-comparison {
-  fill: none;
-  stroke: var(--color-muted-foreground);
-  stroke-width: 1.5;
-  stroke-dasharray: 4 4;
-}
-.layout-chart-axis,
-.layout-chart-legend {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
-  color: var(--color-muted-foreground);
-  font-size: var(--type-size-label);
-}
-.layout-chart-legend {
-  justify-content: flex-start;
-  gap: var(--spacing-lg);
-}
-.layout-chart-legend span {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-.layout-chart-legend span:first-child .dot {
-  color: var(--color-primary);
-}
-.layout-chart-legend span:last-child .dot {
-  color: var(--color-muted-foreground);
-}
 .layout-project-name {
   white-space: nowrap;
   font-weight: var(--type-weight-medium);
-}
-.layout-table-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-muted-foreground);
-  font-size: var(--type-size-label);
 }
 .layout-list-detail {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
   align-items: start;
   gap: var(--spacing-xl);
-}
-.layout-list-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-.layout-list-toolbar .input {
-  min-width: 0;
-}
-.layout-selected-row {
-  background: var(--color-selected);
-}
-.layout-progress {
-  appearance: none;
-  width: 100%;
-  height: var(--spacing-sm);
-  border: 0;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  background: var(--color-muted);
-  color: var(--color-primary);
-}
-.layout-progress::-webkit-progress-bar {
-  background: var(--color-muted);
-}
-.layout-progress::-webkit-progress-value {
-  background: var(--color-primary);
-}
-.layout-progress::-moz-progress-bar {
-  background: var(--color-primary);
-}
-.layout-check {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--type-size-label);
-}
-.layout-fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-lg);
 }
 /* Login: a context panel takes half the page beside the credential form.
    It is a page of its own, so it draws the chosen background itself. */
@@ -311,9 +232,6 @@
   .layout-content {
     padding: var(--spacing-lg);
   }
-  .layout-fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .layout-login {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -336,17 +254,6 @@
   .layout-stats > .stat + .stat {
     border-inline-start: 0;
     border-block-start: 1px solid var(--color-border);
-  }
-  .layout-chart-axis span:nth-child(even) {
-    display: none;
-  }
-  .layout-list-toolbar {
-    flex-wrap: wrap;
-  }
-}
-@media (pointer: coarse) {
-  .layout-check {
-    min-height: var(--size-touch-min);
   }
 }
 
@@ -435,7 +342,9 @@
    card or a list's table takes the height the header leaves, as it does in
    an application. */
 @media (min-width: 1024px) {
-  .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { height: 740px; }
+  /* Alone in a tab the shell is the viewport. */
+  .layout-phone-document .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { height: 100dvh; }
+  .layout-standalone .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) { height: 100%; }
   .layout-shell:has(.layout-content > :is(.detail-tabs, .form-page, .table-wrap:last-child):not([data-fill="false"])) > [data-slot="app-shell-main"] {
     display: flex; flex-direction: column; min-height: 0;
   }
@@ -448,13 +357,15 @@
   .layout-content > .table-wrap:last-child > .table-scroll { flex: 1; min-height: 0; }
 }
 
-/* Printing the report example prints the report alone, without the gallery
-   around it. */
+/* A template prints alone, on the paper: its controls stay on the screen,
+   and the preview around it draws no fill, frame or marks. */
 @media print {
-  .catalog-main:has(.report) { padding: 0; }
-  .catalog-main:has(.report) > :not(:has(.report)), .catalog-main:has(.report) .layout-preview-caption { display: none; }
-  .layout-preview:has(.report) { border: 0; border-radius: 0; background: none; box-shadow: none; --corner-mark: 0; }
-  .layout-preview:has(.report)::before, .layout-preview:has(.report)::after { content: none; }
+  .layout-preview-caption { display: none; }
+  .layout-preview { border: 0; border-radius: 0; background: none; box-shadow: none; --corner-mark: 0; }
+  .layout-preview::before, .layout-preview::after { content: none; }
+  /* Alone in a tab the page scrolls inside the window; paper takes the
+     whole document instead. */
+  .layout-standalone, .layout-standalone > section, .layout-standalone .layout-preview { display: block; height: auto; overflow: visible; }
 }
 
 /* The TUI gallery: a terminal screen of the state's columns, as large as
@@ -543,3 +454,48 @@
 .tui-run > code { white-space: inherit; }
 /* The screen's text for screen readers; the drawn screen is hidden from them. */
 .tui-text { position: absolute; inset: 0 auto auto 0; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: pre; }
+
+/* The Layouts page: one template per row, its screen beside what it is for.
+   The rows take part of a wide page, so the screens stay a readable size. */
+.layout-list { display: grid; gap: var(--spacing-lg); max-width: 60%; }
+@media (max-width: 1099px) { .layout-list { max-width: none; } }
+.layout-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: var(--spacing-lg); align-items: start; }
+@media (max-width: 699px) { .layout-row { grid-template-columns: minmax(0, 1fr); } }
+.layout-row-info { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.layout-row-info > p { margin: 0; }
+.layout-row-title { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-xs) var(--spacing-md); }
+.layout-row-title > h2 { margin: 0; }
+.layout-thumb {
+  display: block; aspect-ratio: 1280 / 800; overflow: hidden;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+}
+.layout-thumb:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.layout-thumb .layout-stage { height: 100%; padding: 0; }
+.layout-thumb iframe { pointer-events: none; }
+
+/* A whole screen drawn at its own size and scaled down to the room left. */
+.layout-stage { display: grid; place-items: center; min-height: 0; overflow: hidden; }
+.layout-scaled-screen { transform-origin: 0 0; }
+.layout-scaled-screen > iframe { display: block; width: 100%; height: 100%; border: 0; background: var(--color-background); }
+.layout-stage-phone .layout-scaled-screen > iframe { box-sizing: border-box; border: 1px solid var(--color-border-strong); border-radius: var(--radius-lg); }
+
+/* The template dialog takes the window less a margin, as an expanded
+   DashboardPanel does, and the whole window on a phone. Its tabs fill the
+   height the head leaves; the preview and the code scroll inside. */
+.kiso-react-dialog.layout-dialog { inset: var(--spacing-lg); transform: none; width: auto; max-height: none; }
+@media (max-width: 640px) { .kiso-react-dialog.layout-dialog { inset: 0; border: 0; border-radius: 0; --corner-mark: 0; } }
+.kiso-react-dialog .dialog-header.layout-dialog-head { display: flex; align-items: flex-start; gap: var(--spacing-md); padding: var(--spacing-md) var(--spacing-lg) 0; }
+.layout-dialog-heading { flex: 1; min-width: 0; display: grid; gap: var(--spacing-2xs); }
+.layout-dialog-tabs { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.layout-dialog-tabs > [data-slot="tabs-list"] { padding-inline: var(--spacing-lg); }
+.layout-dialog-tabs > [data-slot="tabs-content"]:not([hidden]) {
+  flex: 1; min-height: 0; overflow: auto;
+  display: flex; flex-direction: column; gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+}
+.layout-dialog-tabs > [data-slot="tabs-content"] > section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.layout-dialog .layout-stage { flex: 1; border-radius: var(--radius-md); background-color: var(--color-card); }
+.layout-dialog .layout-files { justify-self: start; }
+.layout-dialog .code-block { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.layout-dialog .code-block > pre { flex: 1; min-height: 0; overflow: auto; }
+.layout-dialog-tabs p { margin: 0; }

@@ -63,10 +63,13 @@ jobs:
         run: |
           cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --snapshot "$RUNNER_TEMP/tui-kiso"
           test -s "$RUNNER_TEMP/tui-kiso/index.html"
+          cargo run --manifest-path crates/tui-kiso/Cargo.toml --example screens -- --snapshot "$RUNNER_TEMP/tui-kiso-screens"
+          test -s "$RUNNER_TEMP/tui-kiso-screens/index.html"
       - name: Check the site's copy of the tui-kiso gallery
         run: |
           cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --json apps/kiso-gallery/src/generated/tui-gallery.json
-          git diff --exit-code -- apps/kiso-gallery/src/generated/tui-gallery.json
+          cargo run --manifest-path crates/tui-kiso/Cargo.toml --example screens -- --json apps/kiso-gallery/src/generated/tui-screens.json
+          git diff --exit-code -- apps/kiso-gallery/src/generated/tui-gallery.json apps/kiso-gallery/src/generated/tui-screens.json
 
   contrast:
     name: Check AA contrast
