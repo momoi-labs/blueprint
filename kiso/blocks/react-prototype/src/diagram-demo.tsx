@@ -340,6 +340,7 @@ function ClusterOverview({ layout, background, strength, frame, edges }: Example
       <DiagramEdge from="db2" to="db3" series={2} flow label="Lag: 12 MB" />
       <DiagramEdge from="s3-varejo" to="nuv1" series={3} flow label="WAL restore" />
       <DiagramEdge from="db1" to="backup-01" series={3} flow />
+      <DiagramEdge from="backup-01" to="db3" series={3} flow label="WAL restore" />
       <DiagramEdge from="db1" to="s3-varejo" series={3} flow label="WAL" />
       <DiagramEdge from="db2" to="backup-01" series={4} flow />
       <DiagramEdge from="db2" to="s3-varejo" series={4} flow label="backups" />

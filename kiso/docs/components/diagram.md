@@ -124,8 +124,9 @@ into the target.
 
 A label goes on the edge's run into the target; see [Labels](#labels).
 
-Edges go to the same row or a row further down. An edge to a row above is
-not drawn. One that skips a row runs straight down past the nodes between,
+An edge to a row above runs backward, as in a [grid](#grid): out the top of
+its source, along the channel, into the bottom of its target. An edge that
+skips a row runs straight down past the nodes between,
 when their stage leaves room beside them; a shape that needs more is a
 graph, not a Diagram, or a grid.
 
@@ -155,11 +156,11 @@ before. A group inside a cell holds its nodes side by side.
 
 Each edge picks its route from where its nodes are:
 
-| Route | When | Path |
-| --- | --- | --- |
-| side | the target is beside the source, their heights overlap | straight across, or an elbow when they do not face |
-| down | the target is below, the two overlap across | out the bottom, a turn at a lane midway, into the top |
-| drop | the target is below, they do not overlap across | out the bottom, down, into the target's near side |
+| Route | When | Path | Path to a node above |
+| --- | --- | --- | --- |
+| side | the target is beside the source, their heights overlap | straight across, or an elbow when they do not face | the same |
+| down | the target is below or above, the two overlap across | out the bottom, a turn at a lane midway, into the top | out the top, a turn at a lane midway, into the bottom |
+| drop | the target is below or above, they do not overlap across | out the bottom, down, into the target's near side | out the side that faces the target, across, up into its bottom |
 
 A side edge steps only when it must. It runs level at the height nearest
 its spread entry that both nodes share and that keeps 12px clear of the
@@ -168,9 +169,17 @@ those coming into the source's side it leaves by. Only when no such height
 exists does it take an elbow.
 
 `route` on a `DiagramEdge` forces one of the three when the pick is wrong.
-An edge to a node above its source is not drawn, and says so in the console.
+An edge to a node above its source, such as a replica that restores WAL from
+the storage under its cluster, takes the route the edge down from that node
+would take, drawn backward toward the target. It keeps the lanes, tracks,
+label, series dash, flow and crossings of the other routes, and its arrow
+points up into the target. It never shares a trunk or joins the other
+sources of its `DiagramEdge`, so each source comes in at its own point. It
+takes its own slot on the faces it uses, and the exits and entries beside it
+spread to make room. `route` forces it the same way.
 Left to right the same names hold with the axes swapped: down means toward
-the right, and side means up or down the column.
+the right, side means up or down the column, and an edge to a column on the
+left comes into the target's right side.
 
 The routes keep crossings to a minimum. Exits spread along the bottom of a
 source in the order of their targets, left to right, and each keeps clear of
@@ -678,6 +687,7 @@ marked by gaps:
   <DiagramEdge from="db1" to="s3" series={3} flow label="WAL" />
   <DiagramEdge from="db2" to="backup" series={4} flow />
   <DiagramEdge from="db2" to="s3" series={4} flow label="backups" />
+  <DiagramEdge from="backup" to="db3" series={3} flow label="WAL restore" />
 </Diagram>
 ```
 
