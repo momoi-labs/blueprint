@@ -118,8 +118,11 @@ cover coarse and fine pointers at 390px and 1280px in both themes. Set
 `SCREENSHOT_DIR=artifacts/touch-controls` to save screenshots.
 
 `npm run check:browser` runs every `scripts/check-*-browser.mjs` in parallel
-(`KISO_BROWSER_CONCURRENCY` sets the limit). `npm run check:changed` runs only
-the browser checks and gallery tests related to files changed against
-`origin/main`, and everything when `ui.css` or other shared code changed. Gallery
-tests run one viewport per sweep unless `KISO_FULL_SWEEP=1`, which CI sets on
-`main` and nightly.
+(`KISO_BROWSER_CONCURRENCY` sets the limit), and `npm run check:gallery` runs
+the gallery tests. Both take a machine-wide lock, so two suites never run at
+once: a second one waits, since parallel suites starve Chromium and time out.
+Before a PR, run `npm run check:changed`: it runs only the browser checks and
+gallery tests related to files changed against `origin/main`, and everything
+when `ui.css` or other shared code changed. CI runs the full suites, sharded.
+Gallery tests run one viewport per sweep unless `KISO_FULL_SWEEP=1`, which CI
+sets on `main` and nightly.

@@ -6,6 +6,7 @@ import { glob } from 'node:fs/promises';
 import { availableParallelism } from 'node:os';
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { lockBrowser } from './lock.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);
@@ -31,6 +32,7 @@ const label = file => basename(file).replace(/^check-|-browser\.mjs$/g, '');
 const width = Math.max(...scripts.map(file => label(file).length));
 const results = [];
 const started = Date.now();
+const running = new Set();
 
 function prefix(name, stream, out) {
   let rest = '';
@@ -48,14 +50,22 @@ function run(file) {
   const begin = Date.now();
   return new Promise(resolve => {
     const child = spawn(process.execPath, [file], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    running.add(child);
     prefix(name, child.stdout, process.stdout);
     prefix(name, child.stderr, process.stderr);
     child.on('error', error => { console.error(`[${name}] ${error.message}`); resolve({ name, code: 1, seconds: 0 }); });
-    child.on('close', code => resolve({ name, code: code ?? 1, seconds: (Date.now() - begin) / 1000 }));
+    child.on('close', code => { running.delete(child); resolve({ name, code: code ?? 1, seconds: (Date.now() - begin) / 1000 }); });
   });
 }
 
+await lockBrowser();
 const queue = [...scripts];
+// A signal stops the queue and the running checks; the lock goes on exit.
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+  queue.length = 0;
+  if (!running.size) process.exit(130);
+  for (const child of running) child.kill(signal);
+});
 console.log(`Running ${scripts.length} browser checks, ${limit} at a time`);
 await Promise.all(Array.from({ length: Math.min(limit, queue.length) }, async () => {
   while (queue.length) results.push(await run(queue.shift()));
