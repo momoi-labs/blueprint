@@ -64,6 +64,8 @@
 /* The shell takes the window and its main scrolls, so the sidebar stays. */
 .layout-standalone .layout-preview > .app-shell.layout-shell { height: 100%; }
 .layout-standalone .layout-preview > .app-shell.layout-shell > [data-slot="app-shell-main"] { min-height: 0; overflow: auto; }
+/* An inset main already scrolls its content, and its frame marks sit outside it. */
+.layout-standalone .layout-preview > .app-shell.layout-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > [data-slot="app-shell-main"] { overflow: visible; }
 .layout-preview {
   container-type: inline-size;
   background: var(--color-background);
