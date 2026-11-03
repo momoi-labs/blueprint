@@ -86,56 +86,59 @@ Side rail. The cast remains neutral; status and accent color only the frame.
 A node group draws one frame and shadow. Its child nodes and the flattened
 nodes of a collapsed group do not draw their own casts.
 
-Edges leave the right edge of each source, turn in the channel before the
-next column with an 8px radius, and enter the left edge of the target with
-one filled arrowhead. Several sources in one `DiagramEdge` join in the
-channel and come in at one point. Several `DiagramEdge`s into the same
-target each get their own entry point, spread down the target's side in the
-order of their sources, so their arrowheads and labels never land on the
-same spot. An edge label sits on its run in mono, with a stroke in the card
-colour knocking the line out behind it. Edges are measured from the rendered
-nodes, so they follow font loading, wrapping, folding and resizing.
+Every node has four anchors, one in the middle of each side. An edge leaves
+its source by one anchor and comes into its target by another, with one
+filled arrowhead and turns with an 8px radius. The Diagram picks the pair;
+see [Anchors](#anchors). An edge label sits on a run in mono, with a stroke in
+the card colour knocking the line out behind it. Edges are measured from the
+rendered nodes, so they follow font loading, wrapping, folding and resizing.
 
-All three layouts route edges the same way, described under
-[Grid](#grid): left to right is top to bottom with the axes swapped. In
-left to right and top to bottom, an edge to the next stage turns in the
-channel between the stages; an edge that would cross a node on the way runs
-straight past it instead, as a drop.
-
-Two nodes in the same stage are joined across the gap between them: the
-bottom of the upper node to the top of the lower one in a column, side by
-side in a row. The label sits beside or above that run.
+All three layouts route edges the same way. The layout only places the
+nodes, and breaks a tie between two paths of the same price: left to right
+an edge prefers to leave by the right and come in by the left, top to bottom
+and in a grid by the bottom and the top.
 
 An edge's `line` is `solid` by default; `dashed` or `dotted` says the link
 is not serving. Its `tone` is `neutral` by default; `success` or `danger`
 colours the line and its arrowhead with the matching status colour, the same
 three readings as [StatusBadge](status-badge.md). A dotted danger edge into
-a failed node is how a dependency that is down reads at a glance. Left to
-right and top to bottom, the plain edges out of one source share one trunk.
-When their lines or tones differ, the trunk stays solid and neutral up to
-where they part, and each branch past it says how its own link is doing.
+a failed node is how a dependency that is down reads at a glance.
+
+### Anchors
+
+Each edge takes the pair of anchors with the cheapest orthogonal path
+between them. The price is the path's length, plus 40px for each turn, three
+times the length where it runs within 12px of another edge or a group
+border, and 16px for each edge it crosses. Two anchors that face each other
+on one line join straight. Edges are routed shortest first, so short links
+keep the straight lines.
+
+The path never crosses a card, a group title, what a group's footer holds,
+or a group that holds neither of its ends. It keeps 10px from every card it
+passes. When the straight way is blocked, it detours through the gutter
+between the cards or around the frame in the way. It leaves a node with a
+straight run of at least 12px and comes into one with at least 20px, so the
+arrowhead sits on a straight line. With no clear path at all, the edge takes
+an elbow and the Diagram says so once in the console.
+
+All the edges on one side share its anchor. An anchor an edge comes into is
+never one an edge leaves by, so an arrow never points at a line going out.
+
+`fromSide` and `toSide` on a `DiagramEdge` force the side the edge leaves by
+and the side it comes into: `top`, `right`, `bottom` or `left`. `route`
+forces a path relative to the flow: `side` across
+to the facing sides, `down` from the bottom into the top, `drop` from the
+bottom into the side that faces the source. Left to right the names hold
+with the axes swapped. `fromSide` and `toSide` win over `route`.
+
+```tsx
+<DiagramEdge from="db1" to="standby" series={2} fromSide="right" toSide="top" />
+```
 
 ### Top to bottom
 
 `direction="down"` reads the drawing top to bottom, one `DiagramRow` per
-stage, nodes side by side. Edges leave the bottom of each source, run down to
-a channel between the source and the target, turn with the same 8px radius,
-run across and enter the top of the target. The channel sits midway, or in
-the widest gap left when a node or a group that holds neither end is in the
-way. Exits spread along the source's
-bottom in the order of their targets, and entries along the target's top in
-the order of their sources, so no two land on the same spot. When the runs
-of two edges overlap in one channel, each gets its own track, 6px apart, so
-their dashes never paint over each other. A label sits beside the edge's run
-into the target.
-
-A label goes on the edge's run into the target; see [Labels](#labels).
-
-An edge to a row above runs backward, as in a [grid](#grid): out the top of
-its source, along the channel, into the bottom of its target. An edge that
-skips a row runs straight down past the nodes between,
-when their stage leaves room beside them; a shape that needs more is a
-graph, not a Diagram, or a grid.
+stage, nodes side by side. Edges follow the [anchors](#anchors) rules.
 
 Rows share the width of the widest one. `justify` on a row places its nodes
 across that width: `center` (default), `start`, `end` or `between`. That is
@@ -161,62 +164,24 @@ bottom, `--spacing-4xl` apart. The bands share the columns through CSS
 subgrid, so a node in one band lines up under the node above it in the band
 before. A group inside a cell holds its nodes side by side.
 
-Each edge picks its route from where its nodes are:
-
-| Route | When | Path | Path to a node above |
-| --- | --- | --- | --- |
-| side | the target is beside the source, their heights overlap | straight across, or an elbow when they do not face | the same |
-| down | the target is below or above, the two overlap across | out the bottom, a turn at a lane midway, into the top | out the top, a turn at a lane midway, into the bottom |
-| drop | the target is below or above, they do not overlap across | out the bottom, down, into the target's near side | out the side that faces the target, across, up into its bottom |
-
-A side edge steps only when it must. It runs level at the height nearest
-its spread entry that both nodes share and that keeps 12px clear of the
-other edges on the sides it uses, those coming into the target's side and
-those coming into the source's side it leaves by. Only when no such height
-exists does it take an elbow.
-
-`route` on a `DiagramEdge` forces one of the three when the pick is wrong.
-An edge to a node above its source, such as a replica that restores WAL from
-the storage under its cluster, takes the route the edge down from that node
-would take, drawn backward toward the target. It keeps the lanes, tracks,
-label, series dash, flow and crossings of the other routes, and its arrow
-points up into the target. It never shares a trunk or joins the other
-sources of its `DiagramEdge`, so each source comes in at its own point. It
-takes its own slot on the faces it uses, and the exits and entries beside it
-spread to make room. `route` forces it the same way.
-Left to right the same names hold with the axes swapped: down means toward
-the right, side means up or down the column, and an edge to a column on the
-left comes into the target's right side.
-
-The routes keep crossings to a minimum. Exits spread along the bottom of a
-source in the order of their targets, left to right, and each keeps clear of
-every node its straight run passes, so a trunk never runs through a node.
-A trunk that runs past its target and turns into its side stays 24px from
-that side, the turn included, so the run into the node is long enough to
-read as an arrow.
-Entries spread along the side they use: on the top in the order of their
-exits, on a side with edges from above first, the nearest on top, then edges
-from beside. Runs that overlap in one lane get their own tracks. Kiso does
-not route around nodes: a run that still passes through one is reported
-once in the console, and the fix is to move the node or set `route`.
+Edges follow the [anchors](#anchors) rules. An edge to a band above its
+source is drawn like any other, with its arrow into the target.
 
 ### Shared trunks
 
-Two or more edges down from one source with one series share a trunk: one
-exit and one straight line. In a grid, the edge to the farthest target keeps
-that line to its end, and each nearer edge leaves the trunk at a dot, 3px in
-the edge's colour, curves away with the 8px radius and goes on to its own
-target. A label on the far edge sits on its long run, below the split, never
-on the stub above it. Top to bottom, the trunk runs down to the channel and
-the branches part along it; the dot sits where the nearest branch turns
-down, or at the fork when they part both ways. The trunk carries the series
+Edges of one kind, the same series or the same line and tone, that leave by
+one anchor share a trunk. The edge with the longest path keeps it to its
+end, and each other edge leaves it at a dot, 3px in the edge's colour, 8px
+before it turns away. Edges of one kind that come into one anchor join the
+same way, at a dot where they meet. Edges of different kinds on one anchor
+run together until each turns, with no dot. The trunk carries the series
 dash and flow; the dot stays still.
 
 ### Edge shapes
 
 `edges` on the Diagram sets how every edge is drawn, and `shape` on a
 `DiagramEdge` overrides it for that edge. Routing does not change: each edge
-keeps its exit, its entry, its trunk and its dot. The shape only changes the
+keeps its anchors, its trunk and its dot. The shape only changes the
 line between them.
 
 | `edges` | Line |
@@ -235,8 +200,9 @@ line between them.
   the line. Each handle is the larger of 60% of the distance along its own
   axis and 30% of the span, from 32px to 160px, so short links still arch.
 - **`straight`** goes direct. When it would come into a node's side at a
-  steep angle, steeper than 1.5 to 1, it comes in through the top or bottom
-  instead, 20px clear of the corners, with a straight 12px run. A straight
+  steep angle, steeper than 1.5 to 1, it comes in through the anchor on the
+  top or bottom instead, with a straight 12px run. An edge that sets
+  `toSide` keeps its side. A straight
   line takes no detour, so it can cross a node in between; Diagram reports
   it once in the console, as it does for any run through a node.
 - **`sketch`** wobbles about 1.4px across the line. The wobble depends only
@@ -324,6 +290,13 @@ On a curve or a straight line there is no run to turn a label along, so it
 sits flat, centred on the line, on a plate, in the middle of the edge's own
 part, past any shared stretch. `labels` does not change it. A curve that is
 one straight run along an axis keeps the rules above.
+
+A label never covers a card, a group title, a group footer, a group border,
+another label or another edge. It tries the middle of its run first, then
+other spots along it, then the edge's other runs, longest first, and takes
+the first spot that is clear. When no spot on the line is clear, such as a
+long label between two cards close together, it sits flat on a plate at the
+nearest clear spot around the middle of its run.
 
 A flat label between two nodes that does not fit the gap, less the
 arrowhead, breaks at its first space into two lines, both above the arrow:

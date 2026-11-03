@@ -10,11 +10,11 @@ import { StatusBadge, type StatusTone } from "./status-badge.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 import {
   draw, route,
-  type Box, type DiagramArrow, type DiagramCrossings, type DiagramEdgeLine, type DiagramEdgeRoute, type DiagramEdgeShape, type DiagramEdgeTone, type DiagramLabels,
+  type Box, type DiagramArrow, type DiagramCrossings, type DiagramEdgeLine, type DiagramEdgeRoute, type DiagramEdgeShape, type DiagramEdgeSide, type DiagramEdgeTone, type DiagramLabels,
   type Drawn, type EdgeSpec, type Frame, type Measured,
 } from "./diagram-routes.js"
 
-export type { DiagramArrow, DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeShape, DiagramEdgeTone, DiagramLabels, DiagramSeries }
+export type { DiagramArrow, DiagramCrossings, DiagramEdgeLine, DiagramEdgeRoute, DiagramEdgeShape, DiagramEdgeSide, DiagramEdgeTone, DiagramLabels, DiagramSeries }
 
 /* A Diagram is stages of nodes, columns read left to right or rows read top
    to bottom, with edges drawn between them. Nodes are Cards, so they take the theme's frame, marks and corners.
@@ -257,7 +257,21 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         const rect = place(element.getBoundingClientRect())
         return rect.width && rect.height ? [{ ...rect, id: `frame:${index}`, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }] : []
       })
-      const routes = route(measured, all, direction, walls)
+      // A group's title on its top border and what its footer holds: no run
+      // or label crosses them.
+      const titles = groups.flatMap((element, index) => [
+        ...element.querySelectorAll(":scope > .diagram-group-title, :scope > .diagram-group-foot > *"),
+      ].flatMap((item, part) => {
+        const rect = place(item.getBoundingClientRect())
+        return rect.width && rect.height ? [{ ...rect, id: `title:${index}:${part}`, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }] : []
+      }))
+      // A label keeps off a group's whole footer, so it never reads as part of it.
+      const feet = groups.flatMap((element, index) => {
+        const foot = element.querySelector(":scope > .diagram-group-foot")
+        const rect = foot ? place(foot.getBoundingClientRect()) : null
+        return rect?.width && rect.height ? [{ ...rect, id: `foot:${index}`, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }] : []
+      })
+      const routes = route(measured, all, direction, walls, titles)
       // An edge that comes into a group from the side needs room between
       // the border and the node, so the line runs straight after crossing
       // the border. Only the sides where edges come in get it.
@@ -308,7 +322,7 @@ function Diagram({ label, direction = "right", columns, crossings = "none", labe
         for (const [, probe] of probes) probe.remove()
       }
       const measure = (text: string) => sizes.get(text) ?? { width: text.length * 7, height: 12 }
-      setDrawn(draw(routes, frames, crossings, labels, measure, { shape, arrow, boxes: new Map(all.map((item) => [item.id, item])) }))
+      setDrawn(draw(routes, frames, crossings, labels, measure, { shape, arrow, boxes: new Map(all.map((item) => [item.id, item])), blocks: [...titles, ...feet] }))
     }
     const measure = () => layout(0)
     measure()
@@ -758,9 +772,14 @@ export type DiagramEdgeProps = {
   to: string
   /** Mono text on the run into the target, such as a port or a variable. */
   label?: string
-  /** In a grid, forces the route the edge would otherwise pick from where
-      its nodes are: `side`, `down` or `drop`. */
+  /** Forces the path the edge would otherwise pick, relative to the flow:
+      `side`, `down` or `drop`. `fromSide` and `toSide` win over it. */
   route?: DiagramEdgeRoute
+  /** The side of the source the edge leaves by. Without it, the Diagram
+      picks the side with the shortest clear path. */
+  fromSide?: DiagramEdgeSide
+  /** The side of the target the edge comes into. */
+  toSide?: DiagramEdgeSide
   /** Overrides the Diagram's `edges` for this edge. */
   shape?: DiagramEdgeShape
   /** Overrides the Diagram's `arrow` for this edge. */
@@ -775,14 +794,14 @@ export type DiagramEdgeProps = {
 
 /* An edge renders nothing itself: it registers with the Diagram, which draws
    it once the nodes are measured. */
-function DiagramEdge({ from, to, label, route, line, tone, series: named, flow, shape, arrow }: DiagramEdgeProps) {
+function DiagramEdge({ from, to, label, route, fromSide, toSide, line, tone, series: named, flow, shape, arrow }: DiagramEdgeProps) {
   const { addEdge } = useRegistry("DiagramEdge")
   const series = named == null ? undefined : slotOf(named)
   // Ids never contain a newline, so the join is a stable dependency.
   const sources = (Array.isArray(from) ? from : [from]).join("\n")
   React.useEffect(
-    () => addEdge({ key: `${sources}->${to}${series ? `#${series}` : ""}`, from: sources.split("\n"), to, label, route, line, tone, series, flow, shape, head: arrow }),
-    [addEdge, sources, to, label, route, line, tone, series, flow, shape, arrow],
+    () => addEdge({ key: `${sources}->${to}${series ? `#${series}` : ""}`, from: sources.split("\n"), to, label, route, fromSide, toSide, line, tone, series, flow, shape, head: arrow }),
+    [addEdge, sources, to, label, route, fromSide, toSide, line, tone, series, flow, shape, arrow],
   )
   return null
 }
