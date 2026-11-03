@@ -462,10 +462,9 @@
 .tui-text { position: absolute; inset: 0 auto auto 0; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: pre; }
 
 /* The Layouts page: one template per row, its screen beside what it is for.
-   The rows take part of a wide page, so the screens stay a readable size. */
-.layout-list { display: grid; gap: var(--spacing-lg); max-width: 60%; }
-@media (max-width: 1099px) { .layout-list { max-width: none; } }
-.layout-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: var(--spacing-lg); align-items: start; }
+   The rows take the page width, shared evenly between screen and text. */
+.layout-list { display: grid; gap: var(--spacing-lg); }
+.layout-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--spacing-lg); align-items: start; }
 @media (max-width: 699px) { .layout-row { grid-template-columns: minmax(0, 1fr); } }
 .layout-row-info { display: grid; gap: var(--spacing-sm); min-width: 0; }
 .layout-row-info > p { margin: 0; }
