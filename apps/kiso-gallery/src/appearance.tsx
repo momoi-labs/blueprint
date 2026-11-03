@@ -53,6 +53,17 @@ const outerFrames = [
   { value: "none", label: "None", description: "Edge to edge at every width" },
 ] as const;
 
+const pageWidths = [
+  { value: "full", label: "Full", description: "Pages fill the content column" },
+  { value: "contained", label: "Contained", description: "Pages stop at 1280px" },
+] as const;
+
+const pageAligns = [
+  { value: "start", label: "Start", description: "The page sits at the start of the free space" },
+  { value: "center", label: "Center", description: "The page sits in the middle of the free space" },
+  { value: "end", label: "End", description: "The page sits at the end of the free space" },
+] as const;
+
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
   { label: "Default", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
   { label: "Blueprint", settings: { shadowStyle: "hard", accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
@@ -154,6 +165,8 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const styleName = useId();
   const frameName = useId();
   const outerName = useId();
+  const pageWidthName = useId();
+  const pageAlignName = useId();
   const backgroundName = useId();
   const borderOptions = settings.borderStyle === "bevel" ? [...borders, { value: "bevel" as const, label: "Inset edge (legacy)", description: "Saved appearance. Replace to leave the legacy style." }] : borders;
   const markOptions = settings.cornerMarks === "dots" ? [...marks, { value: "dots" as const, label: "Corner dots (legacy)" }] : marks;
@@ -266,6 +279,38 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
             </span>
             <span id={`${outerName}-${frame.value}-label`} className="t-label">{frame.label}</span>
             <span id={`${outerName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
+          </span>
+        </label>)}
+      </div>
+    </fieldset>
+    <fieldset className="appearance-choices">
+      <legend className="t-label">Page width</legend>
+      <div className="appearance-options">
+        {pageWidths.map(option => <label className="appearance-option" key={option.value} title={option.description}>
+          <input type="radio" name={pageWidthName} value={option.value}
+            checked={settings.pageWidth === option.value}
+            onChange={() => onChange({ pageWidth: option.value })}
+            aria-labelledby={`${pageWidthName}-${option.value}-label`}
+            aria-describedby={`${pageWidthName}-${option.value}-description`} />
+          <span className="appearance-option-body">
+            <span id={`${pageWidthName}-${option.value}-label`} className="t-label">{option.label}</span>
+            <span id={`${pageWidthName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
+          </span>
+        </label>)}
+      </div>
+    </fieldset>
+    <fieldset className="appearance-choices" disabled={settings.pageWidth !== "contained"}>
+      <legend className="t-label">Page alignment</legend>
+      <div className="appearance-options">
+        {pageAligns.map(option => <label className="appearance-option" key={option.value} title={option.description}>
+          <input type="radio" name={pageAlignName} value={option.value}
+            checked={settings.pageAlign === option.value}
+            onChange={() => onChange({ pageAlign: option.value })}
+            aria-labelledby={`${pageAlignName}-${option.value}-label`}
+            aria-describedby={`${pageAlignName}-${option.value}-description`} />
+          <span className="appearance-option-body">
+            <span id={`${pageAlignName}-${option.value}-label`} className="t-label">{option.label}</span>
+            <span id={`${pageAlignName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
           </span>
         </label>)}
       </div>

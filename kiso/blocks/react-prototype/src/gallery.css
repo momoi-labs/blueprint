@@ -58,6 +58,10 @@
 .catalog-main {
   min-width: 0;
   padding: var(--spacing-xl);
+  /* Follows the page width and alignment, as Kiso's .page does. */
+  padding-inline:
+    max(var(--spacing-xl), calc(var(--spacing-xl) + var(--page-free, 0px) * var(--page-free-start, 0)))
+    max(var(--spacing-xl), calc(var(--spacing-xl) + var(--page-free, 0px) * var(--page-free-end, 1)));
   --catalog-mark-room: calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (2 * var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)));
   container: catalog / inline-size;
 }

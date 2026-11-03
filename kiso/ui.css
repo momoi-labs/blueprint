@@ -1514,7 +1514,21 @@ table.table {
   font-weight: var(--type-weight-medium);
 }
 
-.page { padding: var(--presentation-page-padding); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--presentation-section-gap); align-content: start; min-width: 0; max-width: var(--size-content-max); }
+/* Page width: full by default. A contained page keeps its box and its scroll
+   container across the main column, and pads its content to the content
+   measure. data-page-align shares the free space between the two sides. */
+[data-page-width="full"] { --page-free: 0px; }
+[data-page-width="contained"] { --page-free: calc(100% - var(--size-content-max)); }
+[data-page-align="start"] { --page-free-start: 0; --page-free-end: 1; }
+[data-page-align="center"] { --page-free-start: .5; --page-free-end: .5; }
+[data-page-align="end"] { --page-free-start: 1; --page-free-end: 0; }
+.page {
+  padding: var(--presentation-page-padding);
+  padding-inline:
+    max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-start, 0)))
+    max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-end, 1)));
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--presentation-section-gap); align-content: start; min-width: 0;
+}
 .page-header {
   display: grid; min-width: 0; gap: var(--page-header-gap);
   padding-block: var(--page-header-padding); overflow-wrap: anywhere;
