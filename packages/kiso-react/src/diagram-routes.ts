@@ -5,13 +5,14 @@
 export type DiagramEdgeLine = "solid" | "dashed" | "dotted"
 export type DiagramEdgeTone = "neutral" | "success" | "danger"
 export type DiagramEdgeRoute = "side" | "down" | "drop"
+export type DiagramEdgeSide = "top" | "right" | "bottom" | "left"
 export type DiagramCrossings = "none" | "hop" | "gap"
 export type DiagramLabels = "auto" | "horizontal" | "vertical"
 export type DiagramEdgeShape = "orthogonal" | "curve" | "straight" | "sketch"
 export type DiagramArrow = "triangle" | "chevron" | "stealth" | "dot" | "sketch" | "none"
 
 export type EdgeLook = { line?: DiagramEdgeLine; tone?: DiagramEdgeTone; series?: number; flow?: boolean; shape?: DiagramEdgeShape; head?: DiagramArrow }
-export type EdgeSpec = EdgeLook & { key: string; from: string[]; to: string; label?: string; route?: DiagramEdgeRoute }
+export type EdgeSpec = EdgeLook & { key: string; from: string[]; to: string; label?: string; route?: DiagramEdgeRoute; fromSide?: DiagramEdgeSide; toSide?: DiagramEdgeSide }
 
 export type Pt = [number, number]
 export type Box = { id: string; left: number; right: number; top: number; bottom: number; width: number; height: number; x: number; y: number }
@@ -22,7 +23,7 @@ type RouteLabel = {
   text: string
   /** The segment the label belongs to. */
   run: number
-  /** Where along a horizontal run the label centres, 0 to 1. */
+  /** Where along its run the label centres, 0 to 1. */
   along?: number
   /** Width a flat label may take before it stacks. */
   room?: number
@@ -30,7 +31,8 @@ type RouteLabel = {
   from?: number
 }
 
-export type Route = { key: string; points: Pt[]; arrow: boolean; look: EdgeLook; ends?: [string, string]; label?: RouteLabel; dot?: Pt }
+/* `pinned` says the edge set `toSide`, so no shape moves its end. */
+export type Route = { key: string; points: Pt[]; arrow: boolean; look: EdgeLook; ends?: [string, string]; label?: RouteLabel; dot?: Pt; pinned?: boolean }
 
 export type Rect = { key: string; x: number; y: number; width: number; height: number }
 export type Drawn = {
@@ -44,7 +46,7 @@ export type Drawn = {
 }
 
 export const RADIUS = 8
-/* Edges whose runs overlap in one channel sit this far apart. */
+/* A label beside a run sits this far from it. */
 export const TRACK = 6
 /* The half width of a hop, and of a gap in a crossed line. */
 const HOP = 5
@@ -55,11 +57,6 @@ const ARROW = 10
    included, so the arrow sits on a straight line; without the room, the
    mark is left out. A group's 24px entry room leaves enough for it. */
 const SETTLE = 12
-/* How far a vertical run keeps from a node it passes, and two exits apart. */
-const CLEAR = 12
-/* The run into a node's side, the turn included, so the arrow sits on a
-   straight line. The same room a group keeps where an edge comes in. */
-const SIDE_RUN = 24
 
 export const look = (edge: EdgeSpec): EdgeLook => ({ line: edge.line, tone: edge.tone, series: edge.series, flow: edge.flow, shape: edge.shape, head: edge.head })
 
@@ -98,325 +95,571 @@ function radii(points: Pt[]) {
   })
 }
 
-/* Assigns each run along a shared channel a track, so runs that overlap sit
-   apart and their dashes never paint over each other. Returns the offset of
-   each run from the channel's centre. */
-function tracks<T>(runs: { item: T; lane: number; left: number; right: number }[]) {
-  const offsets = new Map<T, number>()
-  for (const lane of new Set(runs.map((run) => run.lane))) {
-    const here = runs.filter((run) => run.lane === lane).sort((a, b) => a.left - b.left)
-    const ends: number[] = []
-    const picked = here.map((run) => {
-      let track = ends.findIndex((end) => end < run.left - TRACK)
-      if (track < 0) track = ends.push(run.right) - 1
-      else ends[track] = run.right
-      return track
-    })
-    here.forEach((run, index) => offsets.set(run.item, (picked[index]! - (ends.length - 1) / 2) * TRACK))
-  }
-  return offsets
-}
-
 /* ------------------------------------------------------------------------
-   Routes for every layout. Each edge picks its route from where its nodes
-   are. The router works top to bottom; left to right is the same drawing
-   turned on its diagonal, so its boxes go in transposed and its points
-   come back transposed.
+   Routes. Every node has four anchors, one in the middle of each side. Each
+   edge takes the pair of anchors with the cheapest orthogonal path between
+   them: its length, plus a price for each turn, for running beside another
+   edge and for crossing one. The path keeps clear of every card, every group
+   title and every group that holds neither end, so when the straight way is
+   blocked it detours through a gutter or around a frame.
    ------------------------------------------------------------------------ */
 
 export type DiagramFlow = "right" | "down" | "grid"
 
-const flip = (box: Box): Box => ({
-  ...box, left: box.top, right: box.bottom, top: box.left, bottom: box.right,
-  width: box.height, height: box.width, x: box.y, y: box.x,
+/* How far a run keeps from a card it passes. */
+const PAD = 10
+/* Two runs side by side sit this far apart. */
+const LANE = 12
+/* The straight run out of a node, and the run into one: the run in holds the
+   arrowhead and the turn before it. */
+const OUT = 12
+const IN = 20
+/* The price of a turn, in pixels of length. */
+const BEND = 40
+/* Running within LANE of another edge costs this many times its length. */
+const NEAR = 3
+/* Running on an edge of the same kind and end costs half: they share it. */
+const JOIN = 0.5
+/* The price of crossing another edge. */
+const CROSS = 16
+/* The price of an anchor already taken the other way. */
+const TAKEN = 400
+/* How far a search looks past the box around its two nodes, before it
+   tries the whole drawing. */
+const REACH = 160
+
+const SIDES: DiagramEdgeSide[] = ["top", "right", "bottom", "left"]
+const NORMAL: Record<DiagramEdgeSide, Pt> = { top: [0, -1], right: [1, 0], bottom: [0, 1], left: [-1, 0] }
+/* Directions a path moves in: right, down, left, up. */
+const DIRS: Pt[] = [[1, 0], [0, 1], [-1, 0], [0, -1]]
+const dirOf = (v: Pt) => DIRS.findIndex((d) => d[0] === v[0] && d[1] === v[1])
+const SWAP: Record<DiagramEdgeSide, DiagramEdgeSide> = { top: "left", left: "top", bottom: "right", right: "bottom" }
+
+export function anchorOf(box: Box, side: DiagramEdgeSide): Pt {
+  if (side === "top") return [box.x, box.top]
+  if (side === "bottom") return [box.x, box.bottom]
+  return [side === "left" ? box.left : box.right, box.y]
+}
+
+const grow = (box: Box, by: number): Box => ({
+  ...box, left: box.left - by, right: box.right + by, top: box.top - by, bottom: box.bottom + by,
+  width: box.width + 2 * by, height: box.height + 2 * by,
 })
-const turn = ([a, b]: Pt): Pt => [b, a]
-
-export function route(measured: Measured[], nodes: Box[], flow: DiagramFlow, frames: Box[] = []): Route[] {
-  if (flow !== "right") return routeGrid(measured, nodes, frames, flow === "down", "up")
-  const turned = measured.map((item) => ({ ...item, target: flip(item.target), sources: item.sources.map(flip) }))
-  return routeGrid(turned, nodes.map(flip), frames.map(flip), true, "left").map((item) => ({
-    ...item, points: item.points.map(turn), dot: item.dot && turn(item.dot),
-  }))
-}
-
-function classify(source: Box, target: Box): DiagramEdgeRoute | null {
-  const overlapY = source.top < target.bottom - 1 && target.top < source.bottom - 1
-  const overlapX = source.left < target.right - 1 && target.left < source.right - 1
-  if (overlapY && !overlapX) return "side"
-  if (target.top >= source.bottom - 1) return overlapX ? "down" : "drop"
-  return null
-}
-
-/* An edge to a node above its source is routed as the edge down from that
-   node, then drawn backward, so it leaves the top or a side of its source
-   and comes into the bottom of its target. Such a pair holds the two boxes
-   swapped and is marked up. */
-type Pair = { edge: EdgeSpec; source: Box; target: Box; kind: DiagramEdgeRoute; labelled: boolean; blocked?: boolean; up?: boolean }
-const keyOf = (pair: Pair) => `${pair.edge.key}:${pair.up ? pair.target.id : pair.source.id}`
-
-/* Picks a point for each exit along a source's bottom: as close to an even
-   spread as it can, in the order of their targets, and clear of every node
-   its straight run passes, so a trunk never runs through a node. */
 const holds = (frame: Box, box: Box) => frame.left <= box.left + 1 && frame.right >= box.right - 1 && frame.top <= box.top + 1 && frame.bottom >= box.bottom - 1
+const inside = (box: Box, [x, y]: Pt) => x > box.left + 0.01 && x < box.right - 0.01 && y > box.top + 0.01 && y < box.bottom - 0.01
+/* Whether an axis-aligned segment passes through the inside of a box. */
+const through = (a: Pt, b: Pt, box: Box) => Math.max(a[0], b[0]) > box.left + 0.01 && Math.min(a[0], b[0]) < box.right - 0.01
+  && Math.max(a[1], b[1]) > box.top + 0.01 && Math.min(a[1], b[1]) < box.bottom - 0.01
 
-function placeExits(source: Box, ports: { extent: number; skip: Set<string>; x: number; target: Box; straight: boolean }[], nodes: Box[], frames: Box[]) {
-  const pad = Math.min(CLEAR, source.width / 4)
-  const placed: number[] = []
-  ports.forEach((port, index) => {
-    let free: [number, number][] = [[source.left + pad, source.right - pad]]
-    // Groups count as well, but only those that hold neither end.
-    const walls = [...nodes, ...frames.filter((frame) => !holds(frame, source) && !holds(frame, port.target))]
-    for (const node of walls) {
-      if (node.id === source.id || port.skip.has(node.id)) continue
-      if (node.bottom <= source.bottom || node.top >= port.extent) continue
-      const lo = node.left - CLEAR
-      const hi = node.right + CLEAR
-      free = free.flatMap(([a, b]) => {
-        if (hi <= a || lo >= b) return [[a, b] as [number, number]]
-        return [[a, lo], [hi, b]].filter(([x, y]) => y! > x!) as [number, number][]
-      })
-    }
-    // A trunk that runs past its target into a side stays SIDE_RUN away from
-    // that side, so the run into it is long enough to read as an arrow.
-    if (port.straight) {
-      const { target } = port
-      for (const [lo, hi] of [[target.left - SIDE_RUN, target.left + RADIUS], [target.right - RADIUS, target.right + SIDE_RUN]] as const) {
-        free = free.flatMap(([a, b]) => {
-          if (hi <= a || lo >= b) return [[a, b] as [number, number]]
-          return [[a, lo], [hi, b]].filter(([x, y]) => y! > x!) as [number, number][]
-        })
-      }
-    }
-    const ideal = source.left + (source.width * (index + 1)) / (ports.length + 1)
-    const floor = index ? placed[index - 1]! + CLEAR : -Infinity
-    let best: number | null = null
-    for (const [a, b] of free) {
-      if (b < floor) continue
-      const x = Math.min(Math.max(ideal, a, floor), b)
-      if (best === null || Math.abs(x - ideal) < Math.abs(best - ideal)) best = x
-    }
-    placed.push(best ?? Math.max(ideal, floor))
-  })
-  return placed
+/* `route` names a path relative to the flow; it becomes the sides it uses.
+   Left to right the names hold with the axes swapped. */
+function forced(edge: EdgeSpec, source: Box, target: Box, flow: DiagramFlow): [DiagramEdgeSide, DiagramEdgeSide] | null {
+  if (!edge.route) return null
+  const turned = flow === "right"
+  const along = (box: Box) => turned ? box.x : box.y
+  const across = (box: Box) => turned ? box.y : box.x
+  const ahead = along(target) >= along(source)
+  const toward: DiagramEdgeSide = across(target) >= across(source) ? "right" : "left"
+  const away: DiagramEdgeSide = toward === "right" ? "left" : "right"
+  const pair: [DiagramEdgeSide, DiagramEdgeSide] = edge.route === "side" ? [toward, away]
+    : edge.route === "down" ? [ahead ? "bottom" : "top", ahead ? "top" : "bottom"]
+    : [ahead ? "bottom" : "top", away]
+  return turned ? [SWAP[pair[0]], SWAP[pair[1]]] : pair
 }
 
-/* In a stage layout, rows or columns, an edge to a later stage turns in
-   the channel under its source when no node stands in the way. Otherwise it
-   runs straight past the nodes between, as in a grid: a drop into the
-   target's side, or straight into its top. Plain edges from one source
-   share one trunk, as series edges do. */
-function routeGrid(measured: Measured[], nodes: Box[], frames: Box[], stages: boolean, backward: "up" | "left"): Route[] {
-  // A node between the two, across the span from lo to hi.
-  const between = (source: Box, target: Box, lo: number, hi: number) => nodes.some((node) => node.id !== source.id && node.id !== target.id
-    && node.top >= source.bottom - 1 && node.bottom <= target.top + 1 && node.right > lo && node.left < hi)
+type Pair = { edge: EdgeSpec; source: Box; target: Box; labelled: boolean; from: DiagramEdgeSide[]; to: DiagramEdgeSide[] }
+/* A run already drawn, for the price of running beside or across it. */
+type Run = { a: Pt; b: Pt; kind: string; source: string; target: string; border?: boolean }
+
+/* The side of a box an anchor sits on. */
+function sideAt(box: Box, [x, y]: Pt): DiagramEdgeSide | null {
+  return SIDES.find((side) => {
+    const a = anchorOf(box, side)
+    return Math.abs(a[0] - x) < 0.5 && Math.abs(a[1] - y) < 0.5
+  }) ?? null
+}
+
+const kindOf = (edge: EdgeSpec) => `${edge.series ?? ""}|${edge.line ?? ""}|${edge.tone ?? ""}|${edge.flow ?? ""}`
+
+export function route(measured: Measured[], nodes: Box[], flow: DiagramFlow, frames: Box[] = [], titles: Box[] = []): Route[] {
   const pairs: Pair[] = []
   for (const { edge, target, sources } of measured) {
-    sources.forEach((start, index) => {
-      if (start.id === target.id) return
-      const up = edge.route !== "side" && !classify(start, target) && !!classify(target, start)
-      const [source, end] = up ? [target, start] : [start, target]
-      let kind = edge.route ?? classify(source, end)
-      let blocked = false
-      if (stages && !edge.route && kind === "drop" && !between(source, end, Math.min(source.left, end.left), Math.max(source.right, end.right))) kind = "down"
-      else if (stages && !edge.route && kind === "down") blocked = between(source, end, Math.max(source.left, end.left), Math.min(source.right, end.right))
-      if (kind) pairs.push({ edge, source, target: end, kind, labelled: index === 0, blocked, up })
-      else warn(`${edge.key}:${backward}`, `Diagram: the edge ${start.id} -> ${target.id} goes ${backward}, so it is not drawn. Put the target ${backward === "up" ? "lower" : "further right"}.`)
-    })
-  }
-
-  // Edges down from one source with one series share an exit and a trunk.
-  const groups = new Map<string, Pair[]>()
-  for (const pair of pairs.filter((item) => item.kind !== "side")) {
-    // An edge up keeps its own exit: it never shares a trunk.
-    const key = pair.up ? `^${keyOf(pair)}` : `${pair.source.id}\n${pair.edge.series ?? (stages ? "plain" : `#${pair.edge.key}`)}`
-    groups.set(key, [...(groups.get(key) ?? []), pair])
-  }
-  for (const list of groups.values()) list.sort((a, b) => a.target.top - b.target.top || a.target.y - b.target.y)
-  const exitOf = new Map<Pair[], number>()
-  for (const sourceId of new Set(pairs.map((pair) => pair.source.id))) {
-    const ports = [...groups.values()].filter((list) => list[0]!.source.id === sourceId)
-    const mean = (list: Pair[]) => list.reduce((sum, pair) => sum + pair.target.x, 0) / list.length
-    ports.sort((a, b) => mean(a) - mean(b))
-    const source = ports[0]?.[0]!.source
-    if (!source) continue
-    const xs = placeExits(source, ports.map((list) => {
-      const far = list[list.length - 1]!
-      const straight = (!stages && list.length > 1) || far.kind === "drop" || list.some((pair) => pair.blocked)
-      return { extent: straight ? far.target.y : (source.bottom + far.target.top) / 2, skip: new Set([far.target.id]), x: mean(list), target: far.target, straight }
-    }), nodes, frames)
-    ports.forEach((list, index) => exitOf.set(list, xs[index]!))
-  }
-
-  const joined = (plan: { pair: Pair }) => stages && pairs.filter((pair) => pair.edge === plan.pair.edge && pair.target === plan.pair.target).length > 1
-  // How each pair arrives: through the top, or into a side.
-  type Plan = { pair: Pair; x: number; enter: "top" | "left" | "right"; fixed?: number; near?: boolean }
-  const plans: Plan[] = []
-  for (const [list, x] of exitOf) {
-    list.forEach((pair, index) => {
-      const far = index === list.length - 1
-      const { target } = pair
-      if (pair.kind === "down" && (!far || list.length === 1 || stages) && !pair.blocked) {
-        plans.push({ pair, x, enter: "top", near: !far && (!stages || list.length > 1) })
-      } else if (pair.kind === "down" && x >= target.left + RADIUS && x <= target.right - RADIUS) {
-        plans.push({ pair, x, enter: "top", fixed: x })
-      } else {
-        plans.push({ pair, x, enter: x < target.x ? "left" : "right", near: !far })
-      }
-    })
-  }
-  for (const pair of pairs.filter((item) => item.kind === "side")) {
-    plans.push({ pair, x: pair.source.x, enter: pair.source.x < pair.target.x ? "left" : "right" })
-  }
-
-  // Entries spread along each side they use. On the top, in the order of
-  // their exits. On a side, edges from above come first, the nearest on top,
-  // then edges from beside, so none of them crosses another.
-  const entry = new Map<Plan, number>()
-  for (const id of new Set(plans.map((plan) => plan.pair.target.id))) {
-    const here = plans.filter((plan) => plan.pair.target.id === id)
-    const target = here[0]!.pair.target
-    // In a stage layout the sources of one edge join and come in at one
-    // point, so a fan-in reads as one edge.
-    const slots = new Map<unknown, Plan[]>()
-    for (const plan of here.filter((item) => item.enter === "top" && item.fixed === undefined)) {
-      const slot = joined(plan) ? plan.pair.edge : plan
-      slots.set(slot, [...(slots.get(slot) ?? []), plan])
-    }
-    const xOf = (list: Plan[]) => list.reduce((sum, plan) => sum + plan.x, 0) / list.length
-    const top = [...slots.values()].sort((a, b) => xOf(a) - xOf(b))
-    top.forEach((list, index) => list.forEach((plan) => entry.set(plan, target.left + (target.width * (index + 1)) / (top.length + 1))))
-    // A single edge into the top whose exit already sits over the target
-    // comes straight down, with no step.
-    const only = top.length === 1 && top[0]!.length === 1 ? top[0]![0]! : undefined
-    if (only && only.x >= target.left + RADIUS && only.x <= target.right - RADIUS) entry.set(only, only.x)
-    for (const plan of here.filter((item) => item.fixed !== undefined)) entry.set(plan, plan.fixed!)
-    for (const side of ["left", "right"] as const) {
-      const list = here.filter((plan) => plan.enter === side)
-      const fromAbove = list.filter((plan) => plan.pair.kind !== "side").sort((a, b) => side === "left" ? b.x - a.x : a.x - b.x)
-      const fromBeside = list.filter((plan) => plan.pair.kind === "side").sort((a, b) => a.pair.source.y - b.pair.source.y)
-      ;[...fromAbove, ...fromBeside].forEach((plan, index, all) => entry.set(plan, target.top + (target.height * (index + 1)) / (all.length + 1)))
-    }
-  }
-
-  // Lanes: a down route turns midway between its source and its target. In
-  // a stage layout a trunk's down routes share the channel under the source
-  // and one track in it, so they part at one fork.
-  const listOf = new Map<Pair, Pair[]>()
-  for (const list of exitOf.keys()) for (const pair of list) listOf.set(pair, list)
-  const downs = plans.filter((plan) => plan.enter === "top" && plan.fixed === undefined)
-  // A lane keeps out of the nodes and of the groups that hold neither of
-  // its ends, across the width it runs. When the middle is taken, it moves
-  // to the middle of the widest gap left.
-  const trackOf = (plan: Plan): unknown => !stages ? plan : joined(plan) ? plan.pair.edge : listOf.get(plan.pair)
-  const lanes = new Map<Plan, number>()
-  for (const key of new Set(downs.map(trackOf))) {
-    const here = downs.filter((plan) => trackOf(plan) === key)
-    const ends = here.flatMap((plan) => [plan.pair.source, plan.pair.target])
-    const top = Math.max(...here.map((plan) => plan.pair.source.bottom))
-    const bottom = Math.min(...here.map((plan) => plan.pair.target.top))
-    const mid = (top + bottom) / 2
-    const lo = Math.min(...here.flatMap((plan) => [plan.x, entry.get(plan)!])) - CLEAR
-    const hi = Math.max(...here.flatMap((plan) => [plan.x, entry.get(plan)!])) + CLEAR
-    const walls = [
-      ...nodes.filter((node) => !ends.some((end) => end.id === node.id)),
-      ...frames.filter((frame) => !ends.some((end) => holds(frame, end))),
-    ]
-    let free: [number, number][] = [[top + RADIUS, bottom - RADIUS]]
-    for (const wall of walls) {
-      if (wall.right <= lo || wall.left >= hi) continue
-      const a = wall.top - TRACK
-      const b = wall.bottom + TRACK
-      free = free.flatMap(([x, y]) => b <= x || a >= y ? [[x, y] as [number, number]] : ([[x, a], [b, y]] as [number, number][]).filter(([m, n]) => n > m))
-    }
-    const widest = [...free].sort((a, b) => (b[1] - b[0]) - (a[1] - a[0]))[0]
-    const lane = free.some(([a, b]) => a <= mid && mid <= b) || !widest ? mid : (widest[0] + widest[1]) / 2
-    for (const plan of here) lanes.set(plan, lane)
-  }
-  const spans = new Map<unknown, { lane: number; left: number; right: number }>()
-  for (const plan of downs) {
-    const ex = entry.get(plan)!
-    const lane = Math.round(lanes.get(plan)! / 2)
-    const span = spans.get(trackOf(plan))
-    const left = Math.min(plan.x, ex, span?.left ?? Infinity)
-    const right = Math.max(plan.x, ex, span?.right ?? -Infinity)
-    spans.set(trackOf(plan), { lane, left, right })
-  }
-  const offsets = tracks([...spans].map(([item, span]) => ({ item, ...span })))
-
-  const routes: Route[] = []
-  const splits = new Map<Pair[], number>()
-  for (const plan of plans) {
-    const { pair } = plan
-    const { edge, source, target } = pair
-    const key = keyOf(pair)
-    const ends: [string, string] = pair.up ? [target.id, source.id] : [source.id, target.id]
-    let points: Pt[]
-    const at = entry.get(plan)!
-    if (pair.kind === "side") {
-      const tx = plan.enter === "left" ? target.left : target.right
-      const sx = plan.enter === "left" ? source.right : source.left
-      // A side edge steps only when it must. It runs level at the height
-      // nearest its spread entry that both nodes share and that keeps clear
-      // of the other edges on the two sides it uses: those entering the
-      // target's side, and those entering the source's side it leaves by.
-      let at = entry.get(plan)!
-      const lo = Math.max(source.top, target.top) + RADIUS
-      const hi = Math.min(source.bottom, target.bottom) - RADIUS
-      const exitSide = plan.enter === "left" ? "right" : "left"
-      const taken = plans.filter((item) => item !== plan && (
-        (item.pair.target.id === target.id && item.enter === plan.enter) ||
-        (item.pair.target.id === source.id && item.enter === exitSide)
-      )).map((item) => entry.get(item)!)
-      if (lo <= hi) {
-        const clamp = (y: number) => Math.min(Math.max(y, lo), hi)
-        const tries = [at, ...taken.flatMap((y) => [y - CLEAR, y + CLEAR])].map(clamp)
-        const level = tries.filter((y) => taken.every((other) => Math.abs(other - y) >= CLEAR))
-          .sort((a, b) => Math.abs(a - at) - Math.abs(b - at))[0]
-        if (level !== undefined) at = level
-      }
-      const inside = at >= source.top + RADIUS && at <= source.bottom - RADIUS
-      const mx = (sx + tx) / 2
-      points = clean(inside ? [[sx, at], [tx, at]] : [[sx, source.y], [mx, source.y], [mx, at], [tx, at]])
-      routes.push({
-        key, points, arrow: true, look: look(edge), ends,
-        label: pair.labelled && edge.label ? { text: edge.label, run: points.length - 2, along: points.length === 2 ? 0.5 : 0, room: Math.abs(tx - sx) - ARROW } : undefined,
+    sources.forEach((source, index) => {
+      if (source.id === target.id) return
+      const pick = forced(edge, source, target, flow)
+      pairs.push({
+        edge, source, target, labelled: index === 0,
+        from: edge.fromSide ? [edge.fromSide] : pick ? [pick[0]] : SIDES,
+        to: edge.toSide ? [edge.toSide] : pick ? [pick[1]] : SIDES,
       })
-      continue
-    }
-    if (plan.enter === "top" && plan.fixed === undefined) {
-      const my = lanes.get(plan)! + (offsets.get(trackOf(plan)) ?? 0)
-      points = clean([[plan.x, source.bottom], [plan.x, my], [at, my], [at, target.top]])
-    } else if (plan.enter === "top") {
-      points = [[plan.x, source.bottom], [plan.x, target.top]]
-    } else {
-      points = clean([[plan.x, source.bottom], [plan.x, at], [plan.enter === "left" ? target.left : target.right, at]])
-    }
-    let dot: Pt | undefined
-    if (plan.near && points.length > 2) {
-      // A nearer edge leaves the shared trunk at a dot, just before its turn.
-      const turn = points[1]!
-      dot = [plan.x, turn[1] - RADIUS]
-      points = [dot, ...points.slice(1)]
-      const list = [...exitOf.keys()].find((item) => item.includes(pair))!
-      splits.set(list, Math.max(splits.get(list) ?? 0, dot[1] - source.bottom + RADIUS))
-    }
-    let run = longestVertical(points)
-    if (pair.up) {
-      points = points.reverse()
-      run = points.length - 2 - run
-    }
-    routes.push({ key, points, arrow: true, look: look(edge), ends, dot, label: pair.labelled && edge.label ? { text: edge.label, run } : undefined })
+    })
   }
-  // The far edge's label keeps clear of the stub above its splits.
-  for (const [list, from] of splits) {
-    const far = list[list.length - 1]!
-    const route = routes.find((item) => item.key === keyOf(far))
-    if (route?.label && route.label.run === 0) route.label.from = from + 4
+  // Short edges go first, so they keep the straight lines.
+  const span = (pair: Pair) => Math.abs(pair.source.x - pair.target.x) + Math.abs(pair.source.y - pair.target.y)
+  const order = pairs.map((_, index) => index).sort((a, b) => span(pairs[a]!) - span(pairs[b]!) || a - b)
+  const forward: [DiagramEdgeSide, DiagramEdgeSide] = flow === "right" ? ["right", "left"] : ["bottom", "top"]
+  // Group borders count as runs too, so no edge runs along one.
+  const runs: Run[] = frames.flatMap((frame) => {
+    const corners: Pt[] = [[frame.left, frame.top], [frame.right, frame.top], [frame.right, frame.bottom], [frame.left, frame.bottom]]
+    return corners.map((a, k) => ({ a, b: corners[(k + 1) % 4]!, kind: "", source: "", target: "", border: true }))
+  })
+  // An anchor an edge comes into is not one an edge leaves by, and the
+  // other way round, so an arrow never points at a line going out.
+  const used = new Map<string, "in" | "out">()
+  const found: Pt[][] = []
+  for (const index of order) {
+    const pair = pairs[index]!
+    const points = search(pair, nodes, frames, titles, runs, forward, used)
+    found[index] = points
+    const kind = kindOf(pair.edge)
+    for (let j = 0; j < points.length - 1; j++) runs.push({ a: points[j]!, b: points[j + 1]!, kind, source: pair.source.id, target: pair.target.id })
+    const out = sideAt(pair.source, points[0]!)
+    const into = sideAt(pair.target, points[points.length - 1]!)
+    if (out) used.set(`${pair.source.id}:${out}`, "out")
+    if (into) used.set(`${pair.target.id}:${into}`, "in")
   }
-  if (stages) fork(routes, plans, listOf)
-  checkNodes(routes, nodes)
+  const routes: Route[] = pairs.map((pair, index) => ({
+    key: `${pair.edge.key}:${pair.source.id}`, points: found[index]!, arrow: true, look: look(pair.edge),
+    ends: [pair.source.id, pair.target.id], ...(pair.edge.toSide ? { pinned: true } : {}),
+  }))
+  trunks(routes, pairs)
+  pairs.forEach((pair, index) => {
+    const item = routes[index]!
+    if (!pair.labelled || !pair.edge.label) return
+    const run = longest(item.points)
+    const flat = item.points.length === 2 && !isVertical(item.points[0]!, item.points[1]!)
+    item.label = { text: pair.edge.label, run, ...(flat ? { along: 0.5, room: dist(item.points[0]!, item.points[1]!) - ARROW } : {}) }
+  })
   return routes
+}
+
+function longest(points: Pt[]) {
+  let best = 0
+  for (let j = 1; j < points.length - 1; j++) if (dist(points[j]!, points[j + 1]!) > dist(points[best]!, points[best + 1]!) + 0.5) best = j
+  return best
+}
+
+/* Coordinates of a search grid, each one exact: no rounding, so no run
+   slants. The anchors and their stubs stay as they are; any other
+   coordinate closer than 3px to one already kept is left out. */
+function axis(keys: number[], rest: number[]) {
+  const kept = [...new Set(keys)]
+  for (const value of rest) if (Number.isFinite(value) && kept.every((other) => Math.abs(other - value) >= 3)) kept.push(value)
+  kept.sort((a, b) => a - b)
+  const mids: number[] = []
+  for (let k = 0; k < kept.length - 1; k++) if (kept[k + 1]! - kept[k]! >= 2 * LANE) mids.push((kept[k]! + kept[k + 1]!) / 2)
+  return [...kept, ...mids].sort((a, b) => a - b)
+}
+
+function lowerBound(list: number[], value: number) {
+  let lo = 0
+  let hi = list.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (list[mid]! < value) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
+/* The cheapest path for one edge. It looks near the two nodes first, then
+   across the whole drawing, then through the groups that hold neither end.
+   With no clear path at all it takes an elbow and says so once. */
+function search(pair: Pair, nodes: Box[], frames: Box[], titles: Box[], runs: Run[], forward: [DiagramEdgeSide, DiagramEdgeSide], used: Map<string, "in" | "out">): Pt[] {
+  const { source, target } = pair
+  const area = {
+    left: Math.min(source.left, target.left) - REACH, right: Math.max(source.right, target.right) + REACH,
+    top: Math.min(source.top, target.top) - REACH, bottom: Math.max(source.bottom, target.bottom) + REACH,
+  }
+  const walls = (strict: boolean) => [
+    ...nodes.map((node) => grow(node, PAD)),
+    ...titles.map((title) => grow(title, 4)),
+    ...(strict ? frames.filter((frame) => !holds(frame, source) && !holds(frame, target)).map((frame) => grow(frame, 4)) : []),
+  ]
+  for (const [strict, near] of [[true, true], [true, false], [false, false]] as const) {
+    for (const into of [IN, OUT]) {
+      const points = cheapest(pair, walls(strict), runs, forward, used, near ? area : null, into)
+      if (points) return points
+    }
+  }
+  warn(`${pair.edge.key}:${source.id}`, `Diagram: the edge ${source.id} -> ${target.id} finds no clear path, so it runs through what is in the way. Move a node, or set fromSide and toSide on the edge.`)
+  const a = anchorOf(source, forward[0])
+  const b = anchorOf(target, forward[1])
+  return clean([a, [a[0], (a[1] + b[1]) / 2], [b[0], (a[1] + b[1]) / 2], b])
+}
+
+function cheapest(pair: Pair, walls: Box[], runs: Run[], forward: [DiagramEdgeSide, DiagramEdgeSide], used: Map<string, "in" | "out">, area: { left: number; right: number; top: number; bottom: number } | null, into: number): Pt[] | null {
+  const { source, target } = pair
+  const kind = kindOf(pair.edge)
+  const own = [grow(source, PAD), grow(target, PAD)]
+  const others = walls.filter((wall) => !own.some((item) => item.left === wall.left && item.top === wall.top && item.right === wall.right && item.bottom === wall.bottom))
+  const clear = (a: Pt, b: Pt) => !others.some((wall) => through(a, b, wall))
+  // A side along the flow costs a little less; an anchor taken the other
+  // way costs as much as a long detour.
+  const prefer = (box: Box, side: DiagramEdgeSide, best: DiagramEdgeSide, way: "in" | "out") => {
+    const taken = used.get(`${box.id}:${side}`)
+    return (side === best ? 0 : 2) + (taken && taken !== way ? TAKEN : 0)
+  }
+  const starts = pair.from.flatMap((side) => {
+    const a = anchorOf(source, side)
+    const n = NORMAL[side]
+    const p: Pt = [a[0] + n[0] * OUT, a[1] + n[1] * OUT]
+    return clear(a, p) && !inside(own[1]!, p) ? [{ side, a, p, dir: dirOf(n), cost: prefer(source, side, forward[0], "out") }] : []
+  })
+  const ends = pair.to.flatMap((side) => {
+    const a = anchorOf(target, side)
+    const n = NORMAL[side]
+    const p: Pt = [a[0] + n[0] * into, a[1] + n[1] * into]
+    return clear(p, a) && !inside(own[0]!, p) ? [{ side, a, p, dir: dirOf([-n[0], -n[1]] as Pt), cost: prefer(target, side, forward[1], "in") }] : []
+  })
+
+  // Two anchors that face each other on one line join straight.
+  let direct: { cost: number; points: Pt[] } | null = null
+  for (const start of pair.from) {
+    for (const end of pair.to) {
+      const a = anchorOf(source, start)
+      const b = anchorOf(target, end)
+      const n = NORMAL[start]
+      const m = NORMAL[end]
+      if (n[0] !== -m[0] || n[1] !== -m[1]) continue
+      const ahead = (b[0] - a[0]) * n[0] + (b[1] - a[1]) * n[1]
+      if (ahead < ARROW + 2 || Math.abs((b[0] - a[0]) * n[1] - (b[1] - a[1]) * n[0]) > 0.5) continue
+      if (!clear(a, b)) continue
+      const cost = ahead + prefer(source, start, forward[0], "out") + prefer(target, end, forward[1], "in") + crossings(a, b, runs)
+      if (!direct || cost < direct.cost) direct = { cost, points: [a, b] }
+    }
+  }
+  if (!starts.length || !ends.length) return direct?.points ?? null
+
+  const inArea = (value: number, lo: number, hi: number) => value >= lo && value <= hi
+  const pick = (values: number[], lo: number, hi: number) => area ? values.filter((value) => inArea(value, lo, hi)) : values
+  const keyX = [...starts.flatMap((item) => [item.p[0], item.a[0]]), ...ends.flatMap((item) => [item.p[0], item.a[0]])]
+  const keyY = [...starts.flatMap((item) => [item.p[1], item.a[1]]), ...ends.flatMap((item) => [item.p[1], item.a[1]])]
+  const lanesX = runs.flatMap((run) => isVertical(run.a, run.b) ? [run.a[0], run.a[0] - LANE, run.a[0] + LANE] : [])
+  const lanesY = runs.flatMap((run) => isVertical(run.a, run.b) ? [] : [run.a[1], run.a[1] - LANE, run.a[1] + LANE])
+  const boundsX = walls.flatMap((wall) => [wall.left, wall.right])
+  const boundsY = walls.flatMap((wall) => [wall.top, wall.bottom])
+  const lo = area ?? { left: Math.min(...boundsX, ...keyX) - 2 * LANE, right: Math.max(...boundsX, ...keyX) + 2 * LANE, top: Math.min(...boundsY, ...keyY) - 2 * LANE, bottom: Math.max(...boundsY, ...keyY) + 2 * LANE }
+  const xs = axis(keyX, [...pick(boundsX, lo.left, lo.right), ...pick(lanesX, lo.left, lo.right), lo.left, lo.right])
+  const ys = axis(keyY, [...pick(boundsY, lo.top, lo.bottom), ...pick(lanesY, lo.top, lo.bottom), lo.top, lo.bottom])
+  const nx = xs.length
+  const ny = ys.length
+  const at = (i: number, j: number) => j * nx + i
+
+  // Runs between neighbouring grid points: blocked, beside another edge,
+  // on one of its own kind, or across one.
+  const blockH = new Uint8Array(nx * ny)
+  const blockV = new Uint8Array(nx * ny)
+  const nearH = new Uint8Array(nx * ny)
+  const nearV = new Uint8Array(nx * ny)
+  const joinH = new Uint8Array(nx * ny)
+  const joinV = new Uint8Array(nx * ny)
+  const crossH = new Float64Array(nx * ny)
+  const crossV = new Float64Array(nx * ny)
+  for (const wall of walls) {
+    const i0 = Math.max(0, lowerBound(xs, wall.left) - 1)
+    const i1 = lowerBound(xs, wall.right)
+    const j0 = Math.max(0, lowerBound(ys, wall.top) - 1)
+    const j1 = lowerBound(ys, wall.bottom)
+    for (let j = j0; j <= j1 && j < ny; j++) {
+      for (let i = i0; i <= i1 && i < nx; i++) {
+        if (i + 1 < nx && through([xs[i]!, ys[j]!], [xs[i + 1]!, ys[j]!], wall)) blockH[at(i, j)] = 1
+        if (j + 1 < ny && through([xs[i]!, ys[j]!], [xs[i]!, ys[j + 1]!], wall)) blockV[at(i, j)] = 1
+      }
+    }
+  }
+  for (const run of runs) {
+    const friend = run.kind === kind && (run.source === source.id || run.target === target.id)
+    const x0 = Math.min(run.a[0], run.b[0])
+    const x1 = Math.max(run.a[0], run.b[0])
+    const y0 = Math.min(run.a[1], run.b[1])
+    const y1 = Math.max(run.a[1], run.b[1])
+    if (isVertical(run.a, run.b)) {
+      const x = run.a[0]
+      for (let i = lowerBound(xs, x - LANE + 0.5); i < nx && xs[i]! < x + LANE - 0.5; i++) {
+        const on = Math.abs(xs[i]! - x) < 0.5
+        for (let j = lowerBound(ys, y0); j + 1 < ny && ys[j]! < y1 - 0.5; j++) {
+          if (on && friend) joinV[at(i, j)] = 1
+          else nearV[at(i, j)] = 1
+        }
+      }
+      // Flat runs across this one.
+      const i = lowerBound(xs, x) - 1
+      if (!run.border && i >= 0 && i + 1 < nx) for (let j = lowerBound(ys, y0 + 0.5); j < ny && ys[j]! < y1 - 0.5; j++) crossH[at(i, j)] += CROSS
+    } else {
+      const y = run.a[1]
+      for (let j = lowerBound(ys, y - LANE + 0.5); j < ny && ys[j]! < y + LANE - 0.5; j++) {
+        const on = Math.abs(ys[j]! - y) < 0.5
+        for (let i = lowerBound(xs, x0); i + 1 < nx && xs[i]! < x1 - 0.5; i++) {
+          if (on && friend) joinH[at(i, j)] = 1
+          else nearH[at(i, j)] = 1
+        }
+      }
+      const j = lowerBound(ys, y) - 1
+      if (!run.border && j >= 0 && j + 1 < ny) for (let i = lowerBound(xs, x0 + 0.5); i < nx && xs[i]! < x1 - 0.5; i++) crossV[at(i, j)] += CROSS
+    }
+  }
+
+  // Dijkstra over grid points and the direction each was reached in. The
+  // last state is the sink every end leads to.
+  const count = nx * ny * 4
+  const sink = count
+  const cost = new Float64Array(count + 1).fill(Infinity)
+  const prev = new Int32Array(count + 1).fill(-1)
+  const heap = new Heap()
+  const endAt = new Map<number, typeof ends>()
+  const startAt = new Map<number, (typeof starts)[number]>()
+  const indexOf = ([x, y]: Pt) => {
+    const i = lowerBound(xs, x - 0.01)
+    const j = lowerBound(ys, y - 0.01)
+    return i < nx && j < ny && Math.abs(xs[i]! - x) < 0.01 && Math.abs(ys[j]! - y) < 0.01 ? at(i, j) : -1
+  }
+  for (const end of ends) {
+    const k = indexOf(end.p)
+    if (k >= 0) endAt.set(k, [...(endAt.get(k) ?? []), end])
+  }
+  for (const start of starts) {
+    const k = indexOf(start.p)
+    if (k < 0) continue
+    const state = k * 4 + start.dir
+    if (start.cost + OUT < cost[state]!) {
+      cost[state] = start.cost + OUT
+      startAt.set(state, start)
+      heap.push(state, cost[state]!)
+    }
+  }
+  const closing = new Map<number, (typeof ends)[number]>()
+  while (heap.size) {
+    const [state, value] = heap.pop()
+    if (value > cost[state]!) continue
+    if (state === sink) break
+    const k = state >> 2
+    const d = state & 3
+    const i = k % nx
+    const j = (k - i) / nx
+    for (const end of endAt.get(k) ?? []) {
+      if (d === (end.dir + 2) % 4) continue
+      const total = value + (d === end.dir ? 0 : BEND) + into + end.cost
+      if (total < cost[sink]!) {
+        cost[sink] = total
+        prev[sink] = state
+        closing.set(state, end)
+        heap.push(sink, total)
+      }
+    }
+    for (let nd = 0; nd < 4; nd++) {
+      if (nd === (d + 2) % 4) continue
+      let ni = i
+      let nj = j
+      let step = 0
+      let extra = 0
+      let near = 0
+      let join = 0
+      if (nd === 0) {
+        if (i + 1 >= nx || blockH[k]) continue
+        ni = i + 1
+        step = xs[ni]! - xs[i]!
+        extra = crossH[k]!
+        near = nearH[k]!
+        join = joinH[k]!
+      } else if (nd === 2) {
+        if (i === 0 || blockH[k - 1]) continue
+        ni = i - 1
+        step = xs[i]! - xs[ni]!
+        extra = crossH[k - 1]!
+        near = nearH[k - 1]!
+        join = joinH[k - 1]!
+      } else if (nd === 1) {
+        if (j + 1 >= ny || blockV[k]) continue
+        nj = j + 1
+        step = ys[nj]! - ys[j]!
+        extra = crossV[k]!
+        near = nearV[k]!
+        join = joinV[k]!
+      } else {
+        if (j === 0 || blockV[k - nx]) continue
+        nj = j - 1
+        step = ys[j]! - ys[nj]!
+        extra = crossV[k - nx]!
+        near = nearV[k - nx]!
+        join = joinV[k - nx]!
+      }
+      const next = at(ni, nj) * 4 + nd
+      const total = value + step * (near ? NEAR : join ? JOIN : 1) + extra + (nd === d ? 0 : BEND)
+      if (total < cost[next]!) {
+        cost[next] = total
+        prev[next] = state
+        heap.push(next, total)
+      }
+    }
+  }
+  if (cost[sink] === Infinity) return direct?.points ?? null
+  if (direct && direct.cost <= cost[sink]!) return direct.points
+  const last = prev[sink]!
+  const end = closing.get(last)!
+  const grid: Pt[] = []
+  let state = last
+  let first = last
+  while (state >= 0) {
+    const k = state >> 2
+    grid.push([xs[k % nx]!, ys[Math.floor(k / nx)]!])
+    first = state
+    state = prev[state]!
+  }
+  grid.reverse()
+  return clean([startAt.get(first)!.a, ...grid, end.a])
+}
+
+/* The price of a straight run across the edges already drawn. */
+function crossings(a: Pt, b: Pt, runs: Run[]) {
+  let total = 0
+  for (const run of runs) {
+    if (run.border || isVertical(a, b) === isVertical(run.a, run.b)) continue
+    const [v, h] = isVertical(a, b) ? [[a, b], [run.a, run.b]] : [[run.a, run.b], [a, b]]
+    const x = v[0]![0]
+    const y = h[0]![1]
+    if (x > Math.min(h[0]![0], h[1]![0]) + 0.5 && x < Math.max(h[0]![0], h[1]![0]) - 0.5 && y > Math.min(v[0]![1], v[1]![1]) + 0.5 && y < Math.max(v[0]![1], v[1]![1]) - 0.5) total += CROSS
+  }
+  return total
+}
+
+/* A binary heap of states by cost. */
+class Heap {
+  private items: number[] = []
+  private costs: number[] = []
+  get size() {
+    return this.items.length
+  }
+  push(item: number, value: number) {
+    const items = this.items
+    const costs = this.costs
+    let k = items.length
+    items.push(item)
+    costs.push(value)
+    while (k > 0) {
+      const up = (k - 1) >> 1
+      if (costs[up]! <= value) break
+      items[k] = items[up]!
+      costs[k] = costs[up]!
+      k = up
+    }
+    items[k] = item
+    costs[k] = value
+  }
+  pop(): [number, number] {
+    const items = this.items
+    const costs = this.costs
+    const top: [number, number] = [items[0]!, costs[0]!]
+    const item = items.pop()!
+    const value = costs.pop()!
+    if (items.length) {
+      let k = 0
+      for (;;) {
+        const l = 2 * k + 1
+        const r = l + 1
+        let m = k
+        let best = value
+        if (l < items.length && costs[l]! < best) {
+          m = l
+          best = costs[l]!
+        }
+        if (r < items.length && costs[r]! < best) m = r
+        if (m === k) break
+        items[k] = items[m]!
+        costs[k] = costs[m]!
+        k = m
+      }
+      items[k] = item
+      costs[k] = value
+    }
+    return top
+  }
+}
+
+/* Where two paths from one point part: the length they share and the point
+   they part at. */
+function shared(a: Pt[], b: Pt[]) {
+  if (dist(a[0]!, b[0]!) > 0.5) return { length: 0, at: a[0]!, j: 0 }
+  let length = 0
+  let at = a[0]!
+  let j = 0
+  let k = 0
+  while (j < a.length - 1 && k < b.length - 1) {
+    const da = unit(at, a[j + 1]!)
+    const db = unit(at, b[k + 1]!)
+    if (Math.abs(da[0] - db[0]) > 0.01 || Math.abs(da[1] - db[1]) > 0.01) break
+    const step = Math.min(dist(at, a[j + 1]!), dist(at, b[k + 1]!))
+    at = towards(at, a[j + 1]!, step)
+    length += step
+    if (dist(at, a[j + 1]!) < 0.5) {
+      at = a[j + 1]!
+      j++
+    }
+    if (dist(at, b[k + 1]!) < 0.5) k++
+  }
+  return { length, at, j }
+}
+
+const total = (points: Pt[]) => points.reduce((sum, p, k) => k ? sum + dist(points[k - 1]!, p) : 0, 0)
+
+/* Edges of one kind out of one anchor share a trunk: the longest keeps it,
+   and each other leaves it at a dot, RADIUS before it turns away. Edges of
+   one kind into one anchor join the same way, at a dot where they meet. */
+function trunks(routes: Route[], pairs: Pair[]) {
+  const groups = new Map<string, number[]>()
+  routes.forEach((item, index) => {
+    const start = item.points[0]!
+    const key = `${pairs[index]!.source.id}|${start[0]}|${start[1]}|${kindOf(pairs[index]!.edge)}`
+    groups.set(key, [...(groups.get(key) ?? []), index])
+  })
+  for (const list of groups.values()) {
+    if (list.length < 2) continue
+    const sorted = [...list].sort((a, b) => total(routes[b]!.points) - total(routes[a]!.points))
+    const full = sorted.map((index) => routes[index]!.points)
+    sorted.forEach((index, n) => {
+      if (!n) return
+      const mine = full[n]!
+      let best = { length: 0, at: mine[0]!, j: 0 }
+      for (let m = 0; m < n; m++) {
+        const found = shared(mine, full[m]!)
+        if (found.length > best.length) best = found
+      }
+      if (best.length < 1) return
+      const back = Math.min(RADIUS, best.length)
+      const before = best.j < mine.length - 1 && dist(best.at, mine[best.j]!) > 0.5 ? mine[best.j]! : mine[Math.max(0, best.j - 1)]!
+      const dot = towards(best.at, before, back)
+      const rest = mine.slice(best.j + 1)
+      routes[index]!.points = clean([dot, best.at, ...rest])
+      routes[index]!.dot = dot
+    })
+  }
+  const joins = new Map<string, number[]>()
+  routes.forEach((item, index) => {
+    if (item.dot) return
+    const end = item.points[item.points.length - 1]!
+    const key = `${pairs[index]!.target.id}|${end[0]}|${end[1]}|${kindOf(pairs[index]!.edge)}`
+    joins.set(key, [...(joins.get(key) ?? []), index])
+  })
+  for (const list of joins.values()) {
+    if (list.length < 2) continue
+    const sorted = [...list].sort((a, b) => total(routes[b]!.points) - total(routes[a]!.points))
+    const full = sorted.map((index) => [...routes[index]!.points].reverse())
+    sorted.forEach((index, n) => {
+      if (!n) return
+      const mine = full[n]!
+      let best = { length: 0, at: mine[0]!, j: 0 }
+      for (let m = 0; m < n; m++) {
+        const found = shared(mine, full[m]!)
+        if (found.length > best.length) best = found
+      }
+      if (best.length < ARROW + RADIUS) return
+      const before = best.j < mine.length - 1 && dist(best.at, mine[best.j]!) > 0.5 ? mine[best.j]! : mine[Math.max(0, best.j - 1)]!
+      const dot = towards(best.at, before, Math.min(RADIUS, best.length))
+      routes[index]!.points = clean([dot, best.at, ...mine.slice(best.j + 1)].reverse())
+      routes[index]!.dot = dot
+      routes[index]!.arrow = false
+    })
+  }
 }
 
 /* The segment of a path that holds a point, or -1. */
@@ -428,105 +671,11 @@ function holding(points: Pt[], at: Pt) {
   })
 }
 
-/* Sets a route's path. Its label moves to the longest run of the new path,
-   since the old index no longer points at the same run. */
-function reshape(route: Route, points: Pt[]) {
-  route.points = points
-  if (route.label) route.label = { text: route.label.text, run: longestVertical(points) }
-}
-
-/* In a stage layout a trunk parts in the channel. When its branches all
-   turn one way, they part where the nearest one turns into its target, and
-   each branch starts there; when they go both ways, they part at the fork.
-   A trunk whose edges differ in look is drawn plain up to where the last
-   branch leaves it, whatever way the branches go. */
-function fork(routes: Route[], plans: { pair: Pair; enter: string; fixed?: number }[], listOf: Map<Pair, Pair[]>) {
-  for (const list of new Set(listOf.values())) {
-    if (list.length < 2) continue
-    const here = list.map((pair) => ({ pair, route: routes.find((item) => item.key === keyOf(pair))! })).filter((item) => item.route)
-    const farPair = list[list.length - 1]!
-    const same = list.every(({ edge }) => edge.line === list[0]!.edge.line && edge.tone === list[0]!.edge.tone && edge.series === list[0]!.edge.series && edge.flow === list[0]!.edge.flow)
-    const lane = here.filter(({ pair }) => plans.find((plan) => plan.pair === pair)?.enter === "top")
-    if (lane.length !== here.length || lane.length < 2) {
-      // Branches that leave a straight trunk at their own dots: the far
-      // edge gives up the trunk above the last dot when the looks differ.
-      const far = here.find(({ pair }) => pair === farPair)?.route
-      if (same || !far) continue
-      const start = far.points[0]!
-      const dots = here.flatMap(({ route: item }) => item !== far && item.dot ? [item.dot] : [])
-      const split = dots.sort((a, b) => dist(start, b) - dist(start, a))[0]
-      const j = split ? holding(far.points, split) : -1
-      if (!split || j < 0) continue
-      routes.push({ key: `${keyOf(list[0]!)}:trunk`, points: clean([...far.points.slice(0, j + 1), split]), arrow: false, look: {} })
-      reshape(far, clean([split, ...far.points.slice(j + 1)]))
-      continue
-    }
-    // Every branch here runs down from the exit to the lane, along it, and
-    // down into its target: a start, a turn into the lane, a turn out.
-    const full = here.map(({ pair, route: item }) => ({
-      pair, item, points: pair === farPair ? item.points : [[item.points[0]![0], pair.source.bottom] as Pt, ...item.points.slice(1)],
-    }))
-    const exit = full[0]!.points[0]!
-    const my = Math.min(...full.map(({ points }) => points[1]![1]))
-    const sides = new Set(full.map(({ points }) => Math.sign(Math.round(points[points.length - 1]![0] - exit[0]))))
-    let split: Pt
-    if (sides.size > 1 || sides.has(0)) split = [exit[0], my - RADIUS]
-    else {
-      const dir = [...sides][0]!
-      const nearest = full.reduce((a, b) => Math.abs(a.points[a.points.length - 1]![0] - exit[0]) <= Math.abs(b.points[b.points.length - 1]![0] - exit[0]) ? a : b)
-      split = [nearest.points[nearest.points.length - 1]![0] - dir * RADIUS, my]
-    }
-    for (const { pair, item, points } of full) {
-      item.dot = undefined
-      const j = holding(points, split)
-      if (!(pair === farPair && same) && j >= 0) reshape(item, clean([split, ...points.slice(j + 1)]))
-      else if (points !== item.points) reshape(item, points)
-    }
-    full.find(({ pair }) => pair === farPair)!.item.dot = split
-    if (!same) {
-      const trunk = full.find(({ pair }) => pair === farPair)!.points
-      const j = holding(trunk, split)
-      if (j >= 0) routes.push({ key: `${keyOf(list[0]!)}:trunk`, points: clean([...trunk.slice(0, j + 1), split]), arrow: false, look: {} })
-    }
-  }
-}
-
-function longestVertical(points: Pt[]) {
-  let best = points.length - 2
-  let length = -1
-  for (let j = 0; j < points.length - 1; j++) {
-    const a = points[j]!
-    const b = points[j + 1]!
-    if (isVertical(a, b) && dist(a, b) > length) {
-      best = j
-      length = dist(a, b)
-    }
-  }
-  return best
-}
-
 const warned = new Set<string>()
 function warn(key: string, message: string) {
   if (warned.has(key)) return
   warned.add(key)
   console.warn(message)
-}
-
-/* Kiso does not route around nodes. A run through one says the layout needs
-   a change, so it is reported once. */
-function checkNodes(routes: Route[], nodes: Box[]) {
-  for (const route of routes) {
-    for (let j = 0; j < route.points.length - 1; j++) {
-      const [ax, ay] = route.points[j]!
-      const [bx, by] = route.points[j + 1]!
-      for (const node of nodes) {
-        if (route.ends?.includes(node.id)) continue
-        const hit = Math.max(ax, bx) > node.left + 1 && Math.min(ax, bx) < node.right - 1
-          && Math.max(ay, by) > node.top + 1 && Math.min(ay, by) < node.bottom - 1
-        if (hit) warn(`${route.key}>${node.id}`, `Diagram: the edge ${route.key.split(":")[0]} runs through the node "${node.id}". Move the node, or set route on the edge.`)
-      }
-    }
-  }
 }
 
 
@@ -683,18 +832,17 @@ function shaped(routes: Route[], i: number, shape: "curve" | "straight", boxes?:
     add(E)
     return { d, samples, from }
   }
-  // Straight. Ports are picked for elbows, so a steep line into a side comes
-  // in through the top or bottom instead, 20px clear of the corners, with a
-  // straight SETTLE run into it.
+  // Straight. Anchors are picked for elbows, so a steep line into a side
+  // comes in through the anchor on the top or bottom instead, with a
+  // straight SETTLE run into it, unless the edge set its side.
   let end = E
   let stub: Pt | null = null
-  const box = route.ends ? boxes?.get(route.ends[1]) : undefined
+  const box = route.ends && !route.pinned ? boxes?.get(route.ends[1]) : undefined
   if (box) {
     const v: Pt = [E[0] - P[0], E[1] - P[1]]
     const intoSide = Math.abs(dE[0]) > 0.5
-    const clampTo = (value: number, lo: number, hi: number) => lo > hi ? (lo + hi) / 2 : Math.min(Math.max(value, lo), hi)
     if (intoSide && Math.abs(v[1]) > 1.5 * Math.abs(v[0])) {
-      const x = clampTo(E[0], box.left + 20, box.right - 20)
+      const x = box.x
       const y = v[1] > 0 ? box.top : box.bottom
       const run: Pt = [x, y - Math.sign(v[1]) * SETTLE]
       // Only when the new face still lies ahead, steeply: a target stacked
@@ -892,9 +1040,10 @@ type Straight = { route: number; seg: number; vertical: boolean; at: number; a: 
 type Line = { at: number; lo: number; hi: number; route?: number; seg?: number }
 type Crossing = { t: number; at: number; line: Line }
 
-/* The Diagram's own shape and head, and the measured boxes a straight edge
-   needs to pick its entry face. */
-export type DrawStyle = { shape?: DiagramEdgeShape; arrow?: DiagramArrow; boxes?: Map<string, Box> }
+/* The Diagram's own shape and head, the measured boxes a straight edge
+   needs to pick its entry face and labels keep off, and the group titles
+   labels keep off as well. */
+export type DrawStyle = { shape?: DiagramEdgeShape; arrow?: DiagramArrow; boxes?: Map<string, Box>; blocks?: Box[] }
 
 export function draw(
   routes: Route[],
@@ -1055,6 +1204,58 @@ export function draw(
   }
 
   const drawn: Drawn = { paths: [], labels: [], plates, dots: [] }
+  // A label tries its own run first, then the others, longest first, at a
+  // few spots along each, and takes the first that runs into nothing.
+  const walls = [...(style.boxes?.values() ?? []), ...(style.blocks ?? [])]
+  const taken: Rect[] = []
+  const settle = (route: Route, i: number) => {
+    const label = route.label!
+    const length = (j: number) => dist(route.points[j]!, route.points[j + 1]!)
+    const others = route.points.slice(0, -1).map((_, j) => j).filter((j) => j !== label.run).sort((a, b) => length(b) - length(a))
+    let best: Drawn["labels"][number] | null = null
+    let score = Infinity
+    search: for (const run of [label.run, ...others]) {
+      for (const along of [run === label.run ? label.along : 0.5, 0.3, 0.7, 0.15, 0.85]) {
+        const tried = place({ ...route, label: run === label.run ? { ...label, along } : { text: label.text, run, along } }, found, i, labels, measure, frames)
+        if (!tried) continue
+        const count = hits(boxOf(tried, measure), i, routes, walls, taken, frames)
+        if (count < score) {
+          best = tried
+          score = count
+        }
+        if (!count) break search
+      }
+    }
+    // Nothing on the line is clear, such as a long label between two cards
+    // close together: it sits flat on a plate at the nearest clear spot
+    // around the middle of its run, above or below, left or right.
+    if (score) {
+      const p = route.points[label.run]!
+      const q = route.points[label.run + 1]!
+      const mid: Pt = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]
+      const size = measure(label.text)
+      const near = (x: number, y: number): Drawn["labels"][number] => ({
+        key: route.key, x, y, lines: [label.text], middle: true,
+        plate: { key: route.key, x: x - size.width / 2 - 3, y: y - size.height / 2, width: size.width + 6, height: size.height },
+      })
+      // Past every card, label, run and frame, a spot is always clear, so
+      // the search reaches that far.
+      const xs = [...walls.flatMap((box) => [box.left, box.right]), ...taken.flatMap((rect) => [rect.x, rect.x + rect.width]), ...routes.flatMap((item) => item.points.map((pt) => pt[0])), ...frames.flatMap((frame) => [frame.left, frame.right])]
+      const ys = [...walls.flatMap((box) => [box.top, box.bottom]), ...taken.flatMap((rect) => [rect.y, rect.y + rect.height]), ...routes.flatMap((item) => item.points.map((pt) => pt[1])), ...frames.flatMap((frame) => [frame.top, frame.bottom])]
+      const reach = Math.max(...xs.map((x) => Math.abs(x - mid[0])), ...ys.map((y) => Math.abs(y - mid[1]))) + size.width + size.height + 8
+      clear: for (let step = 4; step <= reach + 4; step += 4) {
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]] as const) {
+          const tried = near(mid[0] + dx * step, mid[1] + dy * step)
+          if (!hits(boxOf(tried, measure), i, routes, walls, taken, frames)) {
+            best = tried
+            break clear
+          }
+        }
+      }
+    }
+    if (best) taken.push(boxOf(best, measure))
+    return best
+  }
   routes.forEach((route, i) => {
     const { points, rad } = shapes[i]!
     const shaped = free[i]
@@ -1083,8 +1284,9 @@ export function draw(
           key: route.key, x: mid[0], y: mid[1], lines: [route.label.text], middle: true,
           plate: { key: route.key, x: mid[0] - size.width / 2 - 3, y: mid[1] - size.height / 2, width: size.width + 6, height: size.height },
         })
+        taken.push(drawn.labels[drawn.labels.length - 1]!.plate!)
       } else if (route.label) {
-        const placed = place(route, found, i, labels, measure, frames)
+        const placed = settle(route, i)
         if (placed) drawn.labels.push(placed)
       }
       return
@@ -1120,11 +1322,44 @@ export function draw(
     drawn.paths.push({ key: route.key, d, arrow: route.arrow, ...route.look, head: heads[i]!, knock: knocks.get(i) })
     if (route.dot) drawn.dots.push({ key: route.key, x: route.dot[0], y: route.dot[1], ...route.look })
     if (route.label) {
-      const placed = place(route, found, i, labels, measure, frames)
+      const placed = settle(route, i)
       if (placed) drawn.labels.push(placed)
     }
   })
   return drawn
+}
+
+/* A label's box: its plate, or the room its text takes about its baseline. */
+function boxOf(item: Drawn["labels"][number], measure: (text: string) => { width: number; height: number }): Rect {
+  if (item.plate) return item.plate
+  const sizes = item.lines.map(measure)
+  const width = Math.max(...sizes.map((size) => size.width))
+  const height = sizes[0]!.height
+  const above = height * 0.75 + (item.lines.length - 1) * height * 1.2
+  const left = item.anchor === "start" ? item.x : item.x - width / 2
+  return { key: item.key, x: left, y: item.y - above, width, height: above + height * 0.25 }
+}
+
+/* What a label's box runs into: a card or a group title counts four, as
+   does a label already placed, a group border two, and each run of another
+   edge one. */
+function hits(rect: Rect, index: number, routes: Route[], walls: Box[], taken: Rect[], frames: Frame[]) {
+  const area = { left: rect.x, right: rect.x + rect.width, top: rect.y, bottom: rect.y + rect.height } as Box
+  const meets = (box: { left: number; right: number; top: number; bottom: number }) => box.left < area.right && box.right > area.left && box.top < area.bottom && box.bottom > area.top
+  let count = 0
+  for (const wall of walls) if (meets(wall)) count += 4
+  for (const other of taken) if (meets({ left: other.x, right: other.x + other.width, top: other.y, bottom: other.y + other.height })) count += 4
+  routes.forEach((route, j) => {
+    if (j === index) return
+    for (let k = 0; k < route.points.length - 1; k++) if (through(route.points[k]!, route.points[k + 1]!, area)) count++
+  })
+  for (const frame of frames) {
+    const corners: Pt[] = [[frame.left, frame.top], [frame.right, frame.top], [frame.right, frame.bottom], [frame.left, frame.bottom]]
+    corners.forEach((a, k) => {
+      if (through(a, corners[(k + 1) % 4]!, area)) count += 2
+    })
+  }
+  return count
 }
 
 function place(route: Route, found: Map<string, Crossing[]>, index: number, mode: DiagramLabels, measure: (text: string) => { width: number; height: number }, frames: Frame[]): Drawn["labels"][number] | null {
@@ -1183,7 +1418,7 @@ function place(route: Route, found: Map<string, Crossing[]>, index: number, mode
   }
   if (end > from) free.push([from, end])
   const need = size.width + 8
-  const middle = (start + end) / 2
+  const middle = start + (end - start) * (label.along ?? 0.5)
   let centre: number | null = null
   const holding = free.find(([a, b]) => a <= middle && middle <= b && b - a >= need)
   if (holding) centre = Math.min(Math.max(middle, holding[0] + need / 2), holding[1] - need / 2)
