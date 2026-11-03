@@ -1,5 +1,27 @@
 # @momoi-labs/kiso
 
+## 1.5.0
+
+### Minor Changes
+
+- 1e12fa4: Pages now fill the full width by default. Set `data-page-width="contained"`
+  to keep the 1280px cap, and `data-page-align="start|center|end"` to place the
+  capped page.
+  
+  The new Page layout pattern explains how the shell, the page and its content
+  share the width.
+- 8fc2a42: Chart, ChartLegend, Sparkline, Meter and BarGauge gain a Terminal section.
+  It says how `tui-kiso` draws them: braille lines in the chart tokens with a
+  muted scale and a dotted grid, a legend as a table or one row, one block per
+  sample in a sparkline, and meter rows with a heavy track and the value at the
+  right edge. Missing samples break lines, blank cells or show a hatch, and
+  short areas keep the plot first.
+
+### Patch Changes
+
+- 12989eb: Allow a screen preview, such as a template in the Kiso gallery, to use the
+  large Dialog size of an expanded DashboardPanel.
+
 ## 1.4.0
 
 ### Minor Changes
