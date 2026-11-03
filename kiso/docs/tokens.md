@@ -311,7 +311,7 @@ like a toy.
 ```
 
 Layout sizes: `--size-sidebar` (248px) is the shell navigation column;
-`--size-content-max` (1280px) is the maximum content measure. Icon boxes are
+`--size-content-max` (1280px) is the page width under `data-page-width="contained"`. Icon boxes are
 `--size-icon-sm` (14px), `--size-icon-md` (16px, the default), and
 `--size-icon-lg` (20px).
 
@@ -369,6 +369,8 @@ No gallery CSS or JavaScript is required.
 | `data-mark-size` | `small`, `medium`, `large` | `medium` |
 | `data-visual-style` | `default`, `editorial` | `default` |
 | `data-app-shell` | `default`, `inset` | `default` |
+| `data-page-width` | `full`, `contained` | `full` |
+| `data-page-align` | `start`, `center`, `end` | `start` |
 
 Border, corner and panel shadow choices are independent. Border `none`
 removes panel outlines, decorative edges and corner marks. An explicit `hard`
@@ -653,6 +655,11 @@ Set `data-visual-style="default"` on a region to keep that region compact.
 Its descendants inherit the local choice. PageHeader's explicit `variant`
 still overrides its heading treatment. The earlier `data-page-header`
 attribute remains supported for heading-only compositions.
+
+### Page width
+
+`data-page-width` and `data-page-align` choose how wide a `.page` is and
+where it sits. See [Page layout](patterns/page-layout.md).
 
 ## Hatch
 

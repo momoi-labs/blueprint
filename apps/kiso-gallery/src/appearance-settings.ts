@@ -22,6 +22,8 @@ export interface AppearanceSettings {
   visualStyle: "default" | "editorial";
   appShell: "default" | "inset";
   appShellOuter: "auto" | "full" | "compact" | "none";
+  pageWidth: "full" | "contained";
+  pageAlign: "start" | "center" | "end";
   outerShadowStyle: "inherit" | ShadowStyle;
   outerBorderStyle: "inherit" | BorderStyle;
   outerCornerStyle: "inherit" | CornerStyle;

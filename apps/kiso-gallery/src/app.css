@@ -101,6 +101,10 @@
   align-content: start;
   gap: var(--presentation-section-gap);
   padding: var(--presentation-page-padding);
+  /* Follows the page width and alignment, as Kiso's .page does. */
+  padding-inline:
+    max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-start, 0)))
+    max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-end, 1)));
 }
 .layout-content > * {
   min-width: 0;

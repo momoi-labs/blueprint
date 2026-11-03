@@ -16,6 +16,8 @@
     visualStyle: ["default", "editorial"],
     appShell: ["default", "inset"],
     appShellOuter: ["auto", "full", "compact", "none"],
+    pageWidth: ["full", "contained"],
+    pageAlign: ["start", "center", "end"],
     frameScope: ["all", "panels", "outer"],
     markScope: ["panels", "all", "outer"],
     markClearance: ["normal", "sheet"],

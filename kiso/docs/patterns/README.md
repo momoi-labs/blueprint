@@ -8,6 +8,7 @@ the patterns below instead.
 ## Layout
 
 - [Application shell](application-shell.md) — Frames every product with persistent header, sidebar, and main content regions.
+- [Page layout](page-layout.md): How wide a page is, where it sits, and how grids and forms inside follow it.
 - [List-detail](list-detail.md) — Keeps a collection and the selected record in one navigable context.
 - [CRUD](crud.md) — Coordinates consistent create, read, update, and delete flows and states.
 - [Dashboard](dashboard.md) — Arranges dense, independently loading widgets with clear hierarchy and drill-down.
