@@ -2655,7 +2655,6 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
   --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
   --pixel-step: round(calc(4px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
-  --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
   --pixel-inner-r: max(0px, calc(var(--pixel-r) - 1px));
   --pixel-inner-step: max(0px, calc(var(--pixel-step) - 1px));
   --pixel-header-clip: polygon(var(--pixel-inner-r) 0, calc(100% - var(--pixel-inner-r)) 0, calc(100% - var(--pixel-inner-r)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-step), calc(100% - var(--pixel-inner-step)) var(--pixel-inner-r), 100% var(--pixel-inner-r), 100% 100%, 0 100%, 0 var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-step), var(--pixel-inner-r) var(--pixel-inner-step));
@@ -2674,6 +2673,14 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   background-position: center top, center top var(--pixel-step), center, center bottom var(--pixel-step), center bottom;
   background-repeat: no-repeat;
   background-origin: border-box;
+}
+/* The shadow contour competes with the base `--panel-shadow-contour` above,
+   whose `:is()` reaches (0,2,0) through the inset shell main. A plain
+   attribute selector ties it here so the pixel contour wins on source order
+   instead of falling back to a rectangle that leaks past the stepped corners. */
+[data-corner-style="pixel"] :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
+[data-outer-corner-style="pixel"] :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
 }
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --frame-fill: var(--color-background); }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block) {
