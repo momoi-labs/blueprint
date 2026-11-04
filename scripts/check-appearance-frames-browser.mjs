@@ -810,7 +810,7 @@ test('The Pixel shell header preserves its border at 175% and 200% scale', async
         const png = await page.screenshot({ clip: { x: box.x + box.width - 30, y: box.y - 8, width: 40, height: 40 } });
         images.push(`data:image/png;base64,${png.toString('base64')}`);
       }
-      const covered = await page.evaluate(async sources => {
+      const paint = await page.evaluate(async sources => {
         const pixels = [];
         for (const source of sources) {
           const image = new Image(); image.src = source; await image.decode();
@@ -819,15 +819,18 @@ test('The Pixel shell header preserves its border at 175% and 200% scale', async
           pixels.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
         }
         const [shown, hidden] = pixels;
-        let covered = 0;
+        let covered = 0, opaqueInk = 0;
         for (let i = 0; i < hidden.length; i += 4) {
-          const ink = hidden[i] > hidden[i + 1] + 30 && hidden[i + 2] > hidden[i + 1] + 30;
-          // Allow a few levels for fractional-pixel antialiasing.
-          if (ink && shown[i + 1] > hidden[i + 1] + 8) covered++;
+          // Compare the opaque stroke, not renderer-dependent edge coverage.
+          if (hidden[i] >= 250 && hidden[i + 1] <= 5 && hidden[i + 2] >= 250) {
+            opaqueInk++;
+            if (shown[i + 1] > hidden[i + 1] + 8) covered++;
+          }
         }
-        return covered;
+        return { covered, opaqueInk };
       }, images);
-      assert.equal(covered, 0, `${scale}: showing the header must not wash out the Pixel border`);
+      assert(paint.opaqueInk > 20, `${scale}: the crop contains an opaque border stroke`);
+      assert.equal(paint.covered, 0, `${scale}: showing the header must not wash out the Pixel border (${paint.opaqueInk} opaque pixels)`);
     } finally { await page.close(); }
   }
 });
