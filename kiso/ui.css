@@ -1282,10 +1282,11 @@ table.table {
     display: flex; flex-direction: column;
   }
   :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > .topbar { flex: none; }
-  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :not(.topbar) {
+  :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :not(.topbar, .panel-shadow) {
     flex: 1; min-height: 0; overflow: auto;
     border-end-start-radius: inherit;
     border-end-end-radius: inherit;
+    clip-path: var(--pixel-footer-clip, none);
   }
   :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], [data-app-shell="inset"] :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) > :nth-child(1 of :not(.panel-shadow)):nth-last-child(1 of :not(.panel-shadow)) { border-radius: inherit; }
 }
@@ -2244,6 +2245,10 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   mask-repeat: no-repeat;
   clip-path: var(--appearance-ink-clip, var(--corner-ink-clip, none));
   z-index: var(--appearance-ink-layer, 1);
+}
+/* Keep the outer Pixel ink above the sticky header at fractional zoom. */
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])::before {
+  z-index: calc(var(--appearance-ink-layer, 1) + 20 * var(--pixel-enabled, 0));
 }
 :where([data-border-style], [data-corner-style], [data-corner-size]) .palette { overflow: visible; }
 :where([data-border-style], [data-corner-style], [data-corner-size]) .palette-list { border-end-start-radius: var(--radius-surface); border-end-end-radius: var(--radius-surface); }
@@ -3682,6 +3687,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   --frame-fill: transparent;
   background-color: transparent;
+  --color-muted-foreground: var(--color-foreground);
+  --color-subtle-foreground: var(--color-foreground);
 }
 :where([data-panel-fill="translucent"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) :is(.card, .topbar) {
   --frame-fill: color-mix(in srgb, var(--color-card) 65%, transparent);
@@ -3993,9 +4000,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 /* Patterns can pass behind page labels. Raise secondary text to full contrast
-   on the bare canvas. A surface with a fill keeps the muted hierarchy, so
-   inactive tabs and breadcrumb ancestors still read as secondary. Translucent
-   panels raise their fill over a pattern, so they keep the hierarchy too. */
+   on the bare canvas. A surface with an opaque fill keeps the muted hierarchy,
+   so inactive tabs and breadcrumb ancestors still read as secondary. Translucent
+   panels let the pattern through, so they stay at full contrast. */
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) {
   --surface-muted-foreground: var(--color-muted-foreground);
   --surface-subtle-foreground: var(--color-subtle-foreground);
@@ -4004,7 +4011,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --color-muted-foreground: var(--color-foreground);
   --color-subtle-foreground: var(--color-foreground);
 }
-:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) :is(.card, .table-wrap, .dialog, .marked, .topbar:not([data-variant="plain"])) {
+:where([data-background-style]:not([data-background-style="solid"]):not([data-panel-fill="translucent"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) :is(.card, .table-wrap, .dialog, .marked, .topbar:not([data-variant="plain"])) {
   --color-muted-foreground: var(--surface-muted-foreground, var(--color-muted-foreground));
   --color-subtle-foreground: var(--surface-subtle-foreground, var(--color-subtle-foreground));
 }

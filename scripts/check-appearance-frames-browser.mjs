@@ -658,12 +658,15 @@ test('Panel translucency retains contrast across every background, paper tone, t
         const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
         const paper = token(outer, tone === 'accent' ? '--color-accent-surface' : '--color-sidebar');
         const alpha = strength === 'quiet' ? .14 : .22;
-        const pattern = background === 'solid' ? paper : blend(background.startsWith('momoi') ? token(outer, '--color-accent-400') : token(outer, '--color-foreground'), paper, alpha);
+        const pattern = background === 'solid' ? paper : blend(background.startsWith('momoi') ? token(outer, '--color-accent-400') : token(outer, '--color-border-strong'), paper, alpha);
         const solidCard = token(card, '--color-card');
         const backing = fill === 'solid' ? solidCard : blend(solidCard, pattern, .65);
         const canvasText = background === 'solid' && fill === 'solid' ? token(outer, '--color-background') : pattern;
         return {
-          text: Math.min(...(background === 'solid' && fill === 'solid' && tone === 'theme' ? ['--color-foreground', '--color-muted-foreground'] : ['--color-foreground', '--color-muted-foreground', '--color-subtle-foreground']).flatMap(name => [contrast(token(card, name), backing) * (name === '--color-subtle-foreground' && fill === 'solid' ? 4.5 / 3 : 1), contrast(token(outer, name), canvasText)])),
+          text: Math.min(...['--color-foreground', '--color-muted-foreground', '--color-subtle-foreground'].flatMap(name => {
+            const role = name === '--color-subtle-foreground' ? 4.5 / 3 : 1;
+            return [contrast(token(card, name), backing) * role, contrast(token(outer, name), canvasText) * role];
+          })),
           focus: contrast(token(card, '--color-ring'), backing),
         };
       }, { background, tone, theme, accent, strength, fill });
@@ -790,6 +793,84 @@ for (const border of ['manga', 'brush']) test(`A sticky header cannot cover the 
       assert.equal(missed, 0, `${width}px/${detail}: every column of the top ink edge remains visible`);
     }
   } finally { await page.close(); }
+});
+
+test('The Pixel shell header preserves its border at 175% and 200% scale', async () => {
+  for (const [width, scale] of [[1143, 1.75], [1000, 2]]) {
+    const page = await browser.newPage({ viewport: { width, height: 700 }, deviceScaleFactor: scale });
+    try {
+      await page.route('https://fonts.googleapis.com/**', route => route.abort());
+      await page.goto(`${url}?canvas&border=solid&corners=pixel&marks=ticks&panelFill=translucent&shadowStyle=hard`);
+      await page.locator('#outer').waitFor();
+      await page.evaluate(() => document.documentElement.style.setProperty('--color-border', 'magenta'));
+      const box = await page.locator('#outer').boundingBox();
+      const images = [];
+      for (const hidden of [false, true]) {
+        await page.locator('#outer > .topbar').evaluate((el, hidden) => el.style.visibility = hidden ? 'hidden' : 'visible', hidden);
+        const png = await page.screenshot({ clip: { x: box.x + box.width - 30, y: box.y - 8, width: 40, height: 40 } });
+        images.push(`data:image/png;base64,${png.toString('base64')}`);
+      }
+      const covered = await page.evaluate(async sources => {
+        const pixels = [];
+        for (const source of sources) {
+          const image = new Image(); image.src = source; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+          pixels.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
+        }
+        const [shown, hidden] = pixels;
+        let covered = 0;
+        for (let i = 0; i < hidden.length; i += 4) {
+          const ink = hidden[i] > hidden[i + 1] + 30 && hidden[i + 2] > hidden[i + 1] + 30;
+          // Allow a few levels for fractional-pixel antialiasing.
+          if (ink && shown[i + 1] > hidden[i + 1] + 8) covered++;
+        }
+        return covered;
+      }, images);
+      assert.equal(covered, 0, `${scale}: showing the header must not wash out the Pixel border`);
+    } finally { await page.close(); }
+  }
+});
+
+test('The inset shell shadow stays outside the desktop content scroller', async () => {
+  // Headless Chromium normally hides the native scrollbar paint that leaked.
+  const visibleScrollbars = await chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] });
+  const page = await visibleScrollbars.newPage({ viewport: { width: 1143, height: 700 }, deviceScaleFactor: 1.75 });
+  try {
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    await page.goto(`${url}?canvas&border=solid&corners=pixel&marks=ticks&panelFill=translucent&shadowStyle=hard`);
+    await page.locator('#outer').waitFor();
+    await page.evaluate(() => {
+      document.documentElement.style.cssText = '--color-background:black;--color-sidebar:black;--color-card:black;--color-border:red';
+    });
+    for (const width of [1000, 1143]) {
+      await page.setViewportSize({ width, height: 700 });
+      const shadow = page.locator('#outer > .panel-shadow');
+      const paint = await shadow.evaluate(el => {
+        const s = getComputedStyle(el);
+        return { display: s.display, overflow: s.overflow, flexGrow: s.flexGrow };
+      });
+      assert.equal(paint.display, 'block', 'The hard shadow is active');
+      assert.equal(paint.overflow, 'visible', `${width}: the shadow must not paint scrollbars in its cut-out corners`);
+      assert.equal(paint.flexGrow, '0', 'The shadow is not page content');
+      if (width >= 1024) {
+        const content = page.locator('#outer > .page');
+        await content.evaluate(el => { el.scrollTop = 100; });
+        assert(await content.evaluate(el => el.scrollTop > 0), 'Page content still scrolls');
+        const box = await page.locator('#outer').boundingBox();
+        const png = await page.screenshot({ clip: { x: box.x + box.width - 3, y: box.y + box.height - 3, width: 2, height: 2 } });
+        const light = await page.evaluate(async source => {
+          const image = new Image(); image.src = source; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+          const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          return Array.from(data).filter((_, i) => i % 4 === 1).some(value => value > 40);
+        }, `data:image/png;base64,${png.toString('base64')}`);
+        assert.equal(light, false, 'The native scrollbar does not paint white over the cut-out corner');
+      }
+      if (screenshots) await page.screenshot({ path: `${screenshots}/pixel-shell-shadow-${width}.png` });
+    }
+  } finally { await visibleScrollbars.close(); }
 });
 
 test('Translucent Pixel panels paint one uniform fill and retain cut-out corners', async () => {
