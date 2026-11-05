@@ -6,6 +6,12 @@ Layout tabs at `/#example` show a dashboard,
 a list-detail screen, workspace settings, a login screen and a printable
 report. Each composition uses sample data. Preview actions do not save, authenticate or send requests.
 The component navigation stays available across all layouts.
+The sidebar and header use the approved Kiso lockup. The introduction shows
+`基礎` with the smaller reading `kiso` beside it. The symbol
+follows the selected accent; the wordmark follows the foreground color.
+The outlined artwork comes from `docs/brand/`. The shell lockup is 24 px high.
+Canvas also offers Kiso enso, a large centered symbol in the selected accent.
+
 The header links to the Kiso release notes. Its version comes from
 `packages/kiso/package.json` at build time.
 
@@ -60,9 +66,10 @@ controls. Pixel, Manga and Brush use the panel contour. Main, outer and phone
 shadows can differ; Diagram has its own inherited Node shadow option.
 None borders hide outlines and marks without disabling an explicit shadow.
 
-Global preferences include layouts and dialogs. New visits and Reset use
-system theme, violet, Solid borders, Small Pixel corners, original ticks,
-Editorial style, an Inset frame, Fibers and no panel shadow. Existing presets
+Global preferences include layouts and dialogs. New visits and Reset use the
+SNES preset: system theme, SNES accent, rounded
+Large corners, a floating header, a centered contained page, Glow background,
+glass panels and Soft shadows. Existing presets
 use Hard or Soft, except Drafting sheet, which keeps None. Pixel everywhere
 adds Hard to the starting look. Explicit component variants can override the
 global choices.

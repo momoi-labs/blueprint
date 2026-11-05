@@ -41,24 +41,16 @@ test("shadow migration preserves legacy elevation without rerunning Pixel size m
     second.resize(false);
     assert.equal(second.dataset.shadowStyle, "soft");
     second.api.save(second.api.defaults);
-    assert.equal(second.dataset.shadowStyle, "none");
+    assert.equal(second.dataset.shadowStyle, "soft");
   }
   for (const value of ["{", "null", "[]", "{}", '{"shadowStyle":"invalid"}']) {
-    assert.equal(boot({ "kiso-gallery-appearance": value }).dataset.shadowStyle, "none");
+    assert.equal(boot({ "kiso-gallery-appearance": value }).dataset.shadowStyle, "soft");
   }
 });
 
-test("new visits use the approved Pixel everywhere settings before React starts", () => {
+test("new visits use the approved SNES settings before React starts", () => {
   const { api, dataset } = boot();
-  const expected = {
-    theme: "system", accent: "violet", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "none", borderStyle: "solid", cornerStyle: "pixel",
-    cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
-    appShell: "inset", headerVariant: "default", headerSize: "default", headerWidth: "page", appShellOuter: "auto", pageWidth: "full", pageAlign: "start", frameScope: "all", markScope: "panels", markClearance: "normal",
-    backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
-    frameDetail: "medium", paperTone: "theme", panelFill: "solid",
-    outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit", outerShadowStyle: "inherit",
-    phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit",
-  };
+  const expected = { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit" };
   assert.deepEqual(JSON.parse(JSON.stringify(api.read())), expected);
   const { theme, phoneBackgroundStyle, phoneBorderStyle, phoneCornerStyle, phoneCornerMarks, phonePanelFill, phoneShadowStyle, ...attributes } = expected;
   assert.deepEqual(dataset, attributes);
@@ -88,7 +80,7 @@ test("random appearances preserve theme and produce supported frame combinations
     }
     backgrounds.add(next.backgroundStyle);
   }
-  assert.equal(backgrounds.size, 13);
+  assert.equal(backgrounds.size, 14);
   assert.equal(borders.size, 9);
   assert.equal(corners.size, 4);
 });
@@ -115,7 +107,7 @@ test("retains the existing theme and accent storage keys", () => {
   assert.equal(dataset.theme, "light");
   assert.equal(dataset.accent, "nocturne");
   assert.equal(dataset.borderStyle, "solid");
-  assert.equal(dataset.visualStyle, "editorial");
+  assert.equal(dataset.visualStyle, "default");
   assert.equal(dataset.appShell, "inset");
 });
 
@@ -135,7 +127,7 @@ test("ignores malformed storage and unsupported values", () => {
   for (const stored of ["{broken", "null", "42", '"text"', '{"borderStyle":"cut","cornerSize":"huge","theme":"invalid"}']) {
     const { dataset } = boot({ "kiso-gallery-appearance": stored });
     assert.equal(dataset.borderStyle, "solid");
-    assert.equal(dataset.cornerSize, "small");
+    assert.equal(dataset.cornerSize, "large");
     assert.equal(dataset.theme, undefined);
   }
 });
@@ -149,8 +141,8 @@ test("persists changes, restores them on reload, and resets system mode", () => 
   assert.equal(boot(Object.fromEntries(storage)).dataset.appShell, "inset");
   api.save(api.defaults);
   assert.equal(dataset.theme, undefined);
-  assert.equal(dataset.cornerMarks, "ticks");
-  assert.equal(dataset.visualStyle, "editorial");
+  assert.equal(dataset.cornerMarks, "none");
+  assert.equal(dataset.visualStyle, "default");
   assert.equal(dataset.appShell, "inset");
   assert.equal(boot(Object.fromEntries(storage)).dataset.theme, undefined);
 });
@@ -191,7 +183,7 @@ test("frameless borders retain the saved corner and mark choices", () => {
 });
 
 for (const source of ["borderStyle", "cornerStyle"]) test(`normalizes saved rounded presets from ${source}`, () => {
-  for (const [preset, size, expected] of [["soft", "medium", "small"], ["soft", "off", "small"], ["round", "large", "large"]]) {
+  for (const [preset, size, expected] of [["soft", "medium", "small"], ["soft", "off", "large"], ["round", "large", "large"]]) {
     const { api, dataset, storage } = boot({ "kiso-gallery-appearance": JSON.stringify({ [source]: preset, cornerSize: size }) });
     assert.equal(dataset.cornerStyle, "rounded");
     assert.equal(dataset.cornerSize, expected);
@@ -202,10 +194,10 @@ for (const source of ["borderStyle", "cornerStyle"]) test(`normalizes saved roun
 
 for (const cornerStyle of ["rounded", "asym"]) test(`restores and saves ${cornerStyle} with an enabled size`, () => {
   const { api, dataset, storage } = boot({ "kiso-gallery-appearance": JSON.stringify({ cornerStyle, cornerSize: "off" }) });
-  assert.equal(dataset.cornerSize, "small");
+  assert.equal(dataset.cornerSize, "large");
   const next = api.save({ ...api.read(), cornerStyle, cornerSize: "off" });
-  assert.equal(next.cornerSize, "small");
-  assert.equal(JSON.parse(storage.get("kiso-gallery-appearance")).cornerSize, "small");
+  assert.equal(next.cornerSize, "large");
+  assert.equal(JSON.parse(storage.get("kiso-gallery-appearance")).cornerSize, "large");
   assert.equal(api.save({ ...next, cornerStyle: "square", cornerSize: "off" }).cornerSize, "off");
 });
 
@@ -218,8 +210,8 @@ test("restores backgrounds, independent scopes, outer overrides and legacy value
   const restored = boot(Object.fromEntries(storage));
   assert.deepEqual(restored.dataset, dataset);
   api.save(api.defaults);
-  assert.equal(dataset.backgroundStyle, "fibers");
-  assert.equal(dataset.outerBorderStyle, "inherit");
+  assert.equal(dataset.backgroundStyle, "glow");
+  assert.equal(dataset.outerBorderStyle, "none");
   assert.equal(dataset.markScope, "panels");
 });
 

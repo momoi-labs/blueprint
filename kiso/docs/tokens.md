@@ -498,7 +498,7 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-outer-corner-style` | `inherit` or a corner value | `inherit` |
 | `data-outer-corner-marks` | `inherit` or a mark value | `inherit` |
 | `data-mark-clearance` | `normal`, `sheet` | `normal` |
-| `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat`, `checker`, `glow`, `stripes`, `rings` | `solid` |
+| `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat`, `enso`, `checker`, `glow`, `stripes`, `rings` | `solid` |
 | `data-background-strength` | `quiet`, `visible` | `quiet` |
 | `data-background-placement` | `inside`, `outside`, `both` | `both` |
 | `data-paper-tone` | `theme`, `accent` | `theme` |
@@ -601,6 +601,10 @@ the watermark does not shrink the frame. Quiet and Visible use 14% and 22%
 opacity on the background layer only.
 `momoi-repeat` is a separate tiled option. Both use the SVG as an alpha mask
 painted with `--color-accent-400`, so the motif follows the selected accent.
+
+`enso` shows the Kiso symbol once at the center of the canvas, sized to 70%
+of the smaller viewport dimension. It uses the selected accent ink and the
+existing Quiet and Visible background strengths.
 
 Patterned canvases use foreground color for secondary text on the bare canvas,
 so labels remain legible over the pattern. A surface with an opaque fill (card,

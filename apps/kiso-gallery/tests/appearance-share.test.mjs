@@ -211,7 +211,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
       await menu.click();
       await page.getByRole("menuitem", { name: "Copy settings" }).click();
       await page.getByText("Settings copied", { exact: true }).waitFor();
-      assert.equal(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).s.cornerSize, "small", "Copied settings include values equal to the defaults");
+      assert.equal(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).s.cornerSize, "large", "Copied settings include values equal to the defaults");
       await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{"accent":"red","bogus":"x"}}'));
       await menu.click();
       await page.getByRole("menuitem", { name: "Paste settings" }).click();
@@ -255,7 +255,7 @@ test("every preset retains its shadow through actual clipboard and fresh-context
         assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected, `${name} reload`);
       } finally { await fresh.context().close(); }
       await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
-      assert.equal(await page.evaluate(() => window.kisoAppearance.read().shadowStyle), "none");
+      assert.equal(await page.evaluate(() => window.kisoAppearance.read().shadowStyle), "soft");
       await page.evaluate(text => navigator.clipboard.writeText(text), copied);
       await panel.getByRole("button", { name: "Share", exact: true }).click();
       await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
@@ -420,7 +420,7 @@ test("Copy settings and Paste settings restore large corners on controls", async
     const copied = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
     assert.equal(copied.s.cornerSize, "large");
     assert.equal(copied.s.frameScope, "all");
-    await page.getByRole("button", { name: "Reset appearance", exact: true }).click();
+    await page.locator("#gallery-settings").getByRole("button", { name: "Pixel everywhere", exact: true }).click();
     assert.notDeepEqual(await inspect(), before);
     await page.getByRole("button", { name: "Share", exact: true }).click();
     await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();

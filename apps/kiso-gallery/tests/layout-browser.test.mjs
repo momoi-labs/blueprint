@@ -119,7 +119,11 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
     // main area takes the whole shell.
     if (width < 1024) for (const example of ["crud", "dashboard", "charts"]) {
       await page.goto(`${url}?frame#example/${example}`);
-      const shell = await page.locator(".layout-shell").evaluate(el => ({ shell: el.clientWidth, main: el.querySelector(":scope > main").getBoundingClientRect().width }));
+      const shell = await page.locator(".layout-shell").evaluate(el => {
+        const main = el.querySelector(":scope > main");
+        const css = getComputedStyle(main);
+        return { shell: el.clientWidth, main: main.getBoundingClientRect().width + parseFloat(css.marginLeft) + parseFloat(css.marginRight) };
+      });
       if (shell.main < shell.shell - 2) failures.push({ route: `?frame#example/${example}`, issues: [`example main is ${shell.main}px of a ${shell.shell}px shell`] });
     }
     assert.deepEqual(errors, [], "No render or lifecycle exceptions");
@@ -230,7 +234,7 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
       await copy.click();
       assert((await page.evaluate(() => window.copiedText)).includes("Object.assign(root.dataset, attributes)"));
       await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
-      assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "editorial");
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "default");
     }
   } finally { await page.close(); }
 });
@@ -316,7 +320,13 @@ for (const width of [390, 320]) test(`The phone chrome is compact and touchable 
     for (const route of ["components", "components/button"]) {
       await page.goto(`${url}#${route}`);
       await page.locator("h1").first().waitFor();
-      assert((await page.locator("h1").first().boundingBox()).y < 120, `${route}: the page heading starts in the first 120px`);
+      const header = await page.locator(".catalog-header").boundingBox();
+      const trailRoom = await page.evaluate(() => {
+        const css = getComputedStyle(document.documentElement);
+        return parseFloat(css.getPropertyValue("--size-touch-min")) + parseFloat(css.getPropertyValue("--spacing-sm"));
+      });
+      assert((await page.locator("h1").first().boundingBox()).y <= header.y + header.height + trailRoom,
+        `${route}: the heading follows the header with room for one touchable breadcrumb row`);
       assert.deepEqual(await small(), [], `${route}: chrome targets`);
     }
     await page.getByRole("button", { name: "Browse", exact: true }).click();
@@ -427,5 +437,27 @@ for (const width of [390, 900]) test(`Navigation overlays the page from the left
     await appearance.waitFor({ state: "hidden" });
     await page.waitForFunction(el => el === document.activeElement, await settingsTrigger.elementHandle());
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  } finally { await page.close(); }
+});
+
+
+test("gallery lockups stay compact and use the accent with navigation open", async () => {
+  const page = await open(1440);
+  try {
+    await page.goto(`${url}#components`);
+    const navigation = page.locator(".catalog-sidebar");
+    if (!await navigation.isVisible()) await page.getByRole("button", { name: "Expand navigation", exact: true }).click();
+    for (const theme of ["light", "dark"]) for (const accent of ["snes", "gold"]) {
+      await page.evaluate(({ theme, accent }) => window.kisoAppearance.save({ ...window.kisoAppearance.read(), theme, accent }), { theme, accent });
+      const brand = navigation.locator(".kiso-brand");
+      await brand.waitFor();
+      const actual = await brand.evaluate(el => ({
+        height: el.getBoundingClientRect().height,
+        symbol: getComputedStyle(el.querySelector(".kiso-brand-symbol path")).fill,
+        ink: getComputedStyle(el).color,
+      }));
+      assert.equal(actual.height, 24, `${theme}/${accent}`);
+      assert.notEqual(actual.symbol, actual.ink, `${theme}/${accent}: the symbol retains the accent`);
+    }
   } finally { await page.close(); }
 });

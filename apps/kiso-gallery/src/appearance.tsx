@@ -195,7 +195,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     preview={detail => <PanelPreview border={detailBorder} detail={detail} />} />;
   const backgrounds = [
     ["solid", "Solid"], ["dots", "Dot grid"], ["grid", "Fine grid"], ["crosses", "Cross grid"],
-    ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"],
+    ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"], ["enso", "Kiso enso"],
     ["checker", "Checker"], ["glow", "Glow"], ["stripes", "Stripes"], ["rings", "Rings"],
   ] as const;
   const sections: Record<AppearanceSectionId, ReactNode> = {
@@ -206,10 +206,10 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     </div>
   </AppearanceSection>,
   presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
-    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; other presets keep your theme. Reset starts without panel shadows.</p>
+    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; other presets keep your theme. Reset restores SNES.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
-        const next = { ...window.kisoAppearance.defaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
+        const next = { ...window.kisoAppearance.presetDefaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
         return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(next).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(next)}>
           <span className="appearance-composition-preview" data-accent={next.accent} data-preview-tone={next.paperTone} aria-hidden="true">
             <BackgroundPreview background={next.backgroundStyle} tone={next.paperTone} />
