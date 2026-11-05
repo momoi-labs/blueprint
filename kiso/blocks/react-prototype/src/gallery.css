@@ -472,7 +472,7 @@
 @container gallery-shell (min-width: 1100px) {
   .catalog-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
     align-items: center;
   }
   .catalog-header > nav { justify-self: center; }
