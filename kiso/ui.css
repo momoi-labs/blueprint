@@ -3581,6 +3581,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 [data-background-style="grid"] {
   --canvas-pattern: linear-gradient(var(--color-border-strong) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-strong) 1px, transparent 1px);
   --canvas-size: var(--spacing-xl) var(--spacing-xl);
+  /* Start with half a cell so the first row cannot imitate a top border. */
+  --canvas-position: center calc(-1 * var(--spacing-xl) / 2);
 }
 [data-background-style="crosses"] {
   --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M13 16h6m-3-3v6' stroke='black'/%3E%3C/svg%3E");
@@ -3588,8 +3590,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --canvas-mask-color: var(--color-border-strong);
 }
 [data-background-style="construction"] {
-  --canvas-pattern: linear-gradient(var(--color-border-strong) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-strong) 1px, transparent 1px), linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  --canvas-size: calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl)), calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl)), var(--spacing-xl) var(--spacing-xl), var(--spacing-xl) var(--spacing-xl);
+  --canvas-pattern: linear-gradient(var(--color-border-strong) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-strong) 1px, transparent 1px), repeating-linear-gradient(var(--color-border) 0 1px, transparent 1px 25%), repeating-linear-gradient(90deg, var(--color-border) 0 1px, transparent 1px 25%);
+  --canvas-size: calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl));
+  --canvas-position: center;
 }
 [data-background-style="guides"] {
   --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='.7'%3E%3Cpath d='M24 0V600M776 0V600M0 24H800M0 576H800' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M400 0V600M0 300H800' stroke-dasharray='12 5 2 5' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E");
@@ -3669,6 +3672,13 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])),
 .app-shell[data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
   background: var(--canvas-fill, var(--color-background));
+}
+/* Patterned shells use the main margin for spacing; rails reach both edges. */
+@media (min-width: 1024px) {
+  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(.sidebar, .app-shell-panel) {
+    top: 0;
+    height: 100dvh;
+  }
 }
 /* The side panels sit on the same surface, so they take the paper too. */
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(.sidebar, .app-shell-panel),
@@ -4066,6 +4076,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 /* Pattern placement uses a single layer, including the Momoi signature. */
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
   --canvas-frame-inset: var(--app-shell-outer);
+  /* Main owns the frame spacing so the canvas also paints the surround. */
+  padding: 0;
+  --app-shell-panel-offset: 0px;
 }
 :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]) > :is(main, [data-slot="app-shell-main"]) {
   margin: var(--canvas-frame-inset, 0px);
@@ -4311,10 +4324,6 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
    removes it below 700px, where the frame costs a phone too much width. */
 :where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
   --app-shell-outer: var(--spacing-sm);
-}
-/* A background already insets the main frame by the same amount. */
-:where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where([data-app-shell-outer="compact"] *) {
-  padding: 0;
 }
 :where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-scale: calc(var(--inner-appearance-scale, 1) / 2);

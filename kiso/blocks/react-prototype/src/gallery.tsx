@@ -2116,7 +2116,7 @@ export function ComponentGallery({
   const [group, setGroup] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
   // On a phone the header is one row: brand, search and settings. The pages
-  // move to a BottomNav and the categories to a sheet from it.
+  // move to a BottomNav; Browse opens the navigation drawer.
   const phone = useNarrow();
   const [searching, setSearching] = useState(false);
   const content = useRef<HTMLDivElement>(null);
@@ -2246,15 +2246,55 @@ export function ComponentGallery({
     </Navigation>
   );
 
+  const navigationDrawer = (
+    <DrawerContent id="component-navigation-drawer" placement="side" className="app-shell-drawer catalog-sheet" aria-describedby={undefined}>
+            <DrawerHeader>
+              <DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle>
+              <DrawerClose asChild><Button size="sm" variant="ghost" aria-label="Close navigation">Close</Button></DrawerClose>
+            </DrawerHeader>
+            <DrawerBody
+              onClick={(event) => {
+                if ((event.target as Element).closest("a[href]")) setMenuOpen(false);
+              }}
+            >
+              {destinations}
+              {/* The bottom bar has no room for a fifth page. */}
+              {((terminal !== undefined && !showingTerminal) || (accents !== undefined && !showingAccents)) && (
+                <Navigation aria-label="More pages">
+                  <NavigationList>
+                    {terminal !== undefined && !showingTerminal && (
+                      <NavigationItem>
+                        <NavigationLink href="#tui">TUI gallery</NavigationLink>
+                      </NavigationItem>
+                    )}
+                    {accents !== undefined && !showingAccents && (
+                      <NavigationItem>
+                        <NavigationLink href="#accents">
+                          Accents <Badge variant="info">New</Badge>
+                        </NavigationLink>
+                      </NavigationItem>
+                    )}
+                  </NavigationList>
+                </Navigation>
+              )}
+              {version && <Link className="catalog-version t-label mono"
+                href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
+                target="_blank" rel="noreferrer">
+                Kiso v{version} release notes
+              </Link>}
+            </DrawerBody>
+          </DrawerContent>
+  );
+
   return (
     <AppShell
       className="component-gallery"
     >
       {!phone && <Sidebar
         id="component-navigation"
-        // A closed narrow menu is hidden too, so the shell gives it no row.
-        hidden={desktop ? navigationCollapsed : !menuOpen}
-        className={`catalog-sidebar ${menuOpen ? "catalog-open" : ""}`}
+        // Narrow navigation lives in the drawer instead of taking a grid row.
+        hidden={!desktop || navigationCollapsed}
+        className="catalog-sidebar"
       >
         <SidebarHeader>
           <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
@@ -2351,15 +2391,16 @@ export function ComponentGallery({
             />}
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
-            {!phone && <Button
-              className="catalog-menu"
+            {!phone && <Drawer open={!desktop && menuOpen} onOpenChange={setMenuOpen}><DrawerTrigger asChild><Button
+              className="catalog-menu btn-icon"
               size="sm"
-              aria-controls="component-navigation"
+              variant="ghost"
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              aria-controls="component-navigation-drawer"
               aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(!menuOpen)}
             >
-              {menuOpen ? "Hide navigation" : "Show navigation"}
-            </Button>}
+              <PanelLeft className="icon" aria-hidden="true" />
+            </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
             {settingsToggle}
           </div>
           </>}
@@ -2514,50 +2555,15 @@ export function ComponentGallery({
             <span className="bottom-nav-icon" aria-hidden="true"><LayoutDashboard className="icon" /></span>
             <span>Layouts</span>
           </BottomNavLink>}
-          <BottomNavLink asChild>
-            <button type="button" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+          <Drawer open={menuOpen} onOpenChange={setMenuOpen}><BottomNavLink asChild>
+            <DrawerTrigger asChild><button type="button" aria-haspopup="dialog" aria-expanded={menuOpen}>
               <span className="bottom-nav-icon" aria-hidden="true"><ListTree className="icon" /></span>
               <span>Browse</span>
-            </button>
-          </BottomNavLink>
+            </button></DrawerTrigger>
+          </BottomNavLink>{navigationDrawer}</Drawer>
         </BottomNav>
-        <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-          <DrawerContent placement="bottom" className="catalog-sheet">
-            <DrawerHeader><DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></DrawerHeader>
-            <DrawerBody
-              onClick={(event) => {
-                if ((event.target as Element).closest("a[href]")) setMenuOpen(false);
-              }}
-            >
-              {destinations}
-              {/* The bottom bar has no room for a fifth page. */}
-              {((terminal !== undefined && !showingTerminal) || (accents !== undefined && !showingAccents)) && (
-                <Navigation aria-label="More pages">
-                  <NavigationList>
-                    {terminal !== undefined && !showingTerminal && (
-                      <NavigationItem>
-                        <NavigationLink href="#tui">TUI gallery</NavigationLink>
-                      </NavigationItem>
-                    )}
-                    {accents !== undefined && !showingAccents && (
-                      <NavigationItem>
-                        <NavigationLink href="#accents">
-                          Accents <Badge variant="info">New</Badge>
-                        </NavigationLink>
-                      </NavigationItem>
-                    )}
-                  </NavigationList>
-                </Navigation>
-              )}
-              {version && <Link className="catalog-version t-label mono"
-                href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
-                target="_blank" rel="noreferrer">
-                Kiso v{version} release notes
-              </Link>}
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
       </>}
+
     </AppShell>
   );
 }

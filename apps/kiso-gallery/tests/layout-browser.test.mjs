@@ -388,3 +388,44 @@ for (const width of [1440, 390]) for (const theme of ["light", "dark"]) test(`La
     assert.deepEqual(layers.filter(([, content]) => content !== "none"), [], "No shell behind the preview draws the signature");
   } finally { await page.close(); }
 });
+
+for (const width of [390, 900]) test(`Navigation overlays the page from the left at ${width}px`, async () => {
+  const page = await open(width, "inset");
+  try {
+    await page.goto(`${url}#intro`);
+    const trigger = page.getByRole("button", { name: width < 700 ? "Browse" : "Open navigation", exact: true });
+    await trigger.waitFor();
+    const main = page.locator(".component-gallery > main");
+    const before = await main.boundingBox();
+    await trigger.click();
+    const drawer = page.getByRole("dialog", { name: "Categories", exact: true });
+    await drawer.waitFor();
+    const drawerStyle = el => {
+      const s = getComputedStyle(el);
+      const header = getComputedStyle(el.querySelector('[data-slot="dialog-header"], .gallery-settings-heading'));
+      return { width: s.width, background: s.backgroundColor, headerPadding: header.padding };
+    };
+    const navigationStyle = await drawer.evaluate(drawerStyle);
+    assert.deepEqual(await main.boundingBox(), before, "Navigation does not move the page");
+    assert.equal((await drawer.boundingBox()).x, 0, "Navigation opens at the left edge");
+    assert(await drawer.evaluate(el => el.contains(document.activeElement)), "Focus enters the drawer");
+    await page.keyboard.press("Escape");
+    await drawer.waitFor({ state: "hidden" });
+    await page.waitForFunction(el => el === document.activeElement, await trigger.elementHandle());
+    await trigger.click();
+    await page.getByRole("dialog", { name: "Categories", exact: true }).getByRole("link", { name: /^Forms/ }).click();
+    await drawer.waitFor({ state: "hidden" });
+    assert(page.url().endsWith("#components"), "Choosing a category navigates and closes the drawer");
+    const settingsTrigger = page.locator(".gallery-settings-trigger");
+    await settingsTrigger.click();
+    const appearance = page.getByRole("dialog", { name: "Appearance", exact: true });
+    await appearance.waitFor();
+    assert.deepEqual(await appearance.evaluate(drawerStyle), navigationStyle, "Both drawers share width, paper and header spacing");
+    const bounds = await appearance.boundingBox();
+    assert(Math.abs(bounds.x + bounds.width - width) < 1, "Appearance still opens at the right edge");
+    await page.keyboard.press("Escape");
+    await appearance.waitFor({ state: "hidden" });
+    await page.waitForFunction(el => el === document.activeElement, await settingsTrigger.elementHandle());
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  } finally { await page.close(); }
+});
