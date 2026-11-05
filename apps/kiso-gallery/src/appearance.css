@@ -119,6 +119,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
   border: 1px solid var(--color-border-strong);
 }
 [data-preview-fill="translucent"] .appearance-fill-panel { background: color-mix(in srgb, var(--color-card) 65%, transparent); }
+[data-preview-fill="glass"] .appearance-fill-panel { background: light-dark(color-mix(in srgb, var(--color-card) 38%, transparent), color-mix(in srgb, var(--color-card) 34%, transparent)); }
 .appearance-fill-title { height: 3px; width: 65%; background: var(--color-foreground); }
 .appearance-fill-field { height: var(--spacing-sm); width: 100%; background: var(--color-background); border: 1px solid var(--color-border-strong); }
 .appearance-option:has(input:disabled) { opacity: .5; cursor: default; }
@@ -145,3 +146,14 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-controls-scroll, .appearance-tabs { background: inherit; }
 .appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; }
 .appearance-tabs [role="tabpanel"] > :is(.appearance-section, .appearance-usage):first-child { border-top: 0; }
+
+/* Scale the canvas to the thumbnail instead of cropping a full-size pattern. */
+.appearance-background-sample[data-background-style="stripes"] {
+  --canvas-pattern: repeating-linear-gradient(45deg, var(--bg-strong) 0 2px, transparent 2px 18px);
+}
+.appearance-background-sample[data-background-style="rings"] {
+  --canvas-pattern: repeating-radial-gradient(circle at 30% 40%, var(--bg-strong) 0 2px, transparent 2px 18px);
+}
+.appearance-background-sample[data-background-style="glow"] {
+  --canvas-pattern: radial-gradient(ellipse at 0% 10%, var(--glow-1), transparent 70%), radial-gradient(ellipse at 100% 90%, var(--glow-3), transparent 70%);
+}

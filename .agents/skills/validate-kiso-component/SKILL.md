@@ -71,6 +71,16 @@ consumer composition when one is available. A controlled parent must rerender
 as the real application does. Mock external effects and record those limits;
 opening a local form and executing a backend deployment are different outcomes.
 
+When adding an Appearance option or a configurable demo feature, include its
+export and import behavior in the same change. Global preferences must appear
+explicitly in copied JSON, share codes, links, generated HTML, and generated
+JavaScript, including values equal to the defaults. Demo props belong in the
+shared demo schema. Verify restoration in a fresh context and phone overrides.
+Run `node --test apps/kiso-gallery/tests/appearance-export-completeness.test.mjs`.
+This test enumerates registered global options, so new options gain coverage
+without a separate list. Also verify the new control through the real Share UI;
+the registry test cannot detect a control that was never registered.
+
 For gallery changes, run the matrix's gallery and Appearance checks in
 `apps/kiso-gallery`. Also check the standalone prototype when shared demo code
 changes. Record both the component behavior and its integration result; a

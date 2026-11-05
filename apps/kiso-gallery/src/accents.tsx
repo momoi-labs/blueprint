@@ -33,6 +33,7 @@ const about: Record<Accent, string> = {
   plum: "Same roles, hue turned to plum, between violet and red.",
   stone: "Warm gray in the paper's hue. The dark fill is light, with dark text.",
   steel: "Blue-gray, with enough chroma to read apart from stone.",
+  snes: "Super Nintendo: purple ink over beige in light, plum in dark.",
 };
 
 const steps = ["50", "200", "300", "400", "500", "600", "700", "800", "900", "950"];

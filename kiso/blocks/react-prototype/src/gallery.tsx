@@ -1077,15 +1077,42 @@ function SplitDemo() {
 }
 
 
+// Keep expensive interactive examples off the initial render until nearby.
+function DeferredPreview({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+  const host = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(!enabled);
+  useEffect(() => {
+    if (!enabled || ready) return;
+    if (!host.current || !("IntersectionObserver" in window)) { setReady(true); return; }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setReady(true);
+        observer.disconnect();
+      }
+    }, { root: host.current.closest(".catalog-main"), rootMargin: "400px" });
+    observer.observe(host.current);
+    return () => observer.disconnect();
+  }, [enabled, ready]);
+  if (!enabled || ready) return <>{children}</>;
+  return <div ref={host} className="catalog-deferred-preview" aria-label="Component preview loading" aria-busy="true"><Skeleton variant="block" /></div>;
+}
+
+export const headerShareOptions = { variant: ["default", "plain", "floating"], size: ["compact", "default", "editorial"] };
+function useHeaderDemoOptions() {
+  return useDemoOptions<{ variant: "default" | "plain" | "floating"; size: "compact" | "default" | "editorial" }>("header", { variant: "default", size: "default" });
+}
 export const applicationShellShareOptions = { togglePlacement: ["sidebar", "header"] };
 function AppShellDemo() {
   const [{ togglePlacement }, setOptions] = useDemoOptions<{ togglePlacement: "sidebar" | "header" }>("applicationShell", { togglePlacement: "sidebar" });
+  const [{ variant: headerVariant, size: headerSize }] = useHeaderDemoOptions();
   return (
     <div className="stack">
       <DemoSettings title="ApplicationShell"><label className="field">Sidebar toggle placement<select className="select" value={togglePlacement} onChange={event => setOptions({ togglePlacement: event.target.value as typeof togglePlacement })}><option value="sidebar">Sidebar</option><option value="header">Header</option></select></label></DemoSettings>
       <ApplicationShell
         collapsible
         togglePlacement={togglePlacement}
+        headerVariant={headerVariant}
+        headerSize={headerSize}
         className="gallery-shell-preview gallery-shell-editorial"
         brand={
           <div className="brand">
@@ -1130,6 +1157,8 @@ function AppShellDemo() {
       </ApplicationShell>
       <ApplicationShell
         layout="topbar"
+        headerVariant={headerVariant}
+        headerSize={headerSize}
         className="gallery-shell-preview"
         brand={
           <div className="brand">
@@ -1173,6 +1202,7 @@ const Demo = memo(function Demo({
   const uid = useId();
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
+  const [{ variant: headerVariant, size: headerSize }, setHeaderOptions] = useHeaderDemoOptions();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -1554,8 +1584,9 @@ const Demo = memo(function Demo({
     case "header":
       return (
         <div className="stack">
-        <label className="check"><input type="checkbox" checked={checked} onChange={event => setChecked(event.target.checked)} />Plain header</label>
-        <Header variant={checked ? "plain" : "default"} className="gallery-header-preview">
+        <label className="field">Variant<select className="select" value={headerVariant} onChange={event => setHeaderOptions({ variant: event.target.value as typeof headerVariant })}><option value="default">Default</option><option value="plain">Plain</option><option value="floating">Floating</option></select></label>
+        <label className="field">Size<select className="select" value={headerSize} onChange={event => setHeaderOptions({ size: event.target.value as typeof headerSize })}><option value="compact">Compact</option><option value="default">Default</option><option value="editorial">Editorial</option></select></label>
+        <Header variant={headerVariant} size={headerSize} className="gallery-header-preview">
           <Breadcrumb aria-label="Example header breadcrumb">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -2122,7 +2153,7 @@ export function ComponentGallery({
   const content = useRef<HTMLDivElement>(null);
 
   const selected = route.split("/")[1] || "all";
-  const showingExample = (route === "example" || route.startsWith("example/")) && example !== undefined;
+  const showingExample = (route === "examples" || route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
   const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
   const showingAccents = route === "accents" && accents !== undefined;
@@ -2288,7 +2319,7 @@ export function ComponentGallery({
 
   return (
     <AppShell
-      className="component-gallery"
+      className={`component-gallery${showingIntro ? " catalog-landing" : ""}`}
     >
       {!phone && <Sidebar
         id="component-navigation"
@@ -2298,7 +2329,6 @@ export function ComponentGallery({
       >
         <SidebarHeader>
           <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-            <BrandMark><TerminalIcon /></BrandMark>
             <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
           </a>
         </SidebarHeader>
@@ -2311,7 +2341,7 @@ export function ComponentGallery({
       </Sidebar>}
       <AppShellMain>
         <Header className="catalog-header">
-          {phone && searching ? <>
+          {searching ? <>
             <Search
               aria-label="Find a component"
               placeholder="Find a component..."
@@ -2327,25 +2357,31 @@ export function ComponentGallery({
               <X className="icon" aria-hidden="true" />
             </Button>
           </> : <>
+          <div className="catalog-header-identity">
           <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
             aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
             <PanelLeft className="icon" aria-hidden="true" />
           </Button>
-          {(!showingIntro || phone) && (
+            {!phone && <Drawer open={!desktop && menuOpen} onOpenChange={setMenuOpen}><DrawerTrigger asChild><Button
+              className="catalog-menu btn-icon"
+              size="sm"
+              variant="ghost"
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              aria-controls="component-navigation-drawer"
+              aria-expanded={menuOpen}
+            >
+              <PanelLeft className="icon" aria-hidden="true" />
+            </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
+          {(intro !== undefined || phone) && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-              <BrandMark><TerminalIcon /></BrandMark>
               <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
             </a>
           )}
+          </div>
           {!phone && <Navigation aria-label="Preview pages">
             <NavigationList className="nav-row">
-              {intro !== undefined && (
-                <NavigationItem>
-                  <NavigationLink href="#intro" active={showingIntro}>Intro</NavigationLink>
-                </NavigationItem>
-              )}
               <NavigationItem>
                 <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
                   Components
@@ -2371,6 +2407,7 @@ export function ComponentGallery({
             </NavigationList>
           </Navigation>}
           <div className="catalog-tools">
+            {!phone && <Button className="catalog-compact-search btn-icon" size="sm" variant="ghost" aria-label="Open component search" onClick={() => setSearching(true)}><SearchIcon className="icon" aria-hidden="true" /></Button>}
             {version && !phone && <Link className="catalog-version t-label mono"
               href={`https://github.com/momoi-labs/blueprint/releases/tag/${encodeURIComponent(`@momoi-labs/kiso@${version}`)}`}
               title={`Kiso ${version} release notes`} target="_blank" rel="noreferrer">
@@ -2391,16 +2428,7 @@ export function ComponentGallery({
             />}
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
-            {!phone && <Drawer open={!desktop && menuOpen} onOpenChange={setMenuOpen}><DrawerTrigger asChild><Button
-              className="catalog-menu btn-icon"
-              size="sm"
-              variant="ghost"
-              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-              aria-controls="component-navigation-drawer"
-              aria-expanded={menuOpen}
-            >
-              <PanelLeft className="icon" aria-hidden="true" />
-            </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
+
             {settingsToggle}
           </div>
           </>}
@@ -2496,6 +2524,7 @@ export function ComponentGallery({
               {browsing && <p className="muted t-label">{description}{id === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}</p>}
               <div className="catalog-preview">
                 <DemoSettingsContext.Provider value={browsing && id !== "pane-grid" ? null : demoSettings && { ...demoSettings, linkTarget: optionsLinkTarget }}>
+                <DeferredPreview enabled={browsing}>
                 <Demo
                   id={id}
                   theme={theme}
@@ -2503,6 +2532,7 @@ export function ComponentGallery({
                   accent={accent}
                   onAccentChange={onAccentChange}
                 />
+                </DeferredPreview>
                 </DemoSettingsContext.Provider>
               {!browsing && shortcuts[id] && (
                 <section className="catalog-shortcuts" aria-labelledby={`${id}-shortcuts`}>

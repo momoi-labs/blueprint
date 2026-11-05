@@ -174,6 +174,17 @@
   --color-steel-900: #293440;
   --color-steel-950: #182029;
   --color-steel-base: light-dark(#405870, #adc0d4);
+  --color-snes-50: #eceaf0;
+  --color-snes-200: #dedbe4;
+  --color-snes-300: #cfcdd8;
+  --color-snes-400: #b7b3d4;
+  --color-snes-500: #948cd0;
+  --color-snes-600: #6a55c0;
+  --color-snes-700: #5540aa;
+  --color-snes-800: #462cad;
+  --color-snes-900: #32207e;
+  --color-snes-950: #221553;
+  --color-snes-base: light-dark(#5a3bb5, #a99bea);
   --color-background: light-dark(var(--color-neutral-200), var(--color-dark-900));
   --color-surface: light-dark(var(--color-neutral-100), var(--color-dark-800));
   --color-elevated-surface: light-dark(var(--color-white), var(--color-dark-700));
@@ -691,6 +702,57 @@
   --color-focus: var(--color-accent-base);
   --color-link: var(--color-accent-base);
   --color-ring: var(--color-focus);
+  --color-code-name: var(--color-accent);
+}
+
+[data-accent="snes"] {
+  --color-accent-50: var(--color-snes-50);
+  --color-accent-200: var(--color-snes-200);
+  --color-accent-300: var(--color-snes-300);
+  --color-accent-400: var(--color-snes-400);
+  --color-accent-500: var(--color-snes-500);
+  --color-accent-600: var(--color-snes-600);
+  --color-accent-700: var(--color-snes-700);
+  --color-accent-800: var(--color-snes-800);
+  --color-accent-900: var(--color-snes-900);
+  --color-accent-950: var(--color-snes-950);
+  --color-accent-base: var(--color-snes-base);
+  --color-primary: light-dark(#5a3bb5, #b5a1ee);
+  --color-primary-hover: light-dark(#462cad, #c5b4f4);
+  --color-primary-foreground: light-dark(#ffffff, #211733);
+  --color-accent-surface: light-dark(#eceaf0, #262047);
+  --color-accent-surface-hover: light-dark(#dedbe4, #322a5c);
+  --color-selected: light-dark(#cfcdd8, #3e3a55);
+  --color-focus: var(--color-snes-base);
+  --color-background: light-dark(#e8e5db, #292824);
+  --color-surface: light-dark(#f0ede3, #32312c);
+  --color-elevated-surface: light-dark(#f6f3ea, #3a3933);
+  --color-muted: light-dark(#e6e3d8, #3b3a34);
+  --color-sidebar: light-dark(#f0ede3, #24231f);
+  --color-card: var(--color-surface);
+  --color-popover: var(--color-elevated-surface);
+  --color-foreground: light-dark(#2a2822, #e7e3d8);
+  --color-muted-foreground: light-dark(#63605a, #bcb8ad);
+  --color-subtle-foreground: light-dark(#7a766e, #aaa598);
+  --color-border: light-dark(#cfcbbe, #555249);
+  --color-border-strong: light-dark(#7a766c, #999385);
+  --color-secondary: light-dark(#dcdfd8, #3b3a34);
+  --color-secondary-hover: light-dark(#b8b5ab, #48463f);
+  --color-disabled: light-dark(#b8b5ab, #48463f);
+  --color-disabled-surface: light-dark(#e8e5db, #32312c);
+  --color-skeleton: light-dark(#dcdfd8, #3b3a34);
+  --color-hatch: light-dark(#dcdfd8, #3b3a34);
+  --color-accent: light-dark(var(--color-accent-800), var(--color-accent-300));
+  --color-card-foreground: var(--color-foreground);
+  --color-popover-foreground: var(--color-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-input: var(--color-border);
+  --color-link: var(--color-accent-base);
+  --color-selected-foreground: var(--color-foreground);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-ring: var(--color-focus);
+  --color-corner-mark: var(--color-border-strong);
+  --color-code-comment: var(--color-muted-foreground);
   --color-code-name: var(--color-accent);
 }
 

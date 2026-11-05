@@ -17,9 +17,6 @@ export function Intro() {
         <div className="intro-copy">
           <p className="t-caps">Momoi Labs · design system</p>
           <div className="brand intro-wordmark">
-            <BrandMark>
-              <TerminalIcon />
-            </BrandMark>
             <span>
               Kiso{" "}
               <span className="muted" lang="ja">
@@ -43,7 +40,7 @@ export function Intro() {
               </a>
             </Button>
             <Button asChild>
-              <a href="#example/dashboard">Explore layouts</a>
+              <a href="#examples">Explore layouts</a>
             </Button>
           </div>
           <p className="muted t-label">
@@ -93,45 +90,43 @@ export function Intro() {
               </Button>
             </CardFooter>
           </Card>
-          <div className="intro-foundation-note">
-            <span className="intro-kanji" lang="ja" aria-hidden="true">
-              基礎
-            </span>
-            <div>
-              <p className="t-label">Small details. Shared everywhere.</p>
-              <p className="muted t-label">
-                Type, color, spacing and states work together.
-              </p>
-            </div>
-          </div>
+
         </div>
       </section>
-      <div className="intro-features">
-        <section>
-          <p className="t-caps">01 / Foundations</p>
-          <h2 className="t-h3">A common visual language</h2>
-          <p className="muted">
-            Semantic tokens keep color, typography and spacing consistent across
-            themes.
-          </p>
-        </section>
-        <section>
-          <p className="t-caps">02 / Components</p>
-          <h2 className="t-h3">Details you can inspect</h2>
-          <p className="muted">
-            Explore controls, forms, navigation and feedback with their
-            different states.
-          </p>
-        </section>
-        <section>
-          <p className="t-caps">03 / Layouts</p>
-          <h2 className="t-h3">See the pieces together</h2>
-          <p className="muted">
-            Browse complete dashboards, settings pages, sign-in screens and
-            more.
-          </p>
-        </section>
-      </div>
+      <section className="intro-sequence" aria-labelledby="intro-sequence-title">
+        <p className="t-caps">One system, from token to screen</p>
+        <h2 id="intro-sequence-title" className="t-h2">Small pieces. Complete interfaces.</h2>
+        <div className="intro-features">
+          <section>
+            <div className="intro-specimen intro-token-specimen" aria-hidden="true">
+              <span /><span /><span />
+            </div>
+            <p className="t-caps">01 / Foundations</p>
+            <h3 className="t-h3">A common visual language</h3>
+            <p className="muted">Color, type and spacing that stay consistent.</p>
+          </section>
+          <section>
+            <div className="intro-specimen" aria-hidden="true">
+              <div className="intro-control-specimen"><i /><i /><span>Continue</span></div>
+            </div>
+            <p className="t-caps">02 / Components</p>
+            <h3 className="t-h3">Details you can inspect</h3>
+            <p className="muted">Controls and feedback, with every state considered.</p>
+          </section>
+          <section>
+            <div className="intro-specimen" aria-hidden="true">
+              <div className="intro-layout-specimen">
+                <div className="intro-layout-bar"><i /><i /></div>
+                <div className="intro-layout-rail"><i /><i /><i /></div>
+                <div className="intro-layout-panels"><span><i /><i /></span><span><i /><i /></span><span><i /><i /></span></div>
+              </div>
+            </div>
+            <p className="t-caps">03 / Layouts</p>
+            <h3 className="t-h3">See the pieces together</h3>
+            <p className="muted">Complete screens built from the same pieces.</p>
+          </section>
+        </div>
+      </section>
     </div>
   );
 }

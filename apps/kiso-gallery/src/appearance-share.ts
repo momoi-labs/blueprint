@@ -8,7 +8,7 @@ const chartPresets: Record<string, { line: string; fill: string }> = {
   rounded: { line: "curved", fill: "none" },
 };
 
-// A shared look is `{ v: 2, s: { ...settings that differ from the defaults } }`,
+// A shared look is `{ v: 2, s: { ...all appearance settings } }`,
 // plus one key per demo with options set, such as `diagram: { edges: "curve" }`.
 // A demo's keys are its component's props.
 // A link carries it as base64url JSON in the `appearance` query parameter.
@@ -39,9 +39,8 @@ function fromBase64Url(code: string) {
 
 const setDemos = (demos: DemoOptions) => Object.fromEntries(Object.entries(demos).filter(([, values]) => Object.keys(values).length));
 
-export function shareText(settings: AppearanceSettings, { defaults }: Source, demos: DemoOptions = {}) {
-  const changed = Object.fromEntries(Object.entries(settings).filter(([key, value]) => value !== defaults[key as keyof AppearanceSettings]));
-  return JSON.stringify({ v: shareVersion, s: changed, ...setDemos(demos) });
+export function shareText(settings: AppearanceSettings, _source: Source, demos: DemoOptions = {}) {
+  return settingsText(settings, demos);
 }
 
 // Copied settings leave the gallery, where its defaults are unknown and Kiso's

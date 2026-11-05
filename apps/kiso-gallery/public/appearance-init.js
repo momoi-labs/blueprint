@@ -2,7 +2,7 @@
 (() => {
   const options = {
     theme: ["system", "light", "dark"],
-    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel"],
+    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes"],
     chartLine: ["straight", "stepped", "curved"],
     chartFill: ["none", "dots", "tint", "squares", "scanlines"],
     chartLayout: ["standard", "compact", "split"],
@@ -15,18 +15,21 @@
     markSize: ["medium", "small", "large"],
     visualStyle: ["default", "editorial"],
     appShell: ["default", "inset"],
+    headerVariant: ["default", "plain", "floating"],
+    headerSize: ["default", "compact", "editorial"],
+    headerWidth: ["page", "outset"],
     appShellOuter: ["auto", "full", "compact", "none"],
     pageWidth: ["full", "contained"],
     pageAlign: ["start", "center", "end"],
     frameScope: ["all", "panels", "outer"],
     markScope: ["panels", "all", "outer"],
     markClearance: ["normal", "sheet"],
-    backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat"],
+    backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "checker", "glow", "stripes", "rings"],
     backgroundStrength: ["quiet", "visible"],
     backgroundPlacement: ["both", "inside", "outside"],
     frameDetail: ["medium", "small", "large"],
     paperTone: ["theme", "accent"],
-    panelFill: ["solid", "translucent"],
+    panelFill: ["solid", "translucent", "glass"],
   };
   for (const key of ["borderStyle", "cornerStyle", "cornerMarks", "shadowStyle"]) {
     options[`outer${key[0].toUpperCase()}${key.slice(1)}`] = ["inherit", ...options[key]];

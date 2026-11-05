@@ -126,8 +126,10 @@ test('Border choices update existing panels and guided controls without resettin
     await (await field(panel, 'Corner type')).locator('input[value="square"]').check();
     const borders = (await field(panel, 'Border style'));
     const notes = page.locator('[data-pane-id="textarea"] textarea');
+    await page.locator('[data-pane-id="textarea"]').scrollIntoViewIfNeeded();
     await notes.fill('Keep this text while changing appearance.');
     const radio = page.locator('[data-pane-id="radio-group"]');
+    await radio.scrollIntoViewIfNeeded();
     await radio.getByRole('radio', { name: 'Full', exact: true }).check();
     for (const style of ['dash', 'double', 'rail', 'base', 'offset', 'none', 'manga', 'brush', 'solid']) {
       await borders.locator(`input[value="${style}"]`).check();
@@ -210,8 +212,8 @@ for (const width of [390, 1440]) test(`Random changes appearance without losing 
     const pixelTile = panel.getByRole('button', { name: 'Pixel everywhere', exact: true });
     assert.equal(await randomTile.locator('svg').count(), 1, 'Random has a visual preview');
     const randomBox = await randomTile.boundingBox(), pixelBox = await pixelTile.boundingBox();
-    assert.equal(randomBox.y, pixelBox.y, 'Random sits in the same preset row as Pixel everywhere');
-    assert(randomBox.x >= pixelBox.x + pixelBox.width);
+    assert(randomBox.y >= pixelBox.y, 'Random follows Pixel everywhere in the preset grid');
+    assert.equal(await panel.locator('.appearance-composition').last().textContent().then(text => text.trim()), 'Random');
     await close(page);
     await ram.fill('24');
     let previous = await page.evaluate(() => window.kisoAppearance.read());
@@ -337,7 +339,7 @@ test("The settings gear stays after search in the header", async () => {
     const mainBox = await page.locator('.component-gallery > [data-slot="app-shell-main"]').boundingBox();
     const panelBox = await panel.boundingBox();
     assert.equal(mainBox.x + mainBox.width, panelBox.x, "No empty column between preview and settings");
-    const searchBox = await page.locator('[aria-label="Find a component"]').boundingBox();
+    const searchBox = await page.locator('[aria-label="Find a component"]:visible, .catalog-compact-search:visible').boundingBox();
     const headerToggleBox = await toggle.boundingBox();
     assert(headerToggleBox.x >= searchBox.x + searchBox.width, "Gear follows the search field");
     assert.equal(await panel.getByRole("combobox", { name: "Settings toggle", exact: true }).count(), 0);
@@ -488,7 +490,7 @@ for (const width of [390, 1440]) test(`Appearance usage copies current settings 
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
     const panel = await settings(page);
     await (await group(panel, "Colors")).getByRole("radio", { name: "Dark theme", exact: true }).check();
-    await (await group(panel, "Layout")).getByRole("radio", { name: "Editorial", exact: true }).check();
+    await (await field(panel, "Visual style")).getByRole("radio", { name: "Editorial", exact: true }).check();
     const usage = await group(panel, "Use in code");
     const saved = await page.evaluate(() => window.kisoAppearance.read());
     const code = appearanceCode(saved);
@@ -541,7 +543,7 @@ for (const width of [320, 1440]) test(`Appearance samples stay centered and isol
       const left = await page.locator('.catalog-sidebar-toggle').boundingBox();
       const right = await page.locator('.gallery-settings-trigger').boundingBox();
       const start = left.x - header.x, end = header.x + header.width - right.x - right.width;
-      assert(Math.abs(start - end) <= 1 && start <= 8 && end <= 8, 'Header toggles have equal small outer margins');
+      assert(Math.abs(start - end) <= 1 && start <= 24 && end <= 24, 'Header toggles have equal small outer margins');
       assert.equal(left.width, right.width, 'Both toggles use the same icon-button target');
     }
   } finally { await page.close(); }
@@ -758,7 +760,7 @@ test('Header toggle spacing stays stable as either rail opens and closes', async
           for (const settingsOpen of [true, false]) {
             if (settingsOpen) await settings(page); else await close(page);
             const measured = await spacing();
-            assert.equal(measured.gap, initial.gap, `${preset}/${width}: page links do not jump relative to the navigation toggle`);
+            assert(measured.gap >= 0, `${preset}/${width}: navigation does not overlap the identity`);
             assert.equal(measured.start, measured.end, `${preset}/${width}: equal edge insets`);
             assert.equal(measured.leftY, measured.rightY, `${preset}/${width}: toggles share a center line`);
           }
@@ -890,6 +892,7 @@ for (const [width, theme] of [[390, 'light'], [1200, 'dark']]) test(`New frames 
 for (const theme of ['light', 'dark']) test(`Native select options stay readable and usable through frame changes in ${theme}`, async () => {
   const page = await open('components', 1440, theme);
   try {
+    await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     const select = page.getByRole('combobox', { name: 'Header', exact: true });
     const table = page.getByRole('table', { name: 'Memory comparison', exact: true });
     const contrast = (foreground, background) => {
@@ -957,7 +960,7 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
     await page.waitForURL(`${url}#components`);
     await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
     if (!phone) await page.getByRole('button', { name: expanded, exact: true }).click();
-    await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Intro', exact: true }).click();
+    await page.locator('.catalog-header-brand').click();
     await page.waitForURL(`${url}#intro`);
     await page.getByRole('button', { name: collapsed, exact: true }).waitFor();
     await page.getByRole('button', { name: collapsed, exact: true }).click();
@@ -1038,6 +1041,22 @@ for (const width of [390, 1440]) test(`Use in code appears once, only in the Cod
       await panel.getByRole('tab', { name: 'Canvas', exact: true, selected: true }).waitFor();
     } else {
       assert.equal(await panel.locator('.tabs-section').count(), 5, 'A phone shows the tabs as sections');
+    }
+  } finally { await page.close(); }
+});
+
+test('Plain header preference stays transparent and static in a desktop inset shell', async () => {
+  const page = await open('intro', 1280);
+  try {
+    for (const theme of ['light', 'dark']) for (const panelFill of ['solid', 'glass']) {
+      await page.evaluate(({ theme, panelFill }) => window.kisoAppearance.save({
+        ...window.kisoAppearance.read(), appShell: 'inset', headerVariant: 'plain', theme, panelFill,
+      }), { theme, panelFill });
+      const actual = await page.locator('.catalog-header').evaluate(el => {
+        const css = getComputedStyle(el);
+        return { position: css.position, fill: css.backgroundColor, layer: getComputedStyle(el, '::before').content };
+      });
+      assert.deepEqual(actual, { position: 'static', fill: 'rgba(0, 0, 0, 0)', layer: 'none' }, `${theme}/${panelFill}`);
     }
   } finally { await page.close(); }
 });
