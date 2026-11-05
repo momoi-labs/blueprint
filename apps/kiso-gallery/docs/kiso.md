@@ -27,7 +27,9 @@ The lockup sits directly in the shell brand link, without a BrandMark tile.
 The introduction uses `基礎` with a smaller `kiso` reading in foreground color.
 New visits and Reset appearance use the complete SNES preset. Saved preferences
 remain in effect until reset.
-The shell lockup is 24 px high. Canvas offers the centered Kiso enso background.
+The shell lockup is 24 px high. Show it in the sidebar while desktop navigation
+is open, and in the header when navigation is closed or on smaller screens.
+Canvas offers the centered Kiso enso background.
 
 ## Pattern choices
 

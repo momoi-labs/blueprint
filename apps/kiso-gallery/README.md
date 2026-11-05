@@ -6,7 +6,8 @@ Layout tabs at `/#example` show a dashboard,
 a list-detail screen, workspace settings, a login screen and a printable
 report. Each composition uses sample data. Preview actions do not save, authenticate or send requests.
 The component navigation stays available across all layouts.
-The sidebar and header use the approved Kiso lockup. The introduction shows
+The approved Kiso lockup appears in the open desktop sidebar. When the sidebar
+is closed, or on smaller screens, it appears in the header. The introduction shows
 `基礎` with the smaller reading `kiso` beside it. The symbol
 follows the selected accent; the wordmark follows the foreground color.
 The outlined artwork comes from `docs/brand/`. The shell lockup is 24 px high.

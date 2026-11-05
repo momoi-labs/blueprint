@@ -447,6 +447,7 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
     await page.goto(`${url}#components`);
     const navigation = page.locator(".catalog-sidebar");
     if (!await navigation.isVisible()) await page.getByRole("button", { name: "Expand navigation", exact: true }).click();
+    assert.equal(await page.locator(".catalog-header-brand").count(), 0, "An open desktop sidebar owns the brand");
     for (const theme of ["light", "dark"]) for (const accent of ["snes", "gold"]) {
       await page.evaluate(({ theme, accent }) => window.kisoAppearance.save({ ...window.kisoAppearance.read(), theme, accent }), { theme, accent });
       const brand = navigation.locator(".kiso-brand");
@@ -458,6 +459,14 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
       }));
       assert.equal(actual.height, 24, `${theme}/${accent}`);
       assert.notEqual(actual.symbol, actual.ink, `${theme}/${accent}: the symbol retains the accent`);
+    }
+    await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
+    await page.locator(".catalog-header-brand .kiso-brand").waitFor();
+    assert.equal(await navigation.isVisible(), false);
+    for (const width of [768, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.locator(".catalog-header-brand .kiso-brand").waitFor();
+      assert.equal(await navigation.isVisible(), false);
     }
   } finally { await page.close(); }
 });

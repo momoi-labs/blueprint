@@ -2376,7 +2376,7 @@ export function ComponentGallery({
             >
               <PanelLeft className="icon" aria-hidden="true" />
             </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
-          {(intro !== undefined || phone) && (
+          {(intro !== undefined || phone) && (!desktop || navigationCollapsed) && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
               {brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>)}
             </a>
