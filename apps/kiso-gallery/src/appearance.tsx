@@ -46,6 +46,12 @@ const applicationFrames = [
   { value: "inset", label: "Inset", description: "Content sits inside a separate frame" },
 ] as const;
 
+const headerVariants = [
+  { value: "default", label: "Default", description: "The bar keeps the surface fill and separator" },
+  { value: "plain", label: "Plain", description: "No fill or separator; the bar stays in flow" },
+  { value: "floating", label: "Floating", description: "A detached bar with a contact shadow, pinned below the top" },
+] as const;
+
 const outerFrames = [
   { value: "auto", label: "Automatic", description: "Full from 700px wide, edge to edge on phones" },
   { value: "full", label: "Full", description: "The full frame at every width" },
@@ -73,6 +79,7 @@ const compositions: { label: string; settings: Partial<AppearanceSettings> }[] =
   { label: "Manga board", settings: { shadowStyle: "hard", backgroundStyle: "grid", phoneBackgroundStyle: "dots", outerBorderStyle: "manga", cornerMarks: "none", outerCornerMarks: "diagonal", markScope: "outer" } },
   { label: "Brush study", settings: { shadowStyle: "soft", backgroundStyle: "fibers", outerBorderStyle: "brush", cornerMarks: "none", frameScope: "outer", markScope: "outer" } },
   { label: "Momoi signature", settings: { shadowStyle: "soft", backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" } },
+  { label: "SNES", settings: { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit" } },
   { label: "Pixel everywhere", settings: { shadowStyle: "hard", theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
 ];
 
@@ -164,6 +171,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const markName = useId();
   const styleName = useId();
   const frameName = useId();
+  const headerVariantName = useId();
   const outerName = useId();
   const pageWidthName = useId();
   const pageAlignName = useId();
@@ -188,6 +196,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const backgrounds = [
     ["solid", "Solid"], ["dots", "Dot grid"], ["grid", "Fine grid"], ["crosses", "Cross grid"],
     ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"],
+    ["checker", "Checker"], ["glow", "Glow"], ["stripes", "Stripes"], ["rings", "Rings"],
   ] as const;
   const sections: Record<AppearanceSectionId, ReactNode> = {
   colors: <AppearanceSection title="Colors">
@@ -197,7 +206,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     </div>
   </AppearanceSection>,
   presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
-    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. Both follow your system theme; other presets keep your theme. Reset starts without panel shadows.</p>
+    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; other presets keep your theme. Reset starts without panel shadows.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.defaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
@@ -264,6 +273,24 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
         </label>)}
       </div>
     </fieldset>
+    <fieldset className="appearance-choices">
+      <legend className="t-label">Header</legend>
+      <div className="appearance-options">
+        {headerVariants.map(option => <label className="appearance-option" key={option.value} title={option.description}>
+          <input type="radio" name={headerVariantName} value={option.value}
+            checked={settings.headerVariant === option.value}
+            onChange={() => onChange({ headerVariant: option.value })}
+            aria-labelledby={`${headerVariantName}-${option.value}-label`}
+            aria-describedby={`${headerVariantName}-${option.value}-description`} />
+          <span className="appearance-option-body">
+            <span id={`${headerVariantName}-${option.value}-label`} className="t-label">{option.label}</span>
+            <span id={`${headerVariantName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
+          </span>
+        </label>)}
+      </div>
+    </fieldset>
+    <ChoiceSelector label="Header size" value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} options={["compact", "default", "editorial"]} />
+    <ChoiceSelector label="Header width" value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} options={["page", "outset"]} />
     <fieldset className="appearance-choices" disabled={settings.appShell !== "inset"}>
       <legend className="t-label">Outer frame</legend>
       <div className="appearance-options">
@@ -428,7 +455,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       preview={placement => <PlacementPreview placement={placement} />} />
     <VisualSelector label="Background strength" options={[["quiet", "Quiet"], ["visible", "Visible"]]} value={settings.backgroundStrength} onChange={backgroundStrength => onChange({ backgroundStrength })} disabled={settings.backgroundStyle === "solid"} layout="wide"
       preview={strength => <BackgroundPreview background={settings.backgroundStyle} strength={strength} tone={settings.paperTone} />} />
-    <VisualSelector label="Panel fill" options={[["solid", "Solid"], ["translucent", "Translucent"]]} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} layout="wide"
+    <VisualSelector label="Panel fill" options={[["solid", "Solid"], ["translucent", "Translucent"], ["glass", "Glass"]]} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} layout="wide"
       preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill} tone={settings.paperTone} />} />
     <p className="muted t-label">Translucency affects panel fills. Text, fields and data samples stay opaque.</p>
   </AppearanceSection>,
@@ -451,7 +478,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       options={[["inherit", "Same as desktop"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string])]} />
     <VisualSelector label="Phone panel fill" value={settings.phonePanelFill} onChange={phonePanelFill => onChange({ phonePanelFill })} layout="wide"
       preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill === "inherit" ? settings.panelFill : fill} tone={settings.paperTone} />}
-      options={[["inherit", "Same as desktop"], ["solid", "Solid"], ["translucent", "Translucent"]]} />
+      options={[["inherit", "Same as desktop"], ["solid", "Solid"], ["translucent", "Translucent"], ["glass", "Glass"]]} />
   </AppearanceSection>,
   };
   return <>{shown.map(id => <Fragment key={id}>{sections[id]}</Fragment>)}</>;

@@ -94,6 +94,7 @@ type ApplicationShellSharedProps = Omit<
   primaryAction?: React.ReactNode
   header?: React.ReactNode
   headerVariant?: React.ComponentProps<typeof Header>["variant"]
+  headerSize?: React.ComponentProps<typeof Header>["size"]
   panel?: React.ReactNode
   children: React.ReactNode
 }
@@ -190,12 +191,12 @@ function ApplicationShellNavigation({
 
 function ApplicationShell(props: ApplicationShellProps) {
   if (props.layout === "topbar") {
-    const { brand, primaryAction, header, headerVariant, panel, bottomNav, children, layout: _layout, ...shellProps } =
+    const { brand, primaryAction, header, headerVariant, headerSize, panel, bottomNav, children, layout: _layout, ...shellProps } =
       props
     return (
       <AppShell {...shellProps} data-layout="topbar">
         <AppShellMain>
-          <Header variant={headerVariant}>
+          <Header variant={headerVariant} size={headerSize}>
             {brand}
             {primaryAction}
             {header}
@@ -219,6 +220,7 @@ function ApplicationShellSidebar({
   footer,
   header,
   headerVariant,
+  headerSize,
   panel,
   children,
   layout: _layout,
@@ -314,7 +316,7 @@ function ApplicationShellSidebar({
         {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
-        <Header variant={headerVariant} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
+        <Header variant={headerVariant} size={headerSize} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
           {menu}
           {phoneNavigation === "bottom" && <div className="app-shell-phone-brand">{brand}</div>}
           {phoneNavigation === "bottom" && primaryAction && <div className="app-shell-phone-action">{primaryAction}</div>}

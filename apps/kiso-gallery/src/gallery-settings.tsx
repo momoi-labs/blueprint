@@ -98,13 +98,22 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
       layout={kind === "strength" ? "wide" : "compact"} />;
   }, [settings]);
   // Demo options live here, so Share carries them. Unset drops the key.
-  const setOptions = useCallback((scope: string, patch: Record<string, string | undefined>) => onDemosChange(current => {
-    const next = { ...current[scope], ...patch };
-    for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key];
-    return { ...current, [scope]: next as Record<string, string> };
-  }), [onDemosChange]);
+  const setOptions = useCallback((scope: string, patch: Record<string, string | undefined>) => {
+    if (scope === "header") {
+      onChange({
+        ...(patch.variant ? { headerVariant: patch.variant as AppearanceSettings["headerVariant"] } : {}),
+        ...(patch.size ? { headerSize: patch.size as AppearanceSettings["headerSize"] } : {}),
+      });
+      return;
+    }
+    onDemosChange(current => {
+      const next = { ...current[scope], ...patch };
+      for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key];
+      return { ...current, [scope]: next as Record<string, string> };
+    });
+  }, [onDemosChange, onChange]);
   const context = useMemo(() => ({ target, register, open, show, revision, choice }), [target, register, open, show, revision, choice]);
-  const optionsContext = useMemo(() => ({ options: demos, setOptions }), [demos, setOptions]);
+  const optionsContext = useMemo(() => ({ options: { ...demos, header: { variant: settings.headerVariant, size: settings.headerSize } }, setOptions }), [demos, setOptions, settings.headerVariant, settings.headerSize]);
 
   useEffect(() => {
     const media = matchMedia("(min-width: 1200px)");

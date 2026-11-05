@@ -5,6 +5,7 @@
   min-height: 100dvh;
 }
 .catalog-brand {
+  font-family: var(--font-mono);
   color: var(--color-foreground);
   font-weight: var(--type-weight-semibold);
 }
@@ -33,10 +34,11 @@
 .catalog-header .nav-row .nav-item {
   height: 100%;
 }
-/* The intro hero carries the brand itself, so the Header only shows it on
-   narrow widths where the Sidebar is folded away. */
+/* The brand is the Header title, separate from page navigation. */
 .catalog-header-brand {
-  display: none;
+  display: flex;
+  flex: none;
+  white-space: nowrap;
 }
 .catalog-tools .theme-row {
   gap: var(--spacing-md);
@@ -64,7 +66,7 @@
     max(var(--spacing-xl), calc(var(--spacing-xl) + var(--page-free, 0px) * var(--page-free-end, 1)));
   container: catalog / inline-size;
 }
-.catalog-header, .catalog-main {
+.component-gallery, .catalog-header, .catalog-main {
   --catalog-mark-room: calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (2 * var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)));
 }
 .catalog-heading {
@@ -130,8 +132,7 @@
   margin-block-end: var(--spacing-xs);
   padding: 0;
 }
-.catalog-preview .tabs,
-.catalog-preview pre {
+.catalog-preview .tabs {
   overflow-x: auto;
 }
 .catalog-browse .catalog-preview {
@@ -435,3 +436,123 @@
 
 .media-preview-demo-list { display: grid; max-width: 20rem; padding: var(--spacing-xs); border: 1px solid var(--color-border); border-radius: var(--radius-md); background-color: var(--color-popover); }
 .media-preview-demo-list:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+
+/* Floating chrome and page content share the same width and alignment. */
+.component-gallery {
+  --catalog-page-gutter: var(--spacing-xl);
+  --catalog-page-start: max(var(--catalog-page-gutter), calc(var(--catalog-page-gutter) + var(--page-free, 0px) * var(--page-free-start, 0)));
+  --catalog-page-end: max(var(--catalog-page-gutter), calc(var(--catalog-page-gutter) + var(--page-free, 0px) * var(--page-free-end, 1)));
+}
+.component-gallery .catalog-main {
+  padding-inline: var(--catalog-page-start) var(--catalog-page-end);
+}
+:where([data-header-variant="floating"]) .component-gallery.app-shell > [data-slot="app-shell-main"] > .catalog-header:not([data-variant]),
+.component-gallery.app-shell > [data-slot="app-shell-main"] > .catalog-header[data-variant="floating"] {
+  width: auto;
+  margin-inline: var(--catalog-page-start) var(--catalog-page-end);
+  margin-block: var(--spacing-xl) 0;
+  top: var(--spacing-xl);
+}
+@media (max-width: 1023px) {
+  .component-gallery { --catalog-page-gutter: var(--spacing-lg); }
+}
+@media (max-width: 699px) {
+  .component-gallery { --catalog-page-gutter: max(var(--spacing-lg), var(--catalog-mark-room)); }
+}
+
+.catalog-header-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: none;
+}
+.component-gallery > [data-slot="app-shell-main"] {
+  container: gallery-shell / inline-size;
+}
+@container gallery-shell (min-width: 1100px) {
+  .catalog-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+  }
+  .catalog-header > nav { justify-self: center; }
+  .catalog-header .catalog-tools { justify-self: end; }
+}
+.catalog-compact-search { display: none; }
+@media (min-width: 700px) {
+  @container gallery-shell (max-width: 1099px) {
+    .catalog-header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .catalog-header .catalog-version { display: none; }
+    .catalog-header > nav { order: 0; width: auto; margin: 0; min-width: 0; }
+    .catalog-header > nav .nav-row { justify-content: center; gap: var(--spacing-sm); }
+    .catalog-header .catalog-tools { flex: none; flex-wrap: nowrap; }
+    .catalog-header .catalog-tools > [data-slot="search"] { width: calc(4 * var(--size-control-lg)); flex: none; }
+  }
+  @container gallery-shell (max-width: 900px) {
+    .catalog-header .catalog-tools > [data-slot="search"] { display: none; }
+    .catalog-header .catalog-compact-search { display: inline-flex; }
+  }
+}
+
+/* Let the floating navigation extend beyond the page measure equally. */
+@media (min-width: 700px) {
+  :where([data-header-width="outset"][data-header-variant="floating"]) .component-gallery.app-shell > [data-slot="app-shell-main"] > .catalog-header:not([data-variant]),
+  :where([data-header-width="outset"]) .component-gallery.app-shell > [data-slot="app-shell-main"] > .catalog-header[data-variant="floating"] {
+    margin-inline:
+      max(var(--spacing-sm), calc(var(--catalog-page-start) - (var(--spacing-lg) + var(--spacing-xs)) / 2))
+      max(var(--spacing-sm), calc(var(--catalog-page-end) - (var(--spacing-lg) + var(--spacing-xs)) / 2));
+  }
+}
+
+.catalog-header:has(> [data-slot="search"]) { display: flex; }
+
+/* Balance the space reserved for the content scrollbar on both sides. */
+@media (min-width: 1024px) {
+  .component-gallery .catalog-main { scrollbar-gutter: stable both-edges; }
+}
+
+.catalog-deferred-preview { min-height: calc(6 * var(--size-control-lg)); }
+.catalog-deferred-preview > .skeleton { min-height: inherit; }
+
+/* The current page fills the header's height as a primary button. */
+.catalog-header > nav {
+  margin-block: calc(-1 * var(--header-padding-block, var(--spacing-xs)));
+}
+.catalog-header .nav-row > li { display: flex; align-items: stretch; }
+.catalog-header .nav-row .nav-item {
+  height: auto;
+  align-self: stretch;
+  padding-inline: var(--spacing-lg);
+  border-radius: 0;
+}
+.catalog-header .nav-row .nav-item[aria-current="page"] {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  box-shadow: 0 -1px var(--color-primary), 0 1px var(--color-primary);
+}
+.catalog-header .nav-row .nav-item[aria-current="page"]:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-primary-foreground);
+  box-shadow: 0 -1px var(--color-primary-hover), 0 1px var(--color-primary-hover);
+}
+.catalog-header .nav-row::after,
+.catalog-header .nav-row .nav-item::before { content: none; }
+
+@media (max-width: 699px) {
+  :where([data-header-variant="floating"]) .component-gallery.app-shell > [data-slot="app-shell-main"] > .catalog-header:not([data-variant]) {
+    margin-block: var(--spacing-sm) 0;
+    top: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 699px) {
+  .component-gallery .catalog-header { padding-inline: var(--spacing-sm); }
+  .catalog-header .catalog-tools { flex: none; }
+}
+@media (max-width: 699px) {
+  .catalog-heading .page-header { padding-block-start: var(--spacing-xs); }
+}

@@ -392,8 +392,12 @@ Translucent panel fill works with every background; text and native fields
 remain opaque. Outside patterns keep an opaque main backing, except for the
 Momoi signature that can extend behind translucent content.
 
-## Plain header
+## Header variants
 
 `headerVariant="plain"` forwards to Header in sidebar and topbar layouts.
 It removes only the header fill and separator, including in inset frames.
-Omission keeps the existing header treatment.
+`headerVariant="floating"` detaches the bar with a margin, rounded corners,
+and a contact shadow, and pins it below the viewport top. Omission keeps the
+existing header treatment.
+
+`ApplicationShell` forwards `headerVariant` and `headerSize` to its Header in both layouts. Omit them to inherit the document Header preferences.

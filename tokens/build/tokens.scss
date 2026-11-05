@@ -173,6 +173,17 @@ $color-steel-800: #3e4c5a;
 $color-steel-900: #293440;
 $color-steel-950: #182029;
 $color-steel-base: #adc0d4; // Text and focus ink, text-eligible in both themes.
+$color-snes-50: #eceaf0;
+$color-snes-200: #dedbe4;
+$color-snes-300: #cfcdd8;
+$color-snes-400: #b7b3d4;
+$color-snes-500: #948cd0;
+$color-snes-600: #6a55c0;
+$color-snes-700: #5540aa;
+$color-snes-800: #462cad;
+$color-snes-900: #32207e;
+$color-snes-950: #221553;
+$color-snes-base: #a99bea; // The snes ink: link and focus colour, text-eligible in both themes.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -461,6 +472,42 @@ $accent-steel-primary-foreground: #f5f6f8;
 $accent-steel-accent-surface: #2a343e;
 $accent-steel-accent-surface-hover: #333e4b;
 $accent-steel-selected: #3e4c5a;
+$accent-snes-accent-50: #eceaf0;
+$accent-snes-accent-200: #dedbe4;
+$accent-snes-accent-300: #cfcdd8;
+$accent-snes-accent-400: #b7b3d4;
+$accent-snes-accent-500: #948cd0;
+$accent-snes-accent-600: #6a55c0;
+$accent-snes-accent-700: #5540aa;
+$accent-snes-accent-800: #462cad;
+$accent-snes-accent-900: #32207e;
+$accent-snes-accent-950: #221553;
+$accent-snes-accent-base: #a99bea;
+$accent-snes-primary: #b5a1ee; // The primary fill.
+$accent-snes-primary-hover: #c5b4f4;
+$accent-snes-primary-foreground: #211733;
+$accent-snes-accent-surface: #262047;
+$accent-snes-accent-surface-hover: #322a5c;
+$accent-snes-selected: #3e3a55;
+$accent-snes-focus: #a99bea;
+$accent-snes-background: #292824;
+$accent-snes-surface: #32312c;
+$accent-snes-elevated-surface: #3a3933;
+$accent-snes-muted: #3b3a34;
+$accent-snes-sidebar: #24231f;
+$accent-snes-card: #32312c;
+$accent-snes-popover: #3a3933;
+$accent-snes-foreground: #e7e3d8;
+$accent-snes-muted-foreground: #bcb8ad;
+$accent-snes-subtle-foreground: #aaa598;
+$accent-snes-border: #555249;
+$accent-snes-border-strong: #999385;
+$accent-snes-secondary: #3b3a34;
+$accent-snes-secondary-hover: #48463f;
+$accent-snes-disabled: #48463f;
+$accent-snes-disabled-surface: #32312c;
+$accent-snes-skeleton: #3b3a34;
+$accent-snes-hatch: #3b3a34;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

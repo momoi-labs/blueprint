@@ -181,9 +181,9 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 ## Accents
 
 The accent is a second axis over the same custom properties, orthogonal to the
-theme. Twelve accents ship: `violet` (the default), `terracotta`, `teal`,
-`cobalt`, `nocturne`, `tangerine`, `red`, `gold`, `lime`, `plum`, `stone`, and
-`steel`. Violet, terracotta, teal, cobalt and plum are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
+theme. Thirteen accents ship: `violet` (the default), `terracotta`, `teal`,
+`cobalt`, `nocturne`, `tangerine`, `red`, `gold`, `lime`, `plum`, `stone`,
+`steel`, and `snes`. Violet, terracotta, teal, cobalt and plum are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
 and so on) with the same lightness per step, so every role keeps the contrast
 it was gated at.
 `color.accent.*` is the *active* ramp: an alias layer that points at violet by
@@ -198,6 +198,13 @@ tint on it. A hue accent nested inside a nocturne container keeps the slate
 and changes only the accent. Its surface, text, and accent values are the
 site's own, gated like every other accent; the roles the site never named are
 Kiso's lightness in the slate hue.
+
+`snes` is the Super Nintendo theme: a purple ramp (`color.snes.*`) over warm
+beige neutrals in light mode and warm graphite neutrals in dark mode. Like
+`nocturne` it restates the neutral roles. The `checker`, `glow`, `stripes`
+and `rings` background decks work under every accent; `glow` tints to the
+active accent ramp. `glow`, `stripes`, and `rings` honour Background strength, so a sparse page can
+keep it as a soft wash instead of a strong wash against empty paper.
 
 An accent is chosen with `data-accent` on `<html>`, or on any container:
 
@@ -491,12 +498,12 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-outer-corner-style` | `inherit` or a corner value | `inherit` |
 | `data-outer-corner-marks` | `inherit` or a mark value | `inherit` |
 | `data-mark-clearance` | `normal`, `sheet` | `normal` |
-| `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat` | `solid` |
+| `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat`, `checker`, `glow`, `stripes`, `rings` | `solid` |
 | `data-background-strength` | `quiet`, `visible` | `quiet` |
 | `data-background-placement` | `inside`, `outside`, `both` | `both` |
 | `data-paper-tone` | `theme`, `accent` | `theme` |
 | `data-frame-detail` | `small`, `medium`, `large` | `medium` |
-| `data-panel-fill` | `solid`, `translucent` | `solid` |
+| `data-panel-fill` | `solid`, `translucent`, `glass` | `solid` |
 | `data-app-shell-outer` | `auto`, `full`, `compact`, `none` | `auto`: `full` from 700px, `none` below |
 
 Set these on `html`, alongside theme and accent. The outer choices apply to

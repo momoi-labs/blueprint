@@ -54,9 +54,9 @@ test("main, outer, phone and Diagram shadow overrides round-trip independently",
   assert.equal(readShare('{"v":2,"s":{}}', kit).settings.shadowStyle, "none");
 });
 
-test("a share code holds only the settings that differ from the defaults", () => {
-  assert.equal(shareText(defaults, kit), '{"v":2,"s":{}}');
-  assert.deepEqual(JSON.parse(shareText({ ...defaults, accent: "teal" }, kit)), { v: 2, s: { accent: "teal" } });
+test("a share code carries every setting, including frame scope and corner size", () => {
+  assert.deepEqual(JSON.parse(shareText(defaults, kit)), { v: 2, s: plain(defaults) });
+  assert.deepEqual(JSON.parse(shareText({ ...defaults, accent: "teal" }, kit)), { v: 2, s: { ...plain(defaults), accent: "teal" } });
   assert.match(shareCode({ ...defaults, accent: "teal" }, kit), /^[A-Za-z0-9_-]+$/);
 });
 
@@ -116,7 +116,7 @@ const schema = { diagram: { edges: ["orthogonal", "curve"], direction: ["right",
 
 test("demo options travel in their own key, through a link, a code and copied JSON", () => {
   const diagram = { edges: "curve", direction: "down" };
-  assert.deepEqual(JSON.parse(shareText(defaults, kit, { diagram, table: {} })), { v: 2, s: {}, diagram });
+  assert.deepEqual(JSON.parse(shareText(defaults, kit, { diagram, table: {} })), { v: 2, s: plain(defaults), diagram });
   assert.deepEqual(JSON.parse(settingsText(defaults, { diagram })).diagram, diagram);
   for (const input of [shareLink(defaults, kit, { diagram }, "https://example.test/"), shareCode(defaults, kit, { diagram }), settingsText(defaults, { diagram })]) {
     const result = readShare(input, kit, schema);
@@ -383,6 +383,7 @@ for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["tabl
 test("catalog cards keep their inline options with Share and Reset", async () => {
   const page = await open("#components");
   try {
+    await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     const density = page.locator(".catalog-pane", { has: page.getByRole("table", { name: "Memory comparison" }) }).getByLabel("Density");
     await density.selectOption("compact");
     if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
@@ -398,5 +399,34 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
     await page.getByRole("menuitem", { name: "Paste settings" }).click();
     await page.getByText("Appearance applied", { exact: true }).waitFor();
     assert.equal(await density.inputValue(), "spacious", "A pasted look sets a catalog card's option");
+  } finally { await page.context().close(); }
+});
+
+test("Copy settings and Paste settings restore large corners on controls", async () => {
+  const page = await open("#intro");
+  try {
+    if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
+    await page.locator(".appearance-composition").filter({ hasText: "SNES" }).click();
+    const inspect = () => page.evaluate(() => ({
+      cornerSize: window.kisoAppearance.read().cornerSize,
+      frameScope: window.kisoAppearance.read().frameScope,
+      inputRadius: getComputedStyle(document.querySelector(".intro-composition input")).borderRadius,
+    }));
+    const before = await inspect();
+    assert.equal(before.cornerSize, "large");
+    assert.equal(before.frameScope, "all");
+    await page.getByRole("button", { name: "Share", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Copy settings", exact: true }).click();
+    const copied = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
+    assert.equal(copied.s.cornerSize, "large");
+    assert.equal(copied.s.frameScope, "all");
+    await page.getByRole("button", { name: "Reset appearance", exact: true }).click();
+    assert.notDeepEqual(await inspect(), before);
+    await page.getByRole("button", { name: "Share", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
+    await page.waitForFunction(() => document.documentElement.dataset.cornerSize === "large");
+    assert.deepEqual(await inspect(), before);
+    await page.reload();
+    assert.deepEqual(await inspect(), before);
   } finally { await page.context().close(); }
 });

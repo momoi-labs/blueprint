@@ -190,3 +190,14 @@ is a gallery convention, not a change to the published component API.
 - Test with navigation and Appearance open together. Check content overflow,
   clipped labels, scroll ownership, and reachable controls at the available
   content width. Capture browse, detail, and layout evidence separately.
+
+### Export completeness
+
+For each new Appearance setting, check Copy settings, Copy link, share code,
+HTML, and JavaScript. Include its default value and a non-default value.
+Import into a fresh context with different defaults and verify the same result.
+Check phone overrides at both viewport sizes. Global preferences must be
+explicit in every export; demo props must be registered in the demo schema.
+Run the registry-driven `appearance-export-completeness.test.mjs` test and
+exercise the new control through Share. A missing registry entry requires a
+real UI check because enumerating the registry cannot detect that omission.

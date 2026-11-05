@@ -85,7 +85,7 @@ async function assertSettingsToggle(page) {
   const trigger = page.locator(".gallery-settings-trigger");
   const toggle = await trigger.boundingBox();
   const header = await page.locator(".catalog-header").boundingBox();
-  const search = await page.locator('[aria-label="Find a component"]').boundingBox();
+  const search = await page.locator('[aria-label="Find a component"]:visible, .catalog-compact-search:visible').boundingBox();
   assert.equal(await trigger.getAttribute("data-placement"), "header");
   assert(toggle.x >= header.x && toggle.x + toggle.width <= header.x + header.width + 1);
   assert(toggle.y >= header.y && toggle.y + toggle.height <= header.y + header.height + 1);

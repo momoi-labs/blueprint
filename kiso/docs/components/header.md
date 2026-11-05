@@ -36,13 +36,23 @@ uses `aria-current="page"` and `--color-primary`.
 
 `default` keeps the surface fill and separator. `variant="plain"` removes
 the fill and separator while preserving layout, landmarks and focus.
-ApplicationShell exposes this choice through `headerVariant`, in both layouts.
+`variant="floating"` detaches the bar from the page edges with a margin,
+rounded corners, and a contact shadow, and stays pinned below the viewport
+top while content scrolls behind it. ApplicationShell exposes this choice
+through `headerVariant`, in both layouts.
 
 ## Sizes
 
-No named sizes. Header spacing adapts responsively with semantic spacing tokens;
+`size="compact"` uses a 44px minimum height, no block padding, and 4px inline padding.
+`size="default"` uses 10px padding on all sides and a 60px minimum.
+`size="editorial"` uses 20px padding on all sides and an 80px minimum. Omit `size`
+to follow `data-header-size="compact|default|editorial"`; without either,
+Header uses Default. Size is independent of variant. These are minimums: wrapped
+content and larger controls can grow the bar.
+
+Header spacing adapts responsively with semantic spacing tokens;
 child Links, IconButtons, and DropdownMenu triggers keep their own sizes.
-The bar is at least 52px tall. When its children wrap, for example tabs on a
+ When its children wrap, for example tabs on a
 second line on a phone, it grows to contain them. A Header with a
 [ScopeSwitcher](scope-switcher.md) stays one row: below 700px the compact
 scope trigger takes the place of the segments.
@@ -99,4 +109,6 @@ IconButton, and shadcn Dropdown Menu / Radix Dropdown Menu when overflow is
 needed. shadcn Navigation Menu is not required for a simple set of Links.
 
 The `plain` variant stays in normal document flow. It does not stick over
-scrolling content because its background is transparent.
+scrolling content because its background is transparent. The `floating`
+variant keeps the surface fill and adds a shadow, so it can float over
+scrolling content.

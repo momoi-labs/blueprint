@@ -211,6 +211,18 @@ export const colorSteel900: string;
 export const colorSteel950: string;
 /** Text and focus ink, text-eligible in both themes. */
 export const colorSteelBase: string;
+export const colorSnes50: string;
+export const colorSnes200: string;
+export const colorSnes300: string;
+export const colorSnes400: string;
+export const colorSnes500: string;
+export const colorSnes600: string;
+export const colorSnes700: string;
+export const colorSnes800: string;
+export const colorSnes900: string;
+export const colorSnes950: string;
+/** The snes ink: link and focus colour, text-eligible in both themes. */
+export const colorSnesBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -575,6 +587,43 @@ export const accentSteelPrimaryForeground: string;
 export const accentSteelAccentSurface: string;
 export const accentSteelAccentSurfaceHover: string;
 export const accentSteelSelected: string;
+export const accentSnesAccent50: string;
+export const accentSnesAccent200: string;
+export const accentSnesAccent300: string;
+export const accentSnesAccent400: string;
+export const accentSnesAccent500: string;
+export const accentSnesAccent600: string;
+export const accentSnesAccent700: string;
+export const accentSnesAccent800: string;
+export const accentSnesAccent900: string;
+export const accentSnesAccent950: string;
+export const accentSnesAccentBase: string;
+/** The primary fill. */
+export const accentSnesPrimary: string;
+export const accentSnesPrimaryHover: string;
+export const accentSnesPrimaryForeground: string;
+export const accentSnesAccentSurface: string;
+export const accentSnesAccentSurfaceHover: string;
+export const accentSnesSelected: string;
+export const accentSnesFocus: string;
+export const accentSnesBackground: string;
+export const accentSnesSurface: string;
+export const accentSnesElevatedSurface: string;
+export const accentSnesMuted: string;
+export const accentSnesSidebar: string;
+export const accentSnesCard: string;
+export const accentSnesPopover: string;
+export const accentSnesForeground: string;
+export const accentSnesMutedForeground: string;
+export const accentSnesSubtleForeground: string;
+export const accentSnesBorder: string;
+export const accentSnesBorderStrong: string;
+export const accentSnesSecondary: string;
+export const accentSnesSecondaryHover: string;
+export const accentSnesDisabled: string;
+export const accentSnesDisabledSurface: string;
+export const accentSnesSkeleton: string;
+export const accentSnesHatch: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */

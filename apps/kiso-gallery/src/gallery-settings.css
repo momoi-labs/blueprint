@@ -2,30 +2,13 @@
 .component-gallery:has(> .app-shell-panel) .catalog-detail { max-width: none; }
 .gallery-settings-trigger { flex: none; }
 @media (max-width: 1023px) {
-  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > .catalog-menu {
-    grid-row: 1;
-    grid-column: 1;
-    width: var(--size-touch-min);
-    min-width: var(--size-touch-min);
-    height: var(--size-touch-min);
-    margin-inline-start: calc((var(--size-icon-md) - var(--size-touch-min)) / 2);
-  }
-  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > .catalog-version { display: none; }
-  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > [data-slot="search"] { grid-column: 2; grid-row: 1; }
-  /* Align the visible icon with the leading control, keeping its touch target. */
   .gallery-settings-trigger[data-placement="header"] {
-    grid-column: 3;
-    grid-row: 1;
     width: var(--size-touch-min);
     min-width: var(--size-touch-min);
     height: var(--size-touch-min);
-    margin-inline-end: calc((var(--size-icon-md) - var(--size-touch-min)) / 2);
   }
 }
+
 .gallery-settings-panel, .gallery-settings-drawer, .catalog-sheet {
   display: flex;
   flex-direction: column;

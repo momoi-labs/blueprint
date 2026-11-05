@@ -53,7 +53,7 @@ test("new visits use the approved Pixel everywhere settings before React starts"
   const expected = {
     theme: "system", accent: "violet", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "none", borderStyle: "solid", cornerStyle: "pixel",
     cornerMarks: "ticks", cornerSize: "small", markSize: "medium", visualStyle: "editorial",
-    appShell: "inset", appShellOuter: "auto", pageWidth: "full", pageAlign: "start", frameScope: "all", markScope: "panels", markClearance: "normal",
+    appShell: "inset", headerVariant: "default", headerSize: "default", headerWidth: "page", appShellOuter: "auto", pageWidth: "full", pageAlign: "start", frameScope: "all", markScope: "panels", markClearance: "normal",
     backgroundStyle: "fibers", backgroundStrength: "quiet", backgroundPlacement: "both",
     frameDetail: "medium", paperTone: "theme", panelFill: "solid",
     outerBorderStyle: "inherit", outerCornerStyle: "inherit", outerCornerMarks: "inherit", outerShadowStyle: "inherit",
@@ -88,7 +88,7 @@ test("random appearances preserve theme and produce supported frame combinations
     }
     backgrounds.add(next.backgroundStyle);
   }
-  assert.equal(backgrounds.size, 9);
+  assert.equal(backgrounds.size, 13);
   assert.equal(borders.size, 9);
   assert.equal(corners.size, 4);
 });

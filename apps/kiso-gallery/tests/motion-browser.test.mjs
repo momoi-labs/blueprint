@@ -43,6 +43,7 @@ test('Both rails animate, accept interrupted toggles and retain demo values', as
   page.on('pageerror', error => errors.push(error.message));
   try {
     const notes = page.getByRole('textbox', { name: 'Operator notes', exact: true });
+    await page.locator('[data-pane-id="textarea"]').scrollIntoViewIfNeeded();
     await notes.fill('Keep this draft');
     for (const selector of ['.gallery-settings-trigger', '.catalog-sidebar-toggle']) {
       for (let click = 0; click < 2; click++) {

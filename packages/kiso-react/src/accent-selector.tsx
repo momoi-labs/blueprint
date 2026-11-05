@@ -13,6 +13,7 @@ export const accents = [
   "plum",
   "stone",
   "steel",
+  "snes",
 ] as const;
 
 export type Accent = (typeof accents)[number];

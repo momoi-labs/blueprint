@@ -21,6 +21,9 @@ export interface AppearanceSettings {
   markSize: MarkSize;
   visualStyle: "default" | "editorial";
   appShell: "default" | "inset";
+  headerVariant: "default" | "plain" | "floating";
+  headerSize: "compact" | "default" | "editorial";
+  headerWidth: "page" | "outset";
   appShellOuter: "auto" | "full" | "compact" | "none";
   pageWidth: "full" | "contained";
   pageAlign: "start" | "center" | "end";
@@ -31,12 +34,12 @@ export interface AppearanceSettings {
   frameScope: "all" | "panels" | "outer";
   markScope: "panels" | "all" | "outer";
   markClearance: "normal" | "sheet";
-  backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat";
+  backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat" | "checker" | "glow" | "stripes" | "rings";
   backgroundStrength: "quiet" | "visible";
   backgroundPlacement: "both" | "inside" | "outside";
   frameDetail: MarkSize;
   paperTone: "theme" | "accent";
-  panelFill: "solid" | "translucent";
+  panelFill: "solid" | "translucent" | "glass";
   phoneBackgroundStyle: "inherit" | AppearanceSettings["backgroundStyle"];
   phoneShadowStyle: "inherit" | ShadowStyle;
   phoneBorderStyle: "inherit" | BorderStyle;
@@ -93,7 +96,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
   const outer = random() < .5 ? null : frame();
   return {
     ...current,
-    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel"]),
+    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes"]),
     chartLine: pick(["straight", "stepped", "curved"]),
     chartFill: pick(["none", "dots", "tint", "squares", "scanlines"]),
     chartLayout: pick(["standard", "compact", "split"]),
@@ -103,9 +106,9 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),
     frameScope: pick(["outer", "panels", "all"]), markScope: pick(["outer", "panels", "all"]),
     markClearance: pick(["normal", "sheet"]),
-    backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat"]),
+    backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "checker", "glow", "stripes", "rings"]),
     backgroundStrength: pick(["quiet", "visible"]), backgroundPlacement: pick(["inside", "outside", "both"]),
-    frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent"]),
+    frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent", "glass"]),
     outerShadowStyle: "inherit", outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",
   };
 }
