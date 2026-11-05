@@ -1,5 +1,11 @@
 # @momoi-labs/kiso
 
+## 1.7.0
+
+### Minor Changes
+
+- 28a8c55: Add a centered Kiso enso canvas background that follows the selected accent.
+
 ## 1.6.0
 
 ### Minor Changes
