@@ -1,5 +1,35 @@
 # @momoi-labs/kiso
 
+## 1.6.0
+
+### Minor Changes
+
+- 1ea6579: Add the `snes` accent, four new background decks, a glass panel fill, and a floating header variant.
+  
+  The `snes` accent is the Super Nintendo theme: a purple ramp over warm beige neutrals in light mode and warm graphite neutrals in dark mode. Like `nocturne` it restates the neutral roles. The `kiso-tokens` crate gains the accent.
+  
+  Four background decks join the shell canvas and work under every accent: `checker`, `stripes`, and `rings` ink from border tones, and `glow` washes in the active accent ramp. A new `data-panel-fill="glass"` value fills panels at a lower translucency with a backdrop blur; logs keep their solid dark terminal.
+  
+  `Header` and `ApplicationShell` gain a `floating` variant: the bar detaches from the page edges with a margin, rounded corners, and a contact shadow, and stays pinned below the viewport top while content scrolls behind it.
+  
+  The `bevel` border style now paints light from above and a soft cast below instead of dark on both edges.
+  
+  Header gains Compact, Default, and Editorial sizes independent of its variant. The gallery exposes header size in the component example and Appearance settings.
+
+### Patch Changes
+
+- 57ef7a4: Draw neutral canvas patterns in border ink so they recede behind text. Keep translucent panels at the existing 65% fill with their full-contrast text.
+  
+  Exclude the inset shell shadow from the desktop content scroller and clip the content scrollbar to the Pixel corners. This prevents white scrollbar paint from leaking into the corners when zoom changes the layout.
+  
+  Paint the outer Pixel border above the sticky header so it remains visible at fractional zoom.
+- b16f6c3: Pixel corners now clip a panel's shadow to the stepped contour. A rectangle
+  shadow used to leak past the notched corners when the frame sat inside an
+  inset app shell.
+- ce59b85: Remove duplicate outer spacing from patterned inset shells and keep floating panel controls aligned with their edges.
+  
+  Center construction backgrounds on both axes. Center fine grids horizontally and start them with half a cell at the top. Keep cell sizes fixed.
+
 ## 1.5.1
 
 ### Patch Changes
