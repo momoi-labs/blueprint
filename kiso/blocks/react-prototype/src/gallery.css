@@ -551,6 +551,8 @@
 
 @media (max-width: 699px) {
   .component-gallery .catalog-header { padding-inline: var(--spacing-sm); }
+  :where([data-header-variant="floating"]) .component-gallery .catalog-header:not([data-variant]),
+  .component-gallery .catalog-header[data-variant="floating"] { padding-inline-start: var(--spacing-lg); }
   .catalog-header .catalog-tools { flex: none; }
 }
 @media (max-width: 699px) {
