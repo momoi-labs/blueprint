@@ -62,8 +62,10 @@
   padding-inline:
     max(var(--spacing-xl), calc(var(--spacing-xl) + var(--page-free, 0px) * var(--page-free-start, 0)))
     max(var(--spacing-xl), calc(var(--spacing-xl) + var(--page-free, 0px) * var(--page-free-end, 1)));
-  --catalog-mark-room: calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (2 * var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)));
   container: catalog / inline-size;
+}
+.catalog-header, .catalog-main {
+  --catalog-mark-room: calc(var(--corner-mark, 1) * var(--appearance-marks-enabled, 1) * (2 * var(--corner-mark-tick) + var(--corner-mark-gap) + var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) + var(--appearance-sheet-clearance, 0px)));
 }
 .catalog-heading {
   display: grid;
@@ -252,7 +254,7 @@
     height: auto;
     flex-wrap: wrap;
     padding: var(--spacing-md);
-    padding-inline: var(--spacing-sm);
+    padding-inline: var(--spacing-lg);
     gap: var(--spacing-md);
   }
   .catalog-header-brand {
@@ -288,7 +290,16 @@
 /* On a phone the header is one row: brand, search and settings. The pages
    are in the BottomNav and the categories in its sheet. */
 @media (max-width: 699px) {
-  .catalog-header { flex-wrap: nowrap; gap: var(--spacing-sm); padding-block: var(--spacing-xs); }
+  .catalog-header { flex-wrap: nowrap; gap: var(--spacing-sm); padding-block: var(--spacing-xs); padding-inline: max(var(--spacing-lg), var(--catalog-mark-room)); }
+  .catalog-header .catalog-tools { gap: var(--spacing-xs); }
+  .catalog-header > .btn-icon,
+  .catalog-header .catalog-tools > .btn-icon {
+    flex: none;
+    width: var(--size-touch-min);
+    min-width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    min-height: var(--size-touch-min);
+  }
   .catalog-main { padding-block-start: var(--spacing-xs); }
   /* Panels meet the page padding, and their corner marks reach beyond them.
      The page keeps the marks' reach plus one mark length from the screen edge. */
@@ -298,7 +309,7 @@
   .catalog-sheet [data-slot="dialog-body"] { display: grid; gap: var(--spacing-lg); align-content: start; }
 }
 @media (max-width: 400px) {
-  .catalog-main { padding: var(--spacing-sm); padding-block-start: var(--spacing-xs); padding-inline: max(var(--spacing-sm), var(--catalog-mark-room)); }
+  .catalog-main { padding: var(--spacing-sm); padding-block-start: var(--spacing-xs); padding-inline: max(var(--spacing-lg), var(--catalog-mark-room)); }
 }
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */

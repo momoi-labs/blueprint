@@ -7,13 +7,26 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
   .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > .catalog-menu {
-    grid-row: 2;
-    grid-column: 1 / -1;
-    justify-self: start;
+    grid-row: 1;
+    grid-column: 1;
+    width: var(--size-touch-min);
+    min-width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    margin-inline-start: calc((var(--size-icon-md) - var(--size-touch-min)) / 2);
   }
-  .gallery-settings-trigger[data-placement="header"] { grid-column: 3; grid-row: 1; }
+  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > .catalog-version { display: none; }
+  .catalog-tools:has(> .gallery-settings-trigger[data-placement="header"]) > [data-slot="search"] { grid-column: 2; grid-row: 1; }
+  /* Align the visible icon with the leading control, keeping its touch target. */
+  .gallery-settings-trigger[data-placement="header"] {
+    grid-column: 3;
+    grid-row: 1;
+    width: var(--size-touch-min);
+    min-width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    margin-inline-end: calc((var(--size-icon-md) - var(--size-touch-min)) / 2);
+  }
 }
-.gallery-settings-panel, .gallery-settings-drawer {
+.gallery-settings-panel, .gallery-settings-drawer, .catalog-sheet {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -21,12 +34,13 @@
   border-color: var(--color-sidebar-border);
   color: var(--color-foreground);
 }
-.gallery-settings-drawer[data-placement="side"] {
+.gallery-settings-drawer[data-placement="side"],
+.catalog-sheet.app-shell-drawer[data-placement="side"] {
   width: min(320px, calc(100vw - var(--spacing-lg)));
   padding: 0;
   gap: 0;
 }
-.gallery-settings-heading {
+.gallery-settings-heading, .catalog-sheet > [data-slot="dialog-header"] {
   flex: none;
   display: flex;
   align-items: center;
@@ -49,7 +63,6 @@
 }
 .gallery-settings-buttons { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
 .gallery-settings-actions [role="status"]:empty { display: none; }
-[data-app-shell="inset"] .component-gallery > .gallery-settings-panel { border: 0; }
 @media (min-width: 1200px) {
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-header { flex-wrap: wrap; gap: var(--spacing-sm); }
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools { flex: 1; justify-content: end; }
@@ -72,3 +85,10 @@
 @media (min-width: 700px) {
   [data-background-style="momoi"] .layout-phone-document .layout-preview > .app-shell.layout-shell::before { content: none; }
 }
+
+/* The inset main owns the frame between the canvas and both rails. */
+[data-app-shell="inset"] .component-gallery > .gallery-settings-panel {
+  border-inline-start: 0;
+}
+
+.catalog-sheet > [data-slot="dialog-body"] { padding: 0 var(--spacing-lg) var(--spacing-lg); }

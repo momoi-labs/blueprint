@@ -35,7 +35,7 @@ for (const width of [1024, 1280]) test(`An unset outer frame keeps the full fram
   const page=await open('cornerStyle=rounded', width);
   try {
     const main=await frame(page);
-    assert.equal(main.x, 32, 'Outer padding plus the background margin');
+    assert.equal(main.x, 16, 'The frame has one outer inset');
     assert.equal(main.border, '1px'); assert(main.radius > 0);
   } finally { await page.close(); }
 });
@@ -43,7 +43,7 @@ for (const width of [390, 1280]) test(`Explicit outer modes hold at ${width}px`,
   const measure=async (query) => { const page=await open(`cornerStyle=rounded&cornerSize=large&${query}`, width); try { return await frame(page); } finally { await page.close(); } };
   const full=await measure('outer=full'), compact=await measure('outer=compact'), none=await measure('outer=none');
   const solidCompact=await measure('outer=compact&background=solid');
-  assert.equal(full.x, 32); assert.equal(full.border, '1px');
+  assert.equal(full.x, 16); assert.equal(full.border, '1px');
   assert.equal(compact.x, 8); assert.equal(solidCompact.x, 8); assert.equal(compact.border, '1px');
   assert(compact.radius > 0 && compact.radius < full.radius, `compact ${compact.radius} < full ${full.radius}`);
   assert.equal(none.x, 0); assert.equal(none.border, '0px'); assert.equal(none.radius, 0);
@@ -95,7 +95,7 @@ test('BottomNav does not render from 700px', async () => {
     const page=await open('bottom', width);
     try {
       assert.equal(await page.getByRole('navigation', { name: 'Primary' }).isVisible(), false);
-      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.app-shell')).paddingBottom), '16px');
+      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.app-shell')).paddingBottom), '0px');
     } finally { await page.close(); }
   }
 });

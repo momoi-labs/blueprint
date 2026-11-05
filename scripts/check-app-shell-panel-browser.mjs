@@ -124,3 +124,44 @@ for (const border of ['double', 'manga', 'brush', 'rail', 'base', 'offset', 'bev
     assert.deepEqual(await frame(inner), plain, `${border}: the nested shell draws no outer frame of its own`);
   } finally { await page.close(); }
 });
+
+for (const theme of ['light', 'dark']) for (const mode of ['full', 'compact', 'auto', 'none']) test(`Patterned ${mode} shell paints the frame surround in ${theme}`, async () => {
+  const page = await open('variant=inset');
+  try {
+    await page.evaluate(({ theme, mode }) => Object.assign(document.documentElement.dataset, {
+      theme, appShellOuter: mode, backgroundStyle: 'construction', backgroundPlacement: 'both',
+      cornerStyle: 'pixel', cornerMarks: 'ticks', shadowStyle: 'hard',
+    }), { theme, mode });
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const panelOpen of [true, false]) {
+        await page.getByRole('complementary', { name: 'Settings', includeHidden: true }).evaluate((el, open) => el.hidden = !open, panelOpen);
+        const paint = await page.locator('.app-shell').first().evaluate(el => {
+          const style = getComputedStyle(el);
+          const layer = getComputedStyle(el, '::before');
+          const main = el.querySelector('[data-slot="app-shell-main"]');
+          return { padding: style.padding, pattern: layer.backgroundImage, margin: parseFloat(getComputedStyle(main).marginTop), top: main.getBoundingClientRect().top - el.getBoundingClientRect().top };
+        });
+        assert.equal(paint.padding, '0px', 'The pattern reaches the shell edges without an unpainted padding band');
+        assert(paint.pattern.includes('gradient'));
+        if (width >= 1024) assert.equal(paint.top, paint.margin, 'Only the frame margin provides outer spacing');
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      }
+    }
+  } finally { await page.close(); }
+});
+
+for (const rtl of [false, true]) test(`Patterned inset floating toggle meets the panel edge, rtl=${rtl}`, async () => {
+  const page = await open(`variant=inset${rtl ? '&rtl' : ''}`);
+  try {
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { backgroundStyle: 'construction', appShellOuter: 'full' }));
+    const toggle = page.locator('[data-slot="app-shell-panel-toggle"]');
+    const panel = page.getByRole('complementary', { name: 'Settings' });
+    const panelBox = await panel.boundingBox();
+    const toggleBox = await toggle.boundingBox();
+    assert(Math.abs((rtl ? toggleBox.x : toggleBox.x + toggleBox.width) - (rtl ? panelBox.x + panelBox.width : panelBox.x)) < 1);
+    await toggle.click();
+    const closed = await toggle.boundingBox();
+    assert(Math.abs(rtl ? closed.x : 1440 - closed.x - closed.width) < 1, 'Closed toggle meets the viewport edge');
+  } finally { await page.close(); }
+});
