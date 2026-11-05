@@ -157,3 +157,5 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-background-sample[data-background-style="glow"] {
   --canvas-pattern: radial-gradient(ellipse at 0% 10%, var(--glow-1), transparent 70%), radial-gradient(ellipse at 100% 90%, var(--glow-3), transparent 70%);
 }
+
+.appearance-background-sample[data-background-style="enso"] { --canvas-size: auto 80%; }

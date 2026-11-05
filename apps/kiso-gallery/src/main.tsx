@@ -3,6 +3,7 @@ import { AppShell, AppShellMain, Toasts, useToast } from "@momoi-labs/kiso-react
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
 import { LayoutExamples, layouts, phoneFrame, standalone } from "./layout-examples";
+import { KisoBrand } from "./kiso-brand";
 import { Intro } from "./intro";
 import { TuiGallery, useTuiGallery } from "./tui-gallery";
 import { Accents } from "./accents";
@@ -72,6 +73,7 @@ function App() {
         panel={panel}
         settingsToggle={toggle}
         route={route === "appearance" ? "intro" : route}
+        brand={<KisoBrand />}
         version={import.meta.env.VITE_KISO_VERSION}
         theme={settings.theme}
         onThemeChange={onThemeChange}

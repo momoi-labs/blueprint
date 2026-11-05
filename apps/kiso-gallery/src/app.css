@@ -283,8 +283,20 @@
   gap: var(--spacing-xl);
 }
 .intro-wordmark {
-  font-size: var(--type-size-h2);
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  font-family: var(--font-body);
+  color: var(--color-foreground);
+}
+.intro-kanji {
+  font-size: var(--size-control-xl);
   font-weight: var(--type-weight-semibold);
+  line-height: var(--type-line-height-tight);
+}
+.intro-romaji {
+  font-size: var(--type-size-h2);
+  font-weight: var(--type-weight-regular);
 }
 .intro-description {
   max-width: 52ch;
@@ -493,11 +505,6 @@
 .layout-dialog .code-block > pre { flex: 1; min-height: 0; overflow: auto; }
 .layout-dialog-tabs p { margin: 0; }
 
-.intro-wordmark {
-  font-family: var(--font-mono);
-  font-weight: var(--type-weight-semibold);
-}
-
 .intro-sequence { padding-block: var(--spacing-2xl); }
 .intro-sequence > h2 { margin-block-start: var(--spacing-sm); }
 .intro-features section {
@@ -647,3 +654,12 @@
   max-width: calc(var(--size-content-max) - 6 * var(--spacing-4xl));
   margin-inline: auto;
 }
+
+.kiso-brand {
+  display: block;
+  height: var(--size-control-xs);
+  width: auto;
+  flex: none;
+  color: var(--color-foreground);
+}
+.kiso-brand-symbol { color: var(--color-accent-base); }

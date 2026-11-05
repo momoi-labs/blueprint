@@ -24,7 +24,7 @@
     frameScope: ["all", "panels", "outer"],
     markScope: ["panels", "all", "outer"],
     markClearance: ["normal", "sheet"],
-    backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "checker", "glow", "stripes", "rings"],
+    backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"],
     backgroundStrength: ["quiet", "visible"],
     backgroundPlacement: ["both", "inside", "outside"],
     frameDetail: ["medium", "small", "large"],
@@ -39,8 +39,10 @@
   const phoneKey = key => `phone${key[0].toUpperCase()}${key.slice(1)}`;
   for (const key of phoneKeys) options[phoneKey(key)] = ["inherit", ...options[key]];
   const phone = window.matchMedia?.("(max-width: 699px)");
-  const defaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
-  Object.assign(defaults, { cornerStyle: "pixel", cornerSize: "small", appShell: "inset", backgroundStyle: "fibers", visualStyle: "editorial" });
+  const presetDefaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
+  Object.assign(presetDefaults, { cornerStyle: "pixel", cornerSize: "small", appShell: "inset", backgroundStyle: "fibers", visualStyle: "editorial" });
+  const defaults = { ...presetDefaults };
+  Object.assign(defaults, { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit" });
   const attributes = Object.fromEntries(Object.keys(options).filter(key => !key.startsWith("phone")).map(key => [key, key]));
   // The earlier single chart style is a preset of line and fill.
   const chartPresets = { solid: ["straight", "none"], pixel: ["stepped", "none"], halftone: ["straight", "dots"], rounded: ["curved", "none"] };
@@ -117,7 +119,7 @@
     }
     return settings;
   }
-  window.kisoAppearance = { defaults, options, read, save };
+  window.kisoAppearance = { defaults, presetDefaults, options, read, save };
   apply(read());
   phone?.addEventListener?.("change", () => apply(read()));
 })();

@@ -80,7 +80,7 @@ export function readShare(input: string, { defaults, options }: Source, schema: 
   if (!s || typeof s !== "object" || Array.isArray(s)) return fail("The code has no settings.");
   const skipped: string[] = [];
   if (v !== 1 && v !== shareVersion) skipped.push("version (made by another release)");
-  const settings = { ...defaults, ...(v === 1 ? { shadowStyle: "auto" } : {}) } as Record<string, string>;
+  const settings = { ...defaults, shadowStyle: v === 1 ? "auto" : "none" } as Record<string, string>;
   const entries = Object.entries(s);
   // Links made before line and fill were split carry one chart style preset.
   const preset = chartPresets[(s as Record<string, unknown>).chartStyle as string];

@@ -2110,6 +2110,7 @@ export function ComponentGallery({
   settingsEnabled = false,
   panel,
   settingsToggle,
+  brand,
 }: {
   route: string;
   version?: string;
@@ -2128,6 +2129,7 @@ export function ComponentGallery({
   settingsEnabled?: boolean;
   panel?: ReactNode;
   settingsToggle?: ReactNode;
+  brand?: ReactNode;
 }) {
   const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
   const demoSettings = useContext(DemoSettingsContext);
@@ -2329,7 +2331,7 @@ export function ComponentGallery({
       >
         <SidebarHeader>
           <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-            <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
+            {brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>)}
           </a>
         </SidebarHeader>
         <SidebarBody>
@@ -2376,7 +2378,7 @@ export function ComponentGallery({
             </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
           {(intro !== undefined || phone) && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-              <span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>
+              {brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>)}
             </a>
           )}
           </div>

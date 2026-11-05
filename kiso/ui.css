@@ -3635,6 +3635,15 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --canvas-size: calc(18 * var(--spacing-2xl)) calc(18 * var(--spacing-2xl));
 }
 
+/* The approved Kiso enso, centered once on the canvas. */
+[data-background-style="enso"] {
+  --canvas-mask: url("./assets/kiso-enso.svg");
+  --canvas-mask-color: var(--color-accent-base);
+  --canvas-size: min(70vw, 70vh) min(70vw, 70vh);
+  --canvas-position: center;
+  --canvas-repeat: no-repeat;
+}
+
 /* SNES decks: the console's checkerboard, stripes, rings and glow. Available
    under every accent. The checker, stripes and rings ink derives from border
    tones so it stays quiet against the paper; the glow washes use the active

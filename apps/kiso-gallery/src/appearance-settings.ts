@@ -34,7 +34,7 @@ export interface AppearanceSettings {
   frameScope: "all" | "panels" | "outer";
   markScope: "panels" | "all" | "outer";
   markClearance: "normal" | "sheet";
-  backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat" | "checker" | "glow" | "stripes" | "rings";
+  backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat" | "enso" | "checker" | "glow" | "stripes" | "rings";
   backgroundStrength: "quiet" | "visible";
   backgroundPlacement: "both" | "inside" | "outside";
   frameDetail: MarkSize;
@@ -52,6 +52,7 @@ declare global {
   interface Window {
     kisoAppearance: {
       defaults: AppearanceSettings;
+      presetDefaults: AppearanceSettings;
       options: Record<keyof AppearanceSettings, readonly string[]>;
       read: () => AppearanceSettings;
       save: (settings: AppearanceSettings) => AppearanceSettings;
@@ -106,7 +107,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),
     frameScope: pick(["outer", "panels", "all"]), markScope: pick(["outer", "panels", "all"]),
     markClearance: pick(["normal", "sheet"]),
-    backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "checker", "glow", "stripes", "rings"]),
+    backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"]),
     backgroundStrength: pick(["quiet", "visible"]), backgroundPlacement: pick(["inside", "outside", "both"]),
     frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent", "glass"]),
     outerShadowStyle: "inherit", outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",

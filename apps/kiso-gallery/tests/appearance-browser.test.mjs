@@ -99,7 +99,7 @@ for (const width of [390, 1440]) test(`Chart treatments select, persist and expo
       assert.equal(await page.evaluate(key => document.documentElement.dataset[key], attribute), value);
       const saved = await page.evaluate(() => window.kisoAppearance.read());
       assert(appearanceCode(saved).html.includes(`data-chart-${attribute === 'chartLine' ? 'line' : 'fill'}="${value}"`));
-      assert.equal(saved.cornerStyle, 'pixel', 'Chart choice keeps the independent corner preference');
+      assert.equal(saved.cornerStyle, 'rounded', 'Chart choice keeps the independent corner preference');
     }
   } finally { await page.close(); }
 });
@@ -165,20 +165,22 @@ test('Border choices update existing panels and guided controls without resettin
   } finally { await page.close(); }
 });
 
-for (const theme of ['light', 'dark']) test(`Fresh visits and reset use None; Pixel everywhere adds Hard in ${theme}`, async () => {
+for (const theme of ['light', 'dark']) test(`Fresh visits and reset use SNES; Pixel everywhere keeps its previous look in ${theme}`, async () => {
   const page = await open('intro', 1440, theme);
   try {
     const initial = await page.evaluate(() => window.kisoAppearance.read());
     const panel = await settings(page);
     const preset = panel.getByRole('button', { name: 'Pixel everywhere', exact: true });
     assert.equal(await preset.getAttribute('aria-pressed'), 'false');
-    assert.equal(initial.shadowStyle, 'none');
-    const pixelPreset = { ...initial, shadowStyle: 'hard' };
+    assert.equal(initial.shadowStyle, 'soft');
+    assert.equal(initial.accent, 'snes');
+    const baseline = await page.evaluate(() => window.kisoAppearance.presetDefaults);
+    const pixelPreset = { ...baseline, shadowStyle: 'hard' };
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined);
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light dark');
     await panel.getByRole('button', { name: 'Default', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), {
-      ...initial, shadowStyle: 'soft', cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default', frameScope: 'panels',
+      ...baseline, shadowStyle: 'soft', cornerStyle: 'square', cornerSize: 'medium', appShell: 'default', backgroundStyle: 'solid', visualStyle: 'default', frameScope: 'panels',
     }, 'Default preserves the previous appearance as a separate preset');
     await page.reload();
     assert.equal(await page.evaluate(() => window.kisoAppearance.read().cornerStyle), 'square', 'Saved appearance is not overwritten by the new default');
@@ -278,7 +280,7 @@ for (const [width, frame, theme] of [
     }), "Reset remains clickable without scrolling back up");
     assert.equal(await panel.evaluate(el => el.scrollTop), 0, "Only the options own the vertical scroll position");
     await reset.click();
-    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "pixel");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "rounded");
     assert.equal(await panel.getByRole("status").filter({ hasText: "Global settings reset." }).count(), 1);
   } finally { await page.close(); }
 });
@@ -400,7 +402,7 @@ for (const width of [390, 1440]) test(`Rounded is one type with independent size
     assert(await corners.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: "Small", exact: true }).isChecked());
     if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-corner-settings-${width}.png` });
     await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
-    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "pixel");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "rounded");
   } finally { await page.close(); }
 });
 
@@ -576,8 +578,8 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
     assert(await (await field(panel, 'Outer border')).locator('input[value="brush"]').isChecked());
     assert(await (await field(panel, 'Apply marks to')).locator('input[value="outer"]').isChecked());
     await panel.getByRole('button', { name: 'Reset appearance', exact: true }).click();
-    assert.equal(await page.evaluate(() => document.documentElement.dataset.backgroundStyle), 'fibers');
-    assert(await (await field(panel, 'Outer border')).locator('input[value="inherit"]').isChecked());
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.backgroundStyle), 'glow');
+    assert(await (await field(panel, 'Outer border')).locator('input[value="none"]').isChecked());
   } finally { await page.close(); }
 });
 
@@ -1057,6 +1059,32 @@ test('Plain header preference stays transparent and static in a desktop inset sh
         return { position: css.position, fill: css.backgroundColor, layer: getComputedStyle(el, '::before').content };
       });
       assert.deepEqual(actual, { position: 'static', fill: 'rgba(0, 0, 0, 0)', layer: 'none' }, `${theme}/${panelFill}`);
+    }
+  } finally { await page.close(); }
+});
+
+
+test("legacy presets keep their frames and fills after SNES becomes the default", async () => {
+  const page = await open("intro");
+  try {
+    const panel = await settings(page);
+    await tab(panel, "Presets");
+    for (const label of ["Pixel workshop", "Drafting sheet", "Pixel everywhere"]) {
+      await panel.getByRole("button", { name: label, exact: true }).click();
+      const look = await page.evaluate(() => window.kisoAppearance.read());
+      assert.equal(look.outerBorderStyle, "inherit", label);
+      assert.equal(look.panelFill, "solid", label);
+      assert.equal(look.headerVariant, "default", label);
+      assert.equal(look.accent, "violet", label);
+      if (label === "Pixel workshop") {
+        assert.equal(look.outerCornerStyle, "pixel");
+        assert.equal(look.outerCornerMarks, "brackets");
+      } else if (label === "Drafting sheet") {
+        assert.equal(look.outerCornerMarks, "ticks");
+      } else {
+        assert.equal(look.cornerStyle, "pixel");
+        assert.equal(look.cornerMarks, "ticks");
+      }
     }
   } finally { await page.close(); }
 });

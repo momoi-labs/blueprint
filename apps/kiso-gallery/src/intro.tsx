@@ -16,13 +16,9 @@ export function Intro() {
       <section className="intro-hero" aria-labelledby="intro-title">
         <div className="intro-copy">
           <p className="t-caps">Momoi Labs · design system</p>
-          <div className="brand intro-wordmark">
-            <span>
-              Kiso{" "}
-              <span className="muted" lang="ja">
-                基礎
-              </span>
-            </span>
+          <div className="intro-wordmark">
+            <span className="intro-kanji" lang="ja">基礎</span>
+            <span className="intro-romaji">kiso</span>
           </div>
           <h1 id="intro-title" className="t-display" tabIndex={-1}>
             A shared foundation for your next interface.
