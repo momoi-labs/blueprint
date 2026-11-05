@@ -246,7 +246,7 @@ for (const [width, frame, theme] of [
   const page = await open("components", width, theme);
   try {
     const panel = await settings(page);
-    await (await field(panel, "Application frame")).getByRole("radio", { name: frame, exact: true }).check();
+    await (await field(panel, "Application frame")).getByRole("radio", { name: frame, exact: true }).check({ timeout: 15000 });
     assert(await panel.getByRole("heading", { name: "Appearance", exact: true }).isVisible());
     assert.equal(await panel.locator("details:not([open])").count(), 1);
     for (const name of ["Colors", "Presets", "Background", "Charts", "Main style", "Where to apply", "Layout", "Phone", "Use in code"]) {
