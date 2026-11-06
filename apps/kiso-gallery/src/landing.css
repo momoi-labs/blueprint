@@ -1,0 +1,249 @@
+/* The same landing composition powers Intro and the gallery layout. */
+.intro-page.studio-landing {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-foreground);
+  overflow: clip;
+}
+.studio-landing h1, .studio-landing h2, .studio-landing h3, .studio-landing p { margin: 0; }
+.studio-landing .studio-wrap { width: 100%; padding-inline:
+  max(clamp(var(--spacing-xl), 5.5vw, var(--spacing-4xl)), calc(clamp(var(--spacing-xl), 5.5vw, var(--spacing-4xl)) + var(--page-free, 0px) * var(--page-free-start, 0)))
+  max(clamp(var(--spacing-xl), 5.5vw, var(--spacing-4xl)), calc(clamp(var(--spacing-xl), 5.5vw, var(--spacing-4xl)) + var(--page-free, 0px) * var(--page-free-end, 1))); }
+.studio-landing .studio-section { padding-block: clamp(var(--spacing-3xl), 7vw, calc(var(--spacing-4xl) * 2)); }
+.studio-hero { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: var(--spacing-3xl); padding-block: clamp(var(--spacing-3xl), 8vw, calc(var(--spacing-4xl) * 2)); }
+.studio-copy { display: grid; gap: var(--spacing-xl); }
+.studio-landing .studio-eyebrow { font-size: var(--type-size-label); font-weight: var(--type-weight-medium); color: var(--color-link); }
+.studio-landing h1 { font-size: clamp(var(--type-size-editorial), 5.5vw, calc(var(--type-size-editorial) * 1.5)); line-height: 1.04; letter-spacing: -.05em; font-weight: var(--type-weight-semibold); text-wrap: balance; }
+.studio-landing h1 em { font-style: normal; color: var(--color-link); }
+.studio-description { max-width: 42ch; color: var(--color-muted-foreground); font-size: var(--type-size-body-large); line-height: 1.7; }
+.studio-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-md); }
+.studio-landing .studio-note { color: var(--color-muted-foreground); font-size: var(--type-size-metadata); line-height: 1.6; }
+.studio-scene { position: relative; isolation: isolate; display: grid; gap: var(--spacing-md); padding-block: var(--spacing-3xl); min-width: 0; }
+.studio-scene::before { content: ""; position: absolute; z-index: -1; inset: 0; background: radial-gradient(ellipse, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent 70%); }
+.studio-section-head { display: flex; justify-content: space-between; align-items: end; gap: var(--spacing-2xl); margin-block-end: var(--spacing-2xl); }
+.studio-section-head > div { display: grid; gap: var(--spacing-lg); }
+.studio-section-head h2 { max-width: 18ch; }
+.studio-landing h2 { font-size: clamp(var(--type-size-display), 3.5vw, var(--type-size-editorial)); font-weight: var(--type-weight-semibold); line-height: 1.13; letter-spacing: -.04em; }
+.studio-section-head > p { max-width: 33ch; color: var(--color-muted-foreground); line-height: 1.7; }
+.studio-landing h3 { font-size: var(--type-size-h3); font-weight: var(--type-weight-semibold); letter-spacing: -.02em; line-height: 1.4; }
+.studio-landing .intro-contrast { color-scheme: dark; background: var(--color-background); color: var(--color-foreground); background-image: radial-gradient(ellipse at top, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 65%); }
+:root[data-theme="dark"] .studio-landing .intro-contrast { color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .studio-landing .intro-contrast { color-scheme: light; } }
+.studio-landing .intro-cta { color-scheme: light; background: var(--color-primary); color: var(--color-primary-foreground); }
+.studio-cta .studio-wrap { display: grid; gap: var(--spacing-xl); }
+.studio-landing .studio-cta h2 { font-size: clamp(var(--type-size-editorial), 5vw, calc(var(--type-size-editorial) * 1.3)); }
+.studio-landing .studio-cta .studio-eyebrow { color: inherit; }
+.studio-cta .studio-actions { margin-block-start: var(--spacing-lg); }
+.studio-cta .btn-outline { background: var(--color-primary-foreground); color: var(--color-primary); border-color: transparent; }
+.studio-cta .btn-ghost { color: inherit; }
+.studio-cta .btn-ghost svg { width: 1.1em; height: 1.1em; fill: currentColor; }
+.studio-cta .btn-ghost:hover { background: var(--color-primary-foreground); color: var(--color-primary); }
+.studio-landing .studio-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-md); padding-block: var(--spacing-xl); font-size: var(--type-size-metadata); color: var(--color-muted-foreground); }
+.studio-made-in { display: inline-flex; align-items: center; gap: var(--spacing-xs); }
+.studio-made-in svg { width: 1.4em; height: 1em; }
+@container catalog (max-width: 800px) {
+  .studio-hero { grid-template-columns: 1fr; }
+  .studio-copy { max-width: 54ch; }
+  .studio-scene { max-width: 100%; }
+  .studio-section-head { align-items: start; flex-direction: column; }
+  .studio-section-head > p { max-width: 52ch; }
+}
+@media (max-width: 800px) {
+  .studio-hero { grid-template-columns: 1fr; }
+  .studio-copy { max-width: 54ch; }
+  .studio-scene { max-width: 100%; }
+  .studio-section-head { align-items: start; flex-direction: column; }
+  .studio-section-head > p { max-width: 52ch; }
+}
+@media (max-width: 550px) {
+  .studio-landing h1 { font-size: var(--type-size-editorial); }
+}
+
+.studio-landing .studio-cta h2 { max-width: 20ch; }
+.studio-cta .studio-note { color: inherit; }
+
+/* Intro is one continuous panel, including its existing gallery header. */
+.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar {
+  width: auto;
+  margin: 0;
+  top: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
+  --header-fill: transparent;
+}
+.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar::before,
+.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar::after { content: none; }
+.component-gallery.catalog-landing .catalog-main.catalog-intro {
+  padding: 0;
+  scrollbar-gutter: auto;
+}
+
+/* Let the selected canvas show through the page, independently of panel fill. */
+:where([data-background-style]:not([data-background-style="solid"]):not([data-background-placement="outside"])) .component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] {
+  background-color: transparent;
+}
+
+/* Intro fills the shell. Page width constrains only the content inside bands. */
+.component-gallery.catalog-landing.app-shell {
+  --app-shell-outer: 0px;
+}
+.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] {
+  margin: 0;
+}
+
+/* Compact introduction: show components before explaining them. */
+.studio-landing .studio-hero { padding-block: var(--spacing-2xl); gap: var(--spacing-3xl); }
+.studio-landing .studio-copy { gap: var(--spacing-lg); }
+.studio-landing .studio-copy h1 { font-size: var(--type-size-h1); line-height: var(--type-line-height-tight); letter-spacing: -.025em; }
+.studio-landing .intro-description { font-size: var(--type-size-body); line-height: 1.6; }
+.studio-landing .studio-scene { padding-block: 0; }
+.studio-landing .intro-sequence { max-width: none; margin: 0; padding-block: var(--spacing-xl) var(--spacing-2xl); }
+.studio-landing .intro-sequence h2 { font-size: var(--type-size-h1); letter-spacing: -.025em; }
+.studio-landing .studio-demo .studio-section { padding-block: var(--spacing-3xl); }
+.studio-landing .studio-demo h2 { font-size: var(--type-size-h1); }
+.studio-landing .studio-cta .studio-section { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--spacing-xl); padding-block: var(--spacing-2xl); }
+.studio-landing .studio-cta h2 { font-size: var(--type-size-display); }
+.studio-landing .studio-cta .studio-actions { margin: 0; }
+@media (max-width: 650px) { .studio-landing .intro-features { grid-template-columns: minmax(0, 1fr); } }
+
+/* The interface itself is the hero illustration. */
+.studio-landing .studio-copy h1 { font-size: clamp(var(--type-size-display), 3.8vw, var(--type-size-editorial)); line-height: 1.08; letter-spacing: -.04em; }
+.studio-landing .studio-scene { perspective: 1100px; padding: var(--spacing-xl); }
+/* Outer frame ink stays inside an edge-to-edge landing viewport. */
+.component-gallery.catalog-landing { overflow-x: clip; }
+
+.studio-showcase-heading { display: grid; gap: var(--spacing-sm); text-align: center; margin-block-end: var(--spacing-2xl); }
+.studio-showcase-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(var(--spacing-2xl), 11vw - 64px, calc(var(--spacing-4xl) * 2.5)); max-inline-size: var(--size-content-max); margin-inline: auto; }
+.studio-showcase-grid > section { display: grid; grid-template-rows: auto auto auto 1fr auto; align-content: start; gap: var(--spacing-md); min-width: 0; }
+.studio-live-example { min-height: calc(5 * var(--size-control-md)); min-width: 0; margin-block-end: var(--spacing-lg); display: grid; align-content: center; }
+.studio-live-example .card-content { padding: var(--spacing-lg); }
+.studio-foundation-example { justify-items: center; gap: var(--spacing-lg); }
+.studio-example-form { display: grid; gap: var(--spacing-md); }
+.studio-showcase-grid > section > .btn { justify-self: start; }
+@container catalog (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Side by side, the examples render at 80% so the three read as separate pieces. */
+@media (min-width: 901px) { .studio-showcase-grid .studio-live-example { zoom: .8; } }
+
+/* Three real interfaces share the approved horizontal stack. */
+.studio-landing .studio-scene { min-height: 490px; padding: var(--spacing-xl) 0; display: grid; place-items: center; }
+.hero-panel-stack { position: relative; width: min(60%, 350px); height: 430px; isolation: isolate; transform: rotateX(18deg) rotateZ(-8deg); transform-style: flat; }
+.hero-panel { position: absolute; width: 100%; animation: hero-panel-float 6.5s ease-in-out infinite; }
+.hero-panel-identity { top: 15px; left: -25%; z-index: 3; }
+.hero-panel-project { top: 85px; left: 0; z-index: 2; animation-duration: 7.5s; animation-delay: -2s; }
+.hero-panel-preferences { top: 145px; left: 25%; z-index: 1; animation-duration: 8.5s; animation-delay: -4s; }
+.hero-panel[data-front="true"] { z-index: 4; }
+.hero-panel .card { background: var(--color-elevated-surface); box-shadow: var(--shadow-sm), var(--shadow-lg); }
+.studio-landing .hero-panel h2 { font-size: var(--type-size-h3); letter-spacing: -.02em; }
+.hero-panel .card-header, .hero-panel .card-body, .hero-panel .card-footer { padding: var(--spacing-lg); }
+.hero-panel .card-header + .card-body { padding-block-start: var(--spacing-sm); }
+.hero-panel-row { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); }
+.hero-panel .card-footer { flex-wrap: wrap; gap: var(--spacing-sm); }
+.hero-panel-symbol { display: grid; place-items: center; width: var(--spacing-2xl); height: var(--spacing-2xl); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-primary-foreground); }
+.hero-panel-symbol svg { width: var(--spacing-lg); height: var(--spacing-lg); }
+.hero-sign-in .card-body { text-align: center; justify-items: center; gap: var(--spacing-md); }
+.hero-sign-in form { display: grid; gap: var(--spacing-sm); text-align: start; width: 100%; }
+.hero-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+.hero-metrics > div { display: grid; gap: var(--spacing-xs); }
+.hero-metrics strong { font-size: var(--type-size-h1); font-weight: var(--type-weight-semibold); letter-spacing: -.04em; }
+.hero-panel .hero-preferences { display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.hero-preferences-rail { display: none; }
+.hero-preferences-main { display: grid; gap: var(--spacing-md); padding: var(--spacing-lg); }
+.hero-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding-block: var(--spacing-sm); border-block-end: 1px solid var(--color-border); font-size: var(--type-size-label); }
+.hero-panel .hero-panel-reveal { position: absolute; inset: 0; z-index: 10; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; border-radius: var(--radius-surface); cursor: pointer; }
+.hero-panel .hero-panel-reveal:hover { background: transparent; }
+.hero-panel-stack:hover .hero-panel, .hero-panel-stack:focus-within .hero-panel { animation-play-state: paused; }
+@keyframes hero-panel-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .hero-panel { animation: none; } }
+@media (max-width: 550px) { .hero-panel-stack { width: 70%; height: 475px; transform: rotateX(12deg) rotateZ(-4deg); } .hero-panel-identity { left: -16%; } .hero-panel-preferences { left: 16%; top: 185px; } .hero-panel-project { top: 110px; } .studio-landing .studio-scene { min-height: 535px; } }
+/* Overlapping examples need an opaque surface to keep their text readable. */
+.intro-page.studio-landing .hero-panel .card {
+  --frame-fill: var(--color-elevated-surface);
+  background-color: var(--color-elevated-surface);
+}
+
+/* The light boundary reveals the same real components in two themes. */
+.studio-showcase-grid .studio-live-example { min-height: 260px; }
+.foundation-lab { gap: var(--spacing-md); }
+.foundation-world { position: relative; height: 230px; overflow: hidden; border-radius: var(--radius-lg); isolation: isolate; box-shadow: var(--shadow-md); }
+.foundation-universe { position: absolute; inset: 0; color: var(--color-foreground); background: var(--color-background); overflow: hidden; }
+.foundation-dark { color-scheme: dark; clip-path: inset(0 0 0 var(--foundation-light)); background-image: radial-gradient(ellipse at 75% 10%, color-mix(in srgb, var(--color-primary) 25%, transparent), transparent 60%); }
+.foundation-light { color-scheme: light; clip-path: inset(0 calc(100% - var(--foundation-light)) 0 0); background-image: radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--color-accent-base) 14%, transparent), transparent 65%); }
+.foundation-orbit { position: absolute; border: 1px solid color-mix(in srgb, var(--color-foreground) 12%, transparent); border-radius: 50%; width: 280px; height: 280px; left: 50%; top: 50%; transform: translate(-50%, -50%) rotateX(55deg) rotateZ(-20deg); }
+.foundation-orbit-outer { width: 380px; height: 380px; transform: translate(-50%, -50%) rotateX(55deg) rotateZ(30deg); }
+.foundation-celestial { position: absolute; top: var(--spacing-lg); width: var(--spacing-2xl); height: var(--spacing-2xl); border-radius: var(--radius-full); }
+.foundation-sun { left: var(--spacing-lg); color: var(--color-primary); }
+.foundation-moon { right: var(--spacing-lg); color: var(--color-foreground); }
+.foundation-type { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); font-size: calc(var(--type-size-editorial) * 1.5); font-weight: var(--type-weight-semibold); letter-spacing: -.06em; line-height: 1; }
+.foundation-button { position: absolute; left: 45%; top: 66%; transform: translateX(-50%) rotate(-8deg); filter: drop-shadow(0 8px 10px var(--color-shadow-contact)); animation: foundation-button-float 7s ease-in-out infinite; }
+.foundation-badges { position: absolute; left: 7%; top: 48%; display: grid; gap: var(--spacing-xs); transform: rotate(-9deg); }
+.foundation-input { position: absolute; right: 5%; top: 46%; width: 44%; transform: rotate(8deg); box-shadow: var(--shadow-md); animation: foundation-input-float 8s ease-in-out infinite; }
+.foundation-coordinate { position: absolute; bottom: var(--spacing-md); left: var(--spacing-lg); font: var(--type-size-metadata) var(--font-mono); color: var(--color-muted-foreground); }
+.foundation-dark .foundation-coordinate { left: auto; right: var(--spacing-lg); }
+.foundation-boundary { position: absolute; left: var(--foundation-light); top: 0; bottom: 0; width: 1px; background: var(--color-primary); z-index: 2; pointer-events: none; }
+.foundation-boundary > span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: var(--spacing-xl); height: var(--spacing-3xl); display: grid; place-items: center; border-radius: var(--radius-full); background: var(--color-primary); color: var(--color-primary-foreground); box-shadow: var(--shadow-md); font-size: var(--type-size-label); }
+.foundation-slider { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; z-index: 3; touch-action: pan-y; }
+.foundation-world:has(.foundation-slider:focus-visible) { outline: 2px solid var(--color-ring); outline-offset: 4px; }
+.studio-landing .foundation-caption { display: flex; justify-content: space-between; gap: var(--spacing-sm); font-size: var(--type-size-metadata); color: var(--color-muted-foreground); }
+.foundation-world:hover .foundation-button, .foundation-world:hover .foundation-input, .foundation-world:focus-within .foundation-button, .foundation-world:focus-within .foundation-input { animation-play-state: paused; }
+@keyframes foundation-button-float { 0%, 100% { transform: translateX(-50%) rotate(-8deg) translateY(0); } 50% { transform: translateX(-50%) rotate(-8deg) translateY(-5px); } }
+@keyframes foundation-input-float { 0%, 100% { transform: rotate(8deg) translateY(0); } 50% { transform: rotate(8deg) translateY(5px); } }
+@media (prefers-reduced-motion: reduce) { .foundation-button, .foundation-input { animation: none; } }
+
+/* Connected controls orbit the state they change. */
+.component-orbit { position: relative; height: 260px; }
+.component-orbit-ring { position: absolute; left: 50%; top: 45%; width: 72%; height: 72%; border: 1px solid var(--color-border); border-radius: 50%; transform: translate(-50%, -50%) rotate(-15deg); }
+.component-orbit-center { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: var(--spacing-xs); }
+.component-orbit-center strong { font-size: var(--type-size-editorial); letter-spacing: -.05em; line-height: 1; }
+.component-orbit-node { position: absolute; display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-card); box-shadow: var(--shadow-md); font-size: var(--type-size-metadata); }
+.component-orbit-save { top: 8%; left: 0; transform: rotate(-7deg); }
+.component-orbit-notifications { top: 27%; right: 0; transform: rotate(6deg); }
+.component-orbit-input { top: 70%; left: 0; width: 45%; transform: rotate(-4deg); }
+.component-orbit-input .input { min-width: 0; }
+.component-orbit-apply { position: absolute; top: 73%; right: 0; transform: rotate(5deg); }
+.studio-landing .component-orbit-status { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; font-size: var(--type-size-metadata); }
+.component-orbit .component-orbit-node { position: absolute; width: max-content; max-width: 65%; }
+.component-orbit-node label { white-space: nowrap; }
+.component-orbit-node [role="switch"] { flex: none; }
+.component-orbit .component-orbit-input { width: 45%; }
+
+/* The shell assembles from three pieces; Steps shows which ones are on. */
+.shell-assembly { position: relative; display: grid; grid-template-columns: minmax(120px, 32%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; align-items: center; gap: var(--spacing-lg); }
+.shell-assembly-controls { display: grid; gap: var(--spacing-sm); justify-items: start; }
+.shell-assembly .steps { --size-control-md: var(--size-control-xs); }
+.shell-assembly .steps-list { gap: var(--spacing-sm); overflow: visible; padding-inline-start: var(--spacing-xs); }
+.shell-assembly .steps-item { gap: var(--spacing-sm); }
+.shell-assembly .steps-label { width: 100%; font-size: var(--type-size-metadata); }
+.shell-assembly-step { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+.shell-assembly .steps-state { font-size: var(--type-size-metadata); }
+.shell-assembly .steps-list > li[data-state="completed"] .steps-state { color: var(--color-link); }
+.shell-assembly .steps-marker { transition: background-color var(--motion-duration-normal, .3s) var(--motion-easing-standard), box-shadow .3s; }
+.shell-assembly .steps-list > li[data-current="true"] .steps-marker { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-link) 22%, transparent); }
+.studio-landing .shell-assembly-replay { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); padding-inline: var(--spacing-xs); }
+.shell-assembly-stage { position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: var(--spacing-sm); min-height: 200px; align-content: start; font-size: var(--type-size-metadata); transform: perspective(900px) rotateX(6deg) rotateZ(-1.5deg); }
+.shell-assembly-piece { display: flex; gap: var(--spacing-xs); padding: var(--spacing-sm); box-shadow: var(--shadow-md); transition: opacity .45s cubic-bezier(.2, .8, .2, 1), translate .55s cubic-bezier(.2, .8, .2, 1); }
+.shell-assembly-header { grid-column: 1 / -1; align-items: center; justify-content: space-between; }
+.shell-assembly-sidebar { flex-direction: column; grid-row: 2; }
+.shell-assembly-content { flex-direction: column; grid-row: 2; grid-column: 2; min-width: 0; }
+.shell-assembly-content .table-wrap { box-shadow: none; }
+.shell-assembly-content .table { --table-cell-inline: var(--spacing-xs); font-size: var(--type-size-metadata); }
+.shell-assembly-content .table thead th { font-size: var(--type-size-metadata); }
+.shell-assembly-content .badge { font-size: var(--type-size-metadata); padding-inline: var(--spacing-xs); }
+.shell-assembly-sidebar > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-assembly-stage[data-sidebar="false"] .shell-assembly-content { grid-column: 1 / -1; }
+.shell-assembly-stage[data-header="false"] .shell-assembly-header { position: absolute; inset: 0 0 auto; opacity: 0; translate: 0 -24px; }
+.shell-assembly-stage[data-sidebar="false"] .shell-assembly-sidebar { position: absolute; opacity: 0; translate: -32px 0; }
+.shell-assembly-stage[data-content="false"] .shell-assembly-content { opacity: 0; translate: 0 28px; }
+.shell-assembly-empty { position: absolute; inset: 0; z-index: -1; display: grid; place-items: center; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-surface); color: var(--color-muted-foreground); transition: opacity .3s; }
+.shell-assembly-empty[aria-hidden="true"] { opacity: 0; }
+.studio-landing .shell-assembly-status { grid-column: 1 / -1; align-self: end; text-align: center; font-size: var(--type-size-metadata); }
+@media (prefers-reduced-motion: reduce) { .shell-assembly-piece, .shell-assembly .steps-marker { transition: none; } }
+.shell-assembly[data-narrow="true"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+.shell-assembly[data-narrow="true"] .shell-assembly-controls { justify-items: stretch; }
+.shell-assembly[data-narrow="true"] .shell-assembly-step { flex-direction: column; gap: var(--spacing-xs); }
+.shell-assembly[data-narrow="true"] .shell-assembly-replay { justify-self: center; }

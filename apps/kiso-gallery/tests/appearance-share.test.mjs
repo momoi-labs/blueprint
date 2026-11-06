@@ -404,14 +404,14 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
 });
 
 test("Copy settings and Paste settings restore large corners on controls", async () => {
-  const page = await open("#intro");
+  const page = await open("#components/form-field");
   try {
     if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
     await page.locator(".appearance-composition").filter({ hasText: "SNES" }).click();
     const inspect = () => page.evaluate(() => ({
       cornerSize: window.kisoAppearance.read().cornerSize,
       frameScope: window.kisoAppearance.read().frameScope,
-      inputRadius: getComputedStyle(document.querySelector(".intro-composition input")).borderRadius,
+      controlRadius: getComputedStyle(document.querySelector('.catalog-preview input')).borderRadius,
     }));
     const before = await inspect();
     assert.equal(before.cornerSize, "large");
