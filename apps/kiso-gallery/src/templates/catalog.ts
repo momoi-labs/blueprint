@@ -1,3 +1,9 @@
+import componentOrbit from "../component-orbit.tsx?raw";
+import foundationLab from "../foundation-lab.tsx?raw";
+import landingCss from "../landing.css?raw";
+import heroPanels from "../hero-panels.tsx?raw";
+import shellAssembly from "../shell-assembly.tsx?raw";
+import landing from "../intro.tsx?raw";
 import login from "./login.tsx?raw";
 import crud from "./crud.tsx?raw";
 import dashboard from "./dashboard.tsx?raw";
@@ -26,6 +32,7 @@ const components = {
   Dialog: ["modal-dialog.md", "Blocks the page for a task or a decision, then returns.", "Not for a message that asks for no decision."],
   Disclosure: ["disclosure.md", "Collapses a related section in place.", "Does not switch views. Use Tabs for that."],
   FormField: ["form-field.md", "One control with its label, help and error.", "Not the whole form or its submit actions."],
+  Input: ["input.md", "Collects a single-line value with native input semantics.", "Does not supply its field label or validation message. Use FormField for those."],
   KV: ["kv.md", "Named facts about one object.", "Not a table of many records."],
   Link: ["link.md", "Goes somewhere: a route, a hash, a document.", "Does not run an action on the page. Use Button for that."],
   Meter: ["meter.md", "One measurement against a known limit, or the progress of work.", "Does not mix the two: a task's completion is Progress."],
@@ -38,6 +45,7 @@ const components = {
   Spinner: ["spinner.md", "Work is happening and its length is unknown.", "Not for known progress or a page skeleton."],
   RadioGroup: ["radio-group.md", "Selects one value from visible options.", "Not navigation between pages."],
   Stat: ["stat.md", "One named metric with its change and context.", "Draws no frame. Card does that."],
+  Steps: ["steps.md", "Shows position in a bounded guided flow.", "Does not validate, complete or navigate. The caller owns that."],
   SiteSection: ["site-section.md", "A full-width band of a site page, with a head, a body and a foot.", "Not a panel inside an application screen. Use Card or Page for that."],
   SiteHeader: ["site-header.md", "A site's top bar: brand, links and actions, sticky or over the first section.", "Not an application header. Use Header in ApplicationShell for that."],
   SiteFooter: ["site-footer.md", "A site page's last line: a start and an end.", "Not navigation for the whole product."],
@@ -46,6 +54,7 @@ const components = {
   FeatureList: ["feature-list.md", "Facts as a list, each with a lead.", "Not steps in order. Use Steps for that."],
   WindowFrame: ["window-frame.md", "Window or terminal chrome around an example.", "Not an application window. It frames a picture of one."],
   PerspectiveStack: ["perspective-stack.md", "Pages or cards fanned in depth.", "Not a carousel. Every item stays in view."],
+  Switch: ["switch.md", "Changes one boolean setting immediately.", "Not a choice saved with a form. Use Checkbox for that."],
   Table: ["table.md", "Scan, compare, sort and act on many similar items.", "Not a page layout or a list of cards."],
   Tabs: ["tabs.md", "Peer views of the same page.", "Does not say where you are in the product. Breadcrumb does."],
   TimeRangeControl: ["time-range-control.md", "Picks the time range the panels show, with presets and time zone.", "Not a refresh rate picker."],
@@ -71,7 +80,7 @@ function terminal(id: string) {
   return parts.join("\n\n// ...\n\n");
 }
 
-export type SourceFile = { name: string; path: string; language: "tsx" | "rust"; code: string };
+export type SourceFile = { name: string; path: string; language: "tsx" | "rust" | "css"; code: string };
 const react = (name: string, code: string, dir = "apps/kiso-gallery/src/templates/"): SourceFile => ({ name, path: dir + name, language: "tsx", code });
 const blocks = "kiso/blocks/react-prototype/src/";
 const rust = (id: string): SourceFile => ({ name: "screens.rs", path: "crates/tui-kiso/examples/screens.rs", language: "rust", code: terminal(id) });
@@ -123,6 +132,16 @@ export const templates = [
     states: [],
     components: (["PageHeader", "Button", "Card", "Stat", "Disclosure", "DashboardGrid", "Chart", "Meter", "Table", "Badge"] as const).map(component),
     files: [react("report.tsx", report)],
+  },
+  {
+    id: "landing",
+    label: "Landing page",
+    description: "The Kiso introduction: a compact hero with an interface in perspective, live component examples in the opposite theme and a closing call to action.",
+    pattern: "page-layout.md",
+    webOnly: true,
+    states: [],
+    components: (["Card", "Badge", "Button", "FormField", "Input", "Table", "Meter", "Switch", "Steps"] as const).map(component),
+    files: [react("intro.tsx", landing, "apps/kiso-gallery/src/"), react("hero-panels.tsx", heroPanels, "apps/kiso-gallery/src/"), react("foundation-lab.tsx", foundationLab, "apps/kiso-gallery/src/"), react("component-orbit.tsx", componentOrbit, "apps/kiso-gallery/src/"), react("shell-assembly.tsx", shellAssembly, "apps/kiso-gallery/src/"), { name: "landing.css", path: "apps/kiso-gallery/src/landing.css", language: "css", code: landingCss }],
   },
 ] as const;
 

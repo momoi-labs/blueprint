@@ -10,14 +10,18 @@
 
 - Screens and product components: `apps/kiso-gallery/src/`.
 - Shared catalog: `kiso/blocks/react-prototype/src/`.
-- Product CSS: `app.css`, `appearance.css`, `gallery-settings.css`, and
-  `accents.css` under `apps/kiso-gallery/src/`.
+- Product CSS: `app.css`, `appearance.css`, `gallery-settings.css`,
+  `landing.css`, and `accents.css` under `apps/kiso-gallery/src/`.
 - Shared catalog CSS: `kiso/blocks/react-prototype/src/gallery.css`.
 
 ## Product components
 
 - `KisoBrand` renders the approved horizontal lockup with outlined text.
 - `GallerySettings` owns appearance controls.
+- `ComponentOrbit` demonstrates connected switches, an input and an action.
+- `FoundationLab` compares light and dark tokens with a draggable light boundary.
+- `HeroPanels` composes three interactive examples, with the project summary in front.
+- `ShellAssembly` builds a header, sidebar and content from switches. Steps shows which pieces are on. It assembles once, on the first visit.
 
 ## Product rules
 
@@ -30,13 +34,20 @@ remain in effect until reset.
 The shell lockup is 24 px high. Show it in the sidebar while desktop navigation
 is open, and in the header when navigation is closed or on smaller screens.
 Canvas offers the centered Kiso enso background.
+The landing follows the gallery page width and alignment without another
+content width cap. Its contrast bands span that width.
+On Intro, the existing header and landing share one continuous panel, with
+no floating header frame or outer content gutter. Other routes keep the
+selected header variant. Intro removes the inset shell margin in both width modes. Section backgrounds
+reach the shell edges; Full, Contained and alignment apply to inner content. The closing links use a light violet section. The hero uses the approved A + E + B stack, with E in front, click to reveal
+and a 6px float that pauses on interaction and respects reduced motion.
 
 ## Pattern choices
 
 | Screen | Pattern |
 | --- | --- |
 | Gallery shell | Application shell |
-| Introduction | Product introduction, no catalog pattern |
+| Introduction and landing layout | Compact landing composition: split hero with a component card in perspective, three live examples in the inverse theme and accent CTA. Uses page layout as a width reference. No marketing pattern contract yet. |
 | Components | Interactive component catalog, no catalog pattern |
 | Layout examples | Existing dashboard, CRUD, settings, login and report patterns |
 
