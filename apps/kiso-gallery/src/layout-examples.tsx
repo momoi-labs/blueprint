@@ -10,6 +10,7 @@ import { LoginLayout, loginResults, type LoginResult } from "./templates/login";
 import { ListDetailLayout } from "./templates/crud";
 import { DashboardLayout } from "./templates/dashboard";
 import { ChartsLayout } from "./templates/charts";
+import { Intro } from "./intro";
 import { ReportLayout } from "./templates/report";
 import { WorkspacePreview } from "./templates/workspace";
 import {
@@ -283,6 +284,12 @@ function LayoutExample({ route }: { route: string }) {
   const selected = templates.find((template) => template.id === requested) ?? templates[0];
   if (selected.id === "login") return <LoginExample result={scene} />;
   if (selected.id === "crud") return <CrudExample scene={scene} result={result} />;
+  if (selected.id === "landing") return (
+    <section aria-label={selected.label}>
+      <div className="layout-preview-caption"><DeviceSwitch /><OpenAlone route="example/landing" /></div>
+      <LayoutPreview route="example/landing"><Intro /></LayoutPreview>
+    </section>
+  );
   // The report prints from its own button; it has no phone or terminal view.
   if (selected.id === "report") return (
     <section aria-label={selected.label}>
@@ -338,7 +345,7 @@ function TemplateList() {
               <div className="layout-row-title">
                 <h2 className="t-h2" id={`layout-${template.id}`}>{template.label}</h2>
                 <span className="muted t-label">
-                  {template.states.length > 0 && `${template.states.length} states · `}{"paper" in template ? "Desktop and paper" : "Desktop, phone and TUI"}
+                  {template.states.length > 0 && `${template.states.length} states · `}{"paper" in template ? "Desktop and paper" : "webOnly" in template ? "Desktop and phone" : "Desktop, phone and TUI"}
                 </span>
               </div>
               <p className="muted">{template.description}</p>
@@ -359,10 +366,10 @@ function TemplateList() {
                   <a href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "phone")}
                     aria-label={`Open ${template.label} on a phone`}><Smartphone className="icon icon-sm" aria-hidden="true" />Phone</a>
                 </Button>
-                <Button asChild variant="ghost" size="sm">
+                {!("webOnly" in template) && <Button asChild variant="ghost" size="sm">
                   <a href={standaloneUrl(`example/${template.id}`)} {...opener} onClick={open(template.id, "tui")}
                     aria-label={`Open ${template.label} in a terminal`}><SquareTerminal className="icon icon-sm" aria-hidden="true" />TUI</a>
-                </Button>
+                </Button>}
                 </>}
               </div>
             </div>
@@ -414,7 +421,7 @@ function TemplateCode({ files }: { files: readonly SourceFile[] }) {
     <RadioGroup label="File" variant="segmented" className="layout-files" value={String(index)} onValueChange={value => setIndex(Number(value))}>
       {files.map((item, at) => <RadioGroupItem key={item.name} value={String(at)} label={item.language === "rust" ? `Terminal · ${item.name}` : item.name} />)}
     </RadioGroup>
-    <CodeBlock key={file.path} code={file.code} highlight={file.language === "rust" ? rust : tsx} title={file.path} copy="code" lineNumbers />
+    <CodeBlock key={file.path} code={file.code} highlight={file.language === "rust" ? rust : file.language === "tsx" ? tsx : undefined} title={file.path} copy="code" lineNumbers />
   </>;
 }
 

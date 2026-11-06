@@ -512,7 +512,7 @@ test("Old Appearance bookmarks open settings on Intro", async () => {
   try {
     await page.waitForURL(`${url}#intro`);
     assert(await page.locator("#gallery-settings").isVisible());
-    assert(await page.getByRole("heading", { name: "A shared foundation for your next interface.", exact: true }).isVisible());
+    assert(await page.getByRole("heading", { name: "Small pieces. Solid foundation.", exact: true }).isVisible());
   } finally { await page.close(); }
 });
 
@@ -685,8 +685,8 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
     assert.equal(await page.evaluate(() => document.documentElement.dataset.backgroundPlacement), 'both');
     await page.keyboard.press('ArrowLeft');
     await (await field(panel, 'Panel fill')).getByRole('radio', { name: 'Translucent', exact: true }).check();
-    assert(await page.locator('.intro-composition .card').evaluate(el => getComputedStyle(el).backgroundColor.includes('0.65')), 'Blueprint panels can be translucent without a Momoi background');
-    assert.equal(await page.locator('.intro-composition input').evaluate(el => getComputedStyle(el).opacity), '1');
+    assert(await page.locator('.component-orbit-node').first().evaluate(el => getComputedStyle(el).backgroundColor.includes('0.65')), 'Blueprint demo surfaces can be translucent without a Momoi background');
+    assert.equal(await page.locator('.hero-panel-project .badge').first().evaluate(el => getComputedStyle(el).opacity), '1');
     const borders = (await field(panel, 'Border style'));
     const thumbnail = borders.locator('label:has(input[value="double"]) svg');
     const before = await thumbnail.innerHTML();
@@ -704,7 +704,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
   } finally { await page.close(); }
 });
 
-test('Editorial Intro does not scroll only to reveal bottom padding', async () => {
+test('Landing Intro scrolls through its closing section', async () => {
   const page = await open('intro', 1587, 'dark');
   try {
     await page.setViewportSize({ width: 1587, height: 934 });
@@ -712,13 +712,13 @@ test('Editorial Intro does not scroll only to reveal bottom padding', async () =
     if (await navigation.count()) await navigation.click();
     const content = page.locator('.catalog-intro');
     const geometry = await content.evaluate(el => ({ content: el.scrollHeight, viewport: el.clientHeight }));
-    assert(geometry.content <= geometry.viewport, `The complete Intro fits without a padding-only scrollbar: ${JSON.stringify(geometry)}`);
+    assert(geometry.content > geometry.viewport, `The landing has multiple sections: ${JSON.stringify(geometry)}`);
     await page.setViewportSize({ width: 1587, height: 600 });
     assert(await content.evaluate(el => el.scrollHeight > el.clientHeight), 'Short viewports still allow genuine content scrolling');
     await content.evaluate(el => el.scrollTop = el.scrollHeight);
-    const last = page.locator('.intro-features section').last();
+    const last = page.locator('.studio-footer');
     const viewport = await content.boundingBox(), box = await last.boundingBox();
-    assert(box.y >= viewport.y && box.y + box.height <= viewport.y + viewport.height);
+    assert(box.y >= viewport.y - 1 && box.y + box.height <= viewport.y + viewport.height + 1);
     if (screenshots) await page.screenshot({ path: `${screenshots}/intro-short-viewport.png` });
   } finally { await page.close(); }
 });
@@ -733,10 +733,10 @@ test('Intro keeps its reading width while scrolling at the frame edge', async ()
       const main = document.querySelector('.component-gallery > [data-slot="app-shell-main"]');
       const scroll = main.querySelector('.catalog-main');
       const frame = main.getBoundingClientRect(), content = scroll.getBoundingClientRect();
-      return { gap: frame.right - content.right, readingWidth: main.querySelector('.intro-page').getBoundingClientRect().width, overflow: getComputedStyle(scroll).overflowY };
+      return { gap: frame.right - content.right, readingWidth: main.querySelector('.intro-description').getBoundingClientRect().width, overflow: getComputedStyle(scroll).overflowY };
     });
     assert(geometry.gap <= 2, `Scrollbar is next to the border, gap was ${geometry.gap}px`);
-    assert(geometry.readingWidth <= 1200, 'Text does not expand to viewport width');
+    assert(geometry.readingWidth <= 720, 'Text does not expand to viewport width');
     assert.equal(geometry.overflow, 'auto');
   } finally { await page.close(); }
 });
@@ -778,10 +778,11 @@ test('Intro stacks within the space left by both rails', async () => {
     const panel = await settings(page);
     await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
     await page.getByRole('button', { name: 'Expand navigation', exact: true }).click();
-    const copy = await page.locator('.intro-copy').boundingBox();
-    const sample = await page.locator('.intro-composition').boundingBox();
+    const copy = await page.locator('.studio-copy').boundingBox();
+    const sample = await page.locator('.studio-scene').boundingBox();
     assert(sample.y >= copy.y + copy.height, 'A narrow content column stacks the hero instead of squeezing two columns');
-    assert(Math.abs(copy.width - sample.width) <= 1);
+    const hero = await page.locator('.studio-hero').boundingBox();
+    assert(sample.width <= hero.width + 1);
   } finally { await page.close(); }
 });
 
@@ -983,7 +984,7 @@ for (const width of [390, 1440]) test(`Main style, outer overrides and Pixel siz
     const size = (await field(panel, 'Corner size'));
     assert(await size.getByRole('radio', { name: 'Off', exact: true }).isDisabled());
     assert.equal(await panel.getByRole('group', { name: 'Border detail', exact: true }).count(), 0, 'Pixel has only one size control');
-    const card = page.locator('.intro-composition .card');
+    const card = page.locator('.hero-panel-project .card');
     const geometries = [];
     for (const name of ['Small', 'Medium', 'Large']) {
       await size.getByRole('radio', { name, exact: true }).check();
