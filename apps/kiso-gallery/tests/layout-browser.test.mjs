@@ -15,7 +15,9 @@ before(async () => {
   browser = await chromium.launch();
   const page = await open(1440);
   await page.goto(`${url}#components`);
-  await page.locator(".catalog-pane").first().waitFor();
+  // The full catalog renders every demo; a CI runner needs more than the
+  // 5s default, as for the settings toggle in settings-tabs.mjs.
+  await page.locator(".catalog-pane").first().waitFor({ timeout: 30_000 });
   titles = await page.locator(".catalog-pane").evaluateAll(elements => Object.fromEntries(elements.map(el => [`components/${el.dataset.paneId}`, el.querySelector(".grid-pane-title").textContent.trim()])));
   routes = Object.keys(titles);
   assert(routes.length > 0, "Discover the entire rendered catalog, not a fixed subset");
