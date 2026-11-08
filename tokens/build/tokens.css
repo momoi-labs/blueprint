@@ -266,6 +266,7 @@
   --type-weight-medium: 500;
   --type-weight-semibold: 600;
   --type-weight-bold: 700;
+  --type-weight-heading: var(--type-weight-semibold);
   --type-line-height-tight: 1.2;
   --type-line-height-normal: 1.5;
   --type-line-height-relaxed: 1.6;
@@ -754,6 +755,54 @@
   --color-corner-mark: var(--color-border-strong);
   --color-code-comment: var(--color-muted-foreground);
   --color-code-name: var(--color-accent);
+}
+
+[data-neutral="zinc"] {
+  --color-background: light-dark(#f4f4f5, #09090b);
+  --color-surface: light-dark(#fafafa, #111113);
+  --color-elevated-surface: light-dark(#ffffff, #18181b);
+  --color-card: light-dark(#fafafa, #111113);
+  --color-popover: light-dark(#ffffff, #18181b);
+  --color-muted: light-dark(#e4e4e7, #1c1c1f);
+  --color-sidebar: light-dark(#fafafa, #050506);
+  --color-secondary: light-dark(#e4e4e7, #1c1c1f);
+  --color-secondary-hover: light-dark(#d4d4d8, #27272a);
+  --color-foreground: light-dark(#18181b, #fafafa);
+  --color-muted-foreground: light-dark(#52525b, #a1a1aa);
+  --color-subtle-foreground: light-dark(#71717a, #8b8b94);
+  --color-border: light-dark(#e4e4e7, #27272a);
+  --color-border-strong: light-dark(#8a8a93, #6b6b75);
+  --color-disabled: light-dark(#a1a1aa, #3f3f46);
+  --color-disabled-surface: light-dark(#f4f4f5, #111113);
+  --color-skeleton: light-dark(#e4e4e7, #1c1c1f);
+  --color-hatch: light-dark(#e4e4e7, #1c1c1f);
+  --color-card-foreground: var(--color-foreground);
+  --color-popover-foreground: var(--color-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-input: var(--color-border);
+  --color-selected-foreground: var(--color-foreground);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-corner-mark: var(--color-border-strong);
+  --color-code-comment: var(--color-muted-foreground);
+}
+
+[data-primary="contrast"] {
+  --color-primary: var(--color-foreground);
+  --color-primary-hover: var(--color-muted-foreground);
+  --color-primary-foreground: var(--color-background);
+}
+
+[data-typeface="dm-sans"] {
+  --font-heading: DM Sans, Inter, system-ui, sans-serif;
+  --font-body: DM Sans, Inter, system-ui, sans-serif;
+  --type-weight-heading: var(--type-weight-medium);
+  --type-role-display-font-family: var(--font-heading);
+  --type-role-heading-font-family: var(--font-heading);
+  --type-role-body-font-family: var(--font-body);
+  --type-role-label-font-family: var(--font-body);
+  --type-role-metadata-font-family: var(--font-body);
+  --type-role-numeric-font-family: var(--font-body);
+  --type-role-body-large-font-family: var(--font-body);
 }
 
 @media (prefers-reduced-motion: reduce) {

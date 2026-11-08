@@ -65,3 +65,18 @@ export function useChartSync(id: string) {
   const snapshot = React.useCallback(() => groups.get(id)?.state ?? idle, [id])
   return React.useSyncExternalStore(subscribe, snapshot, () => idle)
 }
+
+/* Only the pinned timestamp: a spark chart labels it on its time axis, and
+   must not render again on every hovered sample. */
+export function useChartPinned(id: string) {
+  const subscribe = React.useCallback((listener: () => void) => {
+    const found = group(id)
+    found.listeners.add(listener)
+    return () => {
+      found.listeners.delete(listener)
+      if (!found.listeners.size && groups.get(id) === found) groups.delete(id)
+    }
+  }, [id])
+  const snapshot = React.useCallback(() => groups.get(id)?.state.pinned ?? null, [id])
+  return React.useSyncExternalStore(subscribe, snapshot, () => null)
+}

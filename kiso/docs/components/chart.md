@@ -154,7 +154,9 @@ uses `--color-border-strong`. Focus uses `--color-focus`. The readout uses
 | Prop | Values | Default |
 | --- | --- | --- |
 | `variant` | `line`, `stacked-area` | `line` |
-| `layout` | `standard`, `compact`, `split` | Inherited `data-chart-layout`, otherwise `standard` |
+| `layout` | `standard`, `compact`, `split`, `spark` | Inherited `data-chart-layout`, otherwise `standard`. `spark` is set per chart only |
+| `headline` | A reading, such as `<>2.6 <small>tps</small></>` | None |
+| `defaultPinned` | A timestamp in the data | None |
 | `legend` | `table`, `inline`, `sidebar` | Inherited `data-chart-legend`, otherwise `table` |
 | `summary` | Ordered columns from `min`, `max`, `avg`, `current`, `p50`, `p75`, `p90`, `p95`, `p99` | `min`, `max`, `avg`, `current`. See [ChartLegend](chart-legend.md#summary-columns) |
 | `chartStyle` | `solid`, `pixel`, `halftone`, `rounded` | Inherited `data-chart-style`, otherwise `solid` |
@@ -173,6 +175,21 @@ with synchronized timestamps. Explicit `height` overrides the plot or lane
 height. Split accepts only line charts; passing it with stacked-area throws
 an error because a stack must retain one common plot. An inherited split
 leaves a stacked chart on one standard plot.
+
+Spark draws the plot alone, 80 pixels high: no value axis, no grid and no
+legend. The time axis shows the first time, the pinned time in `--color-link`,
+and the last time, in `--font-mono`. The title takes `--type-size-label` in
+`--color-muted-foreground`, and `headline` shows the reading under it at
+`--type-size-display`; a `small` inside it is the unit or context. A pin draws
+its line and dots without the floating readout, because the headline carries
+the reading. The exact values stay in the document for assistive technology,
+without a visible disclosure. Use spark for a reading at a glance, such as a
+product page or a summary card; use standard for a reading the person works
+with.
+
+`defaultPinned` pins a timestamp when the Chart mounts, if its `syncId` group
+has no pin yet. Every Chart in the group shows it. A click, Enter, Space or
+Escape changes it as usual.
 
 `data-chart-layout` and `data-chart-legend` on `html` or a containing element
 set the layout and legend for every Chart inside. The `layout` and `legend`

@@ -28,6 +28,10 @@ export type CodeBlockProps = Omit<ComponentProps<"figure">, "children" | "title"
   collapse?: [number, number][];
   /** The value type for the copy action, as in "command". Shows Copy; needs Toasts. */
   copy?: string;
+  /** A marker before each line, such as `$`, that Copy leaves out. Without a title, Copy sits beside the code. */
+  prompt?: string;
+  /** Wraps long lines instead of scrolling, for prose such as a prompt to an agent. */
+  wrap?: boolean;
 };
 
 type Change = "added" | "removed" | undefined;
@@ -112,11 +116,11 @@ async function writeClipboard(text: string) {
   if (!copied) throw new Error("Copy failed");
 }
 
-function CopyButton({ code, label }: { code: string; label: string }) {
+function CopyButton({ code, label, compact = false }: { code: string; label: string; compact?: boolean }) {
   const notify = useToast();
   const [copied, setCopied] = useState(false);
   const name = label[0].toUpperCase() + label.slice(1);
-  return <Button size="xs" variant="ghost" aria-label={`${copied ? "Copied" : "Copy"} ${label}`} onClick={async () => {
+  return <Button size="xs" variant="ghost" className={compact ? "btn-icon" : undefined} aria-label={`${copied ? "Copied" : "Copy"} ${label}`} onClick={async () => {
     try {
       await writeClipboard(code);
       notify("success", `${name} copied`);
@@ -127,12 +131,12 @@ function CopyButton({ code, label }: { code: string; label: string }) {
     }
   }}>
     {copied ? <Check className="icon" aria-hidden="true" /> : <Copy className="icon" aria-hidden="true" />}
-    {copied ? "Copied" : "Copy"}
+    {!compact && (copied ? "Copied" : "Copy")}
   </Button>;
 }
 
 export function CodeBlock({ code, highlight, title, terminal = false, lineNumbers = false, diff = false,
-  added = [], removed = [], collapse = [], copy, className, ...props }: CodeBlockProps) {
+  added = [], removed = [], collapse = [], copy, prompt, wrap = false, className, ...props }: CodeBlockProps) {
   const rows = code.split("\n");
   const changes: Change[] = rows.map((row, index) => diff
     ? (row[0] === "+" ? "added" : row[0] === "-" ? "removed" : undefined)
@@ -143,12 +147,16 @@ export function CodeBlock({ code, highlight, title, terminal = false, lineNumber
   const [open, setOpen] = useState<number[]>([]);
   // A title captions the figure; without one, the header holds only controls.
   const Header = title != null ? "figcaption" : "div";
+  // A block without a title or terminal mark keeps Copy beside the code, as
+  // an icon: a prompted command or a wrapped prompt.
+  const inline = Boolean(prompt || wrap) && title == null && !terminal;
 
   const line = (index: number) => <span className="code-block-line" data-change={changes[index]} key={index}>
     {lineNumbers && <span className="code-block-number" aria-hidden="true">{index + 1}</span>}
     {markers && <span className="code-block-marker" aria-hidden="true">
       {changes[index] === "added" ? "+" : changes[index] === "removed" ? "−" : " "}
     </span>}
+    {prompt && <span className="code-block-prompt" aria-hidden="true">{prompt}</span>}
     {changes[index] && <span className="code-block-change">{changes[index] === "added" ? "Added line: " : "Removed line: "}</span>}
     {lines[index]}{"\n"}
   </span>;
@@ -171,15 +179,16 @@ export function CodeBlock({ code, highlight, title, terminal = false, lineNumber
   }
 
   return (
-    <figure className={cn("code-block", className)} data-slot="code-block" data-terminal={terminal || undefined}
+    <figure className={cn("code-block", className)} data-slot="code-block" data-terminal={terminal || undefined} data-layout={inline ? "inline" : undefined} data-wrap={wrap || undefined}
       style={{ "--code-block-digits": String(lines.length).length } as CSSProperties} {...props}>
       <PanelShadow />
-      {(title != null || terminal || copy) && <Header className="code-block-header">
+      {(title != null || terminal || (copy && !inline)) && <Header className="code-block-header">
         {terminal && <TerminalIcon />}
         {title != null && <span className="code-block-title">{title}</span>}
-        {copy && <CopyButton code={code} label={copy} />}
+        {copy && !inline && <CopyButton code={code} label={copy} />}
       </Header>}
       <pre><code>{body}</code></pre>
+      {copy && inline && <div className="code-block-copy"><CopyButton code={code} label={copy} compact /></div>}
     </figure>
   );
 }

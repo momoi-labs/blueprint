@@ -115,11 +115,16 @@ function SectionedTabs({
 
 function TabsList({
   className,
+  variant = "line",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsPrimitive.List> & {
+  /** `line` underlines the selected tab; `pills` fills it inside a framed group. */
+  variant?: "line" | "pills";
+}) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
+      data-variant={variant === "line" ? undefined : variant}
       className={cn("tabs", className)}
       {...props}
     />
@@ -128,14 +133,23 @@ function TabsList({
 
 function TabsTrigger({
   className,
+  keyHint,
+  children,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & {
+  /** A key shown before the label, such as the key of the tool the tab
+      describes. It is a hint only: Tabs binds no key to it. */
+  keyHint?: React.ReactNode;
+}) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn("", className)}
       {...props}
-    />
+    >
+      {keyHint != null && <kbd className="tabs-key" aria-hidden="true">{keyHint}</kbd>}
+      {children}
+    </TabsPrimitive.Trigger>
   );
 }
 

@@ -13,6 +13,7 @@ the patterns below instead.
 - [CRUD](crud.md) — Coordinates consistent create, read, update, and delete flows and states.
 - [Dashboard](dashboard.md) — Arranges dense, independently loading widgets with clear hierarchy and drill-down.
 - [Report](report.md): A document read in order and printed, with a cover and one page per section.
+- [Site page](site-page.md): A product's public page as a stack of site sections, from hero to install.
 - [Settings](settings.md) — Structures configuration forms, save behavior, validation, and feedback.
 - [Login and authentication](login-authentication.md) — Guides sign-in, recovery, SSO, failure, and successful entry.
 
