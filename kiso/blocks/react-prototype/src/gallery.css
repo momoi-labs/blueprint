@@ -30,6 +30,8 @@
 .catalog-header .nav-row {
   height: 100%;
   border-bottom: 0;
+  /* Each link pads itself, so hover fills meet without a strip between. */
+  gap: 0;
 }
 .catalog-header .nav-row .nav-item {
   height: 100%;
@@ -488,7 +490,7 @@
     }
     .catalog-header .catalog-version { display: none; }
     .catalog-header > nav { order: 0; width: auto; margin: 0; min-width: 0; }
-    .catalog-header > nav .nav-row { justify-content: center; gap: var(--spacing-sm); }
+    .catalog-header > nav .nav-row { justify-content: center; gap: 0; }
     .catalog-header .catalog-tools { flex: none; flex-wrap: nowrap; }
     .catalog-header .catalog-tools > [data-slot="search"] { width: calc(4 * var(--size-control-lg)); flex: none; }
   }
@@ -528,6 +530,12 @@
   align-self: stretch;
   padding-inline: var(--spacing-lg);
   border-radius: 0;
+}
+/* Kiso's row hover only darkens muted text; these items already use the
+   foreground, so a tint shows they can be clicked. */
+.catalog-header .nav-row .nav-item:not([aria-current="page"]):hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-foreground);
 }
 .catalog-header .nav-row .nav-item[aria-current="page"] {
   background: var(--color-primary);
