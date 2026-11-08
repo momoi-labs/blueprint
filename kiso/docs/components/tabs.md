@@ -40,6 +40,18 @@ Each header is a Button with `aria-expanded`. The TabList is hidden while
 sections show, so arrow keys do not apply; Tab moves between headers and into
 the open panel.
 
+### Pills and key hints
+
+`TabsList variant="pills"` frames the triggers in one group, `--radius-md`
+with a `--color-border` line, and fills the selected one with `--color-muted`
+instead of underlining it. Use it for a few views of one picture, such as the
+modes of a tool shown on a product page.
+
+`TabsTrigger keyHint` shows a key before the label, in `--font-mono` inside a
+small frame; the selected trigger fills it with `--color-link`. It shows the
+key of the tool the tabs describe, such as `1` for the first view of a
+terminal program. Tabs binds no key to it, and assistive technology skips it.
+
 ## Sizes
 
 One size. Tabs use a single label and spacing treatment; do not add compact or

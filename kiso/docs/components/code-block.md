@@ -33,6 +33,8 @@ provides; Kiso ships no highlighter.
 | `title` | none | Names the block, as a figure caption. |
 | `terminal` | `false` | Adds the terminal mark: the code is a command to run. |
 | `copy` | none | The value type, such as `command`. Shows a labelled Copy action. Needs [Toast](toast.md)'s `Toasts` provider. |
+| `prompt` | none | A marker before each line, such as `$`, in `--color-link`. Copy leaves it out and assistive technology skips it. Without a `title` or `terminal`, Copy is an icon at the end of the row instead of a labelled button in a header, for a one-line command on a site page. |
+| `wrap` | `false` | Wraps long lines instead of scrolling, for prose such as a prompt to paste into an agent. Without a `title` or `terminal`, Copy is an icon beside the text, as with `prompt`. |
 | `lineNumbers` | `false` | Numbers each line. |
 | `diff` | `false` | Reads the first column of each line as `+`, `-` or a space, marks the line and paints the rest. |
 | `added`, `removed` | none | 1-based line numbers to mark without diff syntax. |

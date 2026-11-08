@@ -524,6 +524,7 @@ $type-weight-regular: 400; // Regular - body, metadata, code.
 $type-weight-medium: 500; // Medium - labels, display headings.
 $type-weight-semibold: 600; // Semibold - headings.
 $type-weight-bold: 700; // Bold - emphasis within headings.
+$type-weight-heading: 600; // Heading weight. Semibold with Inter; a typeface may lighten it.
 $type-line-height-tight: 1.2; // Display and headings.
 $type-line-height-normal: 1.5; // Body, labels, code.
 $type-line-height-relaxed: 1.6; // Long-form reading, notes. 1.6 is rationalized - 1.75 is part of the ad-hoc set and is deliberately not reused.
@@ -594,3 +595,27 @@ $presentation-grid-gap: 16px; // Space between dashboard panels and section cont
 $presentation-panel-padding: 16px; // Padding inside cards and metric blocks.
 $presentation-panel-gap: 12px; // Space between groups inside a panel.
 $presentation-heading-gap: 2px; // Space between a heading or metric and its supporting text.
+$neutral-zinc-background: #09090b; // Canvas. Near-black in dark.
+$neutral-zinc-surface: #111113;
+$neutral-zinc-elevated-surface: #18181b;
+$neutral-zinc-card: #111113;
+$neutral-zinc-popover: #18181b;
+$neutral-zinc-muted: #1c1c1f;
+$neutral-zinc-sidebar: #050506;
+$neutral-zinc-secondary: #1c1c1f;
+$neutral-zinc-secondary-hover: #27272a;
+$neutral-zinc-foreground: #fafafa;
+$neutral-zinc-muted-foreground: #a1a1aa;
+$neutral-zinc-subtle-foreground: #8b8b94;
+$neutral-zinc-border: #27272a;
+$neutral-zinc-border-strong: #6b6b75;
+$neutral-zinc-disabled: #3f3f46;
+$neutral-zinc-disabled-surface: #111113;
+$neutral-zinc-skeleton: #1c1c1f;
+$neutral-zinc-hatch: #1c1c1f;
+$primary-contrast-primary: #eeece9;
+$primary-contrast-primary-hover: #aba9a5;
+$primary-contrast-primary-foreground: #211f1c;
+$typeface-dm-sans-font-heading: 'DM Sans', Inter, system-ui, sans-serif;
+$typeface-dm-sans-font-body: 'DM Sans', Inter, system-ui, sans-serif;
+$typeface-dm-sans-type-weight-heading: 500;

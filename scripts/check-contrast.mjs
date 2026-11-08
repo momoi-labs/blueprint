@@ -55,14 +55,26 @@ function tokenAt(tokens, path) {
 // An accent theme is a layer over the default: accent.<name>.<role> replaces
 // semantic.<role>, and accent.<name>.accent.<step> replaces color.accent.<step>,
 // exactly as the emitted [data-accent] block overrides those custom properties.
-function overridePath(tokens, path, accent) {
-  if (!accent) return path;
+// neutral.<name> and primary.<name> are later layers of the same kind: their
+// blocks come after the accents, so they win where they restate a role.
+function overridePath(tokens, path, context) {
+  if (!context) return path;
   const [group, ...rest] = path.split('.');
-  const candidate = group === 'semantic' ? `accent.${accent}.${rest.join('.')}`
-    : group === 'color' && rest[0] === 'accent' ? `accent.${accent}.accent.${rest.slice(1).join('.')}`
-    : null;
-  const override = candidate && candidate.split('.').reduce((node, segment) => node?.[segment], tokens);
-  return override && '$value' in override ? candidate : path;
+  const exists = (candidate) => {
+    const node = candidate.split('.').reduce((current, segment) => current?.[segment], tokens);
+    return node && '$value' in node;
+  };
+  if (group === 'semantic') {
+    for (const [layer, name] of [['primary', context.primary], ['neutral', context.neutral], ['accent', context.accent]]) {
+      const candidate = name && `${layer}.${name}.${rest.join('.')}`;
+      if (candidate && exists(candidate)) return candidate;
+    }
+  }
+  if (group === 'color' && rest[0] === 'accent' && context.accent) {
+    const candidate = `accent.${context.accent}.accent.${rest.slice(1).join('.')}`;
+    if (exists(candidate)) return candidate;
+  }
+  return path;
 }
 
 function resolveToken(tokens, path, theme, accent, chain = []) {
@@ -114,10 +126,12 @@ function roleColor(tokens, role, theme, accent) {
 async function main() {
   const tokens = JSON.parse(await readFile(tokensPath, 'utf8'));
   const failures = [];
-  const accents = [undefined, ...Object.keys(tokens.accent ?? {}).filter((key) => !key.startsWith('$'))];
+  const names = (group) => [undefined, ...Object.keys(tokens[group] ?? {}).filter((key) => !key.startsWith('$'))];
+  const accents = names('accent');
+  const contexts = accents.flatMap((accent) => names('neutral').flatMap((neutral) => names('primary').map((primary) => ({ accent, neutral, primary }))));
 
-  for (const accent of accents) for (const theme of ['dark', 'light']) {
-    const where = `theme=${theme}${accent ? ` accent=${accent}` : ''}`;
+  for (const accent of contexts) for (const theme of ['dark', 'light']) {
+    const where = `theme=${theme}${accent.accent ? ` accent=${accent.accent}` : ''}${accent.neutral ? ` neutral=${accent.neutral}` : ''}${accent.primary ? ` primary=${accent.primary}` : ''}`;
     for (const [role, minimum] of textRoles) {
       for (const background of backgrounds) {
         const ratio = contrast(
@@ -176,7 +190,7 @@ async function main() {
   console.log(
     `AA contrast check passed: ${textRoles.size * backgrounds.length * 2} text, `
     + `${nonTextRoles.size * backgrounds.length * 2} non-text, ${fillPairs.length * 2} on-fill `
-    + `and 2 focus combinations across dark and light themes, for the default and ${accents.length - 1} accents.`,
+    + `and 2 focus combinations across dark and light themes, for ${contexts.length} accent, neutral and primary combinations.`,
   );
 }
 

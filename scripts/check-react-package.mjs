@@ -20,8 +20,8 @@ try {
     assert(!packed.files.some(file => /node_modules|blocks\/|prototype/.test(file.path)));
     const files = new Set(packed.files.map(file => file.path));
     for (const file of name === 'kiso'
-      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/code-block.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md', 'kiso/docs/components/scope-switcher.md']
-      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/media-preview.js', 'dist/media-preview.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/code-block.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/scope-switcher.js', 'dist/scope-switcher.d.ts', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
+      ? ['tokens/build/tokens.css', 'kiso/ui.css', 'kiso/assets/momoi-symbol.svg', 'kiso/assets/momoi-repeat.svg', 'kiso/docs/components/button.md', 'kiso/docs/components/steps.md', 'kiso/docs/components/radio-group.md', 'kiso/docs/components/file-dropzone.md', 'kiso/docs/components/password-input.md', 'kiso/docs/components/code-editor.md', 'kiso/docs/components/code-block.md', 'kiso/docs/components/form.md', 'kiso/docs/components/form-actions.md', 'kiso/docs/components/chart.md', 'kiso/docs/components/detail-select.md', 'kiso/docs/components/time-range-control.md', 'kiso/docs/components/pane-grid.md', 'kiso/docs/components/scope-switcher.md', 'kiso/docs/components/site-section.md', 'kiso/docs/patterns/site-page.md']
+      : ['dist/index.js', 'dist/index.d.ts', 'dist/steps.js', 'dist/detail-select.js', 'dist/detail-select.d.ts', 'dist/media-preview.js', 'dist/media-preview.d.ts', 'dist/radio-group.js', 'dist/file-dropzone.js', 'dist/password-input.js', 'dist/code-editor.js', 'dist/code-block.js', 'dist/filter-input.js', 'dist/pane-grid.js', 'dist/scope-switcher.js', 'dist/scope-switcher.d.ts', 'dist/site-section.js', 'dist/site-header.js', 'dist/filter-expression.d.ts', 'dist/styles.css', 'SHADCN-LICENSE']) {
       assert(files.has(file), `${name} is missing ${file}`);
     }
     tarballs.push(path.join(fixture, packed.filename));
@@ -59,7 +59,7 @@ try {
   const reactStyles = await readFile(
     path.join(fixture, 'node_modules/@momoi-labs/kiso-react/dist/styles.css'), 'utf8');
   assert.match(reactStyles,
-    /^@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700&family=JetBrains\+Mono:wght@400;500&display=swap"\);/);
+    /^@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700&family=DM\+Sans:opsz,wght@9\.\.40,400;9\.\.40,500;9\.\.40,600&family=JetBrains\+Mono:wght@400;500&display=swap"\);/);
   for (const rule of ['.list-filters {', '.lifecycle {', '.cluster-verbs {', '.detail-tabs {', '.form-page {', '[data-fill="false"]']) {
     assert(css.includes(rule), `ui.css is missing ${rule}`);
   }

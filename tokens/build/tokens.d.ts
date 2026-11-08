@@ -656,6 +656,8 @@ export const typeWeightMedium: number;
 export const typeWeightSemibold: number;
 /** Bold - emphasis within headings. */
 export const typeWeightBold: number;
+/** Heading weight. Semibold with Inter; a typeface may lighten it. */
+export const typeWeightHeading: number;
 /** Display and headings. */
 export const typeLineHeightTight: number;
 /** Body, labels, code. */
@@ -796,3 +798,28 @@ export const presentationPanelPadding: string;
 export const presentationPanelGap: string;
 /** Space between a heading or metric and its supporting text. */
 export const presentationHeadingGap: string;
+/** Canvas. Near-black in dark. */
+export const neutralZincBackground: string;
+export const neutralZincSurface: string;
+export const neutralZincElevatedSurface: string;
+export const neutralZincCard: string;
+export const neutralZincPopover: string;
+export const neutralZincMuted: string;
+export const neutralZincSidebar: string;
+export const neutralZincSecondary: string;
+export const neutralZincSecondaryHover: string;
+export const neutralZincForeground: string;
+export const neutralZincMutedForeground: string;
+export const neutralZincSubtleForeground: string;
+export const neutralZincBorder: string;
+export const neutralZincBorderStrong: string;
+export const neutralZincDisabled: string;
+export const neutralZincDisabledSurface: string;
+export const neutralZincSkeleton: string;
+export const neutralZincHatch: string;
+export const primaryContrastPrimary: string;
+export const primaryContrastPrimaryHover: string;
+export const primaryContrastPrimaryForeground: string;
+export const typefaceDmSansFontHeading: string;
+export const typefaceDmSansFontBody: string;
+export const typefaceDmSansTypeWeightHeading: number;

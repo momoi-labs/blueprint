@@ -259,10 +259,37 @@ links (`a` without a class, and `.link`) carry an underline at rest.
 Applications own the choice and its persistence, exactly as with the theme.
 Use [AccentSelector](components/accent-selector.md) for the control.
 
+## Neutrals, primary action and typeface
+
+Three more axes work like the accent: one attribute on `<html>` or a
+container, one emitted block each, and any combination with any accent and
+theme. Their blocks come after the accents, so on the same element a neutral
+replaces an accent's own canvas and a primary style replaces its fill.
+
+```html
+<html data-theme="dark" data-accent="gold" data-neutral="zinc" data-primary="contrast" data-typeface="dm-sans">
+```
+
+| Attribute | Values | What changes |
+| --- | --- | --- |
+| `data-neutral` | none (warm), `zinc` | Canvas, surfaces, text, borders and the other neutral roles. `zinc` is cool and deeper: `#09090b` canvas and `#a1a1aa` muted text in dark, `#f4f4f5` canvas in light. |
+| `data-primary` | none (accent), `contrast` | The main action. `contrast` paints `--color-primary` in the text color with the canvas color on it: a white button on a dark page. Links and focus keep the accent. |
+| `data-typeface` | none (Inter), `dm-sans` | `--font-heading`, `--font-body` and `--type-weight-heading`. `dm-sans` uses DM Sans with medium headings. Mono stays JetBrains Mono. |
+
+`--type-weight-heading` is semibold by default. Heading classes and site
+headings read it, so a typeface can lighten every heading at once.
+
+The product loads the font files. `@momoi-labs/kiso-react/styles.css` loads
+Inter, DM Sans and JetBrains Mono.
+
+The [AA gate](#aa-gate) checks every accent with every neutral and primary
+style, in both themes.
+
 ## AA gate
 
 `scripts/check-contrast.mjs` is the build-time AA gate. In both dark and light
-themes, for the default and for every accent, it resolves the semantic aliases
+themes, for the default and for every accent, neutral and primary style
+combination, it resolves the semantic aliases
 and checks:
 
 - `foreground`, `muted-foreground`, `link`, `accent`, `success`, `warning`,

@@ -8,9 +8,20 @@ const NAMESPACE = 'com.momoi-labs.kiso';
 // accent.<name>.<role> overrides the same custom property that semantic.<role>
 // declares, and accent.<name>.accent.<step> the one color.accent.<step> declares,
 // so a [data-accent] block only has to remap names that already exist.
+// neutral.<name>, primary.<name> and typeface.<name> are further axes of the
+// same kind: each group becomes one [data-<axis>="<name>"] block. Later axes win
+// over earlier ones on the same element, so a neutral replaces an accent's own
+// canvas and a primary style replaces its fill.
+const AXES = [
+  ['accent', 'data-accent', 'color'],
+  ['neutral', 'data-neutral', 'color'],
+  ['primary', 'data-primary', 'color'],
+  ['typeface', 'data-typeface', ''],
+];
+const AXIS = new Map(AXES.map(([group, attribute, prefix]) => [group, { attribute, prefix }]));
 const varName = (path) => {
   if (path[0] === 'semantic') return '--color-' + path.slice(1).join('-');
-  if (path[0] === 'accent') return '--color-' + path.slice(2).join('-');
+  if (AXIS.has(path[0])) return '--' + [AXIS.get(path[0]).prefix, ...path.slice(2)].filter(Boolean).join('-');
   return '--' + path.join('-');
 };
 const isRef = (v) => typeof v === 'string' && v.trim().startsWith('{');
@@ -145,17 +156,17 @@ StyleDictionary.registerFormat({
       const [light, dark] = MODES.map((mode) => value(mode));
       return [varName(path), light === dark ? dark : 'light-dark(' + light + ', ' + dark + ')'];
     };
-    const rendered = expanded.filter(({ path }) => path[0] !== 'accent').map(declare);
+    const rendered = expanded.filter(({ path }) => !AXIS.has(path[0])).map(declare);
 
     // An accent theme is a second axis over the same properties: each
     // accent.<name> group becomes one [data-accent="<name>"] block that
     // restates only the roles that follow the hue. Values still use
     // light-dark(), so an accent and a theme compose without a cross product.
     const accents = new Map();
-    for (const entry of expanded.filter(({ path }) => path[0] === 'accent')) {
-      const name = entry.path[1];
-      if (!accents.has(name)) accents.set(name, []);
-      accents.get(name).push(declare(entry));
+    for (const [group, { attribute }] of AXIS) for (const entry of expanded.filter(({ path }) => path[0] === group)) {
+      const selector = '[' + attribute + '="' + entry.path[1] + '"]';
+      if (!accents.has(selector)) accents.set(selector, []);
+      accents.get(selector).push(declare(entry));
     }
     // A var() in a custom property resolves where the property is declared, so
     // :root's --color-link keeps the default ink under a nested [data-accent].
@@ -184,7 +195,7 @@ StyleDictionary.registerFormat({
       block(':root', [['color-scheme', 'light dark'], ...rendered]),
       block('[data-theme="light"]', [['color-scheme', 'light']]),
       block('[data-theme="dark"]', [['color-scheme', 'dark']]),
-      ...[...accents].map(([name, entries]) => block('[data-accent="' + name + '"]', entries))
+      ...[...accents].map(([selector, entries]) => block(selector, entries))
     ];
     if (reducedMotion.length) {
       const mediaBody = block(':root', reducedMotion).split('\n').map((l) => '  ' + l).join('\n');

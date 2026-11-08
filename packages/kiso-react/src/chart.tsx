@@ -8,7 +8,7 @@ import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip,
 import { ChartLegend, ChartSeriesLabel, type ChartLegendProps } from "./chart-legend.js"
 import { ChartDot, ChartPattern, pixelCurve, useChartPresentation, useChartStyle, type ChartLayout, type ChartLine, type ChartLegendPlacement, type ChartTreatmentProps } from "./chart-style.js"
 import { useChartFill } from "./chart-fill.js"
-import { chartPinned, clearChartPin, setChartHover, toggleChartPin, useChartSync } from "./chart-sync.js"
+import { chartPinned, clearChartPin, setChartHover, toggleChartPin, useChartPinned, useChartSync } from "./chart-sync.js"
 import { chartColor, chartSlot, formatChartTime, formatChartValue, measured,
   validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 import type { TimeRange } from "./time-range-control.js"
@@ -29,8 +29,14 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   series: readonly ChartSeries[]
   label: string
   variant?: "line" | "stacked-area"
-  /** Overrides the inherited data-chart-layout, otherwise standard. */
-  layout?: ChartLayout
+  /** Overrides the inherited data-chart-layout, otherwise standard. `spark`
+      draws the plot alone: no value axis, grid or legend, and a time axis
+      with the first, the pinned and the last time. */
+  layout?: ChartLayout | "spark"
+  /** A reading under the title, such as the value at the pinned time. */
+  headline?: React.ReactNode
+  /** A timestamp to pin when the group has no pin yet. */
+  defaultPinned?: number
   /** Overrides the inherited data-chart-legend, otherwise table. */
   legend?: ChartLegendPlacement
   /** Columns of the table legend, in order. Default min, max, avg and current. */
@@ -56,11 +62,13 @@ export type ChartProps = Omit<React.ComponentProps<"figure">, "children"> & {
   labels?: Partial<typeof defaultLabels> & NonNullable<ChartLegendProps["labels"]>
 } & ChartTreatmentProps
 
-export function Chart({ data, series, label, variant = "line", layout: layoutProp, legend: legendProp, summary,
+export function Chart({ data, series, label, variant = "line", layout: requestedLayout, legend: legendProp, summary, headline, defaultPinned,
   highlightSeries, onHighlightSeriesChange, height: heightProp, syncId,
   formatTime: formatTimeProp, timeZone, locale, formatValue = formatChartValue, min, max, onRangeSelect, labels,
   chartStyle, chartLine, chartFill, ref, className, onKeyDown, ...props }: ChartProps) {
   const id = React.useId()
+  const spark = requestedLayout === "spark"
+  const layoutProp = spark ? "standard" : requestedLayout
   const text = { ...defaultLabels, ...labels }
   const zoned = timeZone !== undefined || locale !== undefined
   const zone = timeZone ?? "UTC"
@@ -80,7 +88,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   const legend = presentation.legend
   // An inherited split cannot hold a stack, so a stacked chart keeps one plot.
   const layout = !layoutProp && presentation.layout === "split" && variant === "stacked-area" ? "standard" : presentation.layout
-  const defaultHeight = layout === "compact" ? 165 : layout === "split" ? 90 : 200
+  const defaultHeight = spark ? 80 : layout === "compact" ? 165 : layout === "split" ? 90 : 200
   // In an expanded DashboardPanel the plot takes the room the dialog leaves.
   const expanded = useChartFill(frame, `${label}|${layout}|${legend}`, defaultHeight)
   const height = heightProp ?? expanded.height ?? defaultHeight
@@ -90,6 +98,10 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
   // through a Kiso store, not Recharts' syncId. An expanded Chart, or one
   // without a syncId, keeps a group of its own.
   const group = (expanded.fill ? undefined : syncId) ?? id
+  const pinned = useChartPinned(group)
+  React.useEffect(() => {
+    if (defaultPinned !== undefined && chartPinned(group) === null) toggleChartPin(group, defaultPinned)
+  }, [group, defaultPinned])
   const [source] = React.useState(() => ({}))
   const inspected = React.useRef<number | null>(null)
   const pick = React.useRef<ChartPick | null>(null)
@@ -193,16 +205,21 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart data={plot} syncId={layout === "split" ? id : undefined} syncMethod="value" accessibilityLayer
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
-        margin={{ top: 8, right: 20, bottom: 0, left: 0 }} {...pointerHandlers}>
+        margin={spark ? { top: 4, right: 0, bottom: 0, left: 0 } : { top: 8, right: 20, bottom: 0, left: 0 }} {...pointerHandlers}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-fill-${index}`}
           color={chartColor(chartSlot(series[index]!, index))} fill={fill} />)}</defs>
-        <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />
+        {!spark && <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />}
         <XAxis dataKey="timestamp" type="number" domain={["dataMin", "dataMax"]} scale="time"
-          axisLine={false} tickLine={false} tickFormatter={formatTime} minTickGap={48}
-          tick={{ fill: "var(--color-muted-foreground)" }} />
+          axisLine={false} tickLine={false} tickFormatter={formatTime} minTickGap={spark ? 8 : 48}
+          ticks={spark && data.length ? [...new Set([data[0]!.timestamp, ...(pinned !== null ? [pinned] : []), data.at(-1)!.timestamp])] : undefined}
+          interval={spark ? 0 : undefined}
+          tick={spark ? (tick: { x?: number | string; y?: number | string; payload?: { value: number } }) => <text x={tick.x} y={tick.y} dy={12}
+            textAnchor={tick.payload?.value === data[0]?.timestamp ? "start" : tick.payload?.value === data.at(-1)?.timestamp ? "end" : "middle"}
+            className="chart-spark-tick" data-pinned={tick.payload?.value === pinned || undefined}>{formatTime(tick.payload?.value ?? 0)}</text>
+            : { fill: "var(--color-muted-foreground)" }} />
         <YAxis domain={layout === "split" ? [splitMin, splitMax]
           : [min ?? (variant === "stacked-area" ? 0 : "auto"), max ?? "auto"]}
-          tickCount={3} axisLine={false} tickLine={false}
+          tickCount={3} axisLine={false} tickLine={false} hide={spark}
           tickFormatter={formatValue} tick={{ fill: "var(--color-muted-foreground)" }} width={56} />
         <Tooltip filterNull={false} isAnimationActive={false}
           cursor={{ stroke: "var(--color-border-strong)", strokeDasharray: "3 3" }}
@@ -238,7 +255,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
         })}
         <ChartSyncMarker group={group} source={source} plot={plot} data={data} series={series} indices={indices}
           stacked={variant === "stacked-area"} line={line} highlighted={highlighted} pick={!lane || indices[0] === 0 ? pick : undefined}
-          readout={legend !== "sidebar" && (!lane || indices[0] === 0)} formatTime={formatTime} displayValue={displayValue} />
+          readout={!spark && legend !== "sidebar" && (!lane || indices[0] === 0)} formatTime={formatTime} displayValue={displayValue} />
       </ComposedChart>
     </ResponsiveContainer>
     {selectRange && <div className="chart-range-band" hidden aria-hidden="true" />}
@@ -253,7 +270,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
     frame.current = element
     if (typeof ref === "function") return ref(element)
     if (ref) ref.current = element
-  }} data-slot="chart" data-layout={layout} data-legend={legend} data-line={line} data-fill={fill}
+  }} data-slot="chart" data-layout={spark ? "spark" : layout} data-legend={legend} data-line={line} data-fill={fill}
     className={cn("framed-chart", className)} aria-labelledby={`${id}-title`} onKeyDown={event => {
       onKeyDown?.(event)
       if (event.defaultPrevented || drag.current) return
@@ -267,6 +284,7 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
       }
     }}>
     <figcaption id={`${id}-title`} className="t-h3">{label}</figcaption>
+    {headline != null && <div className="chart-headline">{headline}</div>}
     <p id={`${id}-help`} className="chart-help">{text.help}</p>
     <div className="chart-body">
       <div className="chart-plots">
@@ -277,10 +295,11 @@ export function Chart({ data, series, label, variant = "line", layout: layoutPro
         </div>) : renderPlot(series.map((_, index) => index))
           : <div className="chart-empty hatch" style={{ minHeight: height }}>{text.empty}</div>}
       </div>
-      {legend === "sidebar" && legendContent}
+      {!spark && legend === "sidebar" && legendContent}
     </div>
-    {legend !== "sidebar" && legendContent}
-    <details className="disclosure chart-values">
+    {!spark && legend !== "sidebar" && legendContent}
+    {/* A spark keeps the exact values for assistive technology only. */}
+    <details className={cn("disclosure chart-values", spark && "chart-help")} open={spark || undefined}>
       <summary>{text.values}</summary>
       <div className="chart-table-scroll"><table className="chart-table">
         <caption>{text.samples(label, zone)}</caption>
