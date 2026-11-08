@@ -88,28 +88,25 @@ test("landing follows Full and Contained without a second width limit", async ()
   } finally { await page.close(); }
 });
 
-for (const headerVariant of ["default", "floating", "plain"]) test(`Intro integrates the ${headerVariant} header into its full panel`, async () => {
+// The Intro shows the gallery header exactly as the other pages do, so moving
+// between them does not change its place or its look.
+for (const headerVariant of ["default", "floating", "plain"]) test(`Intro keeps the ${headerVariant} header of the other pages`, async () => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     await page.addInitScript(headerVariant => localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ pageWidth: "full", appShell: "default", headerVariant })), headerVariant);
+    const header = async route => {
+      await page.goto(`${url}#${route}`);
+      await page.locator(route === "intro" ? ".studio-hero" : ".catalog-heading").first().waitFor();
+      return page.locator(".catalog-header").evaluate(el => {
+        const { left, right, top, bottom } = el.getBoundingClientRect(), style = getComputedStyle(el);
+        return { left, right, top, bottom, background: style.backgroundColor, radius: style.borderRadius, shadow: style.boxShadow };
+      });
+    };
+    assert.deepEqual(await header("intro"), await header("components"));
     await page.goto(`${url}#intro`);
-    await page.locator(".studio-hero").waitFor();
-    const geometry = await page.evaluate(() => {
-      const header = document.querySelector(".catalog-header");
-      const hero = document.querySelector(".studio-hero");
-      const main = header.parentElement;
-      const box = el => { const { left, right, top, bottom } = el.getBoundingClientRect(); return { left, right, top, bottom }; };
-      return { header: box(header), hero: box(hero), main: box(main), headerColor: getComputedStyle(header).backgroundColor, heroColor: getComputedStyle(hero.parentElement).backgroundColor, radius: getComputedStyle(header).borderRadius, shadow: getComputedStyle(header).boxShadow };
-    });
-    assert(Math.abs(geometry.header.left - geometry.hero.left) <= 1, JSON.stringify(geometry));
-    assert(Math.abs(geometry.header.right - geometry.hero.right) <= 16, JSON.stringify(geometry));
-    assert(Math.abs(geometry.header.bottom - geometry.hero.top) <= 1, JSON.stringify(geometry));
-    assert.equal(geometry.headerColor, geometry.heroColor);
-    assert.equal(geometry.radius, "0px");
-    assert.equal(geometry.shadow, "none");
-    await page.locator('.studio-hero a[href="#components"]').click();
-    await page.waitForURL(`${url}#components`);
-    await page.locator(".catalog-landing").waitFor({ state: "detached" });
+    const band = await page.locator(".studio-cta").boundingBox();
+    assert.equal(band.x, 0, "The colored section still runs edge to edge");
+    assert.equal(band.width, 1440);
   } finally { await page.close(); }
 });
 
@@ -125,11 +122,9 @@ for (const panelFill of ["glass", "translucent"]) test(`Inset Intro reveals the 
     await page.locator(".studio-hero").waitFor();
     const surfaces = await page.evaluate(() => [
       document.querySelector('.component-gallery > [data-slot="app-shell-main"]'),
-      document.querySelector(".catalog-header"), document.querySelector(".studio-landing"),
+      document.querySelector(".studio-landing"),
     ].map(el => ({ background: getComputedStyle(el).backgroundColor, x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
     for (const surface of surfaces) assert.equal(surface.background, "rgba(0, 0, 0, 0)", JSON.stringify(surfaces));
-    assert.equal(surfaces[0].x, 0, "Full Intro reaches the shell edge");
-    assert.equal(surfaces[0].y, 0);
     const band = await page.locator(".studio-cta").boundingBox();
     assert.equal(band.x, 0, "The colored section has no outer strip");
     assert.equal(band.width, 1440);
@@ -147,7 +142,7 @@ for (const panelFill of ["solid", "glass"]) test(`Intro preserves canvas choices
       await page.locator(".studio-hero").waitFor();
       const paint = await page.evaluate(() => {
         const shell = document.querySelector(".component-gallery");
-        return { canvas: getComputedStyle(shell, "::before").backgroundImage, mask: getComputedStyle(shell, "::before").maskImage, surfaces: [shell.querySelector('main'), shell.querySelector('.studio-landing'), shell.querySelector('.catalog-header')].map(el => getComputedStyle(el).backgroundColor) };
+        return { canvas: getComputedStyle(shell, "::before").backgroundImage, mask: getComputedStyle(shell, "::before").maskImage, surfaces: [shell.querySelector('main'), shell.querySelector('.studio-landing')].map(el => getComputedStyle(el).backgroundColor) };
       });
       assert(paint.canvas !== "none" || paint.mask !== "none", `${backgroundStyle}: canvas paints`);
       assert(paint.surfaces.every(color => color === "rgba(0, 0, 0, 0)"), `${backgroundStyle}/${panelFill}: ${JSON.stringify(paint)}`);

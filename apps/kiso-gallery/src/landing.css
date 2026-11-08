@@ -64,20 +64,15 @@
 .studio-landing .studio-cta h2 { max-width: 20ch; }
 .studio-cta .studio-note { color: inherit; }
 
-/* Intro is one continuous panel, including its existing gallery header. */
-.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar {
-  width: auto;
-  margin: 0;
-  top: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-  backdrop-filter: none;
-  --header-fill: transparent;
+/* Intro is one continuous panel. The gallery header keeps its own look. */
+/* The shell keeps its outer margin, so the header sits where it does on every
+   page. The intro's scroll area reaches into that margin, so its bands still
+   run edge to edge. */
+.component-gallery.catalog-landing .catalog-main.catalog-intro {
+  margin-inline: calc(-1 * var(--app-shell-outer, 0px));
+  margin-block-end: calc(-1 * var(--app-shell-outer, 0px));
+  width: calc(100% + 2 * var(--app-shell-outer, 0px));
 }
-.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar::before,
-.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] > .catalog-header.topbar::after { content: none; }
 .component-gallery.catalog-landing .catalog-main.catalog-intro {
   padding: 0;
   scrollbar-gutter: auto;
@@ -88,13 +83,6 @@
   background-color: transparent;
 }
 
-/* Intro fills the shell. Page width constrains only the content inside bands. */
-.component-gallery.catalog-landing.app-shell {
-  --app-shell-outer: 0px;
-}
-.component-gallery.catalog-landing.app-shell > [data-slot="app-shell-main"] {
-  margin: 0;
-}
 
 /* Compact introduction: show components before explaining them. */
 .studio-landing .studio-hero { padding-block: var(--spacing-2xl); gap: var(--spacing-3xl); }
