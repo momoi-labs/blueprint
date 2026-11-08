@@ -558,3 +558,8 @@
 @media (max-width: 699px) {
   .catalog-heading .page-header { padding-block-start: var(--spacing-xs); }
 }
+
+/* Site demos: a bounded frame, so sticky headers and bands stay in the card. */
+.site-demo-frame { block-size: 320px; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-surface); }
+.site-demo-phone { inline-size: min(100%, 360px); block-size: 260px; }
+.chart-spark-demo > .card { flex: 1 1 16rem; min-width: 0; }

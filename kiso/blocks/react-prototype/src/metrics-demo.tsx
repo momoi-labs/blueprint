@@ -101,6 +101,13 @@ function ChartOptionsDemo() {
     <p className="muted t-label">Both charts share a syncId. Hover one to mark the same time in the other. Click, or press Enter on a focused plot, to pin it; click again or press Escape to clear.</p>
     <Card><CardContent><Chart label="I/O wait and steal (%)" data={filtered} series={series.slice(2, 4)} legend="inline"
       min={0} max={100} formatTime={time} formatValue={percent} onRangeSelect={setRange} syncId="chart-demo" /></CardContent></Card>
+    <p className="muted t-label">layout="spark" draws a small chart under a headline value, with the time of a pinned moment on its axis. defaultPinned opens it on that moment.</p>
+    <div className="demo-row chart-spark-demo">
+      <Card><CardContent><Chart label="CPU user (%)" layout="spark" headline={<>{percent(data[110]!.values.user!)} <small>at the spike</small></>}
+        data={data} series={[series[0]!]} min={0} max={100} formatTime={time} formatValue={percent} syncId="chart-spark-demo" defaultPinned={data[110]!.timestamp} /></CardContent></Card>
+      <Card><CardContent><Chart label="I/O wait (%)" layout="spark" headline={<>{percent(data[110]!.values.iowait!)} <small>at the spike</small></>}
+        data={data} series={[series[2]!]} min={0} max={100} formatTime={time} formatValue={percent} syncId="chart-spark-demo" defaultPinned={data[110]!.timestamp} /></CardContent></Card>
+    </div>
     <pre><PanelShadow /><code>{code}</code></pre>
   </div>
 }

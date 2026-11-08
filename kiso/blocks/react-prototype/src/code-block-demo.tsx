@@ -31,6 +31,9 @@ export function CodeBlockDemo() {
       <CodeBlock terminal title="Deploy from CI" copy="command" highlight={shell} code={deploy} />
       <CodeBlock title="SHA-256 fingerprint" copy="fingerprint"
         code="4F:2A:91:0C:7E:D3:58:B6:12:9F:A4:E0:3B:77:C1:5D:88:06:F2:4A:9E:31:BD:60:C7:15:2E:8A:D9:43:F0:6B" />
+      <CodeBlock prompt="$" copy="command" code="curl -fsSL https://pg-probe.dev/install.sh | sh" />
+      <CodeBlock wrap copy="prompt" aria-label="Prompt for your agent"
+        code="Install pg-probe and add its MCP server by following https://pg-probe.dev/llms.txt. My snapshots are in ~/snapshots, but I may point to another folder in each session." />
       <CodeBlock diff title="Changes" highlight={yaml} code={changes} />
       <CodeBlock title="compose.yaml" copy="Compose file" highlight={yaml} code={compose}
         lineNumbers removed={[5]} added={[6]} collapse={[[9, 12]]} />
