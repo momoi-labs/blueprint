@@ -9,6 +9,9 @@ export type MarkSize = Exclude<Size, "off">;
 export interface AppearanceSettings {
   theme: string;
   accent: Accent;
+  neutral: "warm" | "zinc";
+  primary: "accent" | "contrast";
+  typeface: "inter" | "dm-sans";
   chartLine: ChartLine;
   chartFill: ChartFill;
   chartLayout: ChartLayout;

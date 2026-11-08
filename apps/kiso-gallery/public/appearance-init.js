@@ -3,6 +3,9 @@
   const options = {
     theme: ["system", "light", "dark"],
     accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes"],
+    neutral: ["warm", "zinc"],
+    primary: ["accent", "contrast"],
+    typeface: ["inter", "dm-sans"],
     chartLine: ["straight", "stepped", "curved"],
     chartFill: ["none", "dots", "tint", "squares", "scanlines"],
     chartLayout: ["standard", "compact", "split"],

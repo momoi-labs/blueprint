@@ -80,12 +80,13 @@ const compositions: { label: string; settings: Partial<AppearanceSettings> }[] =
   { label: "Brush study", settings: { shadowStyle: "soft", backgroundStyle: "fibers", outerBorderStyle: "brush", cornerMarks: "none", frameScope: "outer", markScope: "outer" } },
   { label: "Momoi signature", settings: { shadowStyle: "soft", backgroundStyle: "momoi", cornerStyle: "rounded", outerCornerStyle: "asym", cornerMarks: "none", panelFill: "translucent", markScope: "outer" } },
   { label: "SNES", settings: { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit" } },
+  { label: "pg-probe", settings: { theme: "dark", accent: "gold", neutral: "zinc", primary: "contrast", typeface: "dm-sans", shadowStyle: "none", borderStyle: "solid", cornerStyle: "rounded", cornerSize: "small", cornerMarks: "none", visualStyle: "default", appShell: "default", headerVariant: "default", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", backgroundStyle: "solid", panelFill: "solid", paperTone: "theme" } },
   { label: "Pixel everywhere", settings: { shadowStyle: "hard", theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
 ];
 
-function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false, disabledOptions = [], preview }: {
+function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false, disabledOptions = [], preview, names }: {
   label: string; value: T; onChange: (size: T) => void; options: readonly T[]; disabled?: boolean; disabledOptions?: readonly T[];
-  preview?: (value: T) => ReactNode;
+  preview?: (value: T) => ReactNode; names?: Partial<Record<T, string>>;
 }) {
   const name = useId();
   return <fieldset className="appearance-size" disabled={disabled}>
@@ -93,7 +94,7 @@ function ChoiceSelector<T extends string>({ label, value, onChange, options, dis
     <div className="appearance-segments">
       {options.map(size => <label key={size}>
         <input type="radio" name={name} value={size} checked={value === size} disabled={disabledOptions.includes(size)} onChange={() => onChange(size)} />
-        <span className="appearance-segment-body">{preview?.(size)}{size[0].toUpperCase() + size.slice(1)}</span>
+        <span className="appearance-segment-body">{preview?.(size)}{names?.[size] ?? size[0].toUpperCase() + size.slice(1)}</span>
       </label>)}
     </div>
   </fieldset>;
@@ -203,10 +204,13 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     <div className="appearance-colors">
       <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
+      <ChoiceSelector label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
+      <ChoiceSelector label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
+      <ChoiceSelector label="Typeface" options={["inter", "dm-sans"] as const} names={{ "dm-sans": "DM Sans" }} value={settings.typeface} onChange={typeface => onChange({ typeface })} />
     </div>
   </AppearanceSection>,
   presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
-    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; other presets keep your theme. Reset restores SNES.</p>
+    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; pg-probe is dark; other presets keep your theme. Reset restores SNES.</p>
     <div className="appearance-options">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.presetDefaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };

@@ -23,6 +23,7 @@ import { MetricsDemo } from "./metrics-demo";
 import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
+import { FeatureGridDemo, FeatureListDemo, PerspectiveStackDemo, SiteFooterDemo, SiteHeaderDemo, SiteHeadingDemo, SiteSectionDemo, WindowFrameDemo } from "./site-demo";
 import { Fragment, memo, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AccentSelector,
@@ -317,6 +318,14 @@ const catalog = [
     "Navigation",
     "Violet, terracotta, teal, cobalt, nocturne, tangerine, red, gold and lime.",
   ],
+  ["site-section", "SiteSection", "Site", "Full-width bands of a site page, with a tone and a layout."],
+  ["site-header", "SiteHeader", "Site", "A site's top bar that sticks, follows the band under it and folds into a menu."],
+  ["site-heading", "SiteHeading", "Site", "A section's eyebrow, title, description and actions."],
+  ["site-footer", "SiteFooter", "Site", "The page's last line: a start and an end."],
+  ["feature-grid", "FeatureGrid", "Site", "Short facts side by side in joined cells."],
+  ["feature-list", "FeatureList", "Site", "Facts as a list, each with a lead."],
+  ["window-frame", "WindowFrame", "Site", "Window or terminal chrome around an example."],
+  ["perspective-stack", "PerspectiveStack", "Site", "Pages or cards fanned in depth."],
   ["alert", "Alert", "Feedback", "Persistent information, success and errors."],
   ["spinner", "Spinner", "Feedback", "An operation in progress."],
   ["skeleton", "Skeleton", "Feedback", "The shape of content while loading."],
@@ -352,6 +361,10 @@ const catalog = [
 type CatalogId = (typeof catalog)[number][0];
 
 // Default panes span three columns, wide panes six, and full panes twelve.
+// Demos too wide to share the page with their open options. Their options
+// wait behind an "Options" link next to the description.
+const manualOptions = new Set<string>(["pane-grid", "site-section", "site-header"]);
+
 const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   textarea: "wide",
   steps: "full",
@@ -382,6 +395,12 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   split: "wide",
   breadcrumb: "wide",
   "scope-switcher": "wide",
+  "site-section": "wide",
+  "site-header": "wide",
+  "site-heading": "wide",
+  "site-footer": "wide",
+  "feature-grid": "wide",
+  "window-frame": "wide",
   tabs: "wide",
   pagination: "wide",
   "modal-dialog": "wide",
@@ -461,6 +480,22 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
     '<Navigation aria-label="Primary">\n  <NavigationList>\n    <NavigationItem>\n      <NavigationLink href="#components/app-shell" active>Overview</NavigationLink>\n    </NavigationItem>\n  </NavigationList>\n</Navigation>',
   "bottom-nav":
     '<ApplicationShell\n  layout="topbar"\n  brand={brand}\n  header={tabs}\n  bottomNav={\n    <BottomNav aria-label="Primary">\n      <BottomNavLink href="/new" active><Plus className="icon" aria-hidden="true" /><span>New</span></BottomNavLink>\n      <BottomNavLink href="/drafts"><Pencil className="icon" aria-hidden="true" /><span>Drafts</span><BottomNavBadge>3</BottomNavBadge></BottomNavLink>\n    </BottomNav>\n  }\n>\n  {page}\n</ApplicationShell>',
+  "site-section":
+    '<SiteSection tone="inverse">\n  <SiteSectionBody layout="split" ratio="1:2">\n    <SiteHeading eyebrow="How it works" title="Capture there. Analyze here." />\n    <Steps ... />\n    <WindowFrame variant="terminal" title="ssh db-prod-01">{transcript}</WindowFrame>\n  </SiteSectionBody>\n</SiteSection>',
+  "site-header":
+    '<SiteHeader sticky brand={<a href="/">pg-probe</a>}\n  links={[<a href="#how">How it works</a>, <a href="#report">Report</a>]}\n  actions={<Button variant="primary" size="sm">Install</Button>} />',
+  "site-heading":
+    '<SiteHeading level={1} size="display" align="center" eyebrow="For people who work with PostgreSQL"\n  title="Your client runs one command." description="One file. One report."\n  actions={<Button variant="primary">Install pg-probe</Button>} />',
+  "site-footer":
+    '<SiteFooter start="© 2026 Momoi Labs">\n  <a href="https://github.com/momoi-labs">GitHub</a>\n</SiteFooter>',
+  "feature-grid":
+    '<FeatureGrid>\n  <FeatureGridItem title="Read-only session">One read-only connection.</FeatureGridItem>\n  <FeatureGridItem title="Inspectable">Open the file before sending it.</FeatureGridItem>\n</FeatureGrid>',
+  "feature-list":
+    '<FeatureList>\n  <FeatureListItem title="Cover and summary,">with a link to every chart.</FeatureListItem>\n</FeatureList>',
+  "window-frame":
+    '<WindowFrame variant="terminal" title="ssh db-prod-01" caption="Nothing leaves the server.">\n  {transcript}\n</WindowFrame>',
+  "perspective-stack":
+    '<PerspectiveStack width="16rem">\n  <Card>Cover</Card>\n  <Card>Page 33</Card>\n</PerspectiveStack>',
   "scope-switcher":
     '<ScopeSwitcher>\n  <ScopeSegment level="Organization" value={org} options={orgs} onValueChange={switchOrg} />\n  <ScopeSegment level="Project" value={project} options={projects}\n    all={{ value: "all", label: "All projects" }} onValueChange={switchProject}\n    destinations={<ScopeDestination href="/projects">Manage projects</ScopeDestination>} />\n  <ScopeSegment level="Server" value={server} options={servers} searchable\n    all={{ value: "all", label: "All servers" }} onValueChange={switchServer} />\n</ScopeSwitcher>',
   breadcrumb:
@@ -1355,6 +1390,14 @@ const Demo = memo(function Demo({
       );
     case "code-block":
       return <CodeBlockDemo />;
+    case "site-section": return <SiteSectionDemo />;
+    case "site-header": return <SiteHeaderDemo />;
+    case "site-heading": return <SiteHeadingDemo />;
+    case "site-footer": return <SiteFooterDemo />;
+    case "feature-grid": return <FeatureGridDemo />;
+    case "feature-list": return <FeatureListDemo />;
+    case "window-frame": return <WindowFrameDemo />;
+    case "perspective-stack": return <PerspectiveStackDemo />;
     case "code-editor":
       return <CodeEditorDemo />;
     case "chip-input":
@@ -1707,6 +1750,7 @@ const Demo = memo(function Demo({
       );
     case "tabs":
       return (
+        <div className="stack">
         <Tabs defaultValue="configuration">
           <TabsList aria-label="Project panels">
             <TabsTrigger value="configuration">Configuration</TabsTrigger>
@@ -1724,6 +1768,14 @@ const Demo = memo(function Demo({
             </pre>
           </TabsContent>
         </Tabs>
+        <Tabs defaultValue="running">
+          <TabsList variant="pills" aria-label="Live view">
+            <TabsTrigger value="running" keyHint="1">Running</TabsTrigger>
+            <TabsTrigger value="waiting" keyHint="2">Waiting</TabsTrigger>
+            <TabsTrigger value="blocking" keyHint="3">Blocking</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        </div>
       );
     case "pagination":
       return (
@@ -2498,7 +2550,7 @@ export function ComponentGallery({
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
-              {!browsing && !showingExample && !showingTerminal && !showingAccents && current?.[0] === "pane-grid" && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
+              {!browsing && !showingExample && !showingTerminal && !showingAccents && manualOptions.has(current?.[0] ?? "") && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}

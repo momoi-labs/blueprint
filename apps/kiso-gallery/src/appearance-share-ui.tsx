@@ -5,6 +5,7 @@ import { applicationShellShareOptions } from "../../../kiso/blocks/react-prototy
 import { inlineFieldsShareOptions } from "../../../kiso/blocks/react-prototype/src/inline-fields-demo";
 import { paneGridShareOptions } from "../../../kiso/blocks/react-prototype/src/pane-grid-demo";
 import { scopeSwitcherShareOptions } from "../../../kiso/blocks/react-prototype/src/scope-switcher-demo";
+import { siteHeaderShareOptions, siteHeadingShareOptions, siteSectionShareOptions } from "../../../kiso/blocks/react-prototype/src/site-demo";
 import { tableShareOptions } from "../../../kiso/blocks/react-prototype/src/table-demo";
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import type { AppearanceSettings } from "./appearance-settings";
@@ -14,6 +15,7 @@ import { readShare, settingsText, shareLink, type DemoSchema, type ShareResult }
 export const demoSchema: DemoSchema = {
   alert: alertShareOptions, applicationShell: applicationShellShareOptions, diagram: diagramShareOptions, inlineFields: inlineFieldsShareOptions,
   paneGrid: paneGridShareOptions, scopeSwitcher: scopeSwitcherShareOptions, table: tableShareOptions,
+  siteSection: siteSectionShareOptions, siteHeader: siteHeaderShareOptions, siteHeading: siteHeadingShareOptions,
 };
 
 export function announceShare(result: ShareResult, notify: ToastNotify) {

@@ -344,7 +344,8 @@ test("Share copies the Diagram options and Paste sets them", async () => {
 // Reset. Changing each control and counting the copied keys catches a demo
 // that keeps an option to itself.
 for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["table", "table"], ["pane-grid", "paneGrid"],
-  ["scope-switcher", "scopeSwitcher"], ["form-field", "inlineFields"], ["app-shell", "applicationShell"]]) {
+  ["scope-switcher", "scopeSwitcher"], ["form-field", "inlineFields"], ["app-shell", "applicationShell"],
+  ["site-section", "siteSection"], ["site-header", "siteHeader"], ["site-heading", "siteHeading"]]) {
   test(`every ${route} option in the panel is shared and reset`, async () => {
     const page = await open(`#components/${route}`);
     try {
@@ -420,6 +421,9 @@ test("Copy settings and Paste settings restore large corners on controls", async
     const copied = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
     assert.equal(copied.s.cornerSize, "large");
     assert.equal(copied.s.frameScope, "all");
+    // The "Settings copied" toast can sit over the presets; close it first.
+    await page.getByRole("region", { name: /Notifications/ }).getByRole("button", { name: /close|dismiss/i }).first().click().catch(() => {});
+    await page.locator(".toast").first().waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
     await page.locator("#gallery-settings").getByRole("button", { name: "Pixel everywhere", exact: true }).click();
     assert.notDeepEqual(await inspect(), before);
     await page.getByRole("button", { name: "Share", exact: true }).click();
