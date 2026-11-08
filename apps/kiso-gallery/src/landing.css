@@ -208,6 +208,8 @@
 .shell-assembly .steps-item { gap: var(--spacing-sm); }
 .shell-assembly .steps-label { width: 100%; font-size: var(--type-size-metadata); }
 .shell-assembly-step { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); }
+/* Each step's switch already says on or off; the status line repeats it. */
+.shell-assembly .steps-state { display: none; }
 .shell-assembly .steps-state { font-size: var(--type-size-metadata); }
 .shell-assembly .steps-list > li[data-state="completed"] .steps-state { color: var(--color-link); }
 .shell-assembly .steps-marker { transition: background-color var(--motion-duration-normal, .3s) var(--motion-easing-standard), box-shadow .3s; }

@@ -68,7 +68,7 @@ export function Intro() {
       </section>
 
       <section className="intro-cta studio-cta" data-accent="violet" aria-labelledby="intro-cta-title"><div className="studio-wrap studio-section"><h2 id="intro-cta-title">Make it yours.</h2><div className="studio-actions"><Button asChild variant="ghost"><a href="https://github.com/momoi-labs/blueprint" target="_blank" rel="noreferrer"><GitHubMark />GitHub</a></Button></div></div></section>
-      <footer className="studio-wrap studio-footer"><span>Momoi Labs {new Date().getFullYear()}</span><span className="studio-made-in">Made in Brazil <BrazilFlag /></span></footer>
+      <footer className="studio-wrap studio-footer"><span>© {new Date().getFullYear()} Momoi Labs</span><span className="studio-made-in">Made in Brazil <BrazilFlag /></span></footer>
     </div>
   );
 }
