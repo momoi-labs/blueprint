@@ -230,3 +230,25 @@ test("Shell assembly plays once, then follows its switches", async () => {
     assert.equal(await pieces(), "false,false,false");
   } finally { await context.close(); }
 });
+
+for (const landingBands of ["inside", "full"]) test(`landing bands ${landingBands} with a framed shell`, async () => {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  try {
+    await page.addInitScript(landingBands => localStorage.setItem("kiso-gallery-appearance", JSON.stringify({
+      appShell: "inset", appShellOuter: "auto", outerBorderStyle: "brush", shadowStyle: "soft", landingBands,
+    })), landingBands);
+    await page.goto(`${url}#intro`);
+    await page.locator(".studio-cta").waitFor();
+    const { band, frame } = await page.evaluate(() => {
+      const main = document.querySelector('.component-gallery > [data-slot="app-shell-main"]');
+      const style = getComputedStyle(main), box = main.getBoundingClientRect();
+      const band = document.querySelector(".studio-cta").getBoundingClientRect();
+      return { band: { left: band.left, right: band.right }, frame: { left: box.left + parseFloat(style.borderLeftWidth), right: box.right - parseFloat(style.borderRightWidth) } };
+    });
+    if (landingBands === "inside") {
+      assert(band.left >= frame.left && band.right <= frame.right, `The band stays inside the frame: ${JSON.stringify({ band, frame })}`);
+    } else {
+      assert(band.left < frame.left && band.right > frame.right, `The band crosses the frame: ${JSON.stringify({ band, frame })}`);
+    }
+  } finally { await page.close(); }
+});

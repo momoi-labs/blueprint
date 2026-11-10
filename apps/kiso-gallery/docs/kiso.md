@@ -38,8 +38,10 @@ The landing follows the gallery page width and alignment without another
 content width cap. Its contrast bands span that width.
 On Intro, the existing header and landing share one continuous panel, with
 no floating header frame or outer content gutter. Other routes keep the
-selected header variant. Intro removes the inset shell margin in both width modes. Section backgrounds
-reach the shell edges; Full, Contained and alignment apply to inner content. The closing links use a light violet section. The hero uses the approved A + E + B stack, with E in front, click to reveal
+selected header variant. Intro removes the inset shell margin in both width modes. Landing bands sets
+where section backgrounds stop: Inside frame (default) keeps them within the
+outer frame, so its border, ink and shadow stay whole; Full width reaches the
+shell edges over the frame. Full, Contained and alignment apply to inner content. The closing links use a light violet section. The hero uses the approved A + E + B stack, with E in front, click to reveal
 and a 6px float that pauses on interaction and respects reduced motion.
 
 ## Pattern choices
