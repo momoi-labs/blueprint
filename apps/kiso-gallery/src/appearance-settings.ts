@@ -43,6 +43,7 @@ export interface AppearanceSettings {
   frameDetail: MarkSize;
   paperTone: "theme" | "accent";
   panelFill: "solid" | "translucent" | "glass";
+  landingBands: "inside" | "full";
   phoneBackgroundStyle: "inherit" | AppearanceSettings["backgroundStyle"];
   phoneShadowStyle: "inherit" | ShadowStyle;
   phoneBorderStyle: "inherit" | BorderStyle;

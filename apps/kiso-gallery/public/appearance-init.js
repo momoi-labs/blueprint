@@ -33,6 +33,7 @@
     frameDetail: ["medium", "small", "large"],
     paperTone: ["theme", "accent"],
     panelFill: ["solid", "translucent", "glass"],
+    landingBands: ["inside", "full"],
   };
   for (const key of ["borderStyle", "cornerStyle", "cornerMarks", "shadowStyle"]) {
     options[`outer${key[0].toUpperCase()}${key.slice(1)}`] = ["inherit", ...options[key]];
@@ -45,7 +46,7 @@
   const presetDefaults = Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]]));
   Object.assign(presetDefaults, { cornerStyle: "pixel", cornerSize: "small", appShell: "inset", backgroundStyle: "fibers", visualStyle: "editorial" });
   const defaults = { ...presetDefaults };
-  Object.assign(defaults, { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit" });
+  Object.assign(defaults, { theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit", landingBands: "full" });
   const attributes = Object.fromEntries(Object.keys(options).filter(key => !key.startsWith("phone")).map(key => [key, key]));
   // The earlier single chart style is a preset of line and fill.
   const chartPresets = { solid: ["straight", "none"], pixel: ["stepped", "none"], halftone: ["straight", "dots"], rounded: ["curved", "none"] };

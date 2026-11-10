@@ -66,9 +66,10 @@
 
 /* Intro is one continuous panel. The gallery header keeps its own look. */
 /* The shell keeps its outer margin, so the header sits where it does on every
-   page. The intro's scroll area reaches into that margin, so its bands still
-   run edge to edge. */
-.component-gallery.catalog-landing .catalog-main.catalog-intro {
+   page. With full-width bands, the intro's scroll area reaches into that
+   margin, so its bands run edge to edge over the outer frame. Inside frame
+   keeps them within the border, so the frame and its shadow stay whole. */
+:root[data-landing-bands="full"] .component-gallery.catalog-landing .catalog-main.catalog-intro {
   margin-inline: calc(-1 * var(--app-shell-outer, 0px));
   margin-block-end: calc(-1 * var(--app-shell-outer, 0px));
   width: calc(100% + 2 * var(--app-shell-outer, 0px));
