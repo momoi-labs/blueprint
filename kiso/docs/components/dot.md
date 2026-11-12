@@ -52,6 +52,21 @@ or disabled states.
 
 No keymap and no tab stop. Dot is never an action.
 
+## Terminal
+
+In a terminal, Dot is `tui-kiso` `Dot`: one cell with a mark in the color
+of the tone. It converts into a span, so it goes before a name in a line.
+
+| Web | Terminal form |
+| --- | --- |
+| `info`, `success`, `warning`, `danger` | `●` in the tone's `-on-dark` color. |
+| `neutral` | `○` in `muted-foreground`. A neutral state differs by shape and by color. |
+| pulse | `.pulse(tick)`: the mark changes between `●` and `◉` as the tick goes up. |
+| size `lg` | No terminal form. A mark is one cell. |
+
+Put text beside a Dot that names the state, or give a legend. Dot has no
+keys. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A health cue beside "Running", "Degraded", or "Stopped".

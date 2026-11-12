@@ -62,6 +62,27 @@ with an explicit retry path.
 - State must be announced as on/off and remain discernible without color or
   animation. Honor reduced-motion tokens.
 
+## Terminal
+
+In a terminal, Switch is `tui-kiso` `Switch`: a track of four cells with a
+square thumb of two cells, on the left when off and on the right when on.
+
+| State | Terminal form |
+| --- | --- |
+| off | `border-strong` track, `primary-foreground` thumb. |
+| on | `primary` track, `primary-foreground` thumb. |
+| hover | The track takes `muted-foreground` when off and `primary-hover` when on. |
+| focus | Half a cell of `focus` on each side of the track. Leave one free cell each side. |
+| disabled | `disabled-surface` track, `disabled` thumb. |
+| loading, error | Text beside the switch, drawn by the product. |
+
+`.word(true)` adds `On` or `Off` after the track, for a switch that stands
+alone: thumb position and color are weak signals in a terminal with few
+colors. Switch has one size. `Space` or `Enter` toggles it, and a click
+does too; the app owns the keys. Use Switch for a setting that applies at
+once, and Checkbox for a choice a form submits. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For a single preference that applies immediately.

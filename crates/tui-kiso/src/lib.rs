@@ -1,10 +1,10 @@
 //! Kiso components for [ratatui](https://ratatui.rs), in the style of
 //! Charm's Crush: no frames around parts of a page, a section is a title
-//! and a rule, and only the selection, code, buttons and dialogs get a
-//! fill or a frame.
+//! and a rule, and only the selection, code, cards, badges, buttons and
+//! dialogs get a fill or a frame.
 //!
 //! A [`Theme`] built from one `kiso-tokens` accent, with the [`Look`] of
-//! titles and rules, and the widgets that follow Kiso's terminal contract.
+//! titles, rules and surfaces, and the widgets that follow Kiso's terminal contract.
 //! The app owns its event loop and layout. Key handling for forms, filters,
 //! the search and the theme picker needs the `crossterm` feature, on by
 //! default.
@@ -19,11 +19,17 @@
 //! ```
 
 mod accent;
+mod backdrop;
+mod badge;
+mod button;
 mod buttons;
+mod card;
 mod chart;
 mod color;
+mod dot;
 mod filters;
 mod form;
+mod grid;
 mod header;
 mod key_hints;
 mod look;
@@ -38,21 +44,31 @@ mod question;
 mod search;
 mod sidebar;
 mod sparkline;
+mod stat;
 mod status_badge;
+mod surface;
+mod switch;
 mod table;
 mod text;
 mod theme;
 mod title;
+mod tone;
 
 pub use accent::{Accent, ACCENTS};
+pub use backdrop::{Backdrop, Canvas};
+pub use badge::Badge;
+pub use button::{Button, ButtonState, ButtonVariant};
 pub use buttons::{Buttons, Press};
+pub use card::{Card, CardVariant, Size};
 pub use chart::{Chart, ChartLegend, Series};
 pub use color::blend;
+pub use dot::Dot;
 pub use filters::{FilterEdit, Filters, FiltersView};
 pub use form::{Act, Field, Form, Input};
+pub use grid::Grid;
 pub use header::Header;
 pub use key_hints::KeyHints;
-pub use look::{Ink, Look, Pattern, Stroke};
+pub use look::{Border, Ink, Look, PanelFill, Pattern, Stroke};
 pub use menu::Menu;
 pub use meter::{BarGauge, Meter};
 pub use modal::Modal;
@@ -64,8 +80,11 @@ pub use question::Question;
 pub use search::{Found, Search};
 pub use sidebar::{Side, SideItem, Sidebar};
 pub use sparkline::Sparkline;
+pub use stat::Stat;
 pub use status_badge::StatusBadge;
+pub use switch::{Switch, SwitchState};
 pub use table::Table;
 pub use text::{fact, fit, highlight, wrap, Columns};
 pub use theme::Theme;
 pub use title::{Tabs, Title};
+pub use tone::Tone;

@@ -49,13 +49,13 @@ impl Theme {
         Self { tokens, ..self }
     }
 
-    /// The same theme with another look for titles and rules.
+    /// The same theme with another look for titles, rules and surfaces.
     #[must_use]
     pub fn with_look(self, look: Look) -> Self {
         Self { look, ..self }
     }
 
-    /// How titles and section rules are drawn.
+    /// How titles, section rules and surfaces are drawn.
     pub fn look(&self) -> Look {
         self.look
     }

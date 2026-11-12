@@ -95,6 +95,12 @@ label, both in the tone's color. It converts into a line or a table cell.
 | `danger` | ● | `danger-on-dark` |
 | `neutral` | ○ | `muted-foreground` |
 
+It has two forms. Plain is the default: the mark and the label with no
+fill, for tables, where a column of pills is heavy. `.pill(true)` draws the
+same mark and label as a `Badge`, on a tint of the tone, for headers, cards
+and detail pages. The pill is a widget only; the line and the table cell
+stay plain.
+
 The terminal does not animate the pulse; ◐ marks work that is going, such
 as an application stopping, while a spinner runs next to it on the page.
 The label always names the state, so color never carries it alone. On a
