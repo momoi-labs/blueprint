@@ -25,6 +25,7 @@ unicode-width = "0.2"
 
 [dev-dependencies]
 ratatui = { version = "0.30.2", features = ["crossterm"] }
+tui-big-text = "0.8"
 
 # The gallery handles keys, so it needs the crossterm feature.
 [[example]]
@@ -33,4 +34,8 @@ required-features = ["crossterm"]
 
 [[example]]
 name = "screens"
+required-features = ["crossterm"]
+
+[[example]]
+name = "review"
 required-features = ["crossterm"]
