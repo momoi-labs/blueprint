@@ -139,21 +139,37 @@ must still meet contrast.
 
 ## Terminal
 
-In a terminal, buttons are `tui-kiso` `Buttons`: solid chips in a row,
-right-aligned and one column apart, at the bottom of a dialog or a form.
-Each has two columns of padding and half a row of fill above and below, so
-it looks two rows tall. The first letter is underlined: it is the button's
-key while a button has focus.
+In a terminal, Button is `tui-kiso` `Button`: a solid block of fill with
+two columns of padding. The variant says what the action is, and the state
+says what the pointer and the keys do.
+
+| Variant | Terminal form |
+| --- | --- |
+| `default` | `secondary-foreground` on `secondary`. The web's card color would vanish on a card. |
+| `primary` | Bold `primary-foreground` on `primary`. |
+| `destructive` | Bold `danger-foreground` on `danger`. |
+| `ghost` | `muted-foreground`, no fill. |
 
 | State | Terminal form |
 | --- | --- |
-| default | `foreground` on `muted`. |
-| focused | Bold `primary-foreground` on `primary`. |
-| focused, destructive | Bold `danger-foreground` on `danger`. |
-| disabled | `subtle-foreground` on `card`, no underline, such as Remove before the name is typed. |
+| hover | The hover color of the variant. `ghost` gets `accent-surface-hover` and `foreground`. |
+| focus | `md`: half a cell of `focus` on each side, outside the button. `sm`: the two padding cells take the `focus` color. A terminal cannot draw a ring. |
+| disabled | `disabled` on `disabled-surface` (no fill for `ghost`), no underline. |
+| loading | A spinner frame before the label, no underline. |
 
-`←` `→` move between buttons and `Enter` presses the focused one. See
-[terminal interfaces](../terminal-interfaces.md).
+| Size | Terminal form |
+| --- | --- |
+| `md` | Three rows: the label, and half a row of fill above and below. For forms and dialogs. Leave one free cell each side for the focus bars. |
+| `sm` | One row. For card footers, toolbars and tables. With the `round` option of `Look`, it has round ends. |
+| `xs`, `lg`, `xl` | No terminal form. |
+
+The first letter or digit of the label is underlined: it is the button's
+hotkey, and `hotkey` returns it in lowercase. An icon before the label is not the hotkey.
+`Enter` presses the focused button; the app owns the keys.
+
+`Buttons` is the older row of buttons at the bottom of a dialog or a form,
+where the primary color means focus. It stays until forms move to
+`Button`. See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 
