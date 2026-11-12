@@ -98,6 +98,27 @@ the interactive element: Badge provides appearance only. Focus ring
 
 No keymap. A Badge that is a Link follows [Link](link.md) keyboard rules.
 
+## Terminal
+
+In a terminal, Badge is `tui-kiso` `Badge`: the label in the color of the
+tone, one column of padding each side, on a tint of the same tone. A cell
+has no 1px border, so the tint takes its place.
+
+| Web | Terminal form |
+| --- | --- |
+| `neutral` | `foreground` on a 14% tint. |
+| `info`, `success`, `warning`, `danger` | The tone's `-on-dark` color on a 20% tint of it. |
+| outline | `.outline(true)`: the label between two thin bars of `border`, no fill. |
+| with a Dot | `.dot(true)`: `●` before the label. |
+| size `md` | No terminal form. A Badge is one row, two columns wider than its label. |
+| loading | A spinner frame before the label, set by the product. |
+
+The ends are square. With the `round` option of `Look`, a Nerd Font draws
+round ends. In 256 colors there is no tint: the fill is a gray that keeps
+the colored word readable. The label names the state, so color never
+carries it alone. Badge has no keys. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A short status or classification next to a title, table cell, or Card

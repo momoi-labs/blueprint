@@ -5,15 +5,15 @@ is the Momoi Labs design system. See it at
 [kiso.momoi-labs.dev](https://kiso.momoi-labs.dev).
 
 The look follows Charm's Crush: no frames around parts of a page, a section
-is a title and a rule, and only the selection, code, buttons and dialogs
-get a fill or a frame. Your app keeps its own event loop and layout. The
+is a title and a rule, and only the selection, code, cards, badges, buttons
+and dialogs get a fill or a frame. Your app keeps its own event loop and layout. The
 widgets follow the
 [terminal interfaces](https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/terminal-interfaces.md)
 contract, and each component doc has a Terminal section.
 
 | Part | What it is |
 | --- | --- |
-| `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the patterns of the title line and section rules |
+| `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the look: the patterns of the title line and section rules, the card fill and border, and round ends |
 | `Title`, `Tabs`, `Header` | Where the person is: the page title, the views of a screen, the brand and breadcrumb |
 | `Page`, `Scroll`, `Columns` | A page of rows that scrolls, with sections, items to select, columns and code blocks |
 | `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
@@ -24,6 +24,10 @@ contract, and each component doc has a Terminal section.
 | `Filters`, `Menu`, `fact` | Faceted filters on `f`, the actions of a row on `a`, the facts of a record |
 | `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |
 | `Form`, `Field`, `Buttons` | Forms with labels in a column, and solid buttons |
+| `Card`, `Stat` | A surface of fill for related content, and one number with its label and delta |
+| `Badge`, `Dot`, `Tone` | A label or a mark in one of five tones |
+| `Button`, `Switch` | An action with a variant and a state, and a setting that is on or off |
+| `Grid`, `Backdrop` | The areas of a page on tracks of 13 columns, and the canvas behind it |
 | `Toast`, `scramble`, `braille`, `step`, `StepState` | Notices, spinners and the steps of a run, in five states |
 | `set_background`, `set_foreground`, `set_progress`, `set_clipboard` | The terminal's colors with OSC 11 and OSC 10, its progress bar with OSC 9;4, and the clipboard with OSC 52 |
 
@@ -75,7 +79,10 @@ The gallery shows every component with its variants and states:
 cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
 ```
 
-Add `--accent <name>` or `--light` to try another theme, or
+`t` opens the theme picker. `s` opens the appearance panel: up and down
+pick an option, left and right change it.
+
+Add `--accent <name>`, `--light` or `--256` to try another theme, or
 `--snapshot <dir>` to write every page at 100 by 30, and one at 80 by 24,
 as HTML without a terminal.
 

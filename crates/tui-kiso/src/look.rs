@@ -154,9 +154,42 @@ impl Stroke {
     }
 }
 
-/// How the title line and section rules are drawn. Each product picks its
-/// own; [`Look::DEFAULT`] is a heavy `primary` title line and a faint thin
-/// rule.
+/// How much of what is behind it a [`Card`](crate::Card) hides. In 256
+/// colors a blend would band, so every value draws as `Solid`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum PanelFill {
+    /// The backdrop shows through.
+    #[default]
+    Glass,
+    /// A trace of the backdrop shows through.
+    Translucent,
+    /// The card color alone.
+    Solid,
+}
+
+impl PanelFill {
+    pub(crate) fn alpha(self) -> f32 {
+        match self {
+            PanelFill::Glass => 0.72,
+            PanelFill::Translucent => 0.88,
+            PanelFill::Solid => 1.0,
+        }
+    }
+}
+
+/// The border of a [`Card`](crate::Card).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum Border {
+    #[default]
+    None,
+    /// Half a column of `primary` in the cell before the card. The card
+    /// keeps its size.
+    Rail,
+}
+
+/// How titles, section rules and surfaces are drawn. Each product picks its
+/// own; [`Look::DEFAULT`] is a heavy `primary` title line, a faint thin
+/// rule, glass cards with no border and square ends.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Look {
     /// Around the page title, in [`Title`](crate::Title) and
@@ -165,11 +198,23 @@ pub struct Look {
     /// After section titles, in [`Page::section`](crate::Page::section)
     /// and the [`Sidebar`](crate::Sidebar).
     pub rule: Stroke,
+    /// The fill of a [`Card`](crate::Card).
+    pub fill: PanelFill,
+    /// The border of a [`Card`](crate::Card).
+    pub border: Border,
+    /// Round ends on badges and small buttons. They need a Nerd Font, so
+    /// the default is square ends.
+    pub round: bool,
 }
 
 impl Look {
-    pub const DEFAULT: Look =
-        Look { title: Stroke::new(Pattern::Heavy, Ink::Primary), rule: Stroke::new(Pattern::Thin, Ink::Faint) };
+    pub const DEFAULT: Look = Look {
+        title: Stroke::new(Pattern::Heavy, Ink::Primary),
+        rule: Stroke::new(Pattern::Thin, Ink::Faint),
+        fill: PanelFill::Glass,
+        border: Border::None,
+        round: false,
+    };
 }
 
 impl Default for Look {

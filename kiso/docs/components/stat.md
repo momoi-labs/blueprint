@@ -77,6 +77,25 @@ the task needs them.
 
 No keymap. Any accompanying action uses its own Button or Link.
 
+## Terminal
+
+In a terminal, Stat is `tui-kiso` `Stat`: a `md` Card with the label in
+`muted-foreground`, the delta beside the label, the value in bold
+`foreground` on the next row, and an optional note in `muted-foreground`.
+
+| Web | Terminal form |
+| --- | --- |
+| `StatLabel` | First row, `muted-foreground`. |
+| `StatDelta` | A `Badge` one column after the label. Its tone is a judgment, as on the web. |
+| `StatValue` | Second row, bold `foreground`, in the size of the text. |
+| note | Third row, `muted-foreground`. |
+| without a card | `.card(false)`: the same rows with no surface, for a row of facts in a dense tool. |
+| loading | Skeleton bars inside a Card, drawn by the product. |
+
+A cell has one size of text, so the value is not larger than the label. A
+product with room can build a big value from a Card and a block font. Stat
+has no keys. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A dashboard metric with a label, value, and comparison period.

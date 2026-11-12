@@ -1,7 +1,7 @@
 //! A gallery of every component in the crate, like the web gallery.
 //!
 //! Run: cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
-//! Options: --accent <name>, --light, --snapshot <dir>, --json <file>
+//! Options: --accent <name>, --light, --256, --snapshot <dir>, --json <file>
 
 use std::io::IsTerminal;
 use std::path::Path;
@@ -16,24 +16,26 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{TableState, Widget};
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
-    braille, fact, scramble, set_background, set_foreground, step, Act, BarGauge, Buttons, Chart, ChartLegend, Columns, Field,
-    FilterEdit, Filters, Form, Header, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, Pattern, Press, Question,
-    Scroll, Search, Series, SideItem, Side, Sidebar, Sparkline, StatusBadge, StepState, Stroke, Table, Tabs, Theme, ThemePicker,
-    Title, Toast, ACCENTS,
+    braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
+    ButtonVariant, Buttons, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
+    Header, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Press, Question, Scroll, Search,
+    Series, SideItem, Side, Sidebar, Size,
+    Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, Title, Toast, Tone,
+    ACCENTS,
 };
 
 const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 23] = [
+const PAGES: [(&str, &str); 30] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The brand and version, then where the person is."),
     ("Title", "Where the person is, across the width."),
     ("Tabs", "The views of a screen; the current one takes the width."),
     ("Page", "Rows that scroll: sections, columns, a selection, code."),
     ("Table", "A ratatui table with Kiso's header and selection."),
-    ("StatusBadge", "A mark and a word, in the tone's color."),
+    ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
     ("KeyHints", "The footer keys. Help and quit always stay."),
     ("Buttons", "Solid buttons, half a row of fill above and below."),
     ("Form", "Labels in a column; focus is the list selection."),
@@ -50,15 +52,36 @@ const PAGES: [(&str, &str); 23] = [
     ("Sparkline", "The shape of one series in a cell; the number is beside it."),
     ("Meter", "A measurement against a known limit, on one row."),
     ("BarGauge", "Labelled measurements on one scale, values aligned right."),
+    ("Card", "A surface of fill for related content, with a rule between its parts."),
+    ("Stat", "One number, its label, and how it changed."),
+    ("Badge", "A label on a tint of its tone."),
+    ("Dot", "One cell that carries a tone."),
+    ("Button", "An action. The variant says what it is, the state what the keys do."),
+    ("Switch", "One setting that is on or off, applied at once."),
+    ("Grid", "The areas of a page, on tracks of whole columns. It draws nothing."),
 ];
 const FORM: usize = 9;
+const CARD: usize = 23;
 const FILTERS: usize = 16;
 const CHART: usize = 19;
 
 const SIZE: (u16, u16) = (100, 30);
 
+/// The appearance options and their values. The first is the default.
+const APPEARANCE: [(&str, &[&str]); 5] = [
+    ("Background", &["solid", "glow", "dots", "grid", "crosses", "stripes"]),
+    ("Strength", &["quiet", "visible"]),
+    ("Panel fill", &["glass", "translucent", "solid"]),
+    ("Border", &["none", "rail"]),
+    ("Ends", &["square", "round"]),
+];
+const CANVASES: [Canvas; 6] = [Canvas::Solid, Canvas::Glow, Canvas::Dots, Canvas::Grid, Canvas::Crosses, Canvas::Stripes];
+/// The width of the appearance panel, and the width a page keeps beside it.
+const PANEL: u16 = 34;
+const BESIDE: u16 = 67;
+
 const USAGE: &str = "\
-Usage: gallery [--accent <name>] [--light] [--snapshot <dir>] [--json <file>]
+Usage: gallery [--accent <name>] [--light] [--256] [--snapshot <dir>] [--json <file>]
 
   --accent <name>    violet, terracotta, teal, cobalt, nocturne, tangerine,
                      red, gold, lime, plum, stone or steel. Default: gold.
@@ -102,6 +125,9 @@ struct App {
     main: bool,
     layer: Option<Layer>,
     picker: Option<ThemePicker>,
+    /// The appearance options, and the one with focus while the panel is open.
+    looks: Vec<Field>,
+    panel: Option<usize>,
     form: Form,
     filters: Filters,
     scroll: Scroll,
@@ -118,6 +144,8 @@ impl App {
             main: false,
             layer: None,
             picker: None,
+            looks: APPEARANCE.into_iter().map(|(label, values)| Field::select(label, values.iter().copied())).collect(),
+            panel: None,
             form: demo_form(),
             filters: demo_filters(),
             scroll: Scroll::default(),
@@ -149,6 +177,17 @@ impl App {
             self.picker = open.then_some(picker);
             return;
         }
+        if let Some(focus) = self.panel {
+            let count = self.looks.len();
+            match key.code {
+                KeyCode::Char('s' | 'q') | KeyCode::Esc => self.panel = None,
+                KeyCode::Down | KeyCode::Char('j') | KeyCode::Tab => self.panel = Some((focus + 1) % count),
+                KeyCode::Up | KeyCode::Char('k') | KeyCode::BackTab => self.panel = Some((focus + count - 1) % count),
+                KeyCode::Enter => _ = self.looks[focus].key(KeyEvent::new(KeyCode::Right, KeyModifiers::NONE)),
+                _ => _ = self.looks[focus].key(key),
+            }
+            return;
+        }
         if self.filters.is_open() {
             if self.filters.key(key) != FilterEdit::None {
                 self.scroll.top();
@@ -173,6 +212,7 @@ impl App {
         match key.code {
             KeyCode::Char('?') | KeyCode::F(1) => self.layer = Some(Layer::Help),
             KeyCode::Char('t') => self.picker = Some(ThemePicker::new(self.accent, self.light)),
+            KeyCode::Char('s') => self.panel = Some(0),
             KeyCode::Tab | KeyCode::Enter if !self.main => self.main = true,
             KeyCode::Tab | KeyCode::Esc if self.main => self.main = false,
             KeyCode::Char('q') if self.main => self.main = false,
@@ -190,6 +230,47 @@ impl App {
         self.scroll.top();
     }
 
+    /// The theme with the look the appearance panel chose.
+    fn themed(&self) -> Theme {
+        let chosen = |i: usize| self.looks[i].chosen();
+        self.theme.with_look(Look {
+            fill: [PanelFill::Glass, PanelFill::Translucent, PanelFill::Solid][chosen(2)],
+            border: [Border::None, Border::Rail][chosen(3)],
+            round: chosen(4) == 1,
+            ..self.theme.look()
+        })
+    }
+
+    /// The appearance panel, on the right of the page.
+    fn appearance(&self, t: &Theme, buf: &mut Buffer, area: Rect, focus: usize) {
+        if area.width < 20 || area.height < 4 {
+            return;
+        }
+        let r = t.tokens();
+        for at in area.positions() {
+            buf[at].reset();
+        }
+        buf.set_style(area, t.fill(r.popover_foreground, r.popover));
+        let (x, width) = (area.x + 2, area.width - 4);
+        buf.set_stringn(x, area.y + 1, "Appearance", usize::from(width), t.strong());
+        buf.set_line(x, area.y + 2, &Line::from(t.look().rule.spans(t, usize::from(width))), width);
+        for (i, field) in self.looks.iter().enumerate() {
+            let y = area.y + 4 + i as u16;
+            if y >= area.bottom() {
+                return;
+            }
+            if i == focus {
+                buf.set_style(Rect::new(area.x, y, area.width, 1), t.selected());
+            }
+            let lines = field.lines(t, usize::from(width), 12, i == focus);
+            buf.set_line(area.x, y, &lines[0], width + 2);
+        }
+        let note = area.y + 5 + self.looks.len() as u16;
+        if note < area.bottom() {
+            buf.set_stringn(x, note, "Round ends need a Nerd Font.", usize::from(width), t.subtle());
+        }
+    }
+
     fn sidebar(&self) -> Sidebar<'_> {
         let t = &self.theme;
         let brand = Line::from(vec![Span::styled(format!(" {PRODUCT} {VERSION} "), t.brand())]);
@@ -201,17 +282,30 @@ impl App {
     }
 
     fn draw(&self, f: &mut Frame) {
-        let t = &self.theme;
+        let t = &self.themed();
         let screen = f.area();
         let buf = f.buffer_mut();
         // No fill: the terminal's background, set with OSC 11, shows through.
         let body = body(screen);
         let foot = Rect::new(body.x, screen.bottom().saturating_sub(1), body.width, 1);
+        // The glow is a color under the whole screen, so it goes first. A
+        // pattern takes whole cells, so it goes last, below what the page
+        // drew.
+        let backdrop = Backdrop::new(t, CANVASES[self.looks[0].chosen()]).strong(self.looks[1].chosen() == 1);
+        let glow = CANVASES[self.looks[0].chosen()] == Canvas::Glow;
+        if glow {
+            backdrop.render(screen, buf);
+        }
         let sidebar = self.sidebar();
         let (side, main) = sidebar.split(body, Side::Left);
         if let Some(area) = side {
             sidebar.render(area, buf);
         }
+
+        let canvas = (main, buf.clone());
+        // The panel pushes the page while the page still fits, then covers it.
+        let panel = self.panel.map(|focus| (focus, Rect { x: main.right().saturating_sub(PANEL), width: PANEL.min(main.width), ..main }));
+        let main = if self.panel.is_some() && main.width >= BESIDE + PANEL + 2 { Rect { width: main.width - PANEL - 2, ..main } } else { main };
 
         let (name, about) = PAGES[self.page];
         let title = if side.is_none() { format!("{name} · {} of {}", self.page + 1, PAGES.len()) } else { name.to_owned() };
@@ -219,23 +313,30 @@ impl App {
         put(buf, main, 1, Line::styled(about, t.muted()));
         let area = Rect { y: main.y + 3, height: main.height.saturating_sub(3), ..main };
         self.content(buf, area);
+        if !glow {
+            pattern_under_page(buf, &canvas.1, canvas.0, area, backdrop);
+        }
 
         let keys: Vec<(&str, &str)> = match (self.layer, self.main) {
             (Some(Layer::Help), _) => vec![("any key", "close")],
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
+            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
-            (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
+            (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
             (None, false) => {
                 let browse = if side.is_some() { "j/k" } else { "←/→" };
-                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("?", "help"), ("q", "quit")]
+                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("s", "appearance"), ("?", "help"), ("q", "quit")]
             }
         };
         KeyHints::new(t, keys).render(foot, buf);
 
+        if let Some((focus, area)) = panel {
+            self.appearance(t, buf, area, focus);
+        }
         if self.filters.is_open() {
             self.filters.view(t, "Filter machines").render(screen, buf);
         }
@@ -249,7 +350,7 @@ impl App {
     }
 
     fn content(&self, buf: &mut Buffer, area: Rect) {
-        let t = &self.theme;
+        let t = &self.themed();
         let width = usize::from(area.width);
         match PAGES[self.page].0 {
             "Theme" => self.theme_page(width).view(t, &self.scroll).render(area, buf),
@@ -319,7 +420,14 @@ impl App {
             "Chart" => chart_page(t, buf, area),
             "Sparkline" => sparkline_page(t, width).view(t, &self.scroll).render(area, buf),
             "Meter" => meter_page(t, width).view(t, &self.scroll).render(area, buf),
-            _ => bar_gauge_page(t, width).view(t, &self.scroll).render(area, buf),
+            "BarGauge" => bar_gauge_page(t, width).view(t, &self.scroll).render(area, buf),
+            "Card" => card_page(t, buf, area),
+            "Stat" => stat_page(t, buf, area),
+            "Badge" => tone_badge_page(t, buf, area),
+            "Dot" => dot_page(t, buf, area),
+            "Button" => button_page(t, buf, area),
+            "Switch" => switch_page(t, buf, area),
+            _ => grid_page(t, buf, area),
         }
     }
 
@@ -392,6 +500,20 @@ impl App {
             page.line(Line::from(spans));
         }
         page
+    }
+}
+
+/// A pattern of the canvas is for the empty part of a page: the rows
+/// below what the page drew, after one empty row. `before` is the screen
+/// before the page.
+fn pattern_under_page(buf: &mut Buffer, before: &Buffer, main: Rect, area: Rect, backdrop: Backdrop) {
+    let (main, area) = (main.intersection(buf.area), area.intersection(buf.area));
+    let last = area.positions().filter(|at| buf[*at] != before[*at]).map(|at| at.y).max();
+    let top = last.map_or(area.top(), |y| y.saturating_add(2));
+    let mut pattern = Buffer::empty(main);
+    backdrop.render(main, &mut pattern);
+    for at in main.positions().filter(|at| at.y >= top) {
+        buf[at] = pattern[at].clone();
     }
 }
 
@@ -503,16 +625,165 @@ fn machines(t: &Theme) -> Table<'_> {
 }
 
 fn badge_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let variants = [
-        ("success", StatusBadge::success(t, "Running")),
-        ("success, pulse", StatusBadge::success(t, "Provisioning").pulse(true)),
-        ("danger", StatusBadge::danger(t, "Failed")),
-        ("neutral", StatusBadge::neutral(t, "Stopped")),
-    ];
-    for (i, (name, badge)) in variants.into_iter().enumerate() {
+    let variants = || {
+        [
+            ("success", StatusBadge::success(t, "Running")),
+            ("success, pulse", StatusBadge::success(t, "Provisioning").pulse(true)),
+            ("danger", StatusBadge::danger(t, "Failed")),
+            ("neutral", StatusBadge::neutral(t, "Stopped")),
+        ]
+    };
+    for (i, (name, badge)) in variants().into_iter().enumerate() {
         let mut line: Line = badge.into();
         line.spans.insert(0, Span::styled(format!("{name:<16}"), t.muted()));
         put(buf, area, i as u16, line);
+    }
+    caption(t, buf, area, 5, "As a pill, for a header, a card or a detail page");
+    for (i, (name, badge)) in variants().into_iter().enumerate() {
+        let badge = badge.pill(true);
+        let dy = 7 + i as u16 * 2;
+        if let Some(rect) = inside(area, 16, dy, badge.width(), 1) {
+            caption(t, buf, area, dy, name);
+            badge.render(rect, buf);
+        }
+    }
+}
+
+/// The rectangle at `x` and `dy` of `area`, when all of it is on the page.
+/// A widget that does not fit is not drawn.
+fn inside(area: Rect, x: u16, dy: u16, width: u16, height: u16) -> Option<Rect> {
+    let rect = Rect::new(area.x + x, area.y + dy, width, height);
+    (rect.right() <= area.right() && rect.bottom() <= area.bottom() && rect.bottom() <= area.intersection(rect).bottom())
+        .then_some(rect)
+}
+
+fn card_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let cards = [
+        ("Plain, size md", Card::new(t), 0, 0),
+        ("Elevated, for a popover or a menu", Card::new(t).variant(CardVariant::Elevated), 35, 0),
+        ("Size sm", Card::new(t).size(Size::Sm), 0, 9),
+        ("Hover, for a card that is a link", Card::new(t).hover(true), 35, 9),
+    ];
+    for (name, card, x, dy) in cards {
+        let Some(rect) = inside(area, x, dy + 2, 32, 6) else { continue };
+        buf.set_string(rect.x, rect.y - 2, name, t.muted());
+        card.render(rect, buf);
+        let inner = card.inner(rect);
+        let width = usize::from(inner.width);
+        buf.set_stringn(inner.x, inner.y, "Backups", width, t.strong());
+        buf.set_stringn(inner.x, inner.y + 1, "Daily at 02:00 UTC", width, t.muted());
+        card.rule(buf, rect, inner.y + 2);
+        buf.set_stringn(inner.x, inner.y + 3, "Last run    12 min ago", width, t.text());
+    }
+}
+
+fn stat_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    caption(t, buf, area, 0, "In a card, with a delta and a note");
+    let stat = Stat::new(t, "Tasks completed", "186").delta(Badge::new(t, Tone::Success, "+18.6%")).note("32 more than last month");
+    if let Some(rect) = inside(area, 0, 2, 34, stat.height()) {
+        stat.render(rect, buf);
+    }
+    caption(t, buf, area, 8, "Without a card, in a row of facts");
+    for (i, (label, value)) in [("Projects", "24"), ("Tasks", "186"), ("On time", "94.2%")].into_iter().enumerate() {
+        let stat = Stat::new(t, label, value).card(false);
+        if let Some(rect) = inside(area, i as u16 * 15, 10, 13, stat.height()) {
+            stat.render(rect, buf);
+        }
+    }
+}
+
+fn tone_badge_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let rows = Tone::ALL.map(|tone| (tone.name(), Badge::new(t, tone, tone.name())));
+    let more = [
+        ("outline", Badge::new(t, Tone::Neutral, "Beta").outline(true)),
+        ("with a dot", Badge::new(t, Tone::Success, "live").dot(true)),
+    ];
+    for (i, (name, badge)) in rows.into_iter().chain(more).enumerate() {
+        let dy = i as u16 * 2;
+        if let Some(rect) = inside(area, 16, dy, badge.width(), 1) {
+            caption(t, buf, area, dy, name);
+            badge.render(rect, buf);
+        }
+    }
+}
+
+fn dot_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    for (i, tone) in Tone::ALL.into_iter().enumerate() {
+        let dot = Span::from(Dot::new(t, tone));
+        put(buf, area, i as u16, Line::from(vec![Span::styled(format!("{:<16}", tone.name()), t.muted()), dot]));
+    }
+    let frames = [0, 1].map(|tick| Span::from(Dot::new(t, Tone::Success).pulse(tick)));
+    let [first, second] = frames;
+    put(buf, area, 6, Line::from(vec![Span::styled(format!("{:<16}", "pulse, frames"), t.muted()), first, Span::raw(" "), second]));
+    let named = Line::from(vec![Span::from(Dot::new(t, Tone::Warning)), Span::styled(" laya-staging", t.text())]);
+    put(buf, area, 8, Line::styled("Before a name that says the state", t.muted()));
+    put(buf, area, 9, named);
+}
+
+fn button_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    // A button starts one column in, so the focus bars have room.
+    let row = |buf: &mut Buffer, dy: u16, name: &str, buttons: &[Button]| {
+        let height = buttons.iter().map(Button::height).max().unwrap_or(1);
+        if inside(area, 0, dy, 1, height + 2).is_none() {
+            return;
+        }
+        caption(t, buf, area, dy, name);
+        let mut x = 1;
+        for button in buttons {
+            if let Some(rect) = inside(area, x, dy + 2, button.width(), button.height()) {
+                button.render(rect, buf);
+            }
+            x += 14;
+        }
+    };
+    let kinds = [
+        (ButtonVariant::Default, "Cancel"),
+        (ButtonVariant::Primary, "Save"),
+        (ButtonVariant::Destructive, "Remove"),
+        (ButtonVariant::Ghost, "Skip"),
+    ];
+    let variants = kinds.map(|(variant, label)| Button::new(t, label).variant(variant));
+    row(buf, 0, "Variants: default, primary, destructive, ghost", &variants);
+    let states = [ButtonState::Rest, ButtonState::Hover, ButtonState::Focus, ButtonState::Disabled, ButtonState::Loading(0)];
+    let states = states.map(|state| Button::new(t, "Save").variant(ButtonVariant::Primary).state(state));
+    row(buf, 6, "States: default, hover, focus, disabled, loading", &states);
+    row(buf, 12, "Size sm, one row, for a card footer, a toolbar or a table", &variants.map(|button| button.size(Size::Sm)));
+}
+
+fn switch_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let rows = [
+        ("off", Switch::new(t, false)),
+        ("on", Switch::new(t, true)),
+        ("hover", Switch::new(t, true).state(SwitchState::Hover)),
+        ("focus", Switch::new(t, true).state(SwitchState::Focus)),
+        ("disabled", Switch::new(t, true).state(SwitchState::Disabled)),
+        ("with the word", Switch::new(t, true).word(true)),
+    ];
+    // A switch starts one column in, so the focus bars have room.
+    for (i, (name, switch)) in rows.into_iter().enumerate() {
+        let dy = i as u16 * 2;
+        if let Some(rect) = inside(area, 17, dy, switch.width(), 1) {
+            caption(t, buf, area, dy, name);
+            switch.render(rect, buf);
+        }
+    }
+}
+
+fn grid_page(t: &Theme, buf: &mut Buffer, area: Rect) {
+    let mut grid = Grid::new(Rect { y: area.y + 2, ..area });
+    let tracks = grid.tracks();
+    caption(t, buf, area, 0, &format!("{tracks} tracks of {} columns, {} apart, at this width", Grid::TRACK, Grid::GAP));
+    let spans = (0..tracks).map(|_| 1).chain([2, tracks - 2, tracks]);
+    for span in spans {
+        let cell = grid.cell(span, 3);
+        if cell.right() > area.right() || cell.bottom() > area.bottom().min(buf.area.bottom()) {
+            continue;
+        }
+        let card = Card::new(t).size(Size::Sm);
+        card.render(cell, buf);
+        let inner = card.inner(cell);
+        let label = if span == 1 { "1 track".to_owned() } else { format!("{span} tracks") };
+        buf.set_stringn(inner.x, inner.y, label, usize::from(inner.width), t.muted());
     }
 }
 
@@ -797,6 +1068,7 @@ fn help(t: &Theme) -> Modal<'_> {
         ("esc tab", "Back to the components"),
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
+        ("s", "Background, fill, border and ends"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
         ("tab", "In a form: the next field"),
@@ -947,6 +1219,13 @@ fn states() -> Vec<State> {
     states.push(("33-menu-80".into(), open(17), small));
     states.push(("34-filters-80".into(), filters, small));
     states.push(("35-chart-80".into(), open(CHART), small));
+    // Dots, and a rail on the cards. The panel pushes a wide page and covers a narrow one.
+    let looks = [keys("s"), vec![code(KeyCode::Right), code(KeyCode::Right)], vec![code(KeyCode::Down); 3], vec![code(KeyCode::Right)]].concat();
+    states.push(("36-appearance".into(), [open(CARD), looks.clone()].concat(), (136, 30)));
+    states.push(("37-appearance-100".into(), [open(CARD), looks].concat(), SIZE));
+    // Stripes at full strength under a table: no pattern between its columns.
+    let stripes = [keys("s"), vec![code(KeyCode::Left), code(KeyCode::Down), code(KeyCode::Right), code(KeyCode::Char('s'))]].concat();
+    states.push(("38-table-stripes".into(), [open(5), stripes].concat(), SIZE));
     states
 }
 
@@ -985,12 +1264,18 @@ fn draw_state(theme: Theme, accent: usize, light: bool, events: &[KeyEvent], (wi
 /// Writes every state as HTML.
 fn snapshot(dir: &Path, theme: Theme, accent: usize, light: bool) -> std::io::Result<usize> {
     std::fs::create_dir_all(dir)?;
-    // Every page at small sizes, with and without focus and with help, so a
-    // page that writes outside its area fails here, and in CI.
+    // Every page at small sizes, with and without focus, with help, and
+    // with the appearance panel over a pattern, so a page that writes
+    // outside its area fails here, and in CI.
     for page in 0..PAGES.len() {
         for (width, height) in [(1, 1), (30, 6), (40, 10), (60, 15), (80, 12), (80, 24)] {
-            for (main, help) in [(false, false), (true, false), (false, true)] {
+            for (main, help, panel) in [(false, false, false), (true, false, false), (false, true, false), (true, false, true)] {
                 let mut app = App::new(theme, accent, light);
+                if panel {
+                    // Left of the first canvas is the last one, the stripes.
+                    app.key(KeyEvent::from(KeyCode::Char('s')));
+                    app.key(KeyEvent::from(KeyCode::Left));
+                }
                 (app.page, app.main) = (page, main);
                 app.layer = help.then_some(Layer::Help);
                 let Ok(mut terminal) = Terminal::new(TestBackend::new(width, height));

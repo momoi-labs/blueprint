@@ -173,6 +173,30 @@ usually the wrong pattern (put a Link or Button inside).
 | --- | --- |
 | `Tab` / `Shift+Tab` | Move between interactive children. |
 
+## Terminal
+
+In a terminal, Card is `tui-kiso` `Card`: a block of fill with square
+corners and half a row of fill above and below. It draws the surface, and
+`inner` gives the area for the content. `rule` draws the line between
+header, content and footer.
+
+| Web | Terminal form |
+| --- | --- |
+| `plain` | `card` fill. |
+| `elevated` | `popover` fill. Use it for popovers and menus; on a page it is hard to tell from `plain`. |
+| hover, for a card that is a link | `elevated-surface` fill. |
+| size `sm` | One column of padding. |
+| size `md` | Two columns of padding. |
+| size `lg` | No terminal form. `md` already reads as padded. |
+| loading | Skeleton bars inside the card, drawn by the product. |
+
+The `Look` of the theme sets two things for every card. `fill` is `glass`,
+`translucent` or `solid`: how much of the page shows through, in truecolor
+only. `border` is `none` or `rail`: the rail is half a column of `primary`
+in the cell before the card. A terminal has no shadows, no round fills and
+no corner marks, so the fill color carries the elevation. Card has no keys.
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A bounded cluster of related content that should read as one unit against

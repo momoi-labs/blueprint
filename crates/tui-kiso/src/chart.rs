@@ -304,7 +304,13 @@ impl<'a> Chart<'a> {
                 ctx.draw(&Points { coords: &lone, color });
             }
         });
+        // The canvas resets the background, and a backdrop under the plot
+        // must stay.
+        let under: Vec<_> = plot.intersection(buf.area).positions().map(|at| (at, buf[at].bg)).collect();
         canvas.render(plot, buf);
+        for (at, bg) in under {
+            buf[at].set_bg(bg);
+        }
         plot.x
     }
 
