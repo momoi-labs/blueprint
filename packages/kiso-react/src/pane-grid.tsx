@@ -4,6 +4,7 @@ import * as React from "react"
 import { clsx as cn } from "clsx"
 import { GripVertical } from "lucide-react"
 
+import { PanelShadow } from "./panel-shadow.js"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js"
 
 /* A PaneGrid lays summary panes out on twelve columns. A row is a group of
@@ -578,6 +579,7 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
       style={{ "--r": placement.row, "--c": placement.col, "--s": placement.span, ...style } as React.CSSProperties}
       {...props}
     >
+      <PanelShadow />
       <div
         data-slot="grid-pane-head"
         className="grid-pane-head"

@@ -287,3 +287,133 @@ test('outer None and automatic phone modes hide silhouette paint', async () => {
     assert.equal(await layer.evaluate(el => getComputedStyle(el).display), 'block');
   } finally { await page.close(); }
 });
+
+const headerContours = [
+  { name: 'square', borderStyle: 'solid', cornerStyle: 'square' }, { name: 'rounded', borderStyle: 'solid', cornerStyle: 'rounded' },
+  { name: 'asym', borderStyle: 'solid', cornerStyle: 'asym' }, { name: 'pixel', borderStyle: 'solid', cornerStyle: 'pixel' },
+  { name: 'manga', borderStyle: 'manga', cornerStyle: 'square' }, { name: 'brush', borderStyle: 'brush', cornerStyle: 'square' },
+];
+const headerQuery = 'floatingHeader&shell=inset&marks=none&size=small&frameScope=all&appShellOuter=none';
+
+for (const theme of ['light', 'dark']) test(`a floating Header follows the panel shadow style in ${theme}`, async () => {
+  const page = await open(`${headerQuery}&headerVariant=floating&theme=${theme}`);
+  try {
+    const header = page.locator('#floating');
+    assert.equal(await header.locator(':scope > .panel-shadow').count(), 1, 'Header renders the paint layer');
+    let cases = 0;
+    for (const contour of headerContours) for (const headerSize of ['compact', 'default']) for (const shadow of ['auto', ...shadows]) {
+      await page.evaluate(({ contour, headerSize, shadow }) => Object.assign(document.documentElement.dataset, {
+        borderStyle: contour.borderStyle, cornerStyle: contour.cornerStyle, headerSize, shadowStyle: shadow,
+      }), { contour, headerSize, shadow });
+      const actual = await header.evaluate(el => {
+        const layer = el.querySelector(':scope > .panel-shadow'), s = getComputedStyle(el);
+        return { shadow: s.boxShadow, position: s.position, layer: getComputedStyle(layer).display, shaped: getComputedStyle(layer.firstChild).opacity, contour: getComputedStyle(layer.firstChild.firstChild).clipPath };
+      });
+      const label = `${theme}/${contour.name}/${headerSize}/${shadow}: ${JSON.stringify(actual)}`;
+      const shaped = ['pixel', 'manga', 'brush'].includes(contour.name);
+      assert.equal(actual.position, 'sticky', label);
+      assert.equal(actual.layer, shadow === 'hard' || shadow === 'soft' ? 'block' : 'none', `Paint layer: ${label}`);
+      assert.equal(Number(actual.shaped), Number(shaped), `Contour activation: ${label}`);
+      if (shadow === 'none') assert.equal(actual.shadow, 'none', `None removes the shadow: ${label}`);
+      else if (shadow === 'auto') assert.equal(actual.shadow !== 'none', !shaped, `Auto keeps the contact shadow on a box contour: ${label}`);
+      else {
+        assert(actual.shadow.endsWith(`3px 3px ${shadow === 'soft' ? 8 : 0}px 0px`), `Projection geometry: ${label}`);
+        assert(!actual.shadow.includes(', color'), `Stacked projection: ${label}`);
+        // A shaped contour paints through the layer, so its box shadow is transparent.
+        assert.equal(actual.shadow.startsWith('color(srgb 0 0 0 / 0)'), shaped, `Box projection: ${label}`);
+        if (shaped) assert.notEqual(actual.contour, 'none', `Missing silhouette: ${label}`);
+      }
+      cases++;
+    }
+    assert.equal(cases, 48);
+  } finally { await page.close(); }
+});
+
+for (const theme of ['light', 'dark']) test(`a floating Header casts a visible shaped shadow in ${theme}`, async () => {
+  const page = await open(`${headerQuery}&headerVariant=floating&theme=${theme}`);
+  try {
+    const header = page.locator('#floating');
+    let cases = 0;
+    for (const fill of ['solid', 'translucent']) for (const contour of ['pixel', 'manga', 'brush']) for (const headerSize of ['compact', 'default']) {
+      await page.evaluate(({ fill, contour, headerSize }) => Object.assign(document.documentElement.dataset, {
+        panelFill: fill, borderStyle: contour === 'pixel' ? 'solid' : contour, cornerStyle: contour === 'pixel' ? 'pixel' : 'square', headerSize, shadowStyle: 'none',
+      }), { fill, contour, headerSize });
+      const box = await header.boundingBox();
+      // Stay above the page content, which sits one margin below the bar.
+      const clip = { x: Math.floor(box.x - 12), y: Math.floor(box.y - 12), width: Math.ceil(box.width + 24), height: Math.ceil(box.height + 24) };
+      for (const shadow of ['hard', 'soft']) {
+        const set = value => header.evaluate(async (el, value) => {
+          el.dataset.shadowStyle = value;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }, value);
+        await set('none');
+        const off = (await page.screenshot({ clip })).toString('base64');
+        await set(shadow);
+        const on = (await page.screenshot({ clip })).toString('base64');
+        const geometry = await header.locator(':scope > .panel-shadow > span > span').evaluate((child, clip) => {
+          const rect = child.getBoundingClientRect(), style = getComputedStyle(child);
+          return { contour: style.clipPath, width: rect.width, height: rect.height, x: rect.x - clip.x - 3, y: rect.y - clip.y - 3, dx: 3, dy: 3 };
+        }, clip);
+        const result = await pixels(page, off, on, geometry, shadow === 'soft');
+        const label = `${theme}/${fill}/${contour}/${headerSize}/${shadow}: ${JSON.stringify(result)}`;
+        assert.equal(result.insideChanges, 0, `Interior or text/control changed: ${label}`);
+        assert(result.exteriorChanges > 100, `No visible exterior cast: ${label}`);
+        assert.equal(result.unexpected, 0, `Cast does not follow silhouette: ${label}`);
+        if (shadow === 'soft') assert(result.softReach > 50, `Missing blur: ${label}`);
+        await header.evaluate(el => { delete el.dataset.shadowStyle; });
+        cases++;
+      }
+    }
+    console.log(`${theme}: ${cases} floating Header raster comparisons.`);
+  } finally { await page.close(); }
+});
+
+test('a floating Header stays pinned with its shadow, and other variants keep theirs', async () => {
+  const page = await open(`${headerQuery}&headerVariant=floating&corners=pixel&shadowStyle=soft&panelFill=translucent`);
+  try {
+    // Below 1024px the document scrolls, so the bar is sticky over the content.
+    await page.setViewportSize({ width: 900, height: 700 });
+    const header = page.locator('#floating');
+    const before = await header.boundingBox();
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await page.waitForFunction(() => window.scrollY === 600);
+    const pinned = await header.boundingBox();
+    assert.equal(pinned.y, 12, 'The bar stays one margin below the viewport top');
+    assert.equal(pinned.x, before.x);
+    const under = await page.evaluate(() => document.querySelector('#floating-page').getBoundingClientRect().top);
+    assert(under < 0, 'Content scrolls under the bar');
+    // The cast is painted outside the bar, inside the shell main.
+    const cast = await header.evaluate(el => {
+      const layer = el.querySelector(':scope > .panel-shadow > span').getBoundingClientRect(), main = el.parentElement.getBoundingClientRect();
+      return { right: layer.right, bottom: layer.bottom, mainRight: main.right, clip: getComputedStyle(el).clipPath };
+    });
+    assert(cast.right > pinned.x + pinned.width && cast.right <= cast.mainRight, JSON.stringify(cast));
+    assert(cast.bottom > pinned.y + pinned.height && cast.clip === 'none', JSON.stringify(cast));
+    // Glass blurs the whole border box, so only that fill clips the bar to its contour.
+    await page.evaluate(() => { document.documentElement.dataset.panelFill = 'glass'; });
+    assert.match(await header.evaluate(el => getComputedStyle(el).clipPath), /^polygon\(evenodd, -40px -40px/);
+    await page.evaluate(() => { document.documentElement.dataset.panelFill = 'translucent'; });
+    await page.emulateMedia({ forcedColors: 'active' });
+    assert.equal(await header.evaluate(el => getComputedStyle(el).boxShadow), 'none');
+    assert.equal(await header.locator(':scope > .panel-shadow').evaluate(el => getComputedStyle(el).display), 'none');
+    await page.emulateMedia({ forcedColors: 'none' });
+    for (const variant of ['default', 'plain']) for (const contour of headerContours) for (const shadow of shadows) {
+      await page.evaluate(({ variant, contour, shadow }) => Object.assign(document.documentElement.dataset, {
+        headerVariant: variant, borderStyle: contour.borderStyle, cornerStyle: contour.cornerStyle, shadowStyle: shadow,
+      }), { variant, contour, shadow });
+      const actual = await header.evaluate(el => ({ shadow: getComputedStyle(el).boxShadow, layer: getComputedStyle(el.querySelector(':scope > .panel-shadow')).display }));
+      assert.deepEqual(actual, { shadow: 'none', layer: 'none' }, `${variant}/${contour.name}/${shadow}`);
+    }
+    // Frames on the outer shell only: the bar keeps a plain box and its box shadow.
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { headerVariant: 'floating', borderStyle: 'solid', cornerStyle: 'pixel', shadowStyle: 'hard', frameScope: 'outer' }));
+    assert.match(await header.evaluate(el => getComputedStyle(el).boxShadow), /^color\(srgb 0 0 0 \/ 0\.\d+\) 3px 3px 0px 0px$/);
+  } finally { await page.close(); }
+});
+
+test('a bare floating Header casts the same shadow outside the shell', async () => {
+  const page = await open('floatingHeader&bare&variant=floating&marks=none&corners=pixel&shadowStyle=soft');
+  try {
+    const actual = await page.locator('#floating').evaluate(el => ({ shadow: getComputedStyle(el).boxShadow, layer: getComputedStyle(el.querySelector(':scope > .panel-shadow')).display, shaped: getComputedStyle(el.querySelector(':scope > .panel-shadow > span')).opacity }));
+    assert.deepEqual(actual, { shadow: 'color(srgb 0 0 0 / 0) 3px 3px 8px 0px', layer: 'block', shaped: '1' });
+  } finally { await page.close(); }
+});

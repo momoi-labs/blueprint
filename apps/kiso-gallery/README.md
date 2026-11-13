@@ -102,7 +102,7 @@ silhouette layer; React panel components supply it automatically.
 `node --test scripts/check-panel-shadows-browser.mjs` checks all 5,760 raw
 border/corner/size/mark/shadow/theme tuples on Card and DiagramNode. Separate
 pixel comparisons cover Pixel, Manga and Brush with solid and translucent
-fills. Sharing tests round-trip the same tuples and the independent overrides.
+fills, on panels and on the floating Header. Sharing tests round-trip the same tuples and the independent overrides.
 
 ## Local development
 

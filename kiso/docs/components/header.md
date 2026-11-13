@@ -41,6 +41,13 @@ rounded corners, and a contact shadow, and stays pinned below the viewport
 top while content scrolls behind it. ApplicationShell exposes this choice
 through `headerVariant`, in both layouts.
 
+A floating Header follows `data-shadow-style` like a panel: `hard` and `soft`
+replace the contact shadow with the panel cast, on every corner and border
+contour, and `none` removes it. With Manga and Brush borders it draws the
+whole ink contour. Header renders the paint layer that shaped contours need.
+Native markup adds the `.panel-shadow` child described in
+[tokens](../tokens.md). The default and plain variants have no shadow.
+
 ## Sizes
 
 `size="compact"` uses a 44px minimum height, no block padding, and 4px inline padding.

@@ -412,7 +412,8 @@ or `soft` shadow still draws without a border. Internal separators, control
 borders, status rails and focus indicators stay intact.
 
 `data-shadow-style` applies to cards, tables, dialogs, drawers, palettes, log
-viewers, code blocks and inset shell content. It does not change inputs,
+viewers, code blocks, inset shell content and a floating Header. It does not
+change the default and plain Header variants, inputs,
 buttons, badges, tiles, menus or tooltips. `none` removes panel elevation,
 including interactive hover elevation. `hard` and `soft` replace resting
 panel elevation with one neutral cast in `--color-shadow-contact`. They do
@@ -432,8 +433,8 @@ Both follow Square, Rounded, Asymmetric, Pixel, Manga and Brush geometry.
 Neither filters panel content or changes translucent interior fills. Marks
 remain independent. Forced colors suppress projected shadows.
 
-React panel components include the empty paint layer required for Pixel,
-Manga and Brush. Native HTML panels need the same child markup. A native
+React panel components, including `GridPane`, include the empty paint layer
+required for Pixel, Manga and Brush. Native HTML panels need the same child markup. A native
 panel without this child still renders standard-corner shadows, but cannot
 paint a shaped shadow:
 
@@ -447,6 +448,23 @@ paint a shaped shadow:
 For a native frame in React, use `<PanelShadow />` from
 `@momoi-labs/kiso-react` as its first child. It has no focus target or pointer
 handling. Keep overflow on the panel's inner scrolling region.
+
+A floating Header is a panel for this setting. `auto` keeps its contact
+shadow, except on Pixel, Manga and Brush contours, which have none. `hard`
+and `soft` cast the panel shadow, and `none` removes it. The React Header
+includes the paint layer. A native floating header needs the same child, in
+the shell or outside it:
+
+```html
+<header class="topbar" data-variant="floating">
+  <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+  <!-- Header content -->
+</header>
+```
+
+The layer stays hidden in the default and plain variants. The header stays
+sticky, and its shadow paints inside the shell's main column. With
+`data-frame-scope="outer"` the header keeps its plain box and a box shadow.
 
 Omitting the attribute, or setting `auto`, preserves existing elevation.
 Side rail, Weighted base and Offset keep their legacy border-colored cast.
@@ -545,7 +563,8 @@ controls. `all` also styles controls: fields, including ChipInput and
 FilterInput boxes, and framed buttons. Native controls retain their rectangular
 hit area. Pixel controls use smaller steps and drop their shadow, and
 checkboxes and switches follow the steps too. A focused Pixel field thickens
-its own stepped edge instead of drawing a separate ring. Manga and Brush draw
+its own stepped edge instead of drawing a separate ring. A navigation item
+steps the corners of its hover fill. Manga and Brush draw
 fields, framed buttons, Steps markers and switches with the panels' irregular
 contour at control scale. The control's border is the ink, so state colors
 still apply. A focused field turns its ink to the focus color; a focused

@@ -397,7 +397,8 @@ Momoi signature that can extend behind translucent content.
 `headerVariant="plain"` forwards to Header in sidebar and topbar layouts.
 It removes only the header fill and separator, including in inset frames.
 `headerVariant="floating"` detaches the bar with a margin, rounded corners,
-and a contact shadow, and pins it below the viewport top. Omission keeps the
+and a contact shadow, and pins it below the viewport top. Its shadow follows
+`data-shadow-style`; see [Header](header.md#variants). Omission keeps the
 existing header treatment.
 
 `ApplicationShell` forwards `headerVariant` and `headerSize` to its Header in both layouts. Omit them to inherit the document Header preferences.

@@ -247,3 +247,15 @@ test('On touch a pane header scrolls the page and its grip moves the pane', asyn
     assert.deepEqual(await rows(page), before);
   } finally { await page.close(); }
 });
+
+test('A GridPane casts the selected shadow under shaped corners', async () => {
+  const page = await open();
+  try {
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { cornerStyle: 'pixel', frameScope: 'all', shadowStyle: 'soft' }));
+    const pane = page.locator('.grid-pane').first();
+    const actual = await pane.evaluate(el => ({ layer: getComputedStyle(el.querySelector(':scope > .panel-shadow')).display, shaped: getComputedStyle(el.querySelector(':scope > .panel-shadow > span')).opacity, head: el.querySelector(':scope > [data-slot="grid-pane-head"]').getBoundingClientRect().top - el.getBoundingClientRect().top }));
+    assert.equal(actual.layer, 'block');
+    assert.equal(actual.shaped, '1');
+    assert(actual.head < 4, 'The paint layer takes no grid row');
+  } finally { await page.close(); }
+});
