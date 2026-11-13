@@ -69,6 +69,10 @@ mod link;
 mod separator;
 mod skeleton;
 mod spinner;
+mod disclosure;
+mod lifecycle;
+mod split;
+mod steps;
 
 pub use accent::{Accent, ACCENTS};
 pub use accent_selector::AccentSelector;
@@ -120,3 +124,7 @@ pub use link::{Link, LinkState};
 pub use separator::Separator;
 pub use skeleton::Skeleton;
 pub use spinner::Spinner;
+pub use disclosure::{Disclosure, DisclosureState};
+pub use lifecycle::Lifecycle;
+pub use split::{Axis, Split};
+pub use steps::{StepBar, StepList, Steps};

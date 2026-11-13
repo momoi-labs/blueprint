@@ -174,6 +174,26 @@ Compose under the [Dashboard pattern](../patterns/dashboard.md) for an
 object's summary. Use [DashboardGrid](dashboard-grid.md) for metric panels.
 Give the section an `aria-label` or a `title`.
 
+## Terminal
+
+In a terminal, PaneGrid and GridPane are `tui-kiso` `Grid`. There is no
+`PaneGrid` type. The grid gives the cells, and each cell holds one pane
+with one pane active at a time.
+
+| Web | Terminal |
+| --- | --- |
+| twelve columns | 3 to 6 tracks of 13 columns, by the width of the screen. |
+| GridPane | A cell of whole tracks. The pane is a `Card`, or a title and a rule. |
+| Row, `newRow` | A cell that does not fit starts the next row. `Grid::wrap` ends the row early. |
+| active pane | The title in `link`, bold. The other titles are `muted-foreground`. |
+| Head actions | `Button` at size `Sm`, or `KeyHints` under the title. |
+| Resizer, drag to move | Not in a terminal. The app sets the tracks of each cell. |
+| `layout`, persistence | The app keeps the tracks and rows and passes them to `Grid::cell`. |
+
+The app owns the keys: `Tab` and `shift+Tab` move the active pane, and
+`Enter` opens it. Use [Split](split.md) when two panes of one workspace
+share a width and the reader resizes them with keys. See
+[terminal interfaces](../terminal-interfaces.md).
 ## When to use
 
 - A summary screen whose reader decides what deserves the most room.

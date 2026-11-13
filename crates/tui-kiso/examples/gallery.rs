@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 49] = [
+const PAGES: [(&str, &str); 55] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -78,6 +78,12 @@ const PAGES: [(&str, &str); 49] = [
     ("PasswordInput", "A secret as dots, shown and hidden with ctrl+r."),
     ("Textarea", "Lines that wrap; the view follows the cursor."),
     ("FormField", "A label, a control, and its help or its error, on whole tracks."),
+    ("Split", "Panes from ratios, parted by a divider. The focus is on the divider."),
+    ("Disclosure", "A title that opens its content: ▸ closed, ▾ open."),
+    ("Steps", "Where the person is in a guided flow: a row, a column or a count."),
+    ("StepBar", "One segment per step, for a table cell or a summary."),
+    ("StepList", "The steps of a run, one row each, with a detail."),
+    ("Lifecycle", "A detail header: status, verbs and the destructive action."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -483,6 +489,12 @@ impl App {
             "PasswordInput" => wave_02::password_page(t, buf, area),
             "Textarea" => wave_02::textarea_page(t, buf, area),
             "FormField" => wave_02::form_field_page(t, buf, area),
+            "Split" => wave_09::split_page(t, buf, area),
+            "Disclosure" => wave_09::disclosure_page(t, buf, area),
+            "Steps" => wave_09::steps_page(t, buf, area),
+            "StepBar" => wave_09::step_bar_page(t, buf, area),
+            "StepList" => wave_09::step_list_page(t, buf, area),
+            "Lifecycle" => wave_09::lifecycle_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -1383,6 +1395,10 @@ mod wave_06;
 /// The accent selector and the brand mark.
 #[path = "support/wave_10.rs"]
 mod wave_10;
+
+/// The layout and flow components: split, disclosure, steps and lifecycle.
+#[path = "support/wave_09.rs"]
+mod wave_09;
 
 /// The gallery as JSON for the Kiso site.
 #[path = "support/json.rs"]

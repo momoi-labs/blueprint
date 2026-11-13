@@ -74,21 +74,24 @@ primitive is involved.
 
 ## Terminal
 
-In a terminal, each step is a line from `tui-kiso` `step`, as Crush draws
-its tool calls: a tree branch in `subtle-foreground`, the state's mark,
-the step's name, then the detail in `muted-foreground`. Each state has its
-own mark, so color never carries it alone.
+In a terminal, StepList is `tui-kiso` `StepList`: one row per step, with the
+mark, the name in a column and the detail in `muted-foreground`. It uses the
+marks of [Steps](steps.md) and [StepBar](step-bar.md), so the three read the
+same.
 
 | State | Mark and name |
 | --- | --- |
-| pending | `·` in `subtle-foreground`, the name in `muted-foreground` |
-| running | a braille spinner and the name in bold `success-on-dark` |
-| done | `✓` in `success-on-dark`, the name in `info-on-dark` |
-| skipped | `○` in `success-on-dark`, the name muted, the detail "Not needed" |
-| failed | `×` and the name in bold `danger-on-dark` |
+| pending | `○` in `subtle-foreground`, the name in `muted-foreground`. |
+| running | A braille frame and the name in bold `link`. |
+| done | `✓` in `success-on-dark`, the name in `foreground`. |
+| skipped | `–` in `muted-foreground`, the name muted, the detail "Not needed". |
+| failed | `×` and the name in bold `danger-on-dark`. |
 
-A run shows its steps as they go, and the screen says when it ends. See
-[terminal interfaces](../terminal-interfaces.md#state-and-output).
+Each state has its own mark, so color never carries it alone. The detail is
+how long the step took, why it was skipped or what failed. For the Crush
+style line with a tree branch, as in a tool call log, use `step` with
+`StepState`: it stays in the crate for that. `StepList::height` is the
+number of steps. See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

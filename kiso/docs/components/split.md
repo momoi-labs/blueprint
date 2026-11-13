@@ -74,6 +74,32 @@ technology. A resizable divider is not decorative.
 | ArrowLeft / ArrowRight | Decrease / increase the preceding Pane by `step`. |
 | Home / End | Set the preceding Pane to `min` / `max`. |
 
+## Terminal
+
+In a terminal, Split is `tui-kiso` `Split`: it computes the areas of two or
+more panes from ratios, side by side or one above the other, and draws the
+dividers. The app draws the panes and owns the keys.
+
+| State | Terminal form |
+| --- | --- |
+| pane | A `Rect` from `Split::areas`. The app draws into it. |
+| divider | One column of `│` (one row of `─`) in `border`. It is a divider, not a frame around a pane. |
+| active pane | The dividers next to it are `┃` (or `━`) in `focus`. Its title, from `Split::title`, is bold in `link`. The other titles are `muted-foreground`. |
+| resize | `grow` and `shrink` move one step: 15 columns across (a track and its gap), one row down. `step` changes it. |
+| minimum | A pane never gets smaller than `min`: 13 columns across, 3 rows down. `min` changes it. |
+| static | Never call `grow` or `shrink`. The ratios stay. |
+| hover, drag | Not in a terminal. Resize with keys. |
+
+`Split::horizontal([1, 2])` makes two panes, the second twice as wide.
+`Split::vertical` stacks them, which the web `Split` does not do. A resize
+turns the ratios into the sizes on screen, so the panes stay where the
+reader put them when the terminal changes size. When the area cannot give
+each pane its minimum, the panes share it evenly.
+
+The app owns the keys. Suggested: `Tab` or `ctrl+w` moves the active pane
+(`focus_next`, `focus_prev`), and `<` and `>` shrink and grow it. Show the
+keys in `KeyHints`. Use [Card](card.md) cells in a `Grid` when the panes do
+not resize. See [terminal interfaces](../terminal-interfaces.md).
 ## When to use
 
 - A list-detail workspace where the reader needs more room on either side.

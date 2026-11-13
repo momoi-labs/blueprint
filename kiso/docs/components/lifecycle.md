@@ -75,6 +75,33 @@ which verbs are disabled.
 </div>
 ```
 
+## Terminal
+
+In a terminal, Lifecycle is `tui-kiso` `Lifecycle`: the header row of a
+detail screen, in one row. It takes slots, as the web component does:
+`StatusBadge`s, `Button`s and one destructive `Button`. It sets every
+button to size `Sm`.
+
+```
+ ● Running  ○ HTTP 200     Stop │ Restart        Remove
+```
+
+| Part | Terminal form |
+| --- | --- |
+| status | `StatusBadge` pills, one space between them. |
+| verbs | `Button` at size `Sm`, touching, with `│` in `border` between them. |
+| destructive action | A `Button`, four columns after the verbs. Pass `Ghost` for a quiet one. |
+| disabled verb | `ButtonState::Disabled`. It keeps its place. |
+| no verbs | The verbs part is not drawn, and no gap stays. |
+| work in progress | A `StatusBadge` with `pulse(true)` that names the phase. |
+
+It draws from the left of its area, in one row; `Lifecycle::width` gives
+the columns. A part that does not fit is left out whole, from the end, so
+a narrow area loses Remove before the verbs. Below the status, show a
+`Menu` for the verbs, as the web moves them to a sheet. The destructive
+action opens a `Question` to confirm. This is the detail header, not the
+steps of a run: use `StepList` for those. See
+[terminal interfaces](../terminal-interfaces.md).
 ## When to use
 
 - The header of a detail screen for a record with a state and verbs.
