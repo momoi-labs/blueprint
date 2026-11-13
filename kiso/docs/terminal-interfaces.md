@@ -224,7 +224,8 @@ primary one last. `Esc` closes every overlay: say so in the hints.
 `Grid` is the layout rule of a page. It draws nothing and gives areas.
 
 - A track is 13 columns. Two columns part two tracks.
-- A page has 3 to 6 tracks, by the width of the area.
+- A page has 3 tracks or more, by the width of the area. A contained page
+  has 6 at most. See [page width](patterns/page-layout.md#terminal).
 - A cell takes whole tracks. A cell that does not fit in the open row
   starts the next row, so a narrow terminal gets a longer page and not a
   cut one.

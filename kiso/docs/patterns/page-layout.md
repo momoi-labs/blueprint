@@ -55,6 +55,22 @@ Set an attribute on a region or on one `.page` to override the product's
 choice there. Keep one choice per product, so pages do not jump when the
 reader moves between them.
 
+## Terminal
+
+In a terminal, `tui-kiso` `AppShell` has the same two choices, and the same
+defaults.
+
+| Web | Terminal |
+| --- | --- |
+| `data-page-width="full"` | `.page_width(PageWidth::Full)`: the page takes the column beside the sidebar. `Grid` gives it every track that fits. |
+| `data-page-width="contained"` | `.page_width(PageWidth::Contained)`: the page stops at 88 columns, six grid tracks. |
+| `data-page-align` | `.page_align(PageAlign::Start)`, `Center` or `End`. It has no effect on a full page, or on a column of 88 or fewer. |
+
+The `page` area of `AppShell::areas` is the placed page. When the app takes
+columns from the page column first, as for a panel beside the page, it
+calls `AppShell::place` on what is left. Choose once for the product. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## Content inside the page
 
 `.page` is a single-column grid. Every direct child takes the page width,

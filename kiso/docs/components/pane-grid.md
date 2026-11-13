@@ -182,7 +182,7 @@ with one pane active at a time.
 
 | Web | Terminal |
 | --- | --- |
-| twelve columns | 3 to 6 tracks of 13 columns, by the width of the screen. |
+| twelve columns | 3 tracks or more of 13 columns, by the width of the page. A contained page has 6 at most. |
 | GridPane | A cell of whole tracks. The pane is a `Card`, or a title and a rule. |
 | Row, `newRow` | A cell that does not fit starts the next row. `Grid::wrap` ends the row early. |
 | active pane | The title in `link`, bold. The other titles are `muted-foreground`. |

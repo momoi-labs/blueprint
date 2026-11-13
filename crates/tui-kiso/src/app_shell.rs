@@ -4,7 +4,28 @@ use ratatui::widgets::Widget;
 use ratatui::style::Style;
 
 use crate::text::cells;
-use crate::{Side, Theme};
+use crate::{Grid, Side, Theme};
+
+/// How wide the page is, as `data-page-width` on the web.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum PageWidth {
+    /// The whole column beside the sidebar, at every screen width.
+    #[default]
+    Full,
+    /// At most [`AppShell::CONTAINED`] columns. On a narrower column the
+    /// page takes the column, as with `Full`.
+    Contained,
+}
+
+/// Where a contained page goes in the free columns, as `data-page-align`
+/// on the web. It has no effect on a full page.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum PageAlign {
+    #[default]
+    Start,
+    Center,
+    End,
+}
 
 /// Where each part of a screen goes. See [`AppShell::areas`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -48,6 +69,8 @@ pub struct AppShell {
     sidebar: u16,
     header: bool,
     open: bool,
+    page_width: PageWidth,
+    page_align: PageAlign,
 }
 
 impl AppShell {
@@ -61,10 +84,12 @@ impl AppShell {
     pub const PAGE: u16 = 60;
     /// The columns kept on each side of the screen.
     pub const MARGIN: u16 = 2;
+    /// The most columns of a contained page: six grid tracks.
+    pub const CONTAINED: u16 = Grid::span(Grid::CONTAINED);
 
     /// The layout of `screen`, with no header and no sidebar.
     pub fn new(screen: Rect) -> Self {
-        Self { screen, side: Side::Left, sidebar: 0, header: false, open: false }
+        Self { screen, side: Side::Left, sidebar: 0, header: false, open: false, page_width: PageWidth::Full, page_align: PageAlign::Start }
     }
 
     /// The side of the sidebar. [`Side::Left`] by default.
@@ -93,6 +118,39 @@ impl AppShell {
     pub fn open(mut self, open: bool) -> Self {
         self.open = open;
         self
+    }
+
+    /// How wide the page is. [`PageWidth::Full`] by default. Choose once
+    /// for the product, so pages do not jump.
+    #[must_use]
+    pub fn page_width(mut self, width: PageWidth) -> Self {
+        self.page_width = width;
+        self
+    }
+
+    /// Where a contained page goes. [`PageAlign::Start`] by default.
+    #[must_use]
+    pub fn page_align(mut self, align: PageAlign) -> Self {
+        self.page_align = align;
+        self
+    }
+
+    /// `column` as the page of that width and alignment. [`areas`]
+    /// already does this; call it when the app takes columns from the page
+    /// column first, as for a panel beside the page.
+    ///
+    /// [`areas`]: AppShell::areas
+    pub fn place(column: Rect, width: PageWidth, align: PageAlign) -> Rect {
+        let free = match width {
+            PageWidth::Full => 0,
+            PageWidth::Contained => column.width.saturating_sub(Self::CONTAINED),
+        };
+        let before = match align {
+            PageAlign::Start => 0,
+            PageAlign::Center => free / 2,
+            PageAlign::End => free,
+        };
+        Rect { x: column.x + before, width: column.width - free, ..column }
     }
 
     /// True when the screen is under 80 by 24.
@@ -124,7 +182,7 @@ impl AppShell {
         let beside = width > 0 && screen.width >= Self::WIDE && content.width >= taken.saturating_add(Self::PAGE);
         let collapsed = width > 0 && !beside;
         if !beside {
-            let page = Rect { width: content.width.saturating_sub(2), ..content };
+            let page = self.placed(Rect { width: content.width.saturating_sub(2), ..content });
             let overlay = (collapsed && self.open).then(|| {
                 let wide = width.saturating_add(4).min(screen.width);
                 let x = match self.side {
@@ -145,7 +203,11 @@ impl AppShell {
                 Rect { width: content.width - width - 4, ..content },
             ),
         };
-        ShellAreas { header, sidebar: Some(sidebar), overlay: None, page, footer, collapsed }
+        ShellAreas { header, sidebar: Some(sidebar), overlay: None, page: self.placed(page), footer, collapsed }
+    }
+
+    fn placed(&self, column: Rect) -> Rect {
+        Self::place(column, self.page_width, self.page_align)
     }
 
     /// Draws the "too small" message, centered in the screen: what the
@@ -199,6 +261,23 @@ mod tests {
         assert_eq!((areas.page.x, areas.page.width), (30, 116 - 24 - 6));
         assert_eq!(areas.footer, Rect::new(2, 39, 116, 1));
         assert!(!areas.collapsed && areas.overlay.is_none());
+    }
+
+    #[test]
+    fn a_contained_page_stops_at_six_tracks_and_goes_where_the_product_asks() {
+        let shell = AppShell::new(Rect::new(0, 0, 200, 40)).sidebar(24).page_width(PageWidth::Contained);
+        let column = AppShell::new(Rect::new(0, 0, 200, 40)).sidebar(24).areas().page;
+        assert_eq!((column.x, column.width), (30, 166));
+        let x = |align| {
+            let page = shell.page_align(align).areas().page;
+            assert_eq!(page.width, AppShell::CONTAINED);
+            page.x
+        };
+        assert_eq!((x(PageAlign::Start), x(PageAlign::Center), x(PageAlign::End)), (30, 69, 108));
+        // A full page ignores the alignment, and so does a narrow column.
+        assert_eq!(AppShell::new(Rect::new(0, 0, 200, 40)).sidebar(24).page_align(PageAlign::End).areas().page, column);
+        let narrow = AppShell::new(Rect::new(0, 0, 80, 24));
+        assert_eq!(narrow.page_width(PageWidth::Contained).page_align(PageAlign::Center).areas().page, narrow.areas().page);
     }
 
     #[test]
