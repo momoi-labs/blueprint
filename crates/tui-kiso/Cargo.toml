@@ -9,7 +9,9 @@ repository = "https://github.com/momoi-labs/blueprint"
 rust-version = "1.88"
 keywords = ["kiso", "ratatui", "tui", "terminal", "design-system"]
 categories = ["command-line-interface"]
-publish = false
+readme = "README.md"
+# The examples and tests stay in the repository to keep the package small.
+include = ["src/**", "README.md"]
 
 [features]
 default = ["crossterm"]

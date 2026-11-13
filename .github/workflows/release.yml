@@ -38,25 +38,41 @@ jobs:
           publish-script: npm run release
           pr-title: "chore: release kiso"
           commit-message: "chore: release kiso"
-      # Changesets only tags kiso-tokens. Publish a version crates.io lacks, once
-      # no changesets are pending, through crates.io trusted publishing.
-      - name: Check whether kiso-tokens has a new version
+      # Changesets only tags the crates. Publish each crate version crates.io
+      # lacks, once no changesets are pending, through crates.io trusted
+      # publishing. Trusted publishing cannot create a crate, so a crate that
+      # is not on crates.io yet waits for its first, manual publish.
+      - name: Check which crates have a new version
         id: crate
         if: steps.changesets.outputs['has-changesets'] == 'false'
         run: |
-          version=$(node -p "require('./crates/kiso-tokens/package.json').version")
-          status=$(curl -s -o /dev/null -w '%{http_code}' -A 'momoi-labs/blueprint release' "https://crates.io/api/v1/crates/kiso-tokens/$version")
-          case "$status" in
-            200) echo "kiso-tokens $version is already on crates.io." ;;
-            404) echo "new=true" >> "$GITHUB_OUTPUT" ;;
-            *) echo "crates.io answered $status for kiso-tokens $version." && exit 1 ;;
-          esac
+          new=""
+          for name in kiso-tokens kiso-core tui-kiso; do
+            version=$(node -p "require('./crates/$name/package.json').version")
+            status=$(curl -s -o /dev/null -w '%{http_code}' -A 'momoi-labs/blueprint release' "https://crates.io/api/v1/crates/$name")
+            case "$status" in
+              200) ;;
+              404) echo "$name is not on crates.io yet. Publish it by hand first." && continue ;;
+              *) echo "crates.io answered $status for $name." && exit 1 ;;
+            esac
+            status=$(curl -s -o /dev/null -w '%{http_code}' -A 'momoi-labs/blueprint release' "https://crates.io/api/v1/crates/$name/$version")
+            case "$status" in
+              200) echo "$name $version is already on crates.io." ;;
+              404) new="$new $name" ;;
+              *) echo "crates.io answered $status for $name $version." && exit 1 ;;
+            esac
+          done
+          echo "new=${new# }" >> "$GITHUB_OUTPUT"
       - uses: rust-lang/crates-io-auth-action@v1
         id: crates-io
-        if: steps.crate.outputs.new == 'true'
-      - name: Publish kiso-tokens
-        if: steps.crate.outputs.new == 'true'
-        run: cargo publish --manifest-path crates/kiso-tokens/Cargo.toml
+        if: steps.crate.outputs.new != ''
+      # The list keeps dependency order, so kiso-core lands before tui-kiso.
+      - name: Publish the new crate versions
+        if: steps.crate.outputs.new != ''
+        run: |
+          for name in ${{ steps.crate.outputs.new }}; do
+            cargo publish --manifest-path "crates/$name/Cargo.toml"
+          done
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.crates-io.outputs.token }}
       - name: Require a tag and release for every published version

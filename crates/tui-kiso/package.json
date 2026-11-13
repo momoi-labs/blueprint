@@ -1,0 +1,6 @@
+{
+  "name": "tui-kiso",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Changesets versions the tui-kiso crate through this file. The release workflow copies the version into Cargo.toml and publishes to crates.io."
+}
