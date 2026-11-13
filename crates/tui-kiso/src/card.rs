@@ -154,7 +154,7 @@ impl Card<'_> {
         };
         let alpha = if t.is_truecolor() { t.look().fill.alpha() } else { 1.0 };
         let shown = area.intersection(buf.area);
-        crate::Backdrop::clear(area, buf);
+        crate::Backdrop::clear_with_edges(t, area, buf);
         // Less than three rows has no room for the half rows.
         if area.height < 3 {
             fill(t, buf, area, color, alpha);

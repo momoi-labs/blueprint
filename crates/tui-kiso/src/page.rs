@@ -275,7 +275,7 @@ impl Widget for PageView<'_> {
             // A row of the page owns its cells: no pattern of the backdrop
             // shows between its words or tints them. Under the last row
             // the backdrop stays.
-            Backdrop::clear(Rect { y, height: 1, ..area }, buf);
+            Backdrop::clear_with_edges(t, Rect { y, height: 1, ..area }, buf);
             if *code {
                 fill(t, buf, Rect { y, height: 1, ..block }, r.card, alpha);
                 rail(buf, y, "▐");
@@ -403,7 +403,7 @@ mod tests {
         let row = |y: u16| (0..12).map(|x| buf[(x, y)].symbol().to_owned()).collect::<String>();
         // The meta is cut, the rows of the page lose the dots, and the
         // rows under the page keep them.
-        assert_eq!([row(0), row(1), row(2)], ["Summary  3 …", "            ", "a           "]);
+        assert_eq!([row(0), row(1), row(2)], ["Summary  3… ", "            ", "a           "]);
         assert_eq!(buf[(4, 2)].fg, ratatui::style::Color::Reset);
         assert!(buf[(0, 0)].modifier.contains(ratatui::style::Modifier::BOLD));
         assert_eq!(row(4), "·   ·   ·   ");

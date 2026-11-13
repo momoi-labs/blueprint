@@ -72,6 +72,16 @@ pub(crate) fn cut<'a>(spans: Vec<Span<'a>>, width: usize) -> (Vec<Span<'a>>, usi
             break;
         }
     }
+    // No space before the ellipsis: "top 6…", not "top 6 …".
+    while let Some(last) = out.last_mut() {
+        let kept = last.content.trim_end().len();
+        used -= cells(&last.content[kept..]);
+        if kept > 0 {
+            last.content = last.content[..kept].to_owned().into();
+            break;
+        }
+        out.pop();
+    }
     out.push(Span::styled("…", style));
     (out, used + 1)
 }

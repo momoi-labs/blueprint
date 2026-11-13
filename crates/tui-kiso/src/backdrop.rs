@@ -69,7 +69,10 @@ impl<'a> Backdrop<'a> {
     /// default text color, and keeps its fill, so a glow stays.
     ///
     /// A [`Card`](crate::Card), an overlay and the rows of a
-    /// [`Page`](crate::Page) do this for the cells they take. Call it for a
+    /// [`Page`](crate::Page) do this for the cells they take, and for a
+    /// mark of the pattern that touches them on the left or the right.
+    /// For a row that spans the screen, such as a footer, pass the whole
+    /// row and not only the columns of the text. Call it for a
     /// region of your own that sits on the backdrop with no card, such as
     /// a pane or a list, before you draw it.
     pub fn clear(area: Rect, buf: &mut Buffer) {
@@ -77,6 +80,31 @@ impl<'a> Backdrop<'a> {
             buf[at].set_symbol(" ").set_fg(Color::Reset);
         }
     }
+
+    /// Clears `area`, and the cell before and after each of its rows when
+    /// that cell holds a mark of a pattern, so no dot touches the content.
+    /// Other cells beside the area, such as a separator, stay.
+    pub(crate) fn clear_with_edges(theme: &Theme, area: Rect, buf: &mut Buffer) {
+        Self::clear(area, buf);
+        let shown = area.intersection(buf.area);
+        let before = shown.x.checked_sub(1).filter(|x| *x >= buf.area.x);
+        let after = Some(shown.right()).filter(|x| *x < buf.area.right());
+        let inks = [false, true].map(|strong| pattern_ink(theme, strong));
+        for y in shown.top()..shown.bottom() {
+            for x in [before, after].into_iter().flatten() {
+                let cell = &mut buf[(x, y)];
+                if matches!(cell.symbol(), "·" | "│" | "─" | "┼" | "+" | "╱") && inks.contains(&cell.fg) {
+                    cell.set_symbol(" ").set_fg(Color::Reset);
+                }
+            }
+        }
+    }
+}
+
+/// The color of the marks of a pattern.
+fn pattern_ink(theme: &Theme, strong: bool) -> Color {
+    let r = theme.tokens();
+    theme.color(blend(&[r.background, r.foreground], if strong { 0.3 } else { 0.13 }))
 }
 
 impl Widget for Backdrop<'_> {
@@ -98,7 +126,7 @@ impl Widget for Backdrop<'_> {
             }
             return;
         }
-        let style = t.fg(blend(&[r.background, r.foreground], if self.strong { 0.3 } else { 0.13 }));
+        let style = ratatui::style::Style::new().fg(pattern_ink(t, self.strong));
         for at in shown.positions() {
             let (x, y) = (at.x - area.x, at.y - area.y);
             let symbol = match self.canvas {
@@ -145,5 +173,19 @@ mod tests {
         Backdrop::clear(Rect::new(0, 2, 8, 9), &mut buf);
         assert_eq!((buf[(4, 2)].symbol(), buf[(4, 2)].fg, buf[(4, 2)].bg), (" ", Color::Reset, glow));
         assert_eq!(buf[(4, 0)].symbol(), "·");
+    }
+
+    #[test]
+    fn no_mark_of_the_pattern_touches_a_cleared_area() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 13, 3));
+        Backdrop::new(&theme, Canvas::Dots).render(buf.area, &mut buf);
+        // A separator beside the area is not a mark of the pattern.
+        buf[(8, 2)].set_symbol("│").set_fg(Color::Red);
+        Backdrop::clear_with_edges(&theme, Rect::new(1, 0, 3, 1), &mut buf);
+        Backdrop::clear_with_edges(&theme, Rect::new(5, 2, 3, 1), &mut buf);
+        let row = |y: u16| (0..13).map(|x| buf[(x, y)].symbol().to_owned()).collect::<String>();
+        assert_eq!([row(0), row(2)], ["        ·   ·", "·       │   ·"]);
+        Backdrop::clear_with_edges(&theme, Rect::new(0, 0, 13, 9), &mut buf);
     }
 }
