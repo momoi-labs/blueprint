@@ -163,7 +163,7 @@ impl<'a> Table<'a> {
     fn pitch(&self) -> usize {
         match self.size {
             Size::Sm => 1,
-            Size::Md => 2,
+            Size::Md | Size::Lg => 2,
         }
     }
 
@@ -193,7 +193,7 @@ impl<'a> Table<'a> {
 fn records_rows(records: usize, size: Size) -> u16 {
     let rows = match size {
         Size::Sm => records,
-        Size::Md => (records * 2).saturating_sub(1),
+        Size::Md | Size::Lg => (records * 2).saturating_sub(1),
     };
     u16::try_from(rows).unwrap_or(u16::MAX)
 }

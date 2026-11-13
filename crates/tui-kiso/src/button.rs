@@ -135,7 +135,7 @@ impl<'a> Button<'a> {
     pub fn height(&self) -> u16 {
         match self.size {
             Size::Sm => 1,
-            Size::Md => 3,
+            Size::Md | Size::Lg => 3,
         }
     }
 
@@ -200,7 +200,7 @@ impl Widget for Button<'_> {
                 }
                 y
             }
-            Size::Md => {
+            Size::Md | Size::Lg => {
                 let below = y.saturating_add(2);
                 if let Some(bg) = style.bg {
                     for at in x..=last {

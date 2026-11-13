@@ -239,6 +239,25 @@ Use at most three segments; a deeper hierarchy belongs in
 - Status text uses one polite live region per popup.
 - Respect reduced motion: the popup appears without movement.
 
+## Terminal
+
+In a terminal, ScopeSwitcher is `tui-kiso` `ScopeSwitcher`, in the scope
+slot of the `Header`. Pass its `label()` to `Header::scope`, then render it
+into `Header::scope_area`.
+
+| State | Terminal form |
+| --- | --- |
+| rest | The current scope and a `▾` on the small input surface. |
+| focus | The focus bars of the other fields, one cell outside each side. |
+| open | A [DropdownMenu](dropdown-menu.md) under the field, with a `✓` on the current scope. |
+| long list | Past eight scopes, the menu starts with a filter field and shows only the scopes that hold the typed text. |
+| no match | A muted "No scopes" row. |
+
+`Enter` opens the menu. `↑` `↓` and `Enter` pick a scope, and `Esc` closes
+it. The app keeps the open state, the selected row and the filter, and
+turns the row into a scope with `pick`. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A product with two or three nested scopes that most pages depend on.

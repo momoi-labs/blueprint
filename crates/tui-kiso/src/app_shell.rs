@@ -1,5 +1,6 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
+use ratatui::widgets::Widget;
 use ratatui::style::Style;
 
 use crate::text::cells;
@@ -167,16 +168,15 @@ impl AppShell {
         }
     }
 
-    /// Clears the collapsed sidebar's `overlay` and fills it with
-    /// `elevated-surface`, so it reads as a layer over the page. Returns the
-    /// area to draw the [`Sidebar`](crate::Sidebar) in: two columns in from
-    /// the sides and one row from the top and bottom.
+    /// Dims the page with a [`Scrim`](crate::Scrim) and draws the overlay
+    /// surface over the collapsed sidebar's `overlay`, so it reads as a
+    /// layer over the page. Returns the area to draw the
+    /// [`Sidebar`](crate::Sidebar) in: two columns in from the sides and one
+    /// row from the top and bottom.
     pub fn paint_overlay(theme: &Theme, buf: &mut Buffer, overlay: Rect) -> Rect {
-        let area = overlay.intersection(buf.area);
-        for at in area.positions() {
-            buf[at].reset();
-        }
-        buf.set_style(area, theme.elevated());
+        let screen = buf.area;
+        crate::Scrim::new(theme).render(screen, buf);
+        crate::overlay::surface(theme, buf, overlay);
         Rect::new(
             overlay.x.saturating_add(2),
             overlay.y.saturating_add(1),

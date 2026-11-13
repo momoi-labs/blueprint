@@ -50,3 +50,17 @@ An option with `aria-selected="true"` fills with `--color-selected` and
 `--color-selected-foreground`. Forced colors add a visible outline. Hover
 fills an enabled option with `--color-accent-surface-hover`. The description
 uses `--color-muted-foreground` until the option is selected.
+
+## Terminal
+
+In a terminal, DetailOption is `tui-kiso` `DetailOption`: one choice of a
+[DetailSelect](detail-select.md), with a title and a description.
+
+| State | Terminal form |
+| --- | --- |
+| rest | Two lines: the title in `foreground`, the description in `muted-foreground`, after a `○`. |
+| selected | `●`, and the `selected` fill across both lines. |
+| disabled | `.disabled(true)`: both lines in `disabled`. The option keeps its place and `↑` `↓` skip it. |
+
+Keep the description to one line; the list cuts it with `…` when it does
+not fit. See [terminal interfaces](../terminal-interfaces.md).

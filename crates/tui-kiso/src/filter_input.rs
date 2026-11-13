@@ -70,7 +70,7 @@ impl<'a> FilterInput<'a> {
     pub fn height(&self) -> u16 {
         match self.size {
             Size::Sm => 1,
-            Size::Md => 3,
+            Size::Md | Size::Lg => 3,
         }
     }
 }
@@ -81,7 +81,7 @@ impl Widget for FilterInput<'_> {
         if area.width < 4 || area.height == 0 {
             return;
         }
-        let behind = under(t, buf, area.x, area.y.saturating_add(u16::from(self.size == Size::Md)));
+        let behind = under(t, buf, area.x, area.y.saturating_add(u16::from(self.size != Size::Sm)));
         let paint = Paint::new(t, Flags { focused: self.search.typing, ..Flags::default() }, behind);
         let inner = usize::from(area.width - 2);
         let glyph = Span::styled(format!("{} ", self.glyph), paint.text.fg(t.color(t.tokens().primary)).add_modifier(Modifier::BOLD));

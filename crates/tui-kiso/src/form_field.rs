@@ -333,7 +333,7 @@ impl Widget for FormField<'_> {
         let control = self.control(area);
         if !matches!(self.field.input, Control::Check(_)) {
             let text_row = match self.layout {
-                FieldLayout::Column => control.y.saturating_add(u16::from(self.size == Size::Md)),
+                FieldLayout::Column => control.y.saturating_add(u16::from(self.size != Size::Sm)),
                 FieldLayout::Stacked => area.y,
             };
             let width = match self.layout {
@@ -344,7 +344,7 @@ impl Widget for FormField<'_> {
                 self.label().render(Rect::new(area.x, text_row, width, 1), buf);
             }
         }
-        let behind = under(t, buf, control.x, control.y.saturating_add(u16::from(self.size == Size::Md)));
+        let behind = under(t, buf, control.x, control.y.saturating_add(u16::from(self.size != Size::Sm)));
         let lines = control_lines(t, self.field, control.width, self.size, self.flags, behind, self.scroll);
         draw(buf, control.intersection(area), &lines);
         let below = Rect { y: control.bottom(), height: area.bottom().saturating_sub(control.bottom()), ..control };
@@ -354,7 +354,7 @@ impl Widget for FormField<'_> {
 
 /// The rows a field's control takes `width` columns wide.
 pub(crate) fn control_height(t: &Theme, field: &Field, size: Size, width: u16) -> u16 {
-    let half = if size == Size::Md { 2 } else { 0 };
+    let half = if size != Size::Sm { 2 } else { 0 };
     match &field.input {
         Control::Check(_) => 1,
         Control::Area { .. } => 3 + half,
@@ -370,7 +370,7 @@ pub(crate) fn control_height(t: &Theme, field: &Field, size: Size, width: u16) -
 /// `lines` with a blank row above and below at `Md`, in line with a field
 /// that has half rows of fill.
 fn padded(mut lines: Vec<Line<'static>>, size: Size) -> Vec<Line<'static>> {
-    if size == Size::Md {
+    if size != Size::Sm {
         lines.insert(0, Line::default());
         lines.push(Line::default());
     }

@@ -91,7 +91,7 @@ pub(crate) fn frame(paint: &Paint, size: Size, width: u16, body: Vec<Vec<Span<'s
     let bar = |symbol: &'static str| paint.bars.map_or_else(gap, |color| Span::styled(symbol, Style::new().fg(color)));
     let half = |symbol: &str| Span::styled(symbol.repeat(width), Style::new().fg(paint.bg));
     let mut lines = Vec::new();
-    if size == Size::Md {
+    if size != Size::Sm {
         lines.push(Line::from(vec![bar("▗"), half("▄"), bar("▖")]));
     }
     for row in body {
@@ -102,7 +102,7 @@ pub(crate) fn frame(paint: &Paint, size: Size, width: u16, body: Vec<Vec<Span<'s
         line.extend([pad.clone(), bar("▌")]);
         lines.push(Line::from(line));
     }
-    if size == Size::Md {
+    if size != Size::Sm {
         lines.push(Line::from(vec![bar("▝"), half("▀"), bar("▘")]));
     }
     lines
@@ -228,7 +228,7 @@ impl<'a> Common<'a> {
 
     /// The colors under the first cell of `area`, read before drawing.
     pub(crate) fn behind(&self, buf: &Buffer, area: Rect) -> Rgb {
-        under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size == Size::Md)))
+        under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size != Size::Sm)))
     }
 }
 
@@ -294,7 +294,7 @@ macro_rules! field_builders {
 
         /// The rows the field takes.
         pub fn height(&self) -> u16 {
-            self.text_rows() + if self.common.size == crate::Size::Md { 2 } else { 0 }
+            self.text_rows() + if self.common.size != crate::Size::Sm { 2 } else { 0 }
         }
 
         #[allow(dead_code)]

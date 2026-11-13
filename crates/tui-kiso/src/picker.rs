@@ -7,7 +7,8 @@ use ratatui::text::Line;
 use ratatui::widgets::Widget;
 
 use crate::surface::write;
-use crate::{Card, CardVariant, KeyHints, Theme, ACCENTS};
+use crate::overlay::surface;
+use crate::{Card, KeyHints, Scrim, Theme, ACCENTS};
 
 /// The theme picker, on an elevated card: dark or light on top, then each
 /// accent with a swatch of its color before its name. The app redraws in the theme under the cursor as the
@@ -73,9 +74,9 @@ impl Widget for PickerView<'_> {
         if area.is_empty() {
             return;
         }
-        let card = Card::new(t).variant(CardVariant::Elevated);
-        card.render(area, buf);
-        let inner = card.inner(area);
+        Scrim::new(t).render(screen.intersection(buf.area), buf);
+        surface(t, buf, area);
+        let inner = Card::new(t).inner(area);
         if inner.height == 0 || inner.width < 2 {
             return;
         }

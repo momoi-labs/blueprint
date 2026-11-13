@@ -89,3 +89,21 @@ controls keep their own focus indicators. Text uses
 
 Set appearance attributes on `html` so portalled content inherits them.
 The component follows the existing control corner and frame choices.
+
+## Terminal
+
+In a terminal, DetailSelect is `tui-kiso` `DetailSelect`, a list of
+[DetailOption](detail-option.md) rows of two lines each.
+
+| State | Terminal form |
+| --- | --- |
+| rest | `○`, the title in `foreground`, the description under it in `muted-foreground`. |
+| selected | `●`, and the `selected` fill across both lines, with a `▌` in the first column. |
+| focus | The `▌` is `primary`; without focus it is `subtle-foreground`. |
+| disabled | Title, description and mark in `disabled`. |
+| sizes | `Md` has a blank row between two options; `Sm` has none. |
+
+`↑` `↓`, or `k` `j`, move the choice through `key` and skip disabled
+options. Use it for a few choices that each need a line of explanation;
+use a RadioGroup when the names say enough. See
+[terminal interfaces](../terminal-interfaces.md).

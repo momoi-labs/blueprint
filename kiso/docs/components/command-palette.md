@@ -127,16 +127,22 @@ properties for group headings.
 
 ## Terminal
 
-In a terminal, the palette is `tui-kiso` `Palette`, in a
-[Modal](modal-dialog.md) titled Commands. The filter is on top, after a
-bold `primary` `>`, with the placeholder "Type to filter" while empty.
-Each command has its key on the right in `muted-foreground`. The selected
-command is filled: `primary-foreground` on `primary`. "No command
-matches." stands in for an empty list.
+In a terminal, the palette is `tui-kiso` `CommandPalette`. `Palette` is its
+first name and still works.
 
-`Ctrl+P` opens it, and `:` is an alias outside a text field. Typing
-filters, `↑` `↓` move, `Enter` runs the command and `Esc` closes. The
-product lists only the commands that apply where the person is. See
+| State | Terminal form |
+| --- | --- |
+| open | `Scrim` over the screen, then the popover surface 4 grid tracks wide, in the top third. |
+| filter | A small filter field with a leading `›`, and "Commands" or a product placeholder while empty. |
+| groups | A muted caption over each group, with a blank row before each caption but the first. |
+| row | The command on the left, its key on the right in `muted-foreground`. |
+| selected | The `primary` fill with `primary-foreground`, across the panel. |
+| empty | A muted "No commands" row. |
+
+The palette's key hints end it. `Ctrl+P` opens it, and `:` is an alias
+outside a text field. Typing filters, `↑` `↓` move, `Enter` runs the
+command and `Esc` closes. The product lists only the commands that apply
+where the person is. See
 [terminal interfaces](../terminal-interfaces.md#keys).
 
 ## When to use
