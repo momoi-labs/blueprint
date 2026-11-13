@@ -319,7 +319,7 @@ mod tests {
         assert_eq!(row(&buf, 1), "      ull on pg-mai");
         let mut buf = Buffer::empty(Rect::new(0, 0, 20, 1));
         Widget::render(LogView::new(&theme, &log), buf.area, &mut buf);
-        assert_eq!(row(&buf, 0), "WARN  disk almost …");
+        assert_eq!(row(&buf, 0), "WARN  disk almost…");
     }
 
     #[test]

@@ -163,8 +163,11 @@ call, then the new one.
   rail of a card at the edge of the page takes the first column.
 - A `Card` and each row a `Page` draws now take the pattern of the
   `Backdrop` out of their cells, and reset the text color there. Remove a
-  local clear for those. For a region with no card, call
-  `Backdrop::clear(area, buf)` before you draw it.
+  local clear for those. They also clear a mark of the pattern in the cell
+  before and after. For a region with no card, call
+  `Backdrop::clear(area, buf)` before you draw it; for a footer, clear the
+  whole row of the screen.
+- A line cut with `…` no longer keeps a space before the ellipsis.
 - For the title of a card or a pane, use `Card::title(buf, area, title,
   meta)` or `Page::heading(theme, width, title, meta)`: bold title, muted
   meta, cut with `…`. `Page::section` stays the title of a page section.

@@ -320,8 +320,11 @@ else, so glass cards let it show through.
 
 A pattern must not show between the words of the content. A `Card`, an
 overlay and each row of a `Page` take the pattern out of the cells they
-use, and keep the glow. For a region of your own that sits on the backdrop
-with no card, call `Backdrop::clear(area, buf)` before you draw it.
+use, and keep the glow. They also take out a mark that touches them on the
+left or the right, so no dot reads as a stray character beside the text.
+For a region of your own that sits on the backdrop with no card, call
+`Backdrop::clear(area, buf)` before you draw it. For a row that spans the
+screen, such as a footer, clear the whole row.
 
 | Canvas | What it draws |
 | --- | --- |
