@@ -4320,7 +4320,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="plain"]::before, .topbar[data-variant="plain"]::before { content: none; }
 /* A floating header detaches from the page edges and stays pinned below the
    viewport top on a contact shadow, so content scrolls behind a raised bar. */
-.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"], .topbar[data-variant="floating"] { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-surface); box-shadow: var(--shadow-md); top: var(--spacing-md); }
+.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"], .topbar[data-variant="floating"] { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--shadow-md); top: var(--spacing-md); }
 /* The document Appearance preference applies to a Header without an explicit
    variant, mirroring the explicit variant above. */
 :where([data-header-variant="plain"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
@@ -4328,7 +4328,53 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-header-variant="plain"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant]))::before,
 :where([data-header-variant="plain"]) .topbar:where(:not([data-variant]))::before { content: none; }
 :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
-:where([data-header-variant="floating"]) .topbar:where(:not([data-variant])) { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-surface); box-shadow: var(--shadow-md); top: var(--spacing-md); }
+:where([data-header-variant="floating"]) .topbar:where(:not([data-variant])) { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--shadow-md); top: var(--spacing-md); }
+/* Pixel corners: a floating header is a surface of its own, so it takes the
+   panel contour. The stepped ink draws the border, and the clip keeps the fill
+   and the glass blur inside the steps. The header sits in the shell's main, so
+   it computes the steps from the panel Appearance and not from the outer frame. */
+:where([data-corner-style="pixel"]:not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) {
+  --pixel-enabled: calc(var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  --pixel-r: round(calc(12px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  --pixel-step: round(calc(4px * var(--appearance-scale, 1) * var(--pixel-enabled)), 1px);
+  border-color: color-mix(in srgb, var(--color-border) calc((1 - var(--pixel-enabled)) * 100%), transparent);
+  background-color: color-mix(in srgb, var(--frame-fill, var(--color-background)) calc((1 - var(--pixel-enabled)) * 100%), transparent);
+  background-image: linear-gradient(var(--frame-fill, var(--color-background)), var(--frame-fill, var(--color-background))), linear-gradient(var(--frame-fill, var(--color-background)), var(--frame-fill, var(--color-background))), linear-gradient(var(--frame-fill, var(--color-background)), var(--frame-fill, var(--color-background))), linear-gradient(var(--frame-fill, var(--color-background)), var(--frame-fill, var(--color-background))), linear-gradient(var(--frame-fill, var(--color-background)), var(--frame-fill, var(--color-background)));
+  background-size:
+    calc((100% - 2 * var(--pixel-r)) * var(--pixel-enabled)) var(--pixel-step),
+    calc((100% - 2 * var(--pixel-step)) * var(--pixel-enabled)) calc(var(--pixel-r) - var(--pixel-step)),
+    calc(100% * var(--pixel-enabled)) calc(100% - 2 * var(--pixel-r)),
+    calc((100% - 2 * var(--pixel-step)) * var(--pixel-enabled)) calc(var(--pixel-r) - var(--pixel-step)),
+    calc((100% - 2 * var(--pixel-r)) * var(--pixel-enabled)) var(--pixel-step);
+  background-position: center top, center top var(--pixel-step), center, center bottom var(--pixel-step), center bottom;
+  background-repeat: no-repeat;
+  background-origin: border-box;
+  box-shadow: none;
+  /* Reach 1px past the border box so the ink ring is not trimmed on its outer edge. */
+  clip-path: polygon(calc(var(--pixel-r) - 1px) -1px, calc(100% + 1px - var(--pixel-r)) -1px, calc(100% + 1px - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-r)), -1px calc(100% + 1px - var(--pixel-r)), -1px calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) calc(var(--pixel-step) - 1px));
+}
+:where([data-corner-style="pixel"]:not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+)::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  /* Transparent when a nested scope turns Pixel off. */
+  background-color: color-mix(in srgb, var(--corner-ink-color, var(--color-border)) calc(var(--pixel-enabled, 0) * 100%), transparent);
+  background-image: none;
+  box-shadow: none;
+  clip-path: var(--corner-ink-clip, none);
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* A grouped control gets its height from the shared frame. */
 .field-control > :is(.input, .select)[data-control-size="xl"] { height: auto; padding-inline-start: 0; font-size: inherit; }

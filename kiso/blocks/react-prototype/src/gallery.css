@@ -253,7 +253,8 @@
     display: inline-flex;
   }
   .catalog-header {
-    position: static;
+    /* Relative, not static: the Pixel border layer needs the header as its box. */
+    position: relative;
     height: auto;
     flex-wrap: wrap;
     padding: var(--spacing-md);
