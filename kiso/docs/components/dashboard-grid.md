@@ -122,7 +122,7 @@ DashboardPanel is one of those cards.
 
 | Web | Terminal |
 | --- | --- |
-| twelve columns | 3 to 6 tracks of 13 columns, by the width of the screen. |
+| twelve columns | 3 tracks or more of 13 columns, by the width of the page. A contained page has 6 at most. |
 | DashboardPanel | One `Card`, in a cell of whole tracks. |
 | panel size and row | The tracks and rows of the cell, set by the app. |
 | row that wraps | A cell that does not fit starts the next row. One blank row parts the rows. |

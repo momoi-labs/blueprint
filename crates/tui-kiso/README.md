@@ -29,7 +29,7 @@ In 256 colors a blend would band, so every fill draws as `Solid`.
 | Part | What it is |
 | --- | --- |
 | `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the look |
-| `Grid`, `AppShell`, `Split` | The areas of a page on tracks of 13 columns, 2 apart, 3 to 6 by width, wrapping; the app bar, sidebar, page and footer; panes with dividers |
+| `Grid`, `AppShell`, `Split` | The areas of a page on tracks of 13 columns, 2 apart, 3 or more by width, wrapping; the app bar, sidebar, page and footer, with a full or contained page; panes with dividers |
 | `Backdrop`, `Canvas` | The canvas behind a screen, drawn once: `Glow`, `Solid`, `Dots`, `Grid`, `Crosses`, `Stripes` |
 | `Card`, `Stat` | A surface of fill for related content, and one number with its label and delta |
 | `Badge`, `Dot`, `Tone`, `StatusBadge` | A label or a mark in one of five tones, and the state of a record |

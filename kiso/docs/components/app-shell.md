@@ -361,6 +361,8 @@ the sidebar, the page and the footer. The app draws a widget in each one:
 | Under 100 columns | The sidebar collapses: there is no `sidebar` area and `collapsed` is true. A key opens it as an `overlay` on its side; draw it last with `paint_overlay`. |
 | 100 columns and more | The sidebar sits beside the page, four columns from it. |
 | Sidebar side | `.side(Side::Left)` or `.side(Side::Right)`, the crate option. |
+| Page width | `.page_width(PageWidth::Full)`, the default, or `PageWidth::Contained`: at most 88 columns, six grid tracks. |
+| Page alignment | `.page_align(PageAlign::Start)`, `Center` or `End` places a contained page in the free columns. |
 
 The screen keeps two columns on each side. The footer is the last row. With
 `.header(true)`, the app bar is the first row and one blank row follows.

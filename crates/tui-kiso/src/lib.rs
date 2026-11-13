@@ -83,7 +83,7 @@ mod select;
 
 pub use accent::{Accent, ACCENTS};
 pub use accent_selector::AccentSelector;
-pub use app_shell::{AppShell, ShellAreas};
+pub use app_shell::{AppShell, PageAlign, PageWidth, ShellAreas};
 pub use backdrop::{Backdrop, Canvas};
 pub use badge::Badge;
 pub use brand_mark::BrandMark;

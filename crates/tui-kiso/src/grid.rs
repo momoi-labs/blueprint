@@ -1,7 +1,8 @@
 use ratatui::layout::Rect;
 
-/// The layout grid of a page: tracks of 13 columns, 2 apart, from three to
-/// six of them by the width of the area.
+/// The layout grid of a page: tracks of 13 columns, 2 apart, three or more
+/// of them by the width of the area. A contained page
+/// ([`PageWidth::Contained`](crate::PageWidth::Contained)) has six at most.
 ///
 /// Each thing on the page is a cell of whole tracks. A cell that does not
 /// fit in the open row starts the next row, so a narrow terminal gets a
@@ -25,12 +26,12 @@ impl Grid {
     pub const GAP: u16 = 2;
     /// The fewest tracks of a page.
     pub const MIN: u16 = 3;
-    /// The most tracks of a page.
-    pub const MAX: u16 = 6;
+    /// The most tracks of a contained page.
+    pub const CONTAINED: u16 = 6;
 
     /// A grid from the top left of `area`, with the tracks its width holds.
     pub fn new(area: Rect) -> Self {
-        let tracks = ((area.width.saturating_add(Self::GAP)) / (Self::TRACK + Self::GAP)).clamp(Self::MIN, Self::MAX);
+        let tracks = ((area.width.saturating_add(Self::GAP)) / (Self::TRACK + Self::GAP)).max(Self::MIN);
         Self { x: area.x, y: area.y, tracks, taken: 0, rows: 0 }
     }
 
@@ -98,8 +99,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_width_gives_from_three_to_six_tracks() {
-        for (width, tracks) in [(10, 3), (43, 3), (58, 4), (88, 6), (200, 6)] {
+    fn the_width_gives_three_tracks_or_more() {
+        for (width, tracks) in [(10, 3), (43, 3), (58, 4), (88, 6), (200, 13)] {
             assert_eq!(Grid::new(Rect::new(0, 0, width, 10)).tracks(), tracks);
         }
         assert_eq!(Grid::span(3), 43);

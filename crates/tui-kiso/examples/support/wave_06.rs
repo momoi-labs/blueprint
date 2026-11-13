@@ -73,7 +73,10 @@ pub fn dashboard_page(t: &Theme, buf: &mut Buffer, area: Rect, chosen: usize) {
     let bottom = area.bottom().min(buf.area.bottom());
     let fits = |cell: Rect| cell.right() <= area.right() && cell.bottom() <= bottom;
     let mut grid = Grid::new(area);
-    let (tracks, half) = (grid.tracks(), grid.tracks().div_ceil(2));
+    let tracks = grid.tracks();
+    // Two cards share a row. Under five tracks, and at five, each takes its
+    // own row; an odd wide row gives the first card the track left over.
+    let (half, rest) = if tracks > Grid::CONTAINED { (tracks.div_ceil(2), tracks / 2) } else { (tracks.div_ceil(2), tracks.div_ceil(2)) };
     let shift = chosen as f64 * 1.7;
 
     let head = grid.line(1);
@@ -100,8 +103,8 @@ pub fn dashboard_page(t: &Theme, buf: &mut Buffer, area: Rect, chosen: usize) {
         .delta(Badge::new(t, Tone::Danger, "+12%"))
         .trend(Sparkline::new(t, wave(40, 40.0, 14.0, 2.0 + shift)))
         .note("vs the window before");
-    for stat in [queries, latency] {
-        let cell = grid.cell(half, stat.height());
+    for (stat, span) in [(queries, half), (latency, rest)] {
+        let cell = grid.cell(span, stat.height());
         if fits(cell) {
             stat.render(cell, buf);
         }
@@ -142,7 +145,7 @@ pub fn dashboard_page(t: &Theme, buf: &mut Buffer, area: Rect, chosen: usize) {
         }
     }
 
-    let cell = grid.cell(half, 6);
+    let cell = grid.cell(rest, 6);
     if fits(cell) {
         let card = Card::new(t).size(Size::Sm);
         card.render(cell, buf);

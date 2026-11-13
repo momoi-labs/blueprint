@@ -18,7 +18,7 @@ use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
     ButtonVariant, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
-    AppShell, Ink, KeyHints, Look, Mark, Meter, Modal, Page, PanelFill, Pattern, Scroll, Search,
+    AppShell, Ink, KeyHints, Look, Mark, Meter, Modal, Page, PageAlign, PageWidth, PanelFill, Pattern, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
     Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, TimeRangeControl, Title,
     Toast, Tone, ACCENTS,
@@ -127,16 +127,18 @@ const CHART: usize = page("Chart");
 const SIZE: (u16, u16) = (100, 30);
 
 /// The appearance options and their values. The first is the default.
-const APPEARANCE: [(&str, &[&str]); 5] = [
+const APPEARANCE: [(&str, &[&str]); 7] = [
     ("Background", &["solid", "glow", "dots", "grid", "crosses", "stripes"]),
     ("Strength", &["quiet", "visible"]),
     ("Panel fill", &["glass", "translucent", "solid"]),
     ("Border", &["none", "rail"]),
     ("Ends", &["square", "round"]),
+    ("Page width", &["full", "contained"]),
+    ("Page align", &["start", "center", "end"]),
 ];
 const CANVASES: [Canvas; 6] = [Canvas::Solid, Canvas::Glow, Canvas::Dots, Canvas::Grid, Canvas::Crosses, Canvas::Stripes];
 /// The width of the appearance panel, and the width a page keeps beside it.
-const PANEL: u16 = 34;
+const PANEL: u16 = 36;
 const BESIDE: u16 = 67;
 
 const USAGE: &str = "\
@@ -173,6 +175,8 @@ const SITE_STATES: [(&str, usize, &str); 15] = [
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Layer {
     Help,
+    /// The code that sets the look the appearance panel shows.
+    Code,
 }
 
 struct App {
@@ -259,6 +263,7 @@ impl App {
             let count = self.looks.len();
             match key.code {
                 KeyCode::Char('s' | 'q') | KeyCode::Esc => self.panel = None,
+                KeyCode::Char('c') => self.layer = Some(Layer::Code),
                 KeyCode::Down | KeyCode::Char('j') | KeyCode::Tab => self.panel = Some((focus + 1) % count),
                 KeyCode::Up | KeyCode::Char('k') | KeyCode::BackTab => self.panel = Some((focus + count - 1) % count),
                 KeyCode::Enter => _ = self.looks[focus].key(KeyEvent::new(KeyCode::Right, KeyModifiers::NONE)),
@@ -351,6 +356,38 @@ impl App {
         })
     }
 
+    /// What an app writes to get the look the panel shows.
+    fn code(&self) -> String {
+        let chosen = |i: usize| self.looks[i].chosen();
+        let canvas = ["Solid", "Glow", "Dots", "Grid", "Crosses", "Stripes"][chosen(0)];
+        let fill = ["Glass", "Translucent", "Solid"][chosen(2)];
+        let border = ["None", "Rail"][chosen(3)];
+        let width = ["Full", "Contained"][chosen(5)];
+        let align = ["Start", "Center", "End"][chosen(6)];
+        format!(
+            "let tokens = Accent::by_name(\"{accent}\").unwrap().tokens({light});
+let theme = Theme::truecolor(tokens).with_look(Look {{
+    fill: PanelFill::{fill},
+    border: Border::{border},
+    round: {round},
+    ..Look::DEFAULT
+}});
+
+let shell = AppShell::new(screen)
+    .page_width(PageWidth::{width})
+    .page_align(PageAlign::{align});
+
+// Under the page: Glow first, a pattern last.
+Backdrop::new(&theme, Canvas::{canvas})
+    .strong({strong})
+    .render(screen, buf);",
+            accent = ACCENTS[self.accent].name,
+            light = self.light,
+            round = chosen(4) == 1,
+            strong = chosen(1) == 1,
+        )
+    }
+
     /// The appearance panel, on the right of the page.
     fn appearance(&self, t: &Theme, buf: &mut Buffer, area: Rect, focus: usize) {
         if area.width < 20 || area.height < 4 {
@@ -378,6 +415,9 @@ impl App {
         let note = area.y + 5 + self.looks.len() as u16;
         if note < area.bottom() {
             buf.set_stringn(x, note, "Round ends need a Nerd Font.", usize::from(width), t.subtle());
+        }
+        if note + 1 < area.bottom() {
+            buf.set_stringn(x, note + 1, "c shows the code for this look.", usize::from(width), t.subtle());
         }
     }
 
@@ -424,6 +464,11 @@ impl App {
         // The panel pushes the page while the page still fits, then covers it.
         let panel = self.panel.map(|focus| (focus, Rect { x: main.right().saturating_sub(PANEL), width: PANEL.min(main.width), ..main }));
         let main = if self.panel.is_some() && main.width >= BESIDE + PANEL + 2 { Rect { width: main.width - PANEL - 2, ..main } } else { main };
+        // The panel takes its columns first, so the page is placed here and
+        // not by the shell.
+        let width = [PageWidth::Full, PageWidth::Contained][self.looks[5].chosen()];
+        let align = [PageAlign::Start, PageAlign::Center, PageAlign::End][self.looks[6].chosen()];
+        let main = AppShell::place(main, width, align);
 
         let (name, about) = PAGES[self.page];
         let title = if side.is_none() { format!("{name} · {} of {}", self.page + 1, PAGES.len()) } else { name.to_owned() };
@@ -436,13 +481,13 @@ impl App {
         }
 
         let keys: Vec<(&str, &str)> = match (self.layer, self.main) {
-            (Some(Layer::Help), _) => vec![("any key", "close")],
+            (Some(_), _) => vec![("any key", "close")],
             _ if self.overlay.is_some() => vec![("↑/↓", "choose"), ("enter", "pick"), ("esc", "close")],
             (None, true) if wave_08::opens(name) => vec![("enter", "open"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
-            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("s", "close")],
+            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("c", "code"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
@@ -468,8 +513,14 @@ impl App {
             wave_08::overlay(t, buf, screen, area, name, pick, &self.query);
         }
         // Help goes over every other layer.
-        if self.layer == Some(Layer::Help) {
-            help(t).render(screen, buf);
+        match self.layer {
+            Some(Layer::Help) => help(t).render(screen, buf),
+            Some(Layer::Code) => {
+                let code = self.code();
+                let lines: Vec<Line> = code.lines().map(|line| Line::styled(line.to_owned(), t.text())).collect();
+                Modal::new(t, "Code for this look").width(70).body(lines).hints([("any key", "close")]).render(screen, buf);
+            }
+            None => {}
         }
     }
 
@@ -1148,7 +1199,8 @@ fn help(t: &Theme) -> Modal<'_> {
         ("esc tab", "Back to the components"),
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
-        ("s", "Background, fill, border and ends"),
+        ("s", "Background, fill, border, ends and page width"),
+        ("c", "In the appearance panel: the code for the look"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
         ("tab", "In a form: the next field"),
@@ -1339,6 +1391,15 @@ fn states() -> Vec<State> {
     states.push(("60-palette-rail".into(), rail("CommandPalette"), (136, 30)));
     states.push(("61-menu-rail".into(), rail("DropdownMenu"), (136, 30)));
     states.push(("62-popover-rail".into(), rail("Popover"), (136, 30)));
+    // A wide screen: a full page takes the column, a contained one stops at
+    // six tracks, in the center or at the end.
+    let wide = (200, 30);
+    let contained = |aligns: usize| [keys("s"), vec![code(KeyCode::Down); 5], vec![code(KeyCode::Right), code(KeyCode::Down)], vec![code(KeyCode::Right); aligns], keys("s")].concat();
+    states.push(("67-look-code".into(), [open(CARD), contained(1), keys("sc")].concat(), wide));
+    states.push(("63-page-full".into(), open(dashboard), wide));
+    states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
+    states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));
+    states.push(("66-page-end".into(), [at("Grid"), contained(2)].concat(), wide));
     states
 }
 
