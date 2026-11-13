@@ -77,7 +77,7 @@ export function appearanceCode(settings: AppearanceSettings) {
   const hasPhone = Object.keys(phone).length > 0;
   return {
     html: `<html lang="en"\n${attributes.map(([name, value]) => `  ${name}="${value}"`).join("\n")}\n>\n  <div class="card">
-    <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+    <span class="panel-shadow" aria-hidden="true"><span><span></span></span><span></span></span>
     <!-- Your panel content -->
   </div>${hasPhone ? "\n  <!-- Phone overrides need the JavaScript version. -->" : ""}\n</html>`,
     javascript: hasPhone

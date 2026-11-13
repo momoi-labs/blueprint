@@ -2191,6 +2191,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where([data-outer-shadow-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --panel-shadow-blur: 8px; }
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, .app-shell > :is(main, [data-slot="app-shell-main"])) {
   isolation: isolate;
+  --panel-fill-pixel: 0;
   --panel-shadow-contour: var(--panel-shadow-ink-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
   --panel-shadow-shaped: max(var(--appearance-pixel, 0), var(--appearance-expressive, 0));
   --panel-shadow-paint: var(--panel-shadow-x, 3px) var(--panel-shadow-y, 3px) var(--panel-shadow-blur, 0px) 0px color-mix(in srgb, var(--color-shadow-contact) calc((1 - var(--panel-shadow-shaped)) * 100%), transparent);
@@ -2198,26 +2199,36 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :is(.table-wrap, .logview, .marked, pre:not(.code-block > pre), .code-block, .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])) {
   box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--appearance-cast-shadow, 0 0 transparent)))) var(--panel-shadow-projection, var(--panel-shadow-paint));
 }
+/* The layer holds the shaped shadow and, under Pixel corners, the panel fill.
+   One clipped polygon paints the fill, so fractional zoom shows no seams
+   between bands. */
 .panel-shadow {
-  display: var(--panel-shadow-layer, none);
+  display: block;
   position: absolute;
   inset: var(--corner-overlay-inset, var(--appearance-overlay-inset, -1px));
   pointer-events: none;
   z-index: -2;
-  /* Remove only the original footprint, before translucent content paints. */
-  clip-path: polygon(evenodd, -32px -32px, calc(100% + 32px) -32px, calc(100% + 32px) calc(100% + 32px), -32px calc(100% + 32px), -32px -32px, var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
 }
 .panel-shadow > span {
   position: absolute;
   inset: 0;
-  transform: translate(var(--panel-shadow-x, 3px), var(--panel-shadow-y, 3px));
+}
+.panel-shadow > span:first-child {
+  display: var(--panel-shadow-layer, none);
   filter: blur(calc(var(--panel-shadow-blur, 0px) / 2));
   opacity: var(--panel-shadow-shaped, 0);
+  /* Remove only the original footprint, before translucent content paints. */
+  clip-path: polygon(evenodd, -32px -32px, calc(100% + 32px) -32px, calc(100% + 32px) calc(100% + 32px), -32px calc(100% + 32px), -32px -32px, var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
 }
 .panel-shadow > span > span {
   position: absolute;
   inset: 0;
+  transform: translate(var(--panel-shadow-x, 3px), var(--panel-shadow-y, 3px));
   background: var(--color-shadow-contact);
+  clip-path: polygon(var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
+}
+.panel-shadow > span + span {
+  background: color-mix(in srgb, var(--frame-fill, var(--color-background)) calc(var(--panel-fill-pixel, 0) * 100%), transparent);
   clip-path: polygon(var(--panel-shadow-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0));
 }
 /* The empty layer cannot become a flex/grid item or a direct-child divider. */
@@ -2679,12 +2690,17 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   background-repeat: no-repeat;
   background-origin: border-box;
 }
+/* With the fill span in its paint layer, the panel paints its fill as one
+   polygon. The bands above remain for older markup. */
+:where([data-corner-style="pixel"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])):has(> .panel-shadow > span + span),
+:where([data-outer-corner-style="pixel"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]):has(> .panel-shadow > span + span) { background-image: none; }
 /* The shadow contour competes with the base `--panel-shadow-contour` above,
    whose `:is()` reaches (0,2,0) through the inset shell main. A plain
    attribute selector ties it here so the pixel contour wins on source order
    instead of falling back to a rectangle that leaks past the stepped corners. */
 [data-corner-style="pixel"] :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"])),
 [data-outer-corner-style="pixel"] :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+  --panel-fill-pixel: var(--pixel-enabled);
   --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
 }
 :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --frame-fill: var(--color-background); }
@@ -3861,11 +3877,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
     linear-gradient(var(--pixel-line), var(--pixel-line)),
-    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
-    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
-    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
-    linear-gradient(var(--pixel-fill), var(--pixel-fill)),
-    linear-gradient(var(--pixel-fill), var(--pixel-fill));
+    var(--pixel-fill-image, linear-gradient(var(--pixel-fill), var(--pixel-fill))),
+    var(--pixel-fill-image, linear-gradient(var(--pixel-fill), var(--pixel-fill))),
+    var(--pixel-fill-image, linear-gradient(var(--pixel-fill), var(--pixel-fill)));
   background-size: var(--size-icon-md) var(--size-icon-md), var(--control-mark-sizes, 0px 0px),
     calc(100% - 2 * var(--pixel-r)) var(--pixel-line-width),
     calc(100% - 2 * var(--pixel-r)) var(--pixel-line-width),
@@ -3887,11 +3901,12 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     var(--pixel-line-width) calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)),
     calc(var(--pixel-r) - var(--pixel-step) + var(--pixel-join)) var(--pixel-line-width),
     var(--pixel-line-width) calc(var(--pixel-step) + var(--pixel-join)),
-    calc(100% - 2 * var(--pixel-r)) var(--pixel-step),
-    calc(100% - 2 * var(--pixel-step)) calc(var(--pixel-r) - var(--pixel-step)),
-    100% calc(100% - 2 * var(--pixel-r)),
-    calc(100% - 2 * var(--pixel-step)) calc(var(--pixel-r) - var(--pixel-step)),
-    calc(100% - 2 * var(--pixel-r)) var(--pixel-step);
+    /* Overlapping fill rects: abutting bands seam at fractional zoom. The
+       overlap needs an opaque fill; a translucent one would darken, so such
+       a control clips one background color instead, as Steps markers do. */
+    calc(100% - 2 * var(--pixel-r)) 100%,
+    calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)),
+    100% calc(100% - 2 * var(--pixel-r));
   background-position: right var(--spacing-md) center, var(--control-mark-positions, center),
     center top 0,
     center bottom 0,
@@ -3913,11 +3928,9 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
     right var(--pixel-step) bottom var(--pixel-step),
     right var(--pixel-step) bottom var(--pixel-step),
     right var(--pixel-r) bottom 0,
-    center top,
-    center top var(--pixel-step),
     center,
-    center bottom var(--pixel-step),
-    center bottom;
+    center,
+    center;
 }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary { --pixel-fill: var(--color-primary); --pixel-line: var(--color-primary); }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .btn.btn-primary:hover { --pixel-fill: var(--color-primary-hover); --pixel-line: var(--color-primary-hover); }
@@ -4072,9 +4085,10 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --pixel-fill: transparent;
   background-color: transparent;
   background-repeat: no-repeat;
-  background-image: linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill));
-  background-size: calc(100% - 2 * var(--pixel-r)) 100%, calc(var(--pixel-r) - var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), calc(var(--pixel-r) - var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), var(--pixel-step) calc(100% - 2 * var(--pixel-r)), var(--pixel-step) calc(100% - 2 * var(--pixel-r));
-  background-position: center, left var(--pixel-step) center, right var(--pixel-step) center, left center, right center;
+  /* Overlapping opaque rects: abutting bands seam at fractional zoom. */
+  background-image: linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill));
+  background-size: calc(100% - 2 * var(--pixel-r)) 100%, calc(100% - 2 * var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), 100% calc(100% - 2 * var(--pixel-r));
+  background-position: center, center, center;
 }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .nav-item:hover { --pixel-fill: var(--color-accent-surface-hover); }
 @media (forced-colors: active) {
@@ -4379,13 +4393,14 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
   :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
 )::before { content: none; }
+.topbar { --panel-fill-pixel: 0; }
 .topbar > .panel-shadow { display: none; }
 :is(
   .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
   .topbar[data-variant="floating"],
   :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
   :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
-) > .panel-shadow { display: var(--panel-shadow-layer, none); }
+) > .panel-shadow { display: block; }
 @media (forced-colors: active) {
   :is(
   .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
@@ -4425,10 +4440,18 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   background-position: center top, center top var(--pixel-step), center, center bottom var(--pixel-step), center bottom;
   background-repeat: no-repeat;
   background-origin: border-box;
+  --panel-fill-pixel: var(--pixel-enabled);
   --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
   /* The box shadow is transparent on a stepped contour: the paint layer draws it. */
   box-shadow: var(--panel-shadow-projection, var(--panel-shadow-paint));
 }
+/* The fill span paints one polygon, so the bands remain only for older markup. */
+:where([data-corner-style="pixel"]:not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+):has(> .panel-shadow > span + span) { background-image: none; }
 /* Glass blurs the backdrop of the whole border box, so cut the corner steps
    out of it. Everything outside the border box stays visible, so the clip
    does not cut the shadow. The contour reaches 1px past the border box so the
@@ -4564,6 +4587,14 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --pixel-line: var(--step-border);
   --pixel-fill: var(--step-fill);
   --pixel-line-width: 2px;
+  /* The error fill is translucent, so it is painted once as a clipped color.
+     The marker takes no focus, so the clip cuts no ring. */
+  --pixel-fill-image: linear-gradient(transparent, transparent);
+  background-color: var(--pixel-fill);
+  clip-path: polygon(var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step));
+}
+@media (forced-colors: active) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .steps .steps-marker { clip-path: none; }
 }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .steps-list > li[data-state="upcoming"]:not([data-current="true"]) .steps-marker {
   --pixel-line-image-x: repeating-linear-gradient(to right, var(--pixel-line) 0 var(--spacing-xs), transparent var(--spacing-xs) calc(2 * var(--spacing-xs)));

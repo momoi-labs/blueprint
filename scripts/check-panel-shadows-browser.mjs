@@ -47,7 +47,8 @@ test('all 5,760 combined appearance tuples render on Card and DiagramNode', asyn
         const scope = document.getElementById(`tuple-${index}`), errors = [];
         for (const el of [scope.querySelector('.card'), scope.querySelector('.diagram-node')]) {
           const s = getComputedStyle(el), before = getComputedStyle(el, '::before'), after = getComputedStyle(el, '::after');
-          const layer = getComputedStyle(el.querySelector(':scope > .panel-shadow'));
+          // The first span is the shadow layer; the panel-shadow element stays for the Pixel fill.
+          const layer = getComputedStyle(el.querySelector(':scope > .panel-shadow > span'));
           const child = getComputedStyle(el.querySelector(':scope > .panel-shadow > span > span'));
           const paint = getComputedStyle(el.querySelector(':scope > .panel-shadow > span'));
           const expressive = ['manga', 'brush'].includes(tuple.borderStyle);
@@ -307,7 +308,7 @@ for (const theme of ['light', 'dark']) test(`a floating Header follows the panel
       }), { contour, headerSize, shadow });
       const actual = await header.evaluate(el => {
         const layer = el.querySelector(':scope > .panel-shadow'), s = getComputedStyle(el);
-        return { shadow: s.boxShadow, position: s.position, layer: getComputedStyle(layer).display, shaped: getComputedStyle(layer.firstChild).opacity, contour: getComputedStyle(layer.firstChild.firstChild).clipPath };
+        return { shadow: s.boxShadow, position: s.position, layer: getComputedStyle(layer.firstChild).display, shaped: getComputedStyle(layer.firstChild).opacity, contour: getComputedStyle(layer.firstChild.firstChild).clipPath };
       });
       const label = `${theme}/${contour.name}/${headerSize}/${shadow}: ${JSON.stringify(actual)}`;
       const shaped = ['pixel', 'manga', 'brush'].includes(contour.name);
@@ -384,7 +385,7 @@ test('a floating Header stays pinned with its shadow, and other variants keep th
     assert(under < 0, 'Content scrolls under the bar');
     // The cast is painted outside the bar, inside the shell main.
     const cast = await header.evaluate(el => {
-      const layer = el.querySelector(':scope > .panel-shadow > span').getBoundingClientRect(), main = el.parentElement.getBoundingClientRect();
+      const layer = el.querySelector(':scope > .panel-shadow > span > span').getBoundingClientRect(), main = el.parentElement.getBoundingClientRect();
       return { right: layer.right, bottom: layer.bottom, mainRight: main.right, clip: getComputedStyle(el).clipPath };
     });
     assert(cast.right > pinned.x + pinned.width && cast.right <= cast.mainRight, JSON.stringify(cast));
@@ -413,7 +414,7 @@ test('a floating Header stays pinned with its shadow, and other variants keep th
 test('a bare floating Header casts the same shadow outside the shell', async () => {
   const page = await open('floatingHeader&bare&variant=floating&marks=none&corners=pixel&shadowStyle=soft');
   try {
-    const actual = await page.locator('#floating').evaluate(el => ({ shadow: getComputedStyle(el).boxShadow, layer: getComputedStyle(el.querySelector(':scope > .panel-shadow')).display, shaped: getComputedStyle(el.querySelector(':scope > .panel-shadow > span')).opacity }));
+    const actual = await page.locator('#floating').evaluate(el => ({ shadow: getComputedStyle(el).boxShadow, layer: getComputedStyle(el.querySelector(':scope > .panel-shadow > span')).display, shaped: getComputedStyle(el.querySelector(':scope > .panel-shadow > span')).opacity }));
     assert.deepEqual(actual, { shadow: 'color(srgb 0 0 0 / 0) 3px 3px 8px 0px', layer: 'block', shaped: '1' });
   } finally { await page.close(); }
 });

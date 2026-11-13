@@ -228,7 +228,7 @@ try {
     assert.match(terminal, /id="terminal"/);
     assert.match(terminal, /aria-hidden="true"/);
     assert.equal(render(h(AppShell, null, h(AppShellMain, null, 'Overview'))),
-      '<div data-slot="app-shell" class="app-shell"><main data-slot="app-shell-main" class="grow"><span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>Overview</main></div>');
+      '<div data-slot="app-shell" class="app-shell"><main data-slot="app-shell-main" class="grow"><span class="panel-shadow" aria-hidden="true"><span><span></span></span><span></span></span>Overview</main></div>');
     assert.match(render(h(AppShellPanel, { hidden: true, 'aria-label': 'Settings' }, 'Controls')), /data-slot="app-shell-panel"[^>]*hidden=""/);
     assert.match(render(h(AppShellPanelToggle, { placement: 'floating', 'aria-controls': 'settings', 'aria-expanded': false })), /aria-label="Open panel"/);
     const applicationShell = render(h(ApplicationShell, {
@@ -245,7 +245,7 @@ try {
     assert.match(applicationShell, /aria-label="Primary"/);
     assert.match(applicationShell, /aria-current="page"[^>]*href="#app-1"/);
     assert.match(applicationShell, /data-phone-drawer="true"/);
-    assert.match(applicationShell, /<header [^>]*class="topbar"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><[/]span><button [^>]*aria-label="Open navigation"[^>]*>.*?<[/]button><span>Healthy/);
+    assert.match(applicationShell, /<header [^>]*class="topbar"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><span><[/]span><[/]span><button [^>]*aria-label="Open navigation"[^>]*>.*?<[/]button><span>Healthy/);
     assert.match(applicationShell, /<main [^>]*class="grow"/);
     const topbarShell = render(h(ApplicationShell, {
       layout: 'topbar',
@@ -301,7 +301,7 @@ try {
     // The scroller is inside the frame, which is what lets LogView follow the tail.
     const log = render(h(LogView, null, h(LogViewLine, null,
       h(LogViewTime, null, '09:41:02.114'), h(LogViewLevel, { level: 'error' }, 'ERROR'), ' denied')));
-    assert.match(log, /class="logview"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><[/]span><div [^>]*class="log-scroll">/);
+    assert.match(log, /class="logview"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><span><[/]span><[/]span><div [^>]*class="log-scroll">/);
     assert.match(log, /data-follow="true"/);
     assert.match(log, /class="log-time">09:41:02.114<[/]span>/);
     assert.match(log, /class="log-error"[^>]*>ERROR<[/]span>/);
