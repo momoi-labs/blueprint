@@ -57,6 +57,24 @@ label-to-control gap at `--spacing-sm`.
   or Switch through their native/Radix behavior.
 - Label adds no keyboard interaction of its own.
 
+## Terminal
+
+In a terminal, Label is `tui-kiso` `Label`: the name of a field in
+`foreground`, on one row.
+
+| State | Terminal form |
+| --- | --- |
+| default | `foreground`. |
+| required | ` *` after the text, in `danger`. |
+| optional | The word ` optional` after the text, in `subtle-foreground`. |
+| disabled | Text and mark in `subtle-foreground`. |
+| focus, error | No change. The control shows them. |
+
+A label too long for its column is cut with `…` before its mark is. Mark
+the fewer of required and optional in a form, as on the web. In a Form the
+label of the focused field is bold, since the row selection shows the
+focus. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - To name Input, Textarea, Select, Checkbox, or Switch.

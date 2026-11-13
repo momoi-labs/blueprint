@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 44] = [
+const PAGES: [(&str, &str); 49] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -73,6 +73,11 @@ const PAGES: [(&str, &str); 44] = [
     ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
     ("AccentSelector", "One row of accent swatches with the current one marked."),
     ("BrandMark", "The product name as text, plain or on the accent fill."),
+    ("Label", "The name of a field, its help under it, and what is wrong with it."),
+    ("Input", "One line of text on a fill. A long value slides to keep the cursor."),
+    ("PasswordInput", "A secret as dots, shown and hidden with ctrl+r."),
+    ("Textarea", "Lines that wrap; the view follows the cursor."),
+    ("FormField", "A label, a control, and its help or its error, on whole tracks."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -400,7 +405,7 @@ impl App {
             "Form" => {
                 let mut page = Page::default();
                 page.section(t, width, "Deploy application", None);
-                self.form.rows(&mut page, t, width, 17, 0..self.form.fields.len());
+                self.form.rows(&mut page, t, width, self.form.label_width(), 0..self.form.fields.len());
                 page.blank();
                 let buttons = [("Cancel", self.form.press(0, false)), ("Deploy", self.form.press(1, false))];
                 for line in Buttons::new(t, buttons).lines(width.saturating_sub(1)) {
@@ -473,6 +478,11 @@ impl App {
             "Dashboard" => wave_06::dashboard_page(t, buf, area, self.range),
             "AccentSelector" => wave_10::accent_selector_page(t, buf, area),
             "BrandMark" => wave_10::brand_mark_page(t, buf, area),
+            "Label" => wave_02::label_page(t, buf, area),
+            "Input" => wave_02::input_page(t, buf, area),
+            "PasswordInput" => wave_02::password_page(t, buf, area),
+            "Textarea" => wave_02::textarea_page(t, buf, area),
+            "FormField" => wave_02::form_field_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -849,8 +859,9 @@ fn demo_form() -> Form {
     let fields = vec![
         Field::select("Definition", ["Container image", "Compose file", "Native process"]).hint("An image that is already published."),
         name,
-        Field::text("Container image", "nginx:alpine").hint("One container serving HTTP."),
+        Field::text("Image", "nginx:alpine").hint("One container serving HTTP."),
         Field::text("Token", "Leave empty to keep it").secret(),
+        Field::area("Notes", "What changed in this release"),
         Field::check("Start on boot"),
     ];
     let mut form = Form::new(fields, 2);
@@ -1376,3 +1387,7 @@ mod wave_10;
 /// The gallery as JSON for the Kiso site.
 #[path = "support/json.rs"]
 mod json;
+
+/// The pages of the field components.
+#[path = "support/wave_02.rs"]
+mod wave_02;

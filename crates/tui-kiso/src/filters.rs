@@ -80,7 +80,7 @@ impl Filters {
 
     fn set(&mut self, values: &[usize]) {
         for (field, value) in self.form.fields.iter_mut().zip(values) {
-            if let crate::Input::Select(_, chosen) = &mut field.input {
+            if let crate::Control::Select(_, chosen) = &mut field.input {
                 *chosen = *value;
             }
         }

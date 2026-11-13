@@ -61,6 +61,27 @@ the loading status independently perceivable.
 - Preserve standard keyboard editing, selection, undo, paste, scrolling, and
   platform shortcuts. `Enter` inserts a line break; do not submit implicitly.
 
+## Terminal
+
+In a terminal, Textarea is `tui-kiso` `Textarea`: the Input fill, three rows
+of text tall by default, set with `.rows(n)`. Lines wrap at word ends.
+
+| State | Terminal form |
+| --- | --- |
+| default | `input` fill, the placeholder in `subtle-foreground`, wrapped. |
+| focus | Half a cell of `focus` on each side, and a block cursor on `primary`. |
+| overflow | The right padding becomes the Page scrollbar: `border-strong` track, `primary` thumb. |
+| disabled | `disabled-surface` fill, `subtle-foreground` text, no cursor. |
+| read-only | The fill at half strength, no cursor. |
+| error | The focus bars in `danger`. |
+| hover, active, loading, resize | Not drawn. |
+
+The view follows the cursor. Pass a `Scroll` with `.scroll()` so the view
+stays put until the cursor leaves it. In a `Field::area`, `Enter` starts a
+new line and `↑` `↓` move between lines; at the first or last line they
+move focus, as in the rest of the form. `↑` `↓` move by lines of the text,
+not by wrapped rows. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For descriptions, notes, queries, or other multi-line text.

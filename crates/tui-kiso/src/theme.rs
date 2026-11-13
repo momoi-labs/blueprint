@@ -19,7 +19,7 @@ pub struct Theme {
 }
 
 /// Glyphs that are marks, not text. On a selected row they need 3:1.
-const MARKS: &str = "●◐○◉▲▼✓✕▁▂▃▄▅▆▇█━╱│─▌";
+const MARKS: &str = "●◐○◉▲▼✓✕▁▂▃▄▅▆▇█━╱│─▌▐";
 
 impl Theme {
     /// A theme from a dark accent, such as `kiso_tokens::GOLD_DARK`. Reads
@@ -214,8 +214,13 @@ impl Theme {
         let fill = self.selected_color();
         let fill_rgb = drawn_rgb(fill).unwrap_or(self.tokens.selected);
         let t = &self.tokens;
-        // A cell on `primary`, as the theme draws it, keeps its fill.
-        let primary = [self.color(t.primary), self.fill(t.primary_foreground, t.primary).bg.unwrap_or(Color::Reset)];
+        // A cell on `primary`, as the theme draws it, keeps its fill, and
+        // so does a field surface on `input`.
+        let primary = [
+            self.color(t.primary),
+            self.fill(t.primary_foreground, t.primary).bg.unwrap_or(Color::Reset),
+            self.fill(t.foreground, t.input).bg.unwrap_or(Color::Reset),
+        ];
         let status = [t.success_on_dark, t.warning_on_dark, t.danger_on_dark, t.info_on_dark]
             .map(|rgb| self.color(rgb));
         let area = area.intersection(buf.area);

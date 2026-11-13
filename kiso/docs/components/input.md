@@ -76,6 +76,29 @@ silently disable a field merely to show activity.
   cursor, undo, paste, or platform shortcuts. Any trailing action is separately
   keyboard reachable and named.
 
+## Terminal
+
+In a terminal, Input is `tui-kiso` `Input`: a fill of `input` with square
+corners and one column of padding, the value in `foreground`. Cells have no
+outline, so the outline color becomes the fill.
+
+| State | Terminal form |
+| --- | --- |
+| default | `input` fill. The placeholder is in `subtle-foreground`. |
+| focus | Half a cell of `focus` on each side of the fill, and a block cursor on `primary`. Leave one free cell each side. |
+| filled | The value in `foreground`. |
+| disabled | `disabled-surface` fill, `subtle-foreground` text, no cursor. Where `disabled-surface` is the page color, a faint `input` shows the field. |
+| read-only | The fill at half strength over what is under it, no cursor. It can still take focus. |
+| error | The focus bars in `danger`, with or without focus. Put a ValidationMessage under the field. |
+| hover, active, loading | Not drawn. |
+
+`Md` has half a row of fill above and below, so it lines up with a `Md`
+Button; `Sm` is one row, for a form or a toolbar. A long value slides
+sideways to keep the cursor in sight, and a cut edge shows `…`. Edit the
+value with `Field::key`: typing, `←` `→`, `Home`, `End`, `Backspace`,
+`Delete` and `ctrl+u` to clear. Make a field two grid tracks wide. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For one line of free-form or constrained text-like data.

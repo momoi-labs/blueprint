@@ -48,6 +48,22 @@ impl Scroll {
     pub fn offset(&self) -> usize {
         self.offset.get()
     }
+
+    /// Scrolls so `row` of `length` rows is on a view `view` rows tall, and
+    /// returns the first row on screen, as a textarea follows its cursor.
+    pub(crate) fn keep(&self, row: usize, length: usize, view: usize) -> usize {
+        let mut offset = self.offset.get();
+        if row < offset {
+            offset = row;
+        } else if row >= offset + view {
+            offset = row + 1 - view;
+        }
+        offset = offset.min(length.saturating_sub(view));
+        self.offset.set(offset);
+        self.length.set(length);
+        self.view.set(view);
+        offset
+    }
 }
 
 /// A section title in `muted-foreground`, the look's rule to the edge and
@@ -292,7 +308,7 @@ fn scrollbar(buf: &mut Buffer, t: &Theme, area: Rect, offset: usize, total: usiz
 
 /// The rows of a scrollbar `view` rows tall that show the visible part of
 /// `total` rows from `offset`.
-fn thumb(view: usize, offset: usize, total: usize) -> Range<usize> {
+pub(crate) fn thumb(view: usize, offset: usize, total: usize) -> Range<usize> {
     if view == 0 || total <= view {
         return 0..0;
     }
