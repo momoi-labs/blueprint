@@ -4,7 +4,7 @@ use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
-use crate::input::{draw, Flags, Paint};
+use crate::input::{draw, Flags};
 use crate::text::{cells, take_cells};
 use crate::Theme;
 
@@ -13,11 +13,11 @@ use crate::Theme;
 /// [`RadioGroup::horizontal`].
 ///
 /// The chosen option has `◉` in `primary`, the others `○` in
-/// `muted-foreground`. Focus is a half-cell bar of `focus` on each side of
-/// the chosen mark, or of the first one when none is chosen; invalid turns
-/// those bars `danger` and keeps them on. ↑↓, or ←→ in a row, move and
-/// choose at once; the app owns the keys. Keep one free cell before the
-/// area for the bar.
+/// `muted-foreground`. Focus is the `selected` fill behind the chosen
+/// option, or the first one when none is chosen, from one cell before its
+/// mark to one cell after its label, with the label in bold; invalid turns every mark `danger`.
+/// ↑↓, or ←→ in a row, move and choose at once; the app owns the keys.
+/// Keep one free cell before the area for the fill.
 #[derive(Clone, Debug)]
 pub struct RadioGroup<'a> {
     theme: &'a Theme,
@@ -69,36 +69,48 @@ impl<'a> RadioGroup<'a> {
         self.lines(width.saturating_add(1)).len() as u16
     }
 
-    /// One option from the cell of its bar: bar, mark, bar, label.
+    /// One option from the cell before its mark: space, mark, space,
+    /// label, space.
     fn option(&self, i: usize, room: usize) -> Vec<Span<'static>> {
         let t = self.theme;
         let r = t.tokens();
-        let paint = Paint::new(t, self.flags, r.background);
+        let Flags { focused, disabled, invalid, selection, .. } = self.flags;
         let current = self.chosen.filter(|c| *c < self.options.len()).unwrap_or(0) == i;
-        let bar = |symbol: &'static str| match paint.bars.filter(|_| current) {
-            Some(color) => Span::styled(symbol, Style::new().fg(color)),
-            None => Span::raw(" "),
-        };
+        let lit = current && focused && !disabled && !selection;
         let on = self.chosen == Some(i);
-        let mark = match (self.flags.disabled, on) {
-            (true, _) => t.fg(r.disabled),
-            (false, true) => t.fg(r.primary),
-            (false, false) => t.muted(),
+        let mark = match (disabled, invalid, on) {
+            (true, ..) => t.fg(r.disabled),
+            (false, true, _) => t.fg(r.danger),
+            // `primary` can lose contrast on the `selected` fill.
+            (false, false, _) if lit => t.text(),
+            (false, false, true) => t.fg(r.primary),
+            (false, false, false) => t.muted(),
         };
-        let label = if self.flags.disabled { t.subtle() } else { t.text() };
+        let label = match (disabled, lit) {
+            (true, _) => t.subtle(),
+            (false, true) => t.strong(),
+            (false, false) => t.text(),
+        };
         let text = &self.options[i];
         let shown = match cells(text) > room {
             true if room > 0 => format!("{}…", take_cells(text, room - 1).0),
             _ => text.clone(),
         };
-        vec![bar("▐"), Span::styled(if on { "◉" } else { "○" }, mark), bar("▌"), Span::styled(shown, label)]
+        let fill = if lit { t.selected() } else { Style::new() };
+        vec![
+            Span::styled(" ", fill),
+            Span::styled(if on { "◉" } else { "○" }, mark.patch(fill)),
+            Span::styled(" ", fill),
+            Span::styled(shown, label.patch(fill)),
+            Span::styled(" ", fill),
+        ]
     }
 
-    /// The rows `width` columns wide, from the cell of the first bar, as
+    /// The rows `width` columns wide, from the cell before the area, as
     /// [`draw`] takes them.
     pub(crate) fn lines(&self, width: u16) -> Vec<Line<'static>> {
         let width = usize::from(width);
-        let room = width.saturating_sub(3);
+        let room = width.saturating_sub(4);
         if !self.horizontal {
             return (0..self.options.len()).map(|i| Line::from(self.option(i, room))).collect();
         }
@@ -107,15 +119,12 @@ impl<'a> RadioGroup<'a> {
         for i in 0..self.options.len() {
             let item = self.option(i, room);
             let w: usize = item.iter().map(Span::width).sum();
-            if used > 0 && used + 1 + w > width {
+            // The cell after a label is the gap, so the last one may hang.
+            if used > 0 && used + w - 1 > width {
                 lines.push(Vec::new());
                 used = 0;
             }
             let line = lines.last_mut().expect("one line at least");
-            if used > 0 {
-                line.push(Span::raw(" "));
-                used += 1;
-            }
             line.extend(item);
             used += w;
         }
@@ -145,8 +154,13 @@ mod tests {
         let mut buf = Buffer::empty(Rect::new(0, 0, 12, 3));
         group.render(Rect::new(1, 0, 11, 3), &mut buf);
         assert_eq!(row(&buf, 0), " ○ Small");
-        assert_eq!(row(&buf, 1), "▐◉▌Medium");
-        assert_eq!(buf[(1, 1)].fg, theme.color(theme.tokens().primary));
+        assert_eq!(row(&buf, 1), " ◉ Medium");
+        assert_eq!(buf[(1, 1)].fg, theme.color(theme.tokens().foreground));
+        for x in 0..10 {
+            assert_eq!(buf[(x, 1)].bg, theme.selected_color(), "the fill covers cell {x}");
+        }
+        assert_ne!(buf[(10, 1)].bg, theme.selected_color());
+        assert_ne!(buf[(1, 0)].bg, theme.selected_color());
     }
 
     #[test]
@@ -155,9 +169,9 @@ mod tests {
         let group = RadioGroup::new(&theme, ["Small", "Medium", "Large"], None).horizontal(true).invalid(true);
         let mut buf = Buffer::empty(Rect::new(0, 0, 20, 2));
         group.render(Rect::new(1, 0, 19, 2), &mut buf);
-        assert_eq!(row(&buf, 0), "▐○▌Small  ○ Medium");
+        assert_eq!(row(&buf, 0), " ○ Small  ○ Medium");
         assert_eq!(row(&buf, 1), " ○ Large");
-        assert_eq!(buf[(0, 0)].fg, theme.color(theme.tokens().danger));
+        assert_eq!(buf[(1, 0)].fg, theme.color(theme.tokens().danger));
     }
 
     #[test]

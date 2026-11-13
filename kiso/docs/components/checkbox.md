@@ -64,15 +64,16 @@ actual value with a recovery action.
 
 ## Terminal
 
-In a terminal, Checkbox is `tui-kiso` `Checkbox`: a square box of two
-cells in the Switch family, then its label one cell after it.
+In a terminal, Checkbox is `tui-kiso` `Checkbox`: a square box two cells
+wide in the Switch family, with its mark in the center, then its label.
+The box is half a cell, the mark cell, and half a cell.
 
 | State | Terminal form |
 | --- | --- |
 | unchecked | `input` fill, empty. |
 | checked | `primary` fill with `✓` in bold `primary-foreground`. |
 | indeterminate | `primary` fill with `−` in place of the check. It wins over checked. |
-| focus | Half a cell of `focus` on each side of the box. Leave one free cell before it. |
+| focus | Half a cell of `focus` on each side of the box. The box starts half a cell before its area, so leave one free cell before it. |
 | invalid | The bars turn `danger` and stay on, with or without focus. |
 | disabled | `disabled-surface` box, the label in `subtle-foreground`. |
 
