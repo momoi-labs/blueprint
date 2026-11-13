@@ -315,37 +315,27 @@ export function TuiGallery({
 
   return (
     <section className="tui-gallery" aria-label={page.name}>
-      <div className="layout-preview-caption">
+      {/* The tabs of the states share the row of the name, which every page
+          has, so the screen stays at the same height from page to page. */}
+      <div className="layout-preview-caption tui-caption">
         <p className="muted t-label">
           <strong>{page.name}</strong>
         </p>
+        {page.states.length > 1 && (
+          <Navigation aria-label={`${page.name} states`}>
+            <NavigationList className="nav-row">
+              {page.states.map((s, i) => (
+                <NavigationItem key={s.id}>
+                  <NavigationLink href={href(pageIndex, i)} active={i === stateIndex} data-keeps-focus>
+                    {s.label}
+                  </NavigationLink>
+                </NavigationItem>
+              ))}
+            </NavigationList>
+          </Navigation>
+        )}
         <Badge variant="neutral">Snapshot</Badge>
       </div>
-      {/* A page with one state keeps the row of the tabs, hidden, so the
-          screen stays at the same height from page to page. */}
-      {page.states.length > 1 ? (
-        <Navigation aria-label={`${page.name} states`}>
-          <NavigationList className="nav-row">
-            {page.states.map((s, i) => (
-              <NavigationItem key={s.id}>
-                <NavigationLink href={href(pageIndex, i)} active={i === stateIndex} data-keeps-focus>
-                  {s.label}
-                </NavigationLink>
-              </NavigationItem>
-            ))}
-          </NavigationList>
-        </Navigation>
-      ) : (
-        <Navigation className="tui-states-placeholder" aria-hidden="true" inert>
-          <NavigationList className="nav-row">
-            <NavigationItem>
-              <NavigationLink href={href(pageIndex, 0)} active tabIndex={-1}>
-                {page.name}
-              </NavigationLink>
-            </NavigationItem>
-          </NavigationList>
-        </Navigation>
-      )}
       <Card className="tui-frame">
         <div className="tui-stage hatch">{screen}</div>
       </Card>
