@@ -1389,6 +1389,7 @@ fn states() -> Vec<State> {
     let wide = (200, 30);
     let contained = |aligns: usize| [keys("s"), vec![code(KeyCode::Down); 5], vec![code(KeyCode::Right), code(KeyCode::Down)], vec![code(KeyCode::Right); aligns], keys("s")].concat();
     states.push(("67-look-code".into(), [open(CARD), contained(1), keys("e")].concat(), wide));
+    states.push(("68-page-rail".into(), rail("Page"), (136, 30)));
     states.push(("63-page-full".into(), open(dashboard), wide));
     states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
     states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));

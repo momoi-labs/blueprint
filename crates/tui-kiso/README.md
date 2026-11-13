@@ -151,6 +151,9 @@ call, then the new one.
 - `Tabs::line(width)` is now the labels only. The rule under them is
   `Tabs::rule(width)`, on a second row. A caller that draws only `line`
   compiles and loses the rule. `Tabs::height()` is the rows both take.
+- A code block of `Page` has the surface of a `Card`: the fill and the
+  rail follow the `Look`. With `Border::Rail`, the rail takes the second
+  column of the page.
 - `Table` has a header fill, a 2-cell column gap and its own scrollbar.
 - `fact` cuts a key longer than its column with `…`.
 - `ThemePicker` sits on an Elevated card and dims the page.

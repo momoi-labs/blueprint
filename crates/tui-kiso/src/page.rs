@@ -6,8 +6,9 @@ use ratatui::layout::Rect;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
+use crate::surface::{fill, over, put};
 use crate::text::cells;
-use crate::Theme;
+use crate::{Border, Theme};
 
 /// Where a page is scrolled to. Drawing updates it with the page and view
 /// heights, so keys can scroll by what is on screen. It changes through a
@@ -113,9 +114,11 @@ impl Page {
         self.line(Line::default());
     }
 
-    /// A row of a code block, filled with `card` from the third column.
-    /// Keep a blank row above and below the block: they become half a row
-    /// of fill each.
+    /// A row of a code block, on the surface of a [`Card`](crate::Card)
+    /// from the third column: the fill and the rail come from the theme's
+    /// [`Look`](crate::Look), and the rail takes the second column. Keep a
+    /// blank row above and below the block: they become half a row of fill
+    /// each.
     pub fn code(&mut self, line: impl Into<Line<'static>>) {
         self.rows.push((line.into(), true));
     }
@@ -236,12 +239,22 @@ impl Widget for PageView<'_> {
             return;
         }
 
-        let card = t.color(r.card);
+        // A code block is a Card drawn a row at a time, so a block cut by
+        // the scroll keeps its fill and its rail: the look's fill over what
+        // is under it, and the rail in the cell before the block.
+        let alpha = if t.is_truecolor() { t.look().fill.alpha() } else { 1.0 };
         let inset = |n: u16| Rect { x: area.x.saturating_add(n), width: area.width.saturating_sub(n), ..area };
+        let block = inset(2);
+        let rail = |buf: &mut Buffer, y: u16, symbol: &str| {
+            if t.look().border == Border::Rail && block.width > 0 {
+                put(buf, block.x - 1, y, symbol, t.color(r.primary));
+            }
+        };
         for (dy, (line, code)) in rows.iter().skip(offset).take(height).enumerate() {
             let y = area.y + dy as u16;
             if *code {
-                buf.set_style(Rect { y, height: 1, ..inset(2) }, ratatui::style::Style::new().bg(card));
+                fill(t, buf, Rect { y, height: 1, ..block }, r.card, alpha);
+                rail(buf, y, "▐");
                 let text = inset(4);
                 buf.set_line(text.x, y, line, text.width.saturating_sub(2));
                 continue;
@@ -252,9 +265,11 @@ impl Widget for PageView<'_> {
             let prev = (offset + dy).checked_sub(1).is_some_and(|p| rows[p].1);
             if line.width() == 0 && (next || prev) {
                 let symbol = if next { "▄" } else { "▀" };
-                for x in inset(2).left()..area.right() {
-                    buf[(x, y)].set_symbol(symbol).set_fg(card);
+                for x in block.left()..area.right() {
+                    let fg = over(t, buf, x, y, r.card, alpha);
+                    put(buf, x, y, symbol, fg);
                 }
+                rail(buf, y, if next { "▗" } else { "▝" });
             }
         }
         if let Some(range) = self.selected.and_then(|i| self.page.items.get(i)) {
@@ -327,6 +342,28 @@ mod tests {
             page.item([Line::raw(format!("  item {i}"))]);
         }
         page
+    }
+
+    #[test]
+    fn a_code_block_has_the_surface_of_a_card() {
+        use crate::{Card, Look, PanelFill};
+        let look = Look { fill: PanelFill::Translucent, border: Border::Rail, ..Look::DEFAULT };
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK).with_look(look);
+        let (mut page, scroll) = (Page::default(), Scroll::default());
+        page.blank();
+        page.code(Line::raw("select 1"));
+        page.blank();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 20, 3));
+        page.view(&theme, &scroll).render(buf.area, &mut buf);
+        let mut card = Buffer::empty(buf.area);
+        Card::new(&theme).render(Rect::new(2, 0, 18, 3), &mut card);
+        // The rail, the half rows and the fill are the ones a Card draws.
+        for at in [(1, 0), (1, 1), (1, 2), (2, 0), (2, 2)] {
+            assert_eq!((buf[at].symbol(), buf[at].fg), (card[at].symbol(), card[at].fg), "{at:?}");
+        }
+        assert_eq!(buf[(2, 1)].bg, card[(2, 1)].bg);
+        assert_ne!(buf[(2, 1)].bg, theme.color(theme.tokens().card), "translucent, not the whole card color");
+        assert_eq!(buf[(4, 1)].symbol(), "s");
     }
 
     #[test]
