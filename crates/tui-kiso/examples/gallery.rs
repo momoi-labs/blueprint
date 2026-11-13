@@ -30,81 +30,99 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Each component, and what its page shows.
 const PAGES: [(&str, &str); 71] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
+    ("Grid", "The areas of a page, on tracks of whole columns. It draws nothing."),
+    ("AppShell", "The areas of a screen. It draws nothing."),
+    ("Card", "A surface of fill for related content, with a rule between its parts."),
+    ("Separator", "The one rule: horizontal with a label, or vertical."),
+    ("Split", "Panes from ratios, parted by a divider. The focus is on the divider."),
+    ("BrandMark", "The product name as text, plain or on the accent fill."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
-    ("Tabs", "The views of a screen; the current one has a heavy rule."),
-    ("Page", "Rows that scroll: sections, columns, a selection, code."),
-    ("Table", "Records in columns: a header on a fill, a selection, and its states."),
-    ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
-    ("KeyHints", "The footer keys. Help and quit always stay."),
-    ("FormActions", "The buttons that end a form: primary last, stacked when narrow."),
-    ("Form", "Labels in a column; focus is the list selection."),
-    ("Modal", "A dialog over the dimmed page, opened with enter."),
-    ("Question", "A question with facts, what happens, and buttons."),
-    ("CommandPalette", "Commands with their keys, opened with ctrl+p."),
-    ("ThemePicker", "The accent and dark or light on an elevated card, previewed live."),
-    ("Toast", "Notices, spinners and the steps of a run."),
-    ("Sidebar", "The navigation: groups, counts, a disabled item, and scrolling."),
-    ("Filters", "One select per facet; f edits them, the page follows."),
-    ("DropdownMenu", "The actions of one row, opened with a, under the row."),
-    ("Detail", "A record as a page: tabs, facts, a failure and its run."),
-    ("Chart", "Series across a window, in braille, with a scale and a legend."),
-    ("Sparkline", "The shape of one series in a cell; the number is beside it."),
-    ("Meter", "A measurement against a known limit, on one row."),
-    ("BarGauge", "Labelled measurements on one scale, values aligned right."),
-    ("Card", "A surface of fill for related content, with a rule between its parts."),
-    ("Stat", "One number, its label, and how it changed."),
-    ("Badge", "A label on a tint of its tone."),
-    ("Dot", "One cell that carries a tone."),
-    ("Button", "An action. The variant says what it is, the state what the keys do."),
-    ("Switch", "One setting that is on or off, applied at once."),
-    ("Grid", "The areas of a page, on tracks of whole columns. It draws nothing."),
-    ("Alert", "A message about this view: a tint, a glyph and a title per tone."),
-    ("Spinner", "A braille frame with an optional label. The app counts the ticks."),
-    ("Skeleton", "Blocks that stand for content on its way. The app owns time."),
-    ("EmptyState", "A region with nothing in it: what is empty and what to do."),
-    ("Link", "A destination, underlined, with a focus state."),
-    ("Separator", "The one rule: horizontal with a label, or vertical."),
-    ("AppShell", "The areas of a screen. It draws nothing."),
     ("PageHeader", "The top of one page: path, title, description and actions."),
     ("Breadcrumb", "Where the person is in a hierarchy; the middle collapses."),
-    ("Diagram", "A few boxes and arrows, placed by layer and row."),
-    ("TimeRangeControl", "A window of time from a few presets, on one row."),
-    ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
-    ("AccentSelector", "One row of accent swatches with the current one marked."),
-    ("BrandMark", "The product name as text, plain or on the accent fill."),
+    ("Tabs", "The views of a screen; the current one has a heavy rule."),
+    ("Sidebar", "The navigation: groups, counts, a disabled item, and scrolling."),
+    ("Pagination", "The pages of a long list on one row; the current one is filled."),
+    ("Link", "A destination, underlined, with a focus state."),
+    ("KeyHints", "The footer keys. Help and quit always stay."),
+    ("ScopeSwitcher", "The scope in the header, and the menu to change it."),
+    ("Steps", "Where the person is in a guided flow: a row, a column or a count."),
+    ("Button", "An action. The variant says what it is, the state what the keys do."),
+    ("IconButton", "A button with a glyph and a name it falls back to."),
+    ("FormActions", "The buttons that end a form: primary last, stacked when narrow."),
+    ("DropdownMenu", "The actions of one row, opened with a, under the row."),
+    ("CommandPalette", "Commands with their keys, opened with ctrl+p."),
+    ("Form", "Labels in a column; focus is the list selection."),
+    ("FormField", "A label, a control, and its help or its error, on whole tracks."),
     ("Label", "The name of a field, its help under it, and what is wrong with it."),
     ("Input", "One line of text on a fill. A long value slides to keep the cursor."),
     ("PasswordInput", "A secret as dots, shown and hidden with ctrl+r."),
     ("Textarea", "Lines that wrap; the view follows the cursor."),
-    ("FormField", "A label, a control, and its help or its error, on whole tracks."),
-    ("Split", "Panes from ratios, parted by a divider. The focus is on the divider."),
+    ("Checkbox", "A choice the form submits: a square box, then its label."),
+    ("RadioGroup", "One choice out of a few that all show."),
+    ("Switch", "One setting that is on or off, applied at once."),
+    ("Select", "One choice from a list that opens under the field."),
+    ("Combobox", "A select you type into: the list keeps what matches."),
+    ("DetailSelect", "One choice whose options each have a description."),
+    ("ChipInput", "Short values typed one by one, each a chip."),
+    ("FilterInput", "The field that filters a list as the person types."),
+    ("Search", "The footer search: / starts it, the list marks each match."),
+    ("Filters", "One select per facet; f edits them, the page follows."),
+    ("TimeRangeControl", "A window of time from a few presets, on one row."),
+    ("AccentSelector", "One row of accent swatches with the current one marked."),
+    ("ThemePicker", "The accent and dark or light on an elevated card, previewed live."),
+    ("Page", "Rows that scroll: sections, columns, a selection, code."),
+    ("Table", "Records in columns: a header on a fill, a selection, and its states."),
+    ("KV", "The facts of one record: a muted key column, then the value."),
+    ("Detail", "A record as a page: tabs, facts, a failure and its run."),
+    ("Stat", "One number, its label, and how it changed."),
+    ("Badge", "A label on a tint of its tone."),
+    ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
+    ("Dot", "One cell that carries a tone."),
+    ("CodeBlock", "Code on a card surface, with line numbers and marked lines."),
+    ("LogView", "Log lines that follow the end, pause when scrolled, and wrap."),
     ("Disclosure", "A title that opens its content: ▸ closed, ▾ open."),
-    ("Steps", "Where the person is in a guided flow: a row, a column or a count."),
     ("StepBar", "One segment per step, for a table cell or a summary."),
     ("StepList", "The steps of a run, one row each, with a detail."),
     ("Lifecycle", "A detail header: status, verbs and the destructive action."),
-    ("KV", "The facts of one record: a muted key column, then the value."),
-    ("Pagination", "The pages of a long list on one row; the current one is filled."),
-    ("FilterInput", "The field that filters a list as the person types."),
-    ("Search", "The footer search: / starts it, the list marks each match."),
-    ("LogView", "Log lines that follow the end, pause when scrolled, and wrap."),
-    ("CodeBlock", "Code on a card surface, with line numbers and marked lines."),
-    ("Checkbox", "A choice the form submits: a square box, then its label."),
-    ("RadioGroup", "One choice out of a few that all show."),
-    ("Select", "One choice from a list that opens under the field."),
-    ("Combobox", "A select you type into: the list keeps what matches."),
-    ("ChipInput", "Short values typed one by one, each a chip."),
-    ("IconButton", "A button with a glyph and a name it falls back to."),
+    ("Diagram", "A few boxes and arrows, placed by layer and row."),
+    ("Chart", "Series across a window, in braille, with a scale and a legend."),
+    ("Sparkline", "The shape of one series in a cell; the number is beside it."),
+    ("Meter", "A measurement against a known limit, on one row."),
+    ("BarGauge", "Labelled measurements on one scale, values aligned right."),
+    ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
+    ("Alert", "A message about this view: a tint, a glyph and a title per tone."),
+    ("Toast", "Notices, spinners and the steps of a run."),
+    ("Spinner", "A braille frame with an optional label. The app counts the ticks."),
+    ("Skeleton", "Blocks that stand for content on its way. The app owns time."),
+    ("EmptyState", "A region with nothing in it: what is empty and what to do."),
+    ("Modal", "A dialog over the dimmed page, opened with enter."),
+    ("Question", "A question with facts, what happens, and buttons."),
     ("Drawer", "A panel over the page from one edge, for a record's details."),
     ("Popover", "Details next to what they are about, over a lit page."),
-    ("ScopeSwitcher", "The scope in the header, and the menu to change it."),
-    ("DetailSelect", "One choice whose options each have a description."),
 ];
-const FORM: usize = 9;
-const CARD: usize = 23;
-const FILTERS: usize = 16;
-const CHART: usize = 19;
+/// The sidebar groups: a title and how many pages of `PAGES` it takes, in order.
+const GROUPS: [(&str, usize); 8] = [("Foundations", 7), ("Navigation", 11), ("Actions", 5), ("Forms", 19), ("Data", 15), ("Charts", 5), ("Feedback", 5), ("Overlays", 4)];
+/// The index of a page, by name, so the order of `PAGES` is free to change.
+const fn page(name: &str) -> usize {
+    let (name, mut i) = (name.as_bytes(), 0);
+    while i < PAGES.len() {
+        let at = PAGES[i].0.as_bytes();
+        let mut k = 0;
+        while k < at.len() && k < name.len() && at[k] == name[k] {
+            k += 1;
+        }
+        if k == at.len() && k == name.len() {
+            return i;
+        }
+        i += 1;
+    }
+    panic!("no such page")
+}
+const FORM: usize = page("Form");
+const CARD: usize = page("Card");
+const FILTERS: usize = page("Filters");
+const CHART: usize = page("Chart");
 
 const SIZE: (u16, u16) = (100, 30);
 
@@ -137,18 +155,18 @@ Usage: gallery [--accent <name>] [--light] [--256] [--snapshot <dir>] [--json <f
 const SITE_STATES: [(&str, usize, &str); 15] = [
     ("21-form-select", FORM, "Changed select"),
     ("20-form-typing", FORM, "Typing"),
-    ("23-help", 10, "Help over a page"),
-    ("29-help-80", 10, "At 80 by 24"),
-    ("32-question-80", 11, "At 80 by 24"),
-    ("31-palette-80", 12, "At 80 by 24"),
-    ("24-theme-picker", 13, "Previewing an accent"),
-    ("30-picker-80", 13, "At 80 by 24"),
-    ("22-sidebar-focus", 15, "With focus"),
-    ("28-80-by-24", 15, "Hidden at 80 by 24"),
+    ("23-help", page("Modal"), "Help over a page"),
+    ("29-help-80", page("Modal"), "At 80 by 24"),
+    ("32-question-80", page("Question"), "At 80 by 24"),
+    ("31-palette-80", page("CommandPalette"), "At 80 by 24"),
+    ("24-theme-picker", page("ThemePicker"), "Previewing an accent"),
+    ("30-picker-80", page("ThemePicker"), "At 80 by 24"),
+    ("22-sidebar-focus", page("Sidebar"), "With focus"),
+    ("28-80-by-24", page("Sidebar"), "Hidden at 80 by 24"),
     ("26-filter-editor", FILTERS, "Editing"),
     ("27-filtered", FILTERS, "Filtered"),
     ("34-filters-80", FILTERS, "Editing at 80 by 24"),
-    ("33-menu-80", 17, "At 80 by 24"),
+    ("33-menu-80", page("DropdownMenu"), "At 80 by 24"),
     ("35-chart-80", CHART, "At 80 by 24"),
 ];
 
@@ -366,10 +384,13 @@ impl App {
     fn sidebar(&self) -> Sidebar<'_> {
         let t = &self.theme;
         let brand = Line::from(vec![Span::styled(format!(" {PRODUCT} {VERSION} "), t.brand())]);
-        Sidebar::new(t)
-            .head([brand, Line::default(), Line::styled("Kiso for ratatui", t.muted())])
-            .group("Components", PAGES.iter().map(|(name, _)| SideItem::new(*name)))
-            .current(Some(self.page))
+        let mut side = Sidebar::new(t).head([brand, Line::default(), Line::styled("Kiso for ratatui", t.muted())]);
+        let mut from = 0;
+        for (title, count) in GROUPS {
+            side = side.group(title, PAGES[from..from + count].iter().map(|(name, _)| SideItem::new(*name)));
+            from += count;
+        }
+        side.current(Some(self.page))
             .focused(!self.main)
     }
 
@@ -1274,9 +1295,9 @@ fn states() -> Vec<State> {
     states.push(("29-help-80".into(), keys("?"), small));
     states.push(("30-picker-80".into(), keys("t"), small));
     let enter = vec![code(KeyCode::Enter)];
-    states.push(("31-palette-80".into(), [open(12), enter.clone()].concat(), small));
-    states.push(("32-question-80".into(), [open(11), enter.clone()].concat(), small));
-    states.push(("33-menu-80".into(), [open(17), enter.clone()].concat(), small));
+    states.push(("31-palette-80".into(), [open(page("CommandPalette")), enter.clone()].concat(), small));
+    states.push(("32-question-80".into(), [open(page("Question")), enter.clone()].concat(), small));
+    states.push(("33-menu-80".into(), [open(page("DropdownMenu")), enter.clone()].concat(), small));
     states.push(("34-filters-80".into(), filters, small));
     states.push(("35-chart-80".into(), open(CHART), small));
     // Dots, and a rail on the cards. The panel pushes a wide page and covers a narrow one.
@@ -1285,7 +1306,7 @@ fn states() -> Vec<State> {
     states.push(("37-appearance-100".into(), [open(CARD), looks].concat(), SIZE));
     // Stripes at full strength under a table: no pattern between its columns.
     let stripes = [keys("s"), vec![code(KeyCode::Left), code(KeyCode::Down), code(KeyCode::Right), code(KeyCode::Char('s'))]].concat();
-    states.push(("38-table-stripes".into(), [open(5), stripes].concat(), SIZE));
+    states.push(("38-table-stripes".into(), [open(page("Table")), stripes].concat(), SIZE));
     // The dashboard at a small size, and on dots with a rail and translucent cards.
     let dashboard = PAGES.iter().position(|(name, _)| *name == "Dashboard").unwrap_or(0);
     states.push(("39-dashboard-80".into(), open(dashboard), small));

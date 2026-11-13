@@ -113,10 +113,10 @@ pub fn skeleton_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     }
     caption(t, buf, area, 12, "Alone, on the page: a block of any size");
     let block = |tick: Option<u32>| tick.map_or(Skeleton::new(t), |tick| Skeleton::new(t).tick(tick));
-    if let Some(rect) = inside(area, 0, 14, 8, 4) {
+    if let Some(rect) = inside(area, 0, 14, 8, 3) {
         block(None).render(rect, buf);
     }
-    for (i, width) in [32u16, 22, 12].into_iter().enumerate() {
+    for (i, width) in [32u16, 22].into_iter().enumerate() {
         if let Some(rect) = inside(area, 10, 14 + i as u16 * 2, width, 1) {
             block(Some(1)).render(rect, buf);
         }
