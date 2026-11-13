@@ -112,6 +112,9 @@ pub(crate) fn frame(paint: &Paint, size: Size, width: u16, body: Vec<Vec<Span<'s
 /// land in the cell before and the cell after it. Cells the surface does
 /// not own keep what is under them.
 pub(crate) fn draw(buf: &mut Buffer, area: Rect, lines: &[Line<'static>]) {
+    if area.is_empty() {
+        return;
+    }
     for (dy, line) in lines.iter().enumerate().take(usize::from(area.height)) {
         let y = area.y.saturating_add(dy as u16);
         let mut x = i32::from(area.x) - 1;
@@ -428,6 +431,14 @@ mod tests {
         let r = theme.tokens();
         assert_eq!(buf[(6, 1)].bg, theme.color(r.primary), "the cursor sits after the text");
         assert_eq!(buf[(2, 1)].bg, theme.color(r.input));
+    }
+
+    #[test]
+    fn an_empty_area_draws_nothing() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 8, 3));
+        Input::new(&theme, "laya").focused(true).render(Rect::new(3, 0, 0, 3), &mut buf);
+        assert_eq!(buf, Buffer::empty(Rect::new(0, 0, 8, 3)));
     }
 
     #[test]

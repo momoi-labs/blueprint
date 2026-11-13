@@ -265,12 +265,16 @@ impl Field {
     }
 
     /// Takes a key a form would use to move or to close, when the field
-    /// has a use for it: enter, ↑↓ and esc on an area, an open list, a
+    /// has a use for it: enter and ↑↓ on an area, ↑↓ and esc on an open list, a
     /// select or a combobox to open, and text to make a chip of. None
     /// leaves the key to the form.
     #[cfg(feature = "crossterm")]
     pub(crate) fn grab(&mut self, key: KeyEvent) -> Option<bool> {
         if !matches!(key.code, KeyCode::Enter | KeyCode::Up | KeyCode::Down | KeyCode::Esc) {
+            return None;
+        }
+        // esc closes the form, from an area too.
+        if key.code == KeyCode::Esc && matches!(self.input, Control::Area { .. }) {
             return None;
         }
         let n = self.shown().0.len();
@@ -816,6 +820,12 @@ mod tests {
     fn form() -> Form {
         let fields = vec![Field::check("Also delete"), Field::text("Name", "").hidden(), Field::text("Note", "")];
         Form::new(fields, 2)
+    }
+
+    #[test]
+    fn esc_in_an_area_cancels_the_form() {
+        let mut form = Form::new(vec![Field::area("Notes", "")], 0);
+        assert_eq!(form.key(key(KeyCode::Esc)), Act::Cancel);
     }
 
     #[test]

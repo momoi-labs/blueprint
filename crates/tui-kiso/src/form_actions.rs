@@ -92,6 +92,10 @@ impl Widget for FormActions<'_> {
             let width = area.width.saturating_sub(2).max(1);
             for (i, button) in self.buttons.iter().rev().enumerate() {
                 let at = top.saturating_add(i as u16 * 3);
+                // A button takes 3 rows; one that does not fit is left out.
+                if at.saturating_add(3) > area.bottom() {
+                    break;
+                }
                 button.stretch(width).render(Rect::new(x.saturating_add(1), at, width, 3), buf);
             }
             return;
@@ -106,6 +110,9 @@ impl Widget for FormActions<'_> {
                 let shown = if used < cells(text) { format!("{}…", take_cells(text, room - 1).0) } else { text.to_owned() };
                 write(buf, x.saturating_add(1), y.saturating_add(1), &shown, self.message_style(tone));
             }
+        }
+        if area.height < 3 {
+            return;
         }
         for button in self.buttons {
             let width = button.width();
@@ -160,6 +167,20 @@ mod tests {
         let cancel = Button::new(theme, "Cancel");
         let save = Button::new(theme, "Save").variant(ButtonVariant::Primary).state(ButtonState::Focus);
         FormActions::new(theme, [cancel, save])
+    }
+
+    #[test]
+    fn a_button_that_does_not_fit_is_left_out() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        for width in [60, 12] {
+            let mut buf = Buffer::empty(Rect::new(0, 0, width, 6));
+            actions(&theme).render(Rect::new(0, 0, width, 2), &mut buf);
+            for y in 2..6 {
+                for x in 0..width {
+                    assert_eq!(buf[(x, y)], ratatui::buffer::Cell::EMPTY, "{width} wide, cell {x},{y}");
+                }
+            }
+        }
     }
 
     #[test]
