@@ -7,7 +7,11 @@ license = "MIT"
 homepage = "https://kiso.momoi-labs.dev"
 repository = "https://github.com/momoi-labs/blueprint"
 rust-version = "1.88"
-publish = false
+readme = "README.md"
+keywords = ["kiso", "design-system", "components", "ui"]
+categories = ["gui", "command-line-interface"]
+# The fixtures are written by the tests for the React parity check.
+include = ["src/**", "README.md"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

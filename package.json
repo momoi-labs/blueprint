@@ -7,7 +7,9 @@
     "apps/*",
     "packages/*",
     "kiso/blocks/react-prototype",
-    "crates/kiso-tokens"
+    "crates/kiso-core",
+    "crates/kiso-tokens",
+    "crates/tui-kiso"
   ],
   "scripts": {
     "gallery": "npm run build:packages && npm run dev --workspace=kiso-gallery",

@@ -16,8 +16,9 @@ published sources without one.
 The release workflow turns merged changesets into a "chore: release kiso" PR.
 Merging that PR publishes the bumped packages to npm and tags the release.
 
-The `kiso-tokens` Rust crate is versioned the same way, through its private
-`crates/kiso-tokens/package.json`. The version PR copies the new version into
-`Cargo.toml`. On merge, Changesets tags it and the release workflow publishes
-it to crates.io. A change to `tokens/tokens.json` regenerates the crate, so it
+The Rust crates `kiso-tokens`, `kiso-core` and `tui-kiso` are versioned the
+same way, through a private `package.json` in each crate. The version PR copies
+the new versions into `Cargo.toml` and into the crates that depend on them. On
+merge, Changesets tags them and the release workflow publishes them to
+crates.io. A change to `tokens/tokens.json` regenerates `kiso-tokens`, so it
 needs a `kiso-tokens` entry too.
