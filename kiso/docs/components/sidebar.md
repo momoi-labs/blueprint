@@ -78,18 +78,26 @@ focused disclosure; Links retain native behavior.
 
 ## Terminal
 
-In a terminal, the sidebar is `tui-kiso` `Sidebar`, without a frame: a few
-lines on top, such as the brand and what the screen is about, then groups
-of items, each under a section rule. An item can have its key on the
-right in `subtle-foreground`, or a mark before it, such as a status `●`.
-Items are `muted-foreground`; the current one is bold `link`. While the
-sidebar has focus, the current item is filled with `primary` instead.
+In a terminal, Sidebar is `tui-kiso` `Sidebar`. Its list of items is the
+Navigation component, one implementation: `SideItem`s in groups, inside the
+`Sidebar`.
 
-It is as wide as its longest line, from 20 to 32 columns, and sits four
-columns from the page, on the left by default or on the right as a
-product option. It hides when the page would get fewer than 60 columns.
-`Tab` moves focus between the sidebar and the page, and `↑` `↓` choose. See
-[terminal interfaces](../terminal-interfaces.md#layout).
+| State | Terminal form |
+| --- | --- |
+| item | `muted-foreground` label, indented. |
+| selected | A fill of the selection token across the width, and a half bar `▌` in `primary` at the left, the same mark as a selected table row. |
+| selected, sidebar without focus | The same fill; the bar is `subtle-foreground`. |
+| disabled | `disabled` text. `step()` skips it. |
+| group | A caption in `muted-foreground` and a section rule. An empty title leaves a blank row. |
+| count | `.badge("3")`, a neutral `Badge` at the right edge. |
+| key, mark | `.key("1")` in `subtle-foreground` at the right; `.mark(span)` before the label. |
+
+The width is the longest line, from 20 to 32 columns. When the lines are
+taller than the area, they scroll so the selected item and the line after it
+stay on screen. Under 100 columns the sidebar collapses: `AppShell` opens it
+as an overlay with a key. The side is `Side::Left` or `Side::Right`. The
+app owns the keys: `j`/`k` or the arrows move, `enter` opens, `tab` moves
+focus to the page. See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

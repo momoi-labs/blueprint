@@ -86,16 +86,22 @@ IconButton trigger.
 
 ## Terminal
 
-In a terminal, Header is the top row: `tui-kiso` `Header`. It leads with
-the product name and version in bold `primary-foreground` on `primary`, so
-a screenshot says which tool and release produced it. The current view's
-title or breadcrumb follows. Earlier breadcrumb parts are
-`muted-foreground` with a `subtle-foreground` slash, and the current part
-is bold `foreground`. The rest of the row stays unpainted, as the page.
+In a terminal, Header is `tui-kiso` `Header`: the app bar, one row, once per
+screen. It says which product this is and where the person works. A page
+has its own `PageHeader`; `Title` is the title line inside it.
 
-A screen with a [Sidebar](sidebar.md) puts the brand at the top of the
-sidebar instead. Header has no keys of its own. When the row runs out of
-width, the end of the breadcrumb is cut; the brand stays. See
+| Part | Terminal form |
+| --- | --- |
+| Brand | Product and version, bold `primary-foreground` on `primary`. |
+| Scope | `.scope("pg-main")`, the project or environment, in `foreground`. |
+| Path | `.breadcrumb([...])` or `.title(...)`, drawn as a `Breadcrumb` after a `│` in `subtle-foreground`. |
+| Right side | `.right(spans)`: a user or a status, kept at the right edge. |
+
+The rest of the row stays unpainted. When the row runs out of width, the
+right side drops first and never cuts the scope, then the path collapses
+to `…`. The brand always stays. A screen with a [Sidebar](sidebar.md) can put the
+brand at the top of the sidebar instead. Header has no actions: they belong to
+`PageHeader`. See
 [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use

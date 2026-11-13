@@ -93,6 +93,18 @@ it has `display: none`.
   visually hidden suffix when the number needs a word, such as "3 open".
 - Tab reaches the bar after the page content, in DOM order.
 
+## Terminal
+
+BottomNav has no widget in `tui-kiso`. The web uses it on phones, where the
+thumb reaches the bottom of the screen. In a terminal, the footer already
+holds the keys: use `KeyHints` in the last row of the `AppShell`.
+
+Put the keys that switch views first, as `1 Overview • 2 Machines`, and mark
+the current view with `.current(i)`. Put `?` help and quit last. When the
+width runs out, the hints before them drop from the right, help and quit
+stay, and a hint is never cut in the middle. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A product whose phone layout puts its main destinations at the bottom edge.

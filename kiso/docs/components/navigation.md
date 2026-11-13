@@ -55,6 +55,18 @@ landmark on the page needs a distinct label (“Primary”, “Breadcrumb”,
 “Pagination”). Do not add menu roles: application navigation keeps native Link
 semantics and `Tab` order. `Enter` follows a Link.
 
+## Terminal
+
+In a terminal, Navigation is the list of `SideItem`s inside the `Sidebar`
+of `tui-kiso`. There is no second type: the same widget draws the groups,
+the selected item, the counts and the disabled state. Read the Sidebar
+doc for the states.
+
+A navigation that is not in a sidebar maps to the forms the crate has:
+`Tabs` for the views of one screen, `Breadcrumb` for the path, `Menu` for
+the actions of one row, and `KeyHints` for the keys. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - To group destinations in Header, Sidebar, footer, or a local section.
