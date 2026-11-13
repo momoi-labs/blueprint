@@ -48,6 +48,23 @@ Use `<nav aria-label="Breadcrumb">` with an `<ol>`. Separators are CSS or
 `aria-hidden="true"`. Do not make the current page a self-link. Keyboard
 behavior is native Link/menu behavior; `Tab` visits Links, not separators.
 
+## Terminal
+
+In a terminal, Breadcrumb is `tui-kiso` `Breadcrumb`: the path on one row,
+`Projects › pg-main › Machines`.
+
+| Part | Terminal form |
+| --- | --- |
+| Ancestor | `muted-foreground`. |
+| Separator | `›` in `subtle-foreground`, with a space on each side. |
+| Current page | The last part, bold `foreground`. |
+| Collapsed middle | `…` in place of the middle parts. |
+
+When the path does not fit, the middle collapses and the first and last
+parts stay: `Projects › … › Machines`. Then the first part drops, and last
+of all the current part is cut with `…`. Parts are not links: the path is for
+orientation, and `Header` and `PageHeader` draw it. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Routes at least two meaningful levels deep.

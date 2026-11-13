@@ -85,12 +85,20 @@ fill space.
 
 ## Terminal
 
-In a terminal, the page header is `tui-kiso` `Title` on the first row: the
-title in bold `foreground` in the middle of the title line, across the
-page. The line is a heavy `━` in `primary` by default, and the product can
-pick another pattern and ink with `Theme::with_look`. A description in
-`muted-foreground` goes on the next row, then a blank row before the page.
-See [terminal interfaces](../terminal-interfaces.md#surfaces).
+In a terminal, PageHeader is `tui-kiso` `PageHeader`: the top of one page.
+It is not the app bar, which is `Header`.
+
+| Part | Terminal form |
+| --- | --- |
+| Breadcrumb | `.breadcrumb([...])`, one row above the title. |
+| Title | The `Title` line: a heavy rule with the title in the middle. |
+| Description | `.description(text)`, `muted-foreground`, cut with `…`. |
+| Actions | `.action(button)`: `Button` forced to `Size::Sm`, right-aligned on the title row, two cells apart. |
+
+When the actions would leave the title under 20 cells, they wrap to a row of
+their own below it. A blank row ends the header: `height(width)` tells the
+page where to start. Tabs go under the header as a separate `Tabs`. See
+[terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

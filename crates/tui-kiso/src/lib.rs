@@ -19,8 +19,10 @@
 //! ```
 
 mod accent;
+mod app_shell;
 mod backdrop;
 mod badge;
+mod breadcrumb;
 mod button;
 mod buttons;
 mod card;
@@ -38,6 +40,7 @@ mod meter;
 mod modal;
 mod notice;
 mod page;
+mod page_header;
 mod palette;
 mod picker;
 mod question;
@@ -61,8 +64,10 @@ mod skeleton;
 mod spinner;
 
 pub use accent::{Accent, ACCENTS};
+pub use app_shell::{AppShell, ShellAreas};
 pub use backdrop::{Backdrop, Canvas};
 pub use badge::Badge;
+pub use breadcrumb::Breadcrumb;
 pub use button::{Button, ButtonState, ButtonVariant};
 pub use buttons::{Buttons, Press};
 pub use card::{Card, CardVariant, Size};
@@ -80,6 +85,7 @@ pub use meter::{BarGauge, Meter};
 pub use modal::Modal;
 pub use notice::{braille, scramble, set_background, set_clipboard, set_foreground, set_progress, step, StepState, Toast};
 pub use page::{Mark, Page, PageView, Scroll};
+pub use page_header::PageHeader;
 pub use palette::Palette;
 pub use picker::{PickerView, ThemePicker};
 pub use question::Question;

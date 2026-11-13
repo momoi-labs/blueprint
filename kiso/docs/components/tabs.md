@@ -83,18 +83,22 @@ determines the arrow-key axis.
 
 ## Terminal
 
-In a terminal, tabs are `tui-kiso` `Tabs`: the views of a screen on one
-row. The current view is the [page title](page-header.md): its label in
-bold `foreground` in the middle of the title line, taking the free width.
-The others stay short: their number, which is their key, in
-`subtle-foreground`, then the label in `muted-foreground`. A label can end
-with a count, such as "Waiting 3". When the views do not fit, the ones
-farthest from the current one drop.
+In a terminal, Tabs is `tui-kiso` `Tabs`: two rows, the labels and a rule
+under them.
 
-On a detail page, the tabs replace the title: the current one reads as
-"laya · Summary", and `Tabs::numbered(false)` hides the numbers, because
-the number keys already open pages. `[` and `]` move between them. See
-[terminal interfaces](../terminal-interfaces.md).
+| State | Terminal form |
+| --- | --- |
+| current | Bold accent text, with a heavy `━` in `primary` under it. |
+| other | `muted-foreground` text over a faint `─` rule across the width. |
+| disabled | `.disabled([2])`: `disabled` text. |
+| number | ` 1 ` before the label in `subtle-foreground`, the key. `.numbered(false)` hides it. |
+
+There is no fill: the segmented time range control (`TimeRangeControl`) is
+the one with a fill. When the tabs do not fit, the ones farthest from the
+current tab drop and the current one stays. In a one-row area, only the
+labels draw, and the current tab keeps its color and weight. Number keys
+choose a tab, or `[` and `]` when the numbers mean something else. The app
+owns the keys. See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

@@ -19,7 +19,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType, Sparkline, Widget};
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
-    set_background, set_foreground, Act, Buttons, Columns, Field, Form, KeyHints, Mark, Page, Question, Scroll, Side, SideItem,
+    set_background, set_foreground, Act, AppShell, Buttons, Columns, Field, Form, KeyHints, Mark, Page, Question, Scroll, Side, SideItem,
     Sidebar, StatusBadge, Tabs, Theme, Title, wrap, ACCENTS,
 };
 
@@ -225,17 +225,24 @@ impl App {
         let t = &self.theme;
         let screen = f.area();
         let buf = f.buffer_mut();
-        let body = body(screen);
-        let foot = Rect::new(body.x, screen.bottom().saturating_sub(1), body.width, 1);
+        let sidebar = self.sidebar();
+        let gate = matches!(self.screen, Screen::Login(_));
+        let shell = AppShell::new(screen).side(Side::Left).sidebar(if gate { 0 } else { sidebar.width() });
+        if shell.too_small() {
+            shell.message(t, buf);
+            return;
+        }
+        let areas = shell.areas();
+        let foot = areas.footer;
         // Sign-in is a gate before the workspace: no sidebar, one column.
         if let Screen::Login(failure) = self.screen {
+            let body = Rect { width: areas.page.width + 2, ..areas.page };
             self.draw_login(buf, body, failure);
             KeyHints::new(t, [("tab", "next field"), ("enter", "sign in"), ("esc", "quit")]).render(foot, buf);
             return;
         }
-        let sidebar = self.sidebar();
-        let (side, main) = sidebar.split(body, Side::Left);
-        if let Some(area) = side {
+        let main = areas.page;
+        if let Some(area) = areas.sidebar {
             sidebar.render(area, buf);
         }
         let width = usize::from(main.width);
@@ -547,11 +554,6 @@ fn draw_charts(buf: &mut Buffer, t: &Theme, main: Rect) {
     }
 }
 // gallery end
-
-/// The screen less two columns on each side and the footer.
-fn body(screen: Rect) -> Rect {
-    Rect::new(screen.x + 2, screen.y, screen.width.saturating_sub(4), screen.height.saturating_sub(1))
-}
 
 fn put(buf: &mut Buffer, area: Rect, dy: u16, line: Line) {
     if dy < area.height {

@@ -18,7 +18,7 @@ use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
     ButtonVariant, Buttons, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
-    Header, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Press, Question, Scroll, Search,
+    AppShell, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Press, Question, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
     Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, Title, Toast, Tone,
     ACCENTS,
@@ -28,11 +28,11 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 36] = [
+const PAGES: [(&str, &str); 39] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
-    ("Header", "The brand and version, then where the person is."),
+    ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
-    ("Tabs", "The views of a screen; the current one takes the width."),
+    ("Tabs", "The views of a screen; the current one has a heavy rule."),
     ("Page", "Rows that scroll: sections, columns, a selection, code."),
     ("Table", "A ratatui table with Kiso's header and selection."),
     ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
@@ -44,7 +44,7 @@ const PAGES: [(&str, &str); 36] = [
     ("Palette", "Commands with their keys, opened with ctrl+p."),
     ("ThemePicker", "The accent and dark or light, previewed live."),
     ("Toast", "Notices, spinners and the steps of a run."),
-    ("Sidebar", "The navigation, as wide as its longest line."),
+    ("Sidebar", "The navigation: groups, counts, a disabled item, and scrolling."),
     ("Filters", "One select per facet; f edits them, the page follows."),
     ("Menu", "The actions of one row, opened with a, under the row."),
     ("Detail", "A record as a page: tabs, facts, a failure and its run."),
@@ -65,6 +65,9 @@ const PAGES: [(&str, &str); 36] = [
     ("EmptyState", "A region with nothing in it: what is empty and what to do."),
     ("Link", "A destination, underlined, with a focus state."),
     ("Separator", "The one rule: horizontal with a label, or vertical."),
+    ("AppShell", "The areas of a screen. It draws nothing."),
+    ("PageHeader", "The top of one page: path, title, description and actions."),
+    ("Breadcrumb", "Where the person is in a hierarchy; the middle collapses."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -292,8 +295,14 @@ impl App {
         let screen = f.area();
         let buf = f.buffer_mut();
         // No fill: the terminal's background, set with OSC 11, shows through.
-        let body = body(screen);
-        let foot = Rect::new(body.x, screen.bottom().saturating_sub(1), body.width, 1);
+        let sidebar = self.sidebar();
+        let shell = AppShell::new(screen).side(Side::Left).sidebar(sidebar.width());
+        if shell.too_small() {
+            shell.message(t, buf);
+            return;
+        }
+        let areas = shell.areas();
+        let foot = areas.footer;
         // The glow is a color under the whole screen, so it goes first. A
         // pattern takes whole cells, so it goes last, below what the page
         // drew.
@@ -302,8 +311,7 @@ impl App {
         if glow {
             backdrop.render(screen, buf);
         }
-        let sidebar = self.sidebar();
-        let (side, main) = sidebar.split(body, Side::Left);
+        let (side, main) = (areas.sidebar, areas.page);
         if let Some(area) = side {
             sidebar.render(area, buf);
         }
@@ -360,16 +368,16 @@ impl App {
         let width = usize::from(area.width);
         match PAGES[self.page].0 {
             "Theme" => self.theme_page(width).view(t, &self.scroll).render(area, buf),
-            "Header" => header_page(t, buf, area),
+            "Header" => wave_07::header_page(t, buf, area),
             "Title" => title_page(t, buf, area),
-            "Tabs" => tabs_page(t, buf, area),
+            "Tabs" => wave_07::tabs_page(t, buf, area),
             "Page" => {
                 let page = list_page(t, width);
                 page.view(t, &self.scroll).selected(Some(1)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
             }
             "Table" => table_page(t, buf, area),
             "StatusBadge" => badge_page(t, buf, area),
-            "KeyHints" => hints_page(t, buf, area),
+            "KeyHints" => wave_07::hints_page(t, buf, area),
             "Buttons" => buttons_page(t, buf, area),
             "Form" => {
                 let mut page = Page::default();
@@ -409,7 +417,10 @@ impl App {
                 picker.view(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
             }
             "Toast" => toast_page(t, buf, area),
-            "Sidebar" => sidebar_page(t, buf, area),
+            "Sidebar" => wave_07::sidebar_page(t, buf, area),
+            "AppShell" => wave_07::app_shell_page(t, buf, area),
+            "PageHeader" => wave_07::page_header_page(t, buf, area),
+            "Breadcrumb" => wave_07::breadcrumb_page(t, buf, area),
             "Filters" => {
                 let page = filtered_page(t, width, &self.filters);
                 page.view(t, &self.scroll).selected(Some(0)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
@@ -541,21 +552,6 @@ fn put(buf: &mut Buffer, area: Rect, dy: u16, line: Line) {
     }
 }
 
-fn header_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let rows: [(&str, Header); 4] = [
-        ("Brand only", Header::new(t, "pg-probe", "0.4.0")),
-        ("With a title", Header::new(t, "pg-probe", "0.4.0").title("Machines")),
-        ("With a breadcrumb", Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"])),
-        ("At 32 columns, the end is cut", Header::new(t, "pg-probe", "0.4.0").breadcrumb(["Projects", "pg-main", "Machines"])),
-    ];
-    for (i, (label, header)) in rows.into_iter().enumerate() {
-        let y = i as u16 * 3;
-        caption(t, buf, area, y, label);
-        let width = if i == 3 { 32.min(area.width) } else { area.width };
-        header.render(Rect::new(area.x, area.y + y + 1, width, 1).intersection(area), buf);
-    }
-}
-
 fn title_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     let looks = [
         ("The default: a heavy line in primary", Look::DEFAULT),
@@ -569,15 +565,6 @@ fn title_page(t: &Theme, buf: &mut Buffer, area: Rect) {
         Title::new(&themed, "Machines").render(Rect::new(area.x, area.y + y + 1, area.width, 1).intersection(area), buf);
     }
     caption(t, buf, area, 10, "Set the look once for the product with Theme::with_look.");
-}
-
-fn tabs_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let views = ["Running 12", "Waiting 3", "Blocking 1"];
-    for (i, current) in [0, 1].into_iter().enumerate() {
-        let y = i as u16 * 3;
-        caption(t, buf, area, y, if current == 0 { "Running is current" } else { "Waiting is current; 1 and 3 are the keys" });
-        Tabs::new(t, views, current).render(Rect::new(area.x, area.y + y + 1, area.width, 1).intersection(area), buf);
-    }
 }
 
 struct Machine {
@@ -810,32 +797,6 @@ fn grid_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     }
 }
 
-fn hints_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let hints = [("↑↓", "move"), ("enter", "open"), ("/", "search"), ("s", "sort"), ("?", "help"), ("q", "quit")];
-    let widths: [(u16, &str); 4] = [
-        (60, "At 60 columns, every hint fits"),
-        (40, "At 40 columns, sort and search drop"),
-        (30, "At 30 columns, open drops too"),
-        (22, "At 22 columns, help and quit stay"),
-    ];
-    for (n, (width, label)) in widths.into_iter().enumerate() {
-        let y = n as u16 * 3;
-        caption(t, buf, area, y, label);
-        let line = Rect::new(area.x, area.y + y + 1, width.min(area.width), 1).intersection(area);
-        KeyHints::new(t, hints).render(line, buf);
-        if !line.is_empty() && line.right() < area.right() {
-            buf.set_string(line.right(), line.y, "│", t.subtle());
-        }
-    }
-    caption(t, buf, area, 12, "The current view's label is bold");
-    let views = [("1", "Overview"), ("2", "Machines"), ("3", "Logs"), ("?", "help"), ("q", "quit")];
-    KeyHints::new(t, views).current(1).render(Rect::new(area.x, area.y + 13, area.width, 1).intersection(area), buf);
-    caption(t, buf, area, 15, "After a search prompt");
-    let search = Search { query: "fail".into(), typing: true };
-    let keys = [("↑/↓", "move"), ("enter", "keep"), ("esc", "clear")];
-    KeyHints::new(t, keys).prefix(search.prompt(t, 3, 40)).render(Rect::new(area.x, area.y + 16, area.width, 1).intersection(area), buf);
-}
-
 fn buttons_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     let rows = [
         ("Plain", Press::Plain),
@@ -888,22 +849,6 @@ fn toast_page(t: &Theme, buf: &mut Buffer, area: Rect) {
         put(buf, area, 7 + i as u16, line);
     }
     wave_04::toast_cards(t, buf, Rect { y: area.y.saturating_add(13), height: area.height.saturating_sub(13), ..area });
-}
-
-fn sidebar_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let side = |focused: bool| {
-        Sidebar::new(t)
-            .head([Line::styled(" self-host ", t.brand()), Line::default(), Line::styled("  momoi.internal", t.muted())])
-            .group("Pages", ["Overview", "Databases", "Routes"].into_iter().enumerate().map(|(i, name)| SideItem::new(name).key(["1", "2", "3"][i])))
-            .group("Applications", ["comfyui", "laya"].map(|name| SideItem::new(name).mark(Span::styled("●", t.success()))))
-            .current(Some(1))
-            .focused(focused)
-    };
-    caption(t, buf, area, 0, "The page has focus");
-    let right = Rect { x: area.x + 30, width: area.width.saturating_sub(30), ..area };
-    put(buf, right, 0, Line::styled("The sidebar has focus", t.muted()));
-    side(false).render(Rect::new(area.x + 1, area.y + 2, 22, area.height.saturating_sub(2)).intersection(area), buf);
-    side(true).render(Rect::new(area.x + 31, area.y + 2, 22, area.height.saturating_sub(2)).intersection(area), buf);
 }
 
 fn demo_filters() -> Filters {
@@ -1253,16 +1198,12 @@ fn states() -> Vec<State> {
     states
 }
 
-/// The screen less two columns on each side and the footer.
-fn body(screen: Rect) -> Rect {
-    Rect::new(screen.x + 2, screen.y, screen.width.saturating_sub(4), screen.height.saturating_sub(1))
-}
-
 /// Where each component's name shows in the sidebar of `buffer`: its row,
 /// first column, width, and page. A name a dialog covers is left out.
 fn sidebar_links(buffer: &Buffer, theme: Theme) -> Vec<(u16, u16, u16, usize)> {
     let app = App::new(theme, 0, false);
-    let Some(side) = app.sidebar().split(body(buffer.area), Side::Left).0 else { return Vec::new() };
+    let shell = AppShell::new(buffer.area).side(Side::Left).sidebar(app.sidebar().width());
+    let Some(side) = shell.areas().sidebar.filter(|_| !shell.too_small()) else { return Vec::new() };
     (side.top()..side.bottom())
         .filter_map(|y| {
             let text: String = (side.left()..side.right()).map(|x| buffer[(x, y)].symbol()).collect();
@@ -1379,6 +1320,8 @@ fn export(file: &Path, accent: usize, light: bool) -> std::io::Result<usize> {
 /// A ratatui buffer as HTML: one span per run of equal style.
 #[path = "support/html.rs"]
 mod html;
+#[path = "support/wave_07.rs"]
+mod wave_07;
 
 /// The feedback components: alert, toast stack, spinner, skeleton and more.
 #[path = "support/wave_04.rs"]

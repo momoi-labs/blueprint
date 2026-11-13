@@ -348,6 +348,28 @@ Those states belong inside AppShellMain. There is no disabled or active shell.
 No shell keymap. Tab follows the controls in DOM order; navigation and Drawer
 retain their own keyboard behavior.
 
+## Terminal
+
+In a terminal, AppShell is `tui-kiso` `AppShell`. It draws nothing, like
+`Grid`: it takes the screen `Rect` and returns the areas for the app bar,
+the sidebar, the page and the footer. The app draws a widget in each one:
+`Header`, `Sidebar`, the page and `KeyHints`.
+
+| Screen | Terminal form |
+| --- | --- |
+| Under 80 by 24 | `too_small()` is true. Draw `message()`, a centered "Terminal too small", and nothing else. |
+| Under 100 columns | The sidebar collapses: there is no `sidebar` area and `collapsed` is true. A key opens it as an `overlay` on its side; draw it last with `paint_overlay`. |
+| 100 columns and more | The sidebar sits beside the page, four columns from it. |
+| Sidebar side | `.side(Side::Left)` or `.side(Side::Right)`, the crate option. |
+
+The screen keeps two columns on each side. The footer is the last row. With
+`.header(true)`, the app bar is the first row and one blank row follows.
+The page keeps two columns for its scrollbar. When the page would get fewer
+than 60 columns, the sidebar collapses too. Every area is inside the
+screen, whatever its size. The web variants (inset, floating, canvas) are
+not drawn; the terminal has one form. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - An application with persistent navigation beside a changing page.
@@ -369,7 +391,6 @@ No dedicated Radix primitive. Compose Sidebar and a semantic main region.
 AppShell supplies Kiso's column layout; it does not add a Sidebar provider,
 routing, or collapse state. ApplicationShell owns optional collapse state, or
 accepts it from the product.
-
 
 ## Canvas appearance
 

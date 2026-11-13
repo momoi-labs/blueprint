@@ -13,7 +13,9 @@ use crate::Theme;
 /// `•` in `border` between hints. The current view's label is bold
 /// `foreground`. Put `?` help and the close or quit hint last: those two
 /// always stay. When the width runs out, the hints before them drop from
-/// the right.
+/// the right, and a hint is never cut in the middle. If help and quit
+/// together are too wide, quit stays alone; if that is too wide too, only
+/// its key shows.
 #[derive(Clone, Debug)]
 pub struct KeyHints<'a> {
     theme: &'a Theme,
@@ -49,17 +51,21 @@ impl<'a> KeyHints<'a> {
         indices.into_iter().map(|i| cost(self.hints[i]) + sep).sum::<usize>().saturating_sub(sep)
     }
 
-    /// The indices that fit in `width` columns.
+    /// The indices that fit in `width` columns. The hints before help and
+    /// quit drop from the right, so the most important stay longest. When
+    /// help and quit alone are too wide, help drops and quit stays. A hint
+    /// is whole or gone.
     fn visible(&self, width: usize) -> Vec<usize> {
-        let cost = |&(key, label): &(&str, &str)| cells(key) + 1 + cells(label);
-        let sep = cells(SEPARATOR);
-        let mut keep: Vec<usize> = (0..self.hints.len()).collect();
-        let mut total = self.cost(0..self.hints.len());
-        let mut droppable = self.hints.len().saturating_sub(2);
-        while total > width && droppable > 0 {
-            droppable -= 1;
-            total -= cost(&self.hints[droppable]) + sep;
-            keep.remove(droppable);
+        let n = self.hints.len();
+        let mut keep: Vec<usize> = (0..n).collect();
+        let mut droppable = n.saturating_sub(2);
+        while !keep.is_empty() && self.cost(keep.iter().copied()) > width {
+            if droppable > 0 {
+                droppable -= 1;
+                keep.remove(droppable);
+            } else {
+                keep.remove(0);
+            }
         }
         keep
     }
@@ -82,6 +88,10 @@ impl<'a> KeyHints<'a> {
             spans.push(Span::styled(key, t.text()));
             spans.push(Span::styled(format!(" {label}"), style));
         }
+        // Not even the last hint fits: its key alone, which is still whole.
+        if n > 0 && room > 0 && self.visible(room).is_empty() && cells(self.hints[n - 1].0) <= room {
+            spans.push(Span::styled(self.hints[n - 1].0, t.text()));
+        }
         spans
     }
 }
@@ -103,6 +113,30 @@ mod tests {
         let line = Line::from(KeyHints::new(&theme, [("?", "help"), ("q", "quit")]).prefix(prefix).spans(80));
         assert!(line.to_string().ends_with("? help • q quit"), "{line}");
         assert_eq!(line.width(), 80);
+    }
+
+    #[test]
+    fn a_hint_is_never_cut_in_the_middle() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let hints = [("↑↓", "move"), ("enter", "open"), ("?", "help"), ("q", "quit")];
+        let at = |width| Line::from(KeyHints::new(&theme, hints).spans(width)).to_string();
+        assert_eq!(at(15), "? help • q quit");
+        // Help and quit are 15 cells; under that, quit stays alone.
+        assert_eq!(at(14), "q quit");
+        assert_eq!(at(6), "q quit");
+        assert_eq!(at(5), "q");
+        assert_eq!(at(1), "q");
+        assert_eq!(at(0), "");
+    }
+
+    #[test]
+    fn the_lowest_priority_hints_drop_first() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let hints = [("↑↓", "move"), ("enter", "open"), ("/", "search"), ("s", "sort"), ("?", "help"), ("q", "quit")];
+        let at = |width| Line::from(KeyHints::new(&theme, hints).spans(width)).to_string();
+        assert_eq!(at(60), "↑↓ move • enter open • / search • s sort • ? help • q quit");
+        assert_eq!(at(40), "↑↓ move • enter open • ? help • q quit");
+        assert_eq!(at(22), "? help • q quit");
     }
 
     #[test]
