@@ -58,12 +58,12 @@ label per option, one option per row, or in a row that wraps with
 | --- | --- |
 | chosen | `◉` in `primary`. |
 | other options | `○` in `muted-foreground`. |
-| focus | Half a cell of `focus` on each side of the chosen mark, or of the first one when none is chosen. |
-| invalid | The bars turn `danger` and stay on. |
+| focus | The `selected` fill behind the chosen option, or the first one when none is chosen, with the label in bold and the mark in `foreground`. |
+| invalid | Every mark turns `danger`. |
 | disabled | Every mark in `disabled`, the labels in `subtle-foreground`. |
 
 `↑` `↓`, or `←` `→` in a row, move and choose at once; the app owns the
-keys. Keep one free cell before the group for the bar. In a
+keys. Keep one free cell before the group for the fill. In a
 [Form](form.md), `Field::radio` draws the group in a row and `←` `→`
 choose, so `↑` `↓` still move between fields. Use it for two to five
 options that all fit; use Select for more. See
