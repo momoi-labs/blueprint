@@ -103,6 +103,25 @@ PageHeader.
 | `Tab` / `Shift+Tab` | Reach the Action if present. |
 | `Enter` / `Space` | Activate the focused Action. |
 
+## Terminal
+
+In a terminal, EmptyState is `tui-kiso` `EmptyState`: a glyph, a bold
+title, a wrapped text in `muted-foreground` and an optional `Button`,
+centered across and down in the area it gets.
+
+| Web | Terminal form |
+| --- | --- |
+| icon | One cell, `○` by default, in `muted-foreground`. `.glyph` changes it. |
+| title | Bold, say what is empty: "No machines yet". |
+| description | Wrapped to 44 columns at most, centered line by line. |
+| action | A `Button`, centered, one blank row below the text. |
+
+`height` gives the rows it takes at a width. An empty state in a `Card`
+takes the card's `inner` area. It is not a status: an error is an
+[Alert](alert.md) and loading is a [Skeleton](skeleton.md). It has no keys,
+and focus goes to the action. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A list, table body, or collection has zero items to show.

@@ -111,6 +111,26 @@ Links inherit the surrounding type role. Do not invent a parallel size scale.
 Browser shortcuts (new tab, copy link address, back) must keep working —
 another reason this cannot be a `<button>`.
 
+## Terminal
+
+In a terminal, Link is `tui-kiso` `Link`: the label in `link`, underlined, so
+color is not the only cue. It converts to a `Span`, to sit in running text.
+
+| State | Terminal form |
+| --- | --- |
+| rest | `link`, underline. |
+| hover | Bold, with the underline. |
+| focus | Bold `primary-foreground` on `primary`, underline: the list selection of the crate. |
+| disabled | `disabled`, no underline. |
+| external | `.external(true)` adds ` ↗` after the label. |
+
+`Enter` follows a link in focus, and a click does too; the app owns the
+keys and opens the address. Limit: there is no OSC 8 hyperlink. The escape
+sequence does not fit inside a ratatui buffer, where each cell holds one
+symbol, so the label stays plain text. Put the address in the status line
+or the help when the person needs to see it. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - In-app routing: another view, a record, settings, docs hosted in-product.

@@ -41,6 +41,22 @@ orientation semantics. Neither mode is focusable or resizable.
 
 No keymap and no tab stop.
 
+## Terminal
+
+In a terminal, Separator is `tui-kiso` `Separator`, the one concept for a
+rule. Section rules in a `Page` and the rule between the parts of a `Card`
+use the same stroke.
+
+| Web | Terminal form |
+| --- | --- |
+| horizontal | The `Look` rule across the width: its pattern and ink, one row. |
+| horizontal with a label | The label at the left in `muted-foreground`, then the rule to the end of the row. |
+| vertical | One `│` per row, in `border`, down the height. Leave one free column each side. |
+
+A separator draws only its own cells, so it works over a page and over a
+`Card`. It has no keys and no focus. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A quiet visual boundary between groups in a toolbar or detail view.

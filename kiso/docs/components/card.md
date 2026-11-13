@@ -188,7 +188,7 @@ header, content and footer.
 | size `sm` | One column of padding. |
 | size `md` | Two columns of padding. |
 | size `lg` | No terminal form. `md` already reads as padded. |
-| loading | Skeleton bars inside the card, drawn by the product. |
+| loading | `.loading(true)` draws `Skeleton` bars for the title, the description and the body. `.tick(n)` pulses them. |
 
 The `Look` of the theme sets two things for every card. `fill` is `glass`,
 `translucent` or `solid`: how much of the page shows through, in truecolor

@@ -4,7 +4,7 @@ use ratatui::widgets::Widget;
 
 use crate::surface::write;
 use crate::text::cells;
-use crate::{Badge, Card, Theme};
+use crate::{Badge, Card, Skeleton, Theme};
 
 /// One number, its label, and how it changed: the label in
 /// `muted-foreground`, the value in bold under it, then a note.
@@ -20,11 +20,30 @@ pub struct Stat<'a> {
     delta: Option<Badge<'a>>,
     note: Option<&'a str>,
     card: bool,
+    loading: bool,
+    tick: Option<u32>,
 }
 
 impl<'a> Stat<'a> {
     pub fn new(theme: &'a Theme, label: &'a str, value: &'a str) -> Self {
-        Self { theme, label, value, delta: None, note: None, card: true }
+        Self { theme, label, value, delta: None, note: None, card: true, loading: false, tick: None }
+    }
+
+    /// The numbers are on their way. The label stays, since it is known;
+    /// [`Skeleton`] bars take the place of the value, and of the note when
+    /// there is one. The delta is left out. The stat keeps its height, so
+    /// the page does not jump when the numbers arrive.
+    #[must_use]
+    pub fn loading(mut self, loading: bool) -> Self {
+        self.loading = loading;
+        self
+    }
+
+    /// Pulses the loading bars as `tick` counts up. See [`Skeleton::tick`].
+    #[must_use]
+    pub fn tick(mut self, tick: u32) -> Self {
+        self.tick = Some(tick);
+        self
     }
 
     /// How the value changed, such as `+18.6%`. Its tone is a judgment,
@@ -66,6 +85,19 @@ impl Widget for Stat<'_> {
             area
         };
         let width = usize::from(inner.width);
+        if self.loading {
+            let (label, _) = crate::text::take_cells(self.label, width);
+            write(buf, inner.x, inner.y, label, t.muted());
+            // A value is a few cells, a note is most of the row.
+            let bars = [(1, inner.width.min(8)), (2, (u32::from(inner.width) * 60 / 100) as u16)];
+            for (dy, bar) in bars.into_iter().take(if self.note.is_some() { 2 } else { 1 }) {
+                if dy < inner.height && bar > 0 {
+                    let bar = Rect::new(inner.x, inner.y.saturating_add(dy), bar, 1);
+                    Skeleton::new(t).pulse(self.tick).render(bar, buf);
+                }
+            }
+            return;
+        }
         let rows = [(Some(self.label), t.muted()), (Some(self.value), t.strong()), (self.note, t.muted())];
         for (y, (text, style)) in (inner.top()..inner.bottom()).zip(rows) {
             if let Some(text) = text {
@@ -102,6 +134,20 @@ mod tests {
         assert_eq!(row(&buf, 1), "  Tasks  +18%     ");
         assert_eq!(row(&buf, 2), "  186             ");
         assert_eq!(row(&buf, 3), "  32 more         ");
+    }
+
+    #[test]
+    fn a_loading_stat_keeps_the_label_and_the_height() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let stat = Stat::new(&theme, "Tasks", "").delta(Badge::new(&theme, Tone::Success, "+18%")).note("").loading(true);
+        assert_eq!(stat.height(), 5);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 18, 5));
+        stat.render(buf.area, &mut buf);
+        assert_eq!(row(&buf, 1), "  Tasks           ");
+        let bar = |y: u16| (0..18).filter(|x| buf[(*x, y)].bg != buf[(0, 2)].bg).count();
+        // The bars are 8 cells for the value and 60% of 14 for the note.
+        assert_eq!((bar(2), bar(3)), (8, 8));
+        assert_ne!(buf[(2, 2)].bg, buf[(0, 2)].bg);
     }
 
     #[test]

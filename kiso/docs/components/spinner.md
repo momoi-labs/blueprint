@@ -93,14 +93,24 @@ Spinner graphic.
 
 ## Terminal
 
-In a terminal, a spinner is a few characters that change on every tick,
-about every 80 ms. `tui-kiso` `scramble` draws Crush's spinner, characters
-in the `primary` to `chart-1` gradient, for work that takes a few seconds,
-such as a restart. `braille` draws one braille dot that turns, for a
-refresh that never ends; `⠿` marks it paused. A word always says what is
-going, such as "Restarting" or "every 2 s". For work in the background,
+In a terminal, Spinner is `tui-kiso` `Spinner`: one braille frame in
+`primary` that turns on every tick, with an optional label in
+`muted-foreground`. The app owns time: raise `tick` about eight times a
+second.
+
+| State | Terminal form |
+| --- | --- |
+| spinning | `braille(tick)`, one cell, in `primary`. |
+| with a label | The label after one space, such as `Restarting`. |
+| in a line | `Line::from(spinner)` gives the spans, to sit in running text. |
+
+Every frame is one cell wide, so `width` does not change and the line does
+not jump. A word always says what is going on. `scramble` draws Crush's
+spinner, characters in the `primary` to `chart-1` gradient, for work of a
+few seconds. `braille` stays for a plain frame. For work in the background,
 `set_progress` also shows the terminal's own progress bar with OSC 9;4.
-See [terminal interfaces](../terminal-interfaces.md).
+A [Button](button.md) in the `Loading` state draws its own frame. Spinner
+has no keys. See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

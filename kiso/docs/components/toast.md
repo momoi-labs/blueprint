@@ -61,11 +61,23 @@ essential error, completed record, or required recovery step.
 
 ## Terminal
 
-In a terminal, a toast is `tui-kiso` `Toast`: one row across the footer, in
-place of the key hints, for a few seconds after an action ends. It has a
-bold label, "DONE!" by default, and the message, on the `success-on-dark`
-fill with `background` text. Any key clears it. A failure is not a toast:
-say it on the page or in a [Modal](modal-dialog.md), where it stays. See
+In a terminal, a toast is `tui-kiso` `Toast`: a small `elevated` card with
+the tone's glyph, a bold label in the tone's color and the message. The
+label is "DONE!" for success, "INFO", "WARN" or "FAILED" by default, and
+`.label` changes it.
+
+| Web | Terminal form |
+| --- | --- |
+| `success`, `info`, `warning`, `error` | `.tone`. The glyph is `✓`, `●`, `▲` or `✕`, and the label takes the tone's color. |
+| default | Success. |
+| stack | `Toast::stack` draws the newest on top at the top right, three at most, one blank row apart. The oldest are dropped. |
+| footer | A toast in a one-row area is a flat fill of the same card, for the footer in place of the key hints. |
+| dismiss | Any key clears it. The app owns the timer, a few seconds. |
+
+A toast is three rows tall and as wide as its message, cut with an ellipsis
+when the area is narrow. A failure that the person must act on is not a
+toast: say it with an [Alert](alert.md) on the page or in a
+[Modal](modal-dialog.md), where it stays. See
 [terminal interfaces](../terminal-interfaces.md).
 
 ## React interface
