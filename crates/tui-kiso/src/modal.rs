@@ -17,8 +17,10 @@ use crate::{Button, Grid, Scrim, Size, Theme};
 ///
 /// Its width is whole grid tracks: `Sm` is 3, `Md` 4 and `Lg` 6. Without a
 /// size it takes the fewest of those that hold its content. It keeps two
-/// columns from each side of the screen and a row from the top and the
-/// bottom. Esc closes it: say so in the hints.
+/// columns from each side of the screen, and a row from the top and the
+/// bottom while its content fits. On a short screen it gives up those two
+/// rows first, so a body of 18 rows fits in 24 with a title and key hints.
+/// Esc closes it: say so in the hints.
 ///
 /// Render it into the whole screen. For content of your own, take the area
 /// of the body from [`Modal::draw`].
@@ -106,7 +108,8 @@ impl<'a> Modal<'a> {
         let width = width.min(screen.width.saturating_sub(4));
         let inner = width.saturating_sub(Self::PAD * 2);
         let height = self.height.unwrap_or_else(|| clamp(self.body.height()).saturating_add(self.panel.chrome(self.theme, inner)));
-        let height = height.min(screen.height.saturating_sub(2));
+        // The margin gives before the body does.
+        let height = height.min(screen.height);
         screen.centered(Constraint::Length(width), Constraint::Length(height))
     }
 
@@ -137,6 +140,20 @@ mod tests {
     use super::*;
     use crate::{ButtonState, ButtonVariant};
 
+    #[test]
+    fn a_tall_body_takes_the_margin_of_a_short_screen() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let screen = Rect::new(0, 0, 80, 24);
+        let body = |rows: usize| Text::from(vec![ratatui::text::Line::raw("x"); rows]);
+        let modal = |rows| Modal::new(&theme, "Help").body(body(rows)).hints([("esc", "close")]);
+        // 16 rows of body keep a row of the page above and below.
+        assert_eq!((modal(16).area(screen).y, modal(16).area(screen).height), (1, 22));
+        // 18 rows take the whole height, and all of them show.
+        assert_eq!(modal(18).area(screen).height, 24);
+        assert_eq!(modal(18).draw(screen, &mut Buffer::empty(screen)).height, 18);
+        assert_eq!(modal(40).draw(screen, &mut Buffer::empty(screen)).height, 18);
+    }
+
     fn row(buf: &Buffer, y: u16) -> String {
         (0..buf.area.width).map(|x| buf[(x, y)].symbol().to_owned()).collect()
     }
@@ -166,7 +183,8 @@ mod tests {
         assert_eq!([Size::Sm, Size::Md, Size::Lg].map(width), [43, 58, 88]);
         let small = Rect::new(0, 0, 60, 10);
         let area = Modal::new(&theme, "T").size(Size::Lg).height(40).area(small);
-        assert_eq!((area.x, area.width, area.y, area.height), (2, 56, 1, 8));
+        // Too tall for the screen: the side margin stays, the rows go.
+        assert_eq!((area.x, area.width, area.y, area.height), (2, 56, 0, 10));
     }
 
     #[test]

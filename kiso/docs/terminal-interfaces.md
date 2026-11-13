@@ -242,7 +242,9 @@ the app bar, the sidebar, the page and the footer.
   header takes the first row, and an empty row follows it.
 - Minimum size is 80 by 24. Under it, `AppShell::too_small` is true: draw
   `AppShell::message` and nothing else. The help screen and every dialog
-  fit in 24 lines.
+  fit in 24 lines. A dialog keeps a row of the page above and below while
+  its content fits, then takes the whole height: with a title and key
+  hints, 18 rows are left for the body.
 - The navigation is a sidebar on the left, or on the right as a product
   option. It is as wide as its longest line, from 20 to 32 columns, and
   sits four columns from the page.
