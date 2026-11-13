@@ -1,5 +1,25 @@
 # @momoi-labs/kiso
 
+## 1.8.1
+
+### Patch Changes
+
+- 8be9c81: Remove the thin lines across Pixel panels, the floating Header and controls at fractional browser zoom, such as 80%, 110% or a 1.75 device pixel ratio. Panels and the floating Header now paint their Pixel fill as one shape in the `.panel-shadow` layer, which gains a second empty span. Native markup without that span keeps the older fill. Controls and navigation items paint their fill from overlapping layers, so no edge falls between two of them.
+- 6047529: Document how a terminal dialog fits in 24 lines: it keeps a row of the page above and below while its content fits, then takes the whole height and, if the body is still cut, drops its half rows and the empty row above its footer.
+- fcfaa79: Document three terminal rules: `AppShell` takes a side margin of one column for a dense product, a `Card` and a `Page` take the backdrop pattern out of the cells they use (`Backdrop::clear` does it for a region with no card), and a card or a pane has a bold title with a muted meta in place of a section title.
+- 5476f23: Document page width and alignment in a terminal: `tui-kiso` `AppShell` takes `PageWidth` and `PageAlign`, and `Grid` gives a full page every track that fits.
+- 6fefce0: Document the terminal form of Label, Input, PasswordInput, Textarea, HelperText, ValidationMessage and FormField.
+- 67ef0e9: Document the terminal form of Checkbox, RadioGroup, Select, Combobox, ChipInput, Form, FormActions and IconButton.
+- e894a4a: Document the terminal form of Alert, Toast, Spinner, Skeleton, EmptyState, Tooltip, Link and Separator.
+- 6e822e5: Document the terminal form of Table, KV, Pagination, FilterInput, Search, LogView and CodeBlock.
+- a447950: Document the terminal form of the data visualization components, and add Diagram and TimeRangeControl to the terminal docs.
+- 41ab37d: Document the terminal form of AppShell, Header, Sidebar, Navigation, PageHeader, Breadcrumb, Tabs and BottomNav.
+- 595570c: Document the terminal form of Modal, Drawer, Popover, DropdownMenu, CommandPalette, ScopeSwitcher, DetailSelect and DetailOption.
+- 1277161: Document the terminal form of DashboardGrid, PaneGrid, Split, Disclosure, Steps, StepBar, StepList and Lifecycle.
+- 62601f2: Document the terminal form of ThemeSelector, AccentSelector, BrandMark, CodeEditor, FileDropzone and MediaPreview.
+- fce512d: Rewrite the terminal interfaces contract and add a table of all 74 components with their `tui-kiso` types.
+- a84a8d6: Document the terminal form of Card, Stat, Badge, StatusBadge, Dot, Button and Switch.
+
 ## 1.8.0
 
 ### Minor Changes
