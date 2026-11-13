@@ -89,6 +89,27 @@ list." Loading is not disabled: the person may keep typing while options load.
   reads them when they change.
 - Forced colors: the active option keeps a visible outline.
 
+## Terminal
+
+In a terminal, Combobox is `tui-kiso` `Combobox`: a [Select](select.md)
+the person types into. The text filters the options and the list shows
+the ones that hold it, in any case.
+
+| State | Terminal form |
+| --- | --- |
+| rest | As Select: the chosen option, or the placeholder in `subtle-foreground`. |
+| focus | The `focus` bars, and a block cursor in `primary` on the text. |
+| typing | The typed text replaces the value; the list opens on the first match. |
+| no match | One row, "No matches" by default, in `muted-foreground`. |
+| invalid | The bars turn `danger` and stay on. |
+| disabled | As Select. |
+
+Typing edits the filter, `↑` `↓` move in the list, `Enter` takes the
+selected match and clears the text, and `Esc` closes the list. While
+nothing is typed, the field shows the chosen option with the cursor on
+its first cell. In a [Form](form.md), `Field::combobox` does this, and
+`Tab` closes the list. See [terminal interfaces](../terminal-interfaces.md).
+
 ## Tokens
 
 The input uses the Input token mapping. The list uses the Select content

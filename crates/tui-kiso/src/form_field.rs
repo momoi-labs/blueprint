@@ -5,10 +5,14 @@ use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
+use crate::form_actions::rows_of;
 use crate::input::{draw, frame, Flags, Paint};
-use crate::surface::{under, write};
+use crate::surface::{put, under, write};
 use crate::text::{cells, take_cells};
-use crate::{wrap, Control, Field, Grid, Input, PasswordInput, Scroll, Size, Textarea, Theme};
+use crate::{
+    wrap, Checkbox, ChipInput, Combobox, Control, Field, Grid, Input, PasswordInput, RadioGroup, Scroll, Select, Size, Switch,
+    SwitchState, Textarea, Theme,
+};
 
 /// The name of a field, in `foreground`. A required field adds `*` in
 /// `danger`; an optional one adds the word `optional` in
@@ -303,7 +307,7 @@ impl<'a> FormField<'a> {
             (FieldLayout::Column, _) => (self.column().saturating_add(Grid::GAP), 0),
             (FieldLayout::Stacked, _) => (0, 1),
         };
-        let height = control_height(self.field, self.size);
+        let height = control_height(self.theme, self.field, self.size, area.width.saturating_sub(dx));
         Rect::new(area.x.saturating_add(dx), area.y.saturating_add(dy), area.width.saturating_sub(dx), height)
     }
 
@@ -348,14 +352,29 @@ impl Widget for FormField<'_> {
     }
 }
 
-/// The rows a field's control takes.
-pub(crate) fn control_height(field: &Field, size: Size) -> u16 {
+/// The rows a field's control takes `width` columns wide.
+pub(crate) fn control_height(t: &Theme, field: &Field, size: Size, width: u16) -> u16 {
     let half = if size == Size::Md { 2 } else { 0 };
-    match field.input {
+    match &field.input {
         Control::Check(_) => 1,
         Control::Area { .. } => 3 + half,
+        Control::Radio(options, _) => RadioGroup::new(t, options.clone(), None)
+            .horizontal(true)
+            .height(width)
+            .saturating_add(half),
+        Control::Chips { chips, text, .. } => ChipInput::new(t, chips.clone(), text).size(size).height(width),
         _ => 1 + half,
     }
+}
+
+/// `lines` with a blank row above and below at `Md`, in line with a field
+/// that has half rows of fill.
+fn padded(mut lines: Vec<Line<'static>>, size: Size) -> Vec<Line<'static>> {
+    if size == Size::Md {
+        lines.insert(0, Line::default());
+        lines.push(Line::default());
+    }
+    lines
 }
 
 /// The rows of a field's control `width` columns wide, from [`frame`]: a
@@ -388,6 +407,11 @@ pub(crate) fn control_lines(
                 None => area.lines(width, behind),
             }
         }
+        // Out of a form, the closed select with its arrow. In a form, the
+        // compact "‹ value ›" that ←→ change.
+        Control::Select(options, chosen) if !flags.selection => {
+            Select::new(t, options.clone(), Some(*chosen)).size(size).flags(flags).lines(width, behind)
+        }
         Control::Select(..) => {
             let paint = Paint::new(t, flags, behind);
             let mut spans = field.spans(t, usize::from(width.saturating_sub(2)).max(1), flags.focused && !flags.disabled);
@@ -396,19 +420,39 @@ pub(crate) fn control_lines(
             }
             frame(&paint, size, width, vec![spans])
         }
-        Control::Check(_) => {
-            let focused = flags.focused && !flags.disabled;
-            let mut spans = vec![Span::raw(" ")];
-            spans.extend(field.spans(t, 3, focused));
-            let style = match (flags.disabled, focused) {
-                (true, _) => t.subtle(),
-                (false, true) => t.strong(),
-                (false, false) => t.text(),
-            };
-            let (label, _) = take_cells(&field.label, usize::from(width.saturating_sub(4)));
-            spans.push(Span::styled(format!(" {label}"), style));
-            vec![Line::from(spans)]
+        Control::Check(on) => {
+            let strong = flags.focused && !flags.disabled;
+            vec![Checkbox::new(t, &field.label, *on).flags(flags).strong(strong).line(width.saturating_add(1))]
         }
+        Control::Switch(on) => {
+            let paint = Paint::new(t, flags, behind);
+            let state = if flags.disabled { SwitchState::Disabled } else { SwitchState::Rest };
+            let line = rows_of(width.saturating_add(2), 1, |buf, area| {
+                Switch::new(t, *on).state(state).word(true).render(Rect { x: 1, ..area }, buf);
+                if let Some(color) = paint.bars {
+                    put(buf, 0, 0, "▐", color);
+                    put(buf, 5, 0, "▌", color);
+                }
+            });
+            padded(line, size)
+        }
+        Control::Radio(options, chosen) => {
+            let group = RadioGroup::new(t, options.clone(), Some(*chosen)).horizontal(true).flags(flags);
+            padded(group.lines(width.saturating_add(1)), size)
+        }
+        Control::Combo { options, chosen, query, cursor } => Combobox::new(t, options.clone(), *chosen)
+            .query(query, flags.focused.then_some(*cursor))
+            .placeholder(placeholder)
+            .size(size)
+            .flags(flags)
+            .lines(width, behind),
+        Control::Chips { chips, text, cursor, chip } => ChipInput::new(t, chips.clone(), text)
+            .cursor(*cursor)
+            .chip(*chip)
+            .placeholder(placeholder)
+            .size(size)
+            .flags(flags)
+            .lines(width, behind),
     }
 }
 

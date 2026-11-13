@@ -114,6 +114,26 @@ Identical in meaning to [Button](button.md):
 Tooltip keyboard (open on focus, dismiss on `Escape`) is defined in
 [Tooltip](tooltip.md). Activation of the IconButton dismisses the Tooltip.
 
+## Terminal
+
+In a terminal, IconButton is `tui-kiso` `Button::icon(theme, glyph,
+name)`: a Button with one glyph as its label and a name it requires.
+
+| State | Terminal form |
+| --- | --- |
+| variants | As [Button](button.md): Default, Primary, Ghost, Destructive. |
+| focus | Half a cell of `focus` on each side, as Button. |
+| disabled | As Button. |
+| glyph the terminal cannot show | The name replaces the glyph. |
+
+A glyph in a Unicode private use area, such as a Nerd Font icon, shows
+only when `Look::round` is on; it says the terminal has a Nerd Font.
+Otherwise the button shows its name. Prefer glyphs from plain Unicode,
+such as `⟳` or `✕`, so the button stays small everywhere. An icon button
+has no hotkey: give the action a key in the KeyHints. Sizes are `Md`,
+three rows, and `Sm`, one row. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A compact action where a text label would add noise: dismiss, overflow
