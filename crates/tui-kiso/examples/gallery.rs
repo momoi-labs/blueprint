@@ -1192,7 +1192,7 @@ fn help(t: &Theme) -> Modal<'_> {
         ("esc tab", "Back to the components"),
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
-        ("s", "Background, fill, border, ends and page width"),
+        ("s", "Appearance: background, cards, page"),
         ("e", "Export the code for the look"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
