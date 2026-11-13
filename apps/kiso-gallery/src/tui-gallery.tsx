@@ -80,8 +80,8 @@ function on(flag: Flag | undefined, theme: number): boolean {
 // Box drawing and block characters are drawn with CSS, as modern terminals
 // draw them, so lines meet across cells whatever the font has. A run of one
 // of these that repeats is one element.
-const DRAWN = "─━│└├╭╮╯╰╱╲╳▀▄█▌░";
-const REPEATS = "─━│╱╲╳▀▄█▌░";
+const DRAWN = "─━│└├╭╮╯╰╱╲╳▀▄█▌▐▗▖▝▘░";
+const REPEATS = "─━│╱╲╳▀▄█░";
 
 /** The text of a run, with each drawn character apart. */
 function parts(text: string, cells: number): (string | [string, number])[] {
@@ -150,7 +150,7 @@ function TuiTerm({ rows, width, style, styles, children }: { rows: Run[][]; widt
 /** What a screen reader reads: the screen's text, line by line, without
  *  the lines and blocks drawn around it. */
 function screenText(rows: Run[][]): string {
-  const drawnChars = new RegExp(`[${DRAWN}▐▗▝▖▘]`, "g");
+  const drawnChars = new RegExp(`[${DRAWN}]`, "g");
   return rows
     .map((row) => row.map(([text]) => text).join("").replace(drawnChars, " ").replace(/ {3,}/g, "  ").trim())
     .filter(Boolean)
