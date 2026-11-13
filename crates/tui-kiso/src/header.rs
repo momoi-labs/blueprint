@@ -4,7 +4,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
 use crate::text::{cells, cut};
-use crate::{Breadcrumb, Theme};
+use crate::{BrandMark, Breadcrumb, Theme};
 
 /// The app bar: one row at the top of the screen, once per screen. It says
 /// which product this is and where the person works. A page has its own
@@ -80,7 +80,7 @@ impl Widget for Header<'_> {
         let right = right_width > 0 && kept + 2 + right_width <= width;
         let room = if right { width - right_width - 2 } else { width };
 
-        let mut spans = vec![Span::styled(brand, t.brand())];
+        let mut spans = Line::from(BrandMark::new(t, brand.trim()).filled(true)).spans;
         if let Some(scope) = self.scope {
             spans.extend([Span::raw("  "), Span::styled(scope.to_owned(), t.text())]);
         }

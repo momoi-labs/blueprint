@@ -1,15 +1,16 @@
 use ratatui::buffer::Buffer;
 #[cfg(feature = "crossterm")]
 use ratatui::crossterm::event::KeyCode;
-use ratatui::layout::Rect;
-use ratatui::style::Style;
-use ratatui::text::{Line, Span};
+use ratatui::layout::{Constraint, Rect};
+use ratatui::style::{Modifier, Style};
+use ratatui::text::Line;
 use ratatui::widgets::Widget;
 
-use crate::{blend, Modal, Theme, ACCENTS};
+use crate::surface::write;
+use crate::{Card, CardVariant, KeyHints, Theme, ACCENTS};
 
-/// The theme picker: dark or light on top, then each accent with its fill
-/// and its gradient. The app redraws in the theme under the cursor as the
+/// The theme picker, on an elevated card: dark or light on top, then each
+/// accent with a swatch of its color before its name. The app redraws in the theme under the cursor as the
 /// person moves, from [`ThemePicker::tokens`]; esc puts the one before back.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ThemePicker {
@@ -65,42 +66,106 @@ impl Widget for PickerView<'_> {
         let (t, picker) = (self.theme, self.picker);
         let r = t.tokens();
         let keys = [("↑/↓", "accent"), ("←/→", "dark or light"), ("enter", "keep"), ("esc", "cancel")];
-        let height = ACCENTS.len() as u16 + 4;
-        let area = Modal::new(t, "Theme").width(60).height(height).hints(keys).draw(screen, buf);
-        if area.height < 3 || area.width < 2 {
+        // Half rows, a title and a gap, the mode and a gap, the accents, a gap, the keys.
+        let height = ACCENTS.len() as u16 + 8;
+        let area = screen.centered(Constraint::Length(60.min(screen.width)), Constraint::Length(height.min(screen.height)));
+        let area = area.intersection(buf.area);
+        if area.is_empty() {
             return;
         }
-        let mode = |label: &'static str, on: bool| {
-            if on {
-                vec![Span::styled("◉ ", t.fg(r.primary)), Span::styled(label, t.strong())]
-            } else {
-                vec![Span::styled("○ ", t.subtle()), Span::styled(label, t.muted())]
+        let card = Card::new(t).variant(CardVariant::Elevated);
+        card.render(area, buf);
+        let inner = card.inner(area);
+        if inner.height == 0 || inner.width < 2 {
+            return;
+        }
+        let at = |dy: u16| Rect { y: inner.y.saturating_add(dy), height: 1, ..inner };
+        let on_screen = |dy: u16| dy < inner.height;
+
+        buf.set_line(inner.x, inner.y, &Line::styled("Theme", t.strong().add_modifier(Modifier::BOLD)), inner.width);
+
+        if on_screen(2) {
+            let mut x = inner.x;
+            x += write(buf, x, at(2).y, "Mode", t.muted()) + 6;
+            for (label, on) in [("Dark", !picker.light), ("Light", picker.light)] {
+                let chip = format!(" {label} ");
+                let width = chip.chars().count() as u16;
+                write(buf, x, at(2).y, &chip, if on { t.fill(r.primary_foreground, r.primary) } else { t.muted() });
+                x += width + 2;
             }
-        };
-        let mut spans = vec![Span::styled("  Mode      ", t.muted())];
-        spans.extend(mode("Dark", !picker.light));
-        spans.push(Span::raw("    "));
-        spans.extend(mode("Light", picker.light));
-        buf.set_line(area.x, area.y, &Line::from(spans), area.width);
+        }
 
         for (i, accent) in ACCENTS.iter().enumerate() {
-            let y = area.y + 2 + i as u16;
-            if y >= area.bottom() {
+            let dy = 4 + i as u16;
+            if !on_screen(dy) {
                 break;
             }
-            let tokens = accent.tokens(picker.light);
-            let mut spans = vec![Span::raw("  "), Span::styled("  ", Style::new().bg(t.color(tokens.primary))), Span::raw("  ")];
-            spans.extend((0..12).map(|n| Span::styled("━", t.fg(blend(&[tokens.primary, tokens.chart_1], n as f32 / 11.0)))));
-            let style = if i == picker.accent { t.strong() } else { t.text() };
-            spans.extend([Span::raw("  "), Span::styled(accent.name, style)]);
-            buf.set_line(area.x, y, &Line::from(spans), area.width);
-            if i == picker.accent {
-                let row = Rect::new(area.x.saturating_sub(1), y, area.width + 2, 1).intersection(buf.area);
-                if !row.is_empty() {
-                    buf[(row.x, row.y)].set_symbol("▌").set_fg(t.color(r.primary));
-                    t.select(buf, row);
-                }
+            let (y, selected) = (at(dy).y, i == picker.accent);
+            let style = if selected { t.strong() } else { t.text() };
+            write(buf, inner.x + 4, y, accent.name, style);
+            if selected {
+                t.select(buf, Rect::new(area.x + 1, y, area.width.saturating_sub(2), 1));
             }
+            // The swatch comes last: the selection fill must not cover it.
+            let swatch = Style::new().bg(t.color(accent.tokens(picker.light).primary));
+            write(buf, inner.x, y, "  ", swatch);
+        }
+
+        let hints_dy = 5 + ACCENTS.len() as u16;
+        if on_screen(hints_dy) {
+            let spans = KeyHints::new(t, keys).spans(usize::from(inner.width));
+            buf.set_line(inner.x, at(hints_dy).y, &Line::from(spans), inner.width);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn screen(picker: &ThemePicker, theme: &Theme, size: (u16, u16)) -> Buffer {
+        let mut buf = Buffer::empty(Rect::new(0, 0, size.0, size.1));
+        picker.view(theme).render(buf.area, &mut buf);
+        buf
+    }
+
+    fn text(buf: &Buffer) -> String {
+        (0..buf.area.height).map(|y| (0..buf.area.width).map(|x| buf[(x, y)].symbol()).collect::<String>() + "\n").collect()
+    }
+
+    #[test]
+    fn each_accent_has_a_swatch_in_its_color_before_its_name() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let buf = screen(&ThemePicker::new(0, false), &theme, (100, 30));
+        let row = (0..30).find(|&y| (0..100).map(|x| buf[(x, y)].symbol()).collect::<String>().contains("terracotta")).unwrap();
+        let x = (0..100).find(|&x| buf[(x, row)].bg == theme.color(ACCENTS[1].dark.primary)).unwrap();
+        assert_eq!(buf[(x + 1, row)].bg, theme.color(ACCENTS[1].dark.primary));
+    }
+
+    #[test]
+    fn only_the_accent_under_the_cursor_is_filled_as_selected() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let buf = screen(&ThemePicker::new(2, false), &theme, (100, 30));
+        let row = |name: &str| (0..30).find(|&y| (0..100).map(|x| buf[(x, y)].symbol()).collect::<String>().contains(name)).unwrap();
+        let (teal, cobalt) = (row("teal"), row("cobalt"));
+        assert_eq!(buf[(45, teal)].bg, theme.selected_color());
+        assert_ne!(buf[(45, cobalt)].bg, theme.selected_color());
+    }
+
+    #[test]
+    fn it_lists_the_title_modes_and_keys_and_fits_80_by_24() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let shown = text(&screen(&ThemePicker::new(0, true), &theme, (80, 24)));
+        for word in ["Theme", "Dark", "Light", "violet", "steel", "esc"] {
+            assert!(shown.contains(word), "{word} is missing:\n{shown}");
+        }
+    }
+
+    #[test]
+    fn it_survives_a_tiny_screen() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        for size in [(1, 1), (10, 3), (60, 5)] {
+            screen(&ThemePicker::new(11, false), &theme, size);
         }
     }
 }

@@ -54,6 +54,12 @@ ARIA references. Invalid input exposes `aria-invalid`. Do not hide the native
 input with `display: none`, and do not nest other interactive controls in the
 target. Use separate actions for removal and submission.
 
+## Terminal
+
+A terminal has no drop target, so `tui-kiso` has no FileDropzone. Use an
+[Input](input.md) that takes a path, and validate it when the person presses
+`Enter`. Show the error under the Input as for any field.
+
 ## Tokens
 
 Use `--color-card`, `--color-foreground`, `--color-muted-foreground`,

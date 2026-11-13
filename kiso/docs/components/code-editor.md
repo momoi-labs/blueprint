@@ -87,6 +87,13 @@ gutter keeps one `--color-border` divider.
   [CodeBlock](code-block.md#highlighting), which are gated at 4.5:1, not raw
   colors.
 
+## Terminal
+
+A terminal has no CodeEditor widget in `tui-kiso`. For short text, use
+[Textarea](textarea.md). For a file or a long edit, suspend the app and open
+`$EDITOR`, then read the file back when it exits. For code shown and not
+edited, see [Code block](code-block.md).
+
 ## When to use
 
 - Short scripts and configuration files that a person types or pastes, such

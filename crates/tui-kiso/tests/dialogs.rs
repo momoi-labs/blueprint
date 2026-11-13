@@ -42,8 +42,10 @@ fn every_dialog_fits_80_by_24() {
         let mut buf = Buffer::empty(screen);
         draw(&theme, screen, &mut buf);
         let text: String = buf.content.iter().map(|c| c.symbol()).collect();
-        for corner in ["╭", "╮", "╰", "╯"] {
-            assert!(text.contains(corner), "{name}: no {corner} at 80 by 24");
+        // The picker is a card, with no frame: its last row of keys must show.
+        let marks: &[&str] = if name == "picker" { &["Theme", "esc"] } else { &["╭", "╮", "╰", "╯"] };
+        for mark in marks {
+            assert!(text.contains(mark), "{name}: no {mark} at 80 by 24");
         }
     }
 }

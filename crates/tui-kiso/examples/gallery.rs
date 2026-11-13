@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 42] = [
+const PAGES: [(&str, &str); 44] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -42,7 +42,7 @@ const PAGES: [(&str, &str); 42] = [
     ("Modal", "The one framed element: a dialog over the page."),
     ("Question", "A question with facts, what happens, and buttons."),
     ("Palette", "Commands with their keys, opened with ctrl+p."),
-    ("ThemePicker", "The accent and dark or light, previewed live."),
+    ("ThemePicker", "The accent and dark or light on an elevated card, previewed live."),
     ("Toast", "Notices, spinners and the steps of a run."),
     ("Sidebar", "The navigation: groups, counts, a disabled item, and scrolling."),
     ("Filters", "One select per facet; f edits them, the page follows."),
@@ -71,6 +71,8 @@ const PAGES: [(&str, &str); 42] = [
     ("Diagram", "A few boxes and arrows, placed by layer and row."),
     ("TimeRangeControl", "A window of time from a few presets, on one row."),
     ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
+    ("AccentSelector", "One row of accent swatches with the current one marked."),
+    ("BrandMark", "The product name as text, plain or on the accent fill."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -469,6 +471,8 @@ impl App {
             "Diagram" => wave_06::diagram_page(t, buf, area),
             "TimeRangeControl" => wave_06::time_range_page(t, buf, area, self.range),
             "Dashboard" => wave_06::dashboard_page(t, buf, area, self.range),
+            "AccentSelector" => wave_10::accent_selector_page(t, buf, area),
+            "BrandMark" => wave_10::brand_mark_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -1364,6 +1368,10 @@ mod wave_07;
 mod wave_04;
 #[path = "support/wave_06.rs"]
 mod wave_06;
+
+/// The accent selector and the brand mark.
+#[path = "support/wave_10.rs"]
+mod wave_10;
 
 /// The gallery as JSON for the Kiso site.
 #[path = "support/json.rs"]
