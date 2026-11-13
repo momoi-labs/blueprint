@@ -364,7 +364,9 @@ the sidebar, the page and the footer. The app draws a widget in each one:
 | Page width | `.page_width(PageWidth::Full)`, the default, or `PageWidth::Contained`: at most 88 columns, six grid tracks. |
 | Page alignment | `.page_align(PageAlign::Start)`, `Center` or `End` places a contained page in the free columns. |
 
-The screen keeps two columns on each side. The footer is the last row. With
+The screen keeps two columns on each side, or the columns `.margin(n)`
+asks for; with 1, the rail of a card takes the first column of the screen.
+The footer is the last row. With
 `.header(true)`, the app bar is the first row and one blank row follows.
 The page keeps two columns for its scrollbar. When the page would get fewer
 than 60 columns, the sidebar collapses too. Every area is inside the

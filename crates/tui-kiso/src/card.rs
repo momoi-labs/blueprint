@@ -99,6 +99,21 @@ impl<'a> Card<'a> {
         }
     }
 
+    /// The title of the card on the first row of its content: `title` in
+    /// bold, then `meta` in muted text, such as a count, cut with `…`.
+    /// Leave the next row empty and start the content at
+    /// `inner(area).y + 2`. On a [`Page`](crate::Page) drawn in the card,
+    /// use [`Page::heading`](crate::Page::heading), which gives the same
+    /// line.
+    pub fn title(&self, buf: &mut Buffer, area: Rect, title: &str, meta: &str) {
+        let inner = self.inner(area).intersection(buf.area);
+        if inner.is_empty() {
+            return;
+        }
+        let line = crate::page::heading_line(self.theme, usize::from(inner.width), title, meta);
+        buf.set_line(inner.x, inner.y, &line, inner.width);
+    }
+
     /// A rule across the card at row `y`, between the header, the content
     /// and the footer.
     pub fn rule(&self, buf: &mut Buffer, area: Rect, y: u16) {
@@ -139,9 +154,7 @@ impl Card<'_> {
         };
         let alpha = if t.is_truecolor() { t.look().fill.alpha() } else { 1.0 };
         let shown = area.intersection(buf.area);
-        for at in shown.positions() {
-            buf[at].set_symbol(" ");
-        }
+        crate::Backdrop::clear(area, buf);
         // Less than three rows has no room for the half rows.
         if area.height < 3 {
             fill(t, buf, area, color, alpha);
@@ -187,6 +200,22 @@ mod tests {
         assert_ne!(buf[(1, 2)].bg, Color::Reset);
         assert_eq!(buf[(0, 2)].symbol(), " ");
         assert_eq!(card.inner(area), Rect::new(3, 1, 6, 3));
+    }
+
+    #[test]
+    fn the_title_is_bold_on_the_first_row_of_the_content() {
+        use ratatui::style::Modifier;
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let area = Rect::new(0, 0, 20, 5);
+        let mut buf = Buffer::empty(area);
+        let card = Card::new(&theme);
+        card.render(area, &mut buf);
+        card.title(&mut buf, area, "Summary", "3 of 5");
+        let row: String = (0..20).map(|x| buf[(x, 1)].symbol().to_owned()).collect();
+        assert_eq!(row, "  Summary  3 of 5   ");
+        assert!(buf[(2, 1)].modifier.contains(Modifier::BOLD));
+        assert!(!buf[(11, 1)].modifier.contains(Modifier::BOLD));
+        card.title(&mut Buffer::empty(Rect::new(0, 0, 3, 1)), Rect::new(0, 0, 3, 1), "T", "");
     }
 
     #[test]

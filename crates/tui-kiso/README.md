@@ -159,3 +159,12 @@ call, then the new one.
 - `ThemePicker` sits on an Elevated card and dims the page.
 - `Menu` and `Palette` are aliases of `DropdownMenu` and `CommandPalette`.
   The old names still compile.
+- `AppShell` takes `.margin(columns)`. The default is still 2. With 1, the
+  rail of a card at the edge of the page takes the first column.
+- A `Card` and each row a `Page` draws now take the pattern of the
+  `Backdrop` out of their cells, and reset the text color there. Remove a
+  local clear for those. For a region with no card, call
+  `Backdrop::clear(area, buf)` before you draw it.
+- For the title of a card or a pane, use `Card::title(buf, area, title,
+  meta)` or `Page::heading(theme, width, title, meta)`: bold title, muted
+  meta, cut with `…`. `Page::section` stays the title of a page section.

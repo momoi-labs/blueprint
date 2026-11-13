@@ -823,7 +823,7 @@ fn card_page(t: &Theme, buf: &mut Buffer, area: Rect) {
         card.render(rect, buf);
         let inner = card.inner(rect);
         let width = usize::from(inner.width);
-        buf.set_stringn(inner.x, inner.y, "Backups", width, t.strong());
+        card.title(buf, rect, "Backups", "7 kept");
         buf.set_stringn(inner.x, inner.y + 1, "Daily at 02:00 UTC", width, t.muted());
         card.rule(buf, rect, inner.y + 2);
         buf.set_stringn(inner.x, inner.y + 3, "Last run    12 min ago", width, t.text());
@@ -1390,6 +1390,7 @@ fn states() -> Vec<State> {
     let contained = |aligns: usize| [keys("s"), vec![code(KeyCode::Down); 5], vec![code(KeyCode::Right), code(KeyCode::Down)], vec![code(KeyCode::Right); aligns], keys("s")].concat();
     states.push(("67-look-code".into(), [open(CARD), contained(1), keys("e")].concat(), wide));
     states.push(("68-page-rail".into(), rail("Page"), (136, 30)));
+    states.push(("69-card-rail".into(), rail("Card"), (136, 30)));
     states.push(("63-page-full".into(), open(dashboard), wide));
     states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
     states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));

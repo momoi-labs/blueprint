@@ -51,8 +51,8 @@ pub struct ShellAreas {
 /// footer. It draws nothing, like [`Grid`](crate::Grid): the app draws a
 /// widget in each area.
 ///
-/// The screen keeps two columns on each side, and the footer is the last
-/// row. With a header, it takes the first row and an empty row follows it.
+/// The screen keeps two columns on each side, or the [`margin`] the
+/// product asks for, and the footer is the last row. With a header, it takes the first row and an empty row follows it.
 /// The sidebar is as wide as the app asks, four columns from the page, on
 /// the [`Side`] the product picks. Three sizes change the layout:
 ///
@@ -62,6 +62,8 @@ pub struct ShellAreas {
 ///   sidebar collapses: there is no `sidebar` area. A key opens it as an
 ///   overlay on its side; pass `.open(true)` and draw the `overlay` area.
 /// - From 100 columns the sidebar sits beside the page.
+///
+/// [`margin`]: AppShell::margin
 #[derive(Clone, Copy, Debug)]
 pub struct AppShell {
     screen: Rect,
@@ -71,6 +73,7 @@ pub struct AppShell {
     open: bool,
     page_width: PageWidth,
     page_align: PageAlign,
+    margin: u16,
 }
 
 impl AppShell {
@@ -82,14 +85,14 @@ impl AppShell {
     pub const WIDE: u16 = 100;
     /// The fewest columns of a page that has a sidebar beside it.
     pub const PAGE: u16 = 60;
-    /// The columns kept on each side of the screen.
+    /// The columns kept on each side of the screen by default.
     pub const MARGIN: u16 = 2;
     /// The most columns of a contained page: six grid tracks.
     pub const CONTAINED: u16 = Grid::span(Grid::CONTAINED);
 
     /// The layout of `screen`, with no header and no sidebar.
     pub fn new(screen: Rect) -> Self {
-        Self { screen, side: Side::Left, sidebar: 0, header: false, open: false, page_width: PageWidth::Full, page_align: PageAlign::Start }
+        Self { screen, side: Side::Left, sidebar: 0, header: false, open: false, page_width: PageWidth::Full, page_align: PageAlign::Start, margin: Self::MARGIN }
     }
 
     /// The side of the sidebar. [`Side::Left`] by default.
@@ -135,6 +138,17 @@ impl AppShell {
         self
     }
 
+    /// The columns kept on each side of the screen. [`AppShell::MARGIN`],
+    /// 2, by default. With 1 the screen gains a column on each side, and
+    /// the rail of a [`Card`](crate::Card) at the edge of the page takes
+    /// the first column of the screen. With 0 that rail has no cell, so it
+    /// does not draw. Choose once for the product.
+    #[must_use]
+    pub fn margin(mut self, columns: u16) -> Self {
+        self.margin = columns;
+        self
+    }
+
     /// `column` as the page of that width and alignment. [`areas`]
     /// already does this; call it when the app takes columns from the page
     /// column first, as for a panel beside the page.
@@ -163,9 +177,9 @@ impl AppShell {
     pub fn areas(&self) -> ShellAreas {
         let screen = self.screen;
         let body = Rect::new(
-            screen.x.saturating_add(Self::MARGIN),
+            screen.x.saturating_add(self.margin),
             screen.y,
-            screen.width.saturating_sub(2 * Self::MARGIN),
+            screen.width.saturating_sub(self.margin.saturating_mul(2)),
             screen.height.saturating_sub(1),
         );
         let footer = Rect { y: screen.bottom().saturating_sub(1).max(screen.y), height: screen.height.min(1), ..body };
@@ -261,6 +275,23 @@ mod tests {
         assert_eq!((areas.page.x, areas.page.width), (30, 116 - 24 - 6));
         assert_eq!(areas.footer, Rect::new(2, 39, 116, 1));
         assert!(!areas.collapsed && areas.overlay.is_none());
+    }
+
+    #[test]
+    fn the_margin_is_the_one_the_product_asks_for() {
+        let screen = Rect::new(0, 0, 120, 30);
+        let wide = AppShell::new(screen).sidebar(24).areas();
+        let tight = AppShell::new(screen).sidebar(24).margin(1).areas();
+        assert_eq!((wide.footer.x, wide.footer.width), (2, 116));
+        assert_eq!((tight.footer.x, tight.footer.width), (1, 118));
+        assert_eq!(tight.sidebar.unwrap().x, 1);
+        assert_eq!((tight.page.x, tight.page.width), (wide.page.x - 1, wide.page.width + 2));
+        let right = AppShell::new(screen).sidebar(24).side(Side::Right).margin(1).areas();
+        assert_eq!((right.page.x, right.sidebar.unwrap().right()), (1, 119));
+        let none = AppShell::new(Rect::new(0, 0, 80, 24)).margin(1).areas();
+        assert_eq!((none.page.x, none.page.width), (1, 76));
+        // No screen is too narrow for a margin.
+        AppShell::new(Rect::new(0, 0, 3, 2)).margin(9).areas();
     }
 
     #[test]
