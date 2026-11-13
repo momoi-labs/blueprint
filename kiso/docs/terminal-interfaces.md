@@ -239,7 +239,9 @@ primary one last. `Esc` closes every overlay: say so in the hints.
 the app bar, the sidebar, the page and the footer.
 
 - The screen keeps two columns on each side. The footer is the last row. A
-  header takes the first row, and an empty row follows it.
+  header takes the first row, and an empty row follows it. A dense product
+  can ask for `.margin(1)`: the rail of a card at the edge of the page then
+  takes the first column of the screen. Choose once for the product.
 - Minimum size is 80 by 24. Under it, `AppShell::too_small` is true: draw
   `AppShell::message` and nothing else. The help screen and every dialog
   fit in 24 lines. A dialog keeps a row of the page above and below while
@@ -315,6 +317,11 @@ go, and it has two forms.
 
 `Backdrop` is a separate widget. Draw it once per screen, before everything
 else, so glass cards let it show through.
+
+A pattern must not show between the words of the content. A `Card`, an
+overlay and each row of a `Page` take the pattern out of the cells they
+use, and keep the glow. For a region of your own that sits on the backdrop
+with no card, call `Backdrop::clear(area, buf)` before you draw it.
 
 | Canvas | What it draws |
 | --- | --- |

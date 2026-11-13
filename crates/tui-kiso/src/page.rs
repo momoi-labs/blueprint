@@ -7,8 +7,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
 use crate::surface::{fill, over, put};
-use crate::text::cells;
-use crate::{Border, Theme};
+use crate::text::{cells, cut};
+use crate::{Backdrop, Border, Theme};
 
 /// Where a page is scrolled to. Drawing updates it with the page and view
 /// heights, so keys can scroll by what is on screen. It changes through a
@@ -79,6 +79,16 @@ pub(crate) fn section_line(theme: &Theme, width: usize, title: &str, meta: &str)
     Line::from(spans)
 }
 
+/// The title of a card or a pane: `title` in bold, then `meta` in muted
+/// text, cut to `width` with `…`.
+pub(crate) fn heading_line(theme: &Theme, width: usize, title: &str, meta: &str) -> Line<'static> {
+    let mut spans = vec![Span::styled(title.to_owned(), theme.strong())];
+    if !meta.is_empty() {
+        spans.push(Span::styled(format!("  {meta}"), theme.muted()));
+    }
+    Line::from(cut(spans, width).0)
+}
+
 /// How the selected item of a page is drawn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mark {
@@ -141,6 +151,16 @@ impl Page {
     /// `section` with any text at the end of the rule, such as "3 of 5".
     pub fn section_meta(&mut self, theme: &Theme, width: usize, title: &str, meta: &str) {
         self.line(section_line(theme, width, title, meta));
+        self.blank();
+    }
+
+    /// The title of a page that sits on a [`Card`](crate::Card) or in a
+    /// pane, and an empty row: `title` in bold, then `meta` in muted text,
+    /// such as "3 of 5". Pass "" for no meta. Use it in place of
+    /// [`section`](Page::section) there: a card is narrow and already a
+    /// group, so its title needs weight and no rule.
+    pub fn heading(&mut self, theme: &Theme, width: usize, title: &str, meta: &str) {
+        self.line(heading_line(theme, width, title, meta));
         self.blank();
     }
 
@@ -252,6 +272,10 @@ impl Widget for PageView<'_> {
         };
         for (dy, (line, code)) in rows.iter().skip(offset).take(height).enumerate() {
             let y = area.y + dy as u16;
+            // A row of the page owns its cells: no pattern of the backdrop
+            // shows between its words or tints them. Under the last row
+            // the backdrop stays.
+            Backdrop::clear(Rect { y, height: 1, ..area }, buf);
             if *code {
                 fill(t, buf, Rect { y, height: 1, ..block }, r.card, alpha);
                 rail(buf, y, "▐");
@@ -364,6 +388,25 @@ mod tests {
         assert_eq!(buf[(2, 1)].bg, card[(2, 1)].bg);
         assert_ne!(buf[(2, 1)].bg, theme.color(theme.tokens().card), "translucent, not the whole card color");
         assert_eq!(buf[(4, 1)].symbol(), "s");
+    }
+
+    #[test]
+    fn a_page_owns_its_rows_over_a_pattern() {
+        use crate::Canvas;
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let (mut page, scroll) = (Page::default(), Scroll::default());
+        page.heading(&theme, 12, "Summary", "3 of 5");
+        page.line(Line::raw("a"));
+        let mut buf = Buffer::empty(Rect::new(0, 0, 12, 6));
+        Backdrop::new(&theme, Canvas::Dots).render(buf.area, &mut buf);
+        page.view(&theme, &scroll).render(buf.area, &mut buf);
+        let row = |y: u16| (0..12).map(|x| buf[(x, y)].symbol().to_owned()).collect::<String>();
+        // The meta is cut, the rows of the page lose the dots, and the
+        // rows under the page keep them.
+        assert_eq!([row(0), row(1), row(2)], ["Summary  3 …", "            ", "a           "]);
+        assert_eq!(buf[(4, 2)].fg, ratatui::style::Color::Reset);
+        assert!(buf[(0, 0)].modifier.contains(ratatui::style::Modifier::BOLD));
+        assert_eq!(row(4), "·   ·   ·   ");
     }
 
     #[test]

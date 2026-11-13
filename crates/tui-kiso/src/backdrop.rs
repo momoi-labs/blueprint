@@ -1,5 +1,6 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
+use ratatui::style::Color;
 use ratatui::widgets::Widget;
 
 use crate::{blend, Theme};
@@ -62,6 +63,20 @@ impl<'a> Backdrop<'a> {
         self.strong = strong;
         self
     }
+
+    /// Takes the pattern out of `area`, so what is drawn there next is not
+    /// read through dots or lines: each cell becomes a space in the
+    /// default text color, and keeps its fill, so a glow stays.
+    ///
+    /// A [`Card`](crate::Card), an overlay and the rows of a
+    /// [`Page`](crate::Page) do this for the cells they take. Call it for a
+    /// region of your own that sits on the backdrop with no card, such as
+    /// a pane or a list, before you draw it.
+    pub fn clear(area: Rect, buf: &mut Buffer) {
+        for at in area.intersection(buf.area).positions() {
+            buf[at].set_symbol(" ").set_fg(Color::Reset);
+        }
+    }
 }
 
 impl Widget for Backdrop<'_> {
@@ -105,8 +120,6 @@ impl Widget for Backdrop<'_> {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::style::Color;
-
     use super::*;
 
     #[test]
@@ -119,5 +132,18 @@ mod tests {
         assert_ne!(buf[(0, 0)].bg, Color::Reset);
         Backdrop::new(&Theme::xterm_256(kiso_tokens::GOLD_DARK), Canvas::Dots).render(area, &mut buf);
         assert_eq!(buf[(4, 2)].symbol(), "·");
+    }
+
+    #[test]
+    fn clear_takes_the_pattern_and_keeps_the_glow() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let area = Rect::new(0, 0, 8, 4);
+        let mut buf = Buffer::empty(area);
+        Backdrop::new(&theme, Canvas::Glow).render(area, &mut buf);
+        Backdrop::new(&theme, Canvas::Dots).render(area, &mut buf);
+        let glow = buf[(4, 2)].bg;
+        Backdrop::clear(Rect::new(0, 2, 8, 9), &mut buf);
+        assert_eq!((buf[(4, 2)].symbol(), buf[(4, 2)].fg, buf[(4, 2)].bg), (" ", Color::Reset, glow));
+        assert_eq!(buf[(4, 0)].symbol(), "·");
     }
 }

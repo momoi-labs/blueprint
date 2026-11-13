@@ -178,7 +178,10 @@ usually the wrong pattern (put a Link or Button inside).
 In a terminal, Card is `tui-kiso` `Card`: a block of fill with square
 corners and half a row of fill above and below. It draws the surface, and
 `inner` gives the area for the content. `rule` draws the line between
-header, content and footer.
+header, content and footer. `title` writes the title of the card on the
+first row of the content: bold, with a muted meta such as a count after
+it. A `Page` drawn in the card gets the same line from `Page::heading`. Do
+not use a section title there: the section rule is for the page.
 
 | Web | Terminal form |
 | --- | --- |
