@@ -56,6 +56,21 @@ the trigger. `Tab` moves through interactive content and then onward; Popover
 does not trap focus like a Dialog. Close on outside interaction only when doing
 so cannot lose unsaved work. Supply a heading/label when Content needs one.
 
+## Terminal
+
+In a terminal, Popover is `tui-kiso` `Popover`: a small panel next to the
+cells it is about, over a page that stays lit.
+
+| State | Terminal form |
+| --- | --- |
+| open | An opaque `popover` fill with a half row above and below, and no scrim. An optional bold title, then the body. |
+| placement | Under its anchor. With no room below it opens above, and it shifts left to stay on screen. `OptionList` uses the same placement. |
+
+`Esc` closes it, and focus goes back to what opened it. Keep the body to a
+few rows of facts or help. A popover holds no form; use a
+[Modal](modal-dialog.md) for that. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Contextual details, filters, compact forms, or rich previews anchored to a

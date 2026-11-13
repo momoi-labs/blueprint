@@ -1,36 +1,45 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Rect};
-use ratatui::style::Modifier;
-use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Clear, Padding, Paragraph, Widget};
+use ratatui::text::Text;
+use ratatui::widgets::{Paragraph, Widget};
 
-use crate::text::cells;
-use crate::{KeyHints, Theme};
+use crate::overlay::Panel;
+use crate::{Button, Grid, Scrim, Size, Theme};
 
-/// A dialog over a page, for help, questions, pickers and short forms.
+/// A dialog over a page, for help, questions, pickers and short forms. The
+/// web's Dialog is the same component.
 ///
-/// The one framed element on screen: a rounded `primary` frame on
-/// `background`, with the title in the top border and the dialog's own key
-/// hints in the bottom one. Two columns of padding at the sides, none above
-/// or below. It clears the cells beneath it; no shadow, no dimmed page.
+/// It dims the screen with a [`Scrim`], then sits in the middle on the
+/// overlay surface: an opaque `popover` fill with half a row above and
+/// below, square corners and no line. A bold title on top, the body, then a
+/// footer with the key hints on the left and the [`Button`]s against the
+/// right edge, the primary one last. Three columns of padding at the sides.
 ///
-/// Render it into the screen: it centers itself, fits its content and
-/// shrinks to the screen. For content of your own, take the inside from
-/// [`Modal::draw`].
+/// Its width is whole grid tracks: `Sm` is 3, `Md` 4 and `Lg` 6. Without a
+/// size it takes the fewest of those that hold its content. It keeps two
+/// columns from each side of the screen and a row from the top and the
+/// bottom. Esc closes it: say so in the hints.
+///
+/// Render it into the whole screen. For content of your own, take the area
+/// of the body from [`Modal::draw`].
 #[derive(Clone, Debug)]
 pub struct Modal<'a> {
     theme: &'a Theme,
-    title: String,
+    panel: Panel<'a>,
     body: Text<'a>,
-    hints: Vec<(&'a str, &'a str)>,
+    size: Option<Size>,
     width: Option<u16>,
     height: Option<u16>,
 }
 
 impl<'a> Modal<'a> {
+    /// The columns between the edge of the surface and the content.
+    const PAD: u16 = 3;
+
     /// A modal with a title.
     pub fn new(theme: &'a Theme, title: impl Into<String>) -> Self {
-        Self { theme, title: title.into(), body: Text::default(), hints: Vec::new(), width: None, height: None }
+        let panel = Panel { title: title.into(), ..Panel::default() };
+        Self { theme, panel, body: Text::default(), size: None, width: None, height: None }
     }
 
     /// The content, one line per row.
@@ -39,13 +48,28 @@ impl<'a> Modal<'a> {
         self
     }
 
-    /// Key hints for the bottom border, as `(key, label)` pairs.
+    /// Key hints for the footer, as `(key, label)` pairs.
     pub fn hints(mut self, hints: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
-        self.hints = hints.into_iter().collect();
+        self.panel.hints = hints.into_iter().collect();
         self
     }
 
-    /// A fixed outer width. By default the modal fits its content.
+    /// The buttons of the footer, the primary one last. Give the one with
+    /// focus [`ButtonState::Focus`](crate::ButtonState::Focus).
+    #[must_use]
+    pub fn actions(mut self, buttons: impl IntoIterator<Item = Button<'a>>) -> Self {
+        self.panel.buttons = buttons.into_iter().collect();
+        self
+    }
+
+    /// The width in grid tracks: `Sm` 3, `Md` 4, `Lg` 6.
+    #[must_use]
+    pub fn size(mut self, size: Size) -> Self {
+        self.size = Some(size);
+        self
+    }
+
+    /// A fixed outer width, in place of a size.
     pub fn width(mut self, width: u16) -> Self {
         self.width = Some(width);
         self
@@ -57,50 +81,48 @@ impl<'a> Modal<'a> {
         self
     }
 
+    /// The tracks of a size.
+    fn tracks(size: Size) -> u16 {
+        match size {
+            Size::Sm => 3,
+            Size::Md => 4,
+            Size::Lg => 6,
+        }
+    }
+
     /// The area the modal takes on `screen`.
     pub fn area(&self, screen: Rect) -> Rect {
-        let hints = KeyHints::new(self.theme, self.hints.iter().copied()).spans(usize::MAX);
-        let hints = hints.iter().map(Span::width).sum::<usize>();
         // Sizes are worked out in usize and clamped, so a huge body cannot
         // overflow a u16.
         let clamp = |n: usize| n.min(usize::from(u16::MAX)) as u16;
-        let width = self.width.unwrap_or_else(|| {
-            let content = self.body.width().max(cells(&self.title) + 2).max(hints);
-            clamp(content.saturating_add(6))
+        let pad = usize::from(Self::PAD) * 2;
+        let width = self.width.unwrap_or_else(|| match self.size {
+            Some(size) => Grid::span(Self::tracks(size)),
+            None => {
+                let content = clamp(self.body.width().max(self.panel.width(self.theme)).saturating_add(pad));
+                [Size::Sm, Size::Md, Size::Lg].map(|size| Grid::span(Self::tracks(size))).into_iter().find(|w| *w >= content).unwrap_or(content)
+            }
         });
-        let height = self.height.unwrap_or_else(|| clamp(self.body.height().saturating_add(2)));
-        screen.centered(Constraint::Length(width.min(screen.width)), Constraint::Length(height.min(screen.height)))
+        let width = width.min(screen.width.saturating_sub(4));
+        let inner = width.saturating_sub(Self::PAD * 2);
+        let height = self.height.unwrap_or_else(|| clamp(self.body.height()).saturating_add(self.panel.chrome(self.theme, inner)));
+        let height = height.min(screen.height.saturating_sub(2));
+        screen.centered(Constraint::Length(width), Constraint::Length(height))
     }
 
-    /// Draws the frame and the body, and returns the inside: the area
-    /// within the border and the side padding.
+    /// Dims the screen, draws the surface, the title, the footer and the
+    /// body, and returns the area of the body.
     pub fn draw(self, screen: Rect, buf: &mut Buffer) -> Rect {
         let t = self.theme;
-        let area = self.area(screen).intersection(buf.area);
+        let screen = screen.intersection(buf.area);
+        Scrim::new(t).render(screen, buf);
+        let area = self.area(screen);
         if area.is_empty() {
             return area;
         }
-        Clear.render(area, buf);
-        let edge = t.fg(t.tokens().primary);
-        let top =
-            Line::from(vec![Span::styled("─", edge), Span::styled(format!(" {} ", self.title), edge.add_modifier(Modifier::BOLD))]);
-        let mut block = Block::bordered()
-            .border_type(BorderType::Rounded)
-            .border_style(edge)
-            .style(t.base())
-            .title(top)
-            .padding(Padding::horizontal(2));
-        if !self.hints.is_empty() {
-            let room = usize::from(area.width).saturating_sub(4);
-            let mut bottom = vec![Span::styled("─", edge), Span::raw(" ")];
-            bottom.extend(KeyHints::new(t, self.hints).spans(room));
-            bottom.push(Span::raw(" "));
-            block = block.title_bottom(Line::from(bottom));
-        }
-        let inner = block.inner(area);
-        block.render(area, buf);
-        Paragraph::new(self.body).render(inner, buf);
-        inner
+        let body = self.panel.draw(t, buf, area, Self::PAD);
+        Paragraph::new(self.body).style(t.text()).render(body, buf);
+        body
     }
 }
 
@@ -113,17 +135,60 @@ impl Widget for Modal<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{ButtonState, ButtonVariant};
+
+    fn row(buf: &Buffer, y: u16) -> String {
+        (0..buf.area.width).map(|x| buf[(x, y)].symbol().to_owned()).collect()
+    }
 
     #[test]
-    fn the_title_and_keys_sit_in_the_border() {
+    fn the_title_body_and_keys_sit_on_the_surface() {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
-        let screen = Rect::new(0, 0, 40, 7);
+        let screen = Rect::new(0, 0, 60, 12);
         let mut buf = Buffer::empty(screen);
-        let inner = Modal::new(&theme, "Help").body("q  Quit").hints([("any key", "close")]).draw(screen, &mut buf);
-        let row = |y: u16| (0..screen.width).map(|x| buf[(x, y)].symbol()).collect::<String>();
-        assert!(row(2).contains("╭─ Help ─"), "{}", row(2));
-        assert!(row(4).contains("╰─ any key close ─"), "{}", row(4));
-        assert_eq!(inner.height, 1);
-        assert_eq!(buf[(inner.x, inner.y)].symbol(), "q");
+        let modal = Modal::new(&theme, "Help").body("q  Quit").hints([("esc", "close")]);
+        let area = modal.area(screen);
+        assert_eq!((area.width, area.height), (Grid::span(3), 7));
+        let body = modal.draw(screen, &mut buf);
+        assert_eq!(row(&buf, area.y), format!("{:9}{}{:8}", "", "▄".repeat(43), ""));
+        assert!(row(&buf, area.y + 1).contains("Help"));
+        assert_eq!((body.y, body.height), (area.y + 3, 1));
+        assert_eq!(buf[(body.x, body.y)].symbol(), "q");
+        assert!(row(&buf, area.y + 5).contains("esc close"));
+        assert_eq!(buf[(body.x, body.y)].bg, theme.color(theme.tokens().popover));
+    }
+
+    #[test]
+    fn sizes_take_whole_tracks_and_keep_a_margin() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let screen = Rect::new(0, 0, 120, 40);
+        let width = |size| Modal::new(&theme, "T").size(size).area(screen).width;
+        assert_eq!([Size::Sm, Size::Md, Size::Lg].map(width), [43, 58, 88]);
+        let small = Rect::new(0, 0, 60, 10);
+        let area = Modal::new(&theme, "T").size(Size::Lg).height(40).area(small);
+        assert_eq!((area.x, area.width, area.y, area.height), (2, 56, 1, 8));
+    }
+
+    #[test]
+    fn the_buttons_sit_against_the_right_edge() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let screen = Rect::new(0, 0, 60, 14);
+        let mut buf = Buffer::empty(screen);
+        let buttons = [Button::new(&theme, "Cancel"), Button::new(&theme, "Save").variant(ButtonVariant::Primary).state(ButtonState::Focus)];
+        let modal = Modal::new(&theme, "Rename").body("Name").size(Size::Sm).actions(buttons).hints([("esc", "cancel")]);
+        let area = modal.area(screen);
+        modal.draw(screen, &mut buf);
+        let middle = row(&buf, area.bottom() - 3);
+        assert!(middle.contains("esc cancel") && middle.trim_end().ends_with("Save  ▌"), "{middle}");
+    }
+
+    #[test]
+    fn any_screen_size_draws_without_panic() {
+        let theme = Theme::xterm_256(kiso_tokens::GOLD_DARK);
+        for (w, h) in [(0, 0), (1, 1), (5, 3), (20, 5), (80, 24)] {
+            let screen = Rect::new(0, 0, w, h);
+            let modal = Modal::new(&theme, "A long title for a small screen").body("x").actions([Button::new(&theme, "OK")]);
+            modal.draw(screen, &mut Buffer::empty(screen));
+        }
     }
 }

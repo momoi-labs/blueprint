@@ -40,6 +40,27 @@ impl<'a> Header<'a> {
         self
     }
 
+    /// The cells of the scope in `area`, the area the header renders in,
+    /// for a [`ScopeSwitcher`](crate::ScopeSwitcher). None without a scope or
+    /// when the row cuts it.
+    pub fn scope_area(&self, area: Rect) -> Option<Rect> {
+        let scope = self.scope?;
+        let x = cells(&self.brand()).saturating_add(2);
+        let width = cells(scope);
+        if x + width > usize::from(area.width) {
+            return None;
+        }
+        Some(Rect::new(area.x + x as u16, area.y, width as u16, area.height.min(1)))
+    }
+
+    fn brand(&self) -> String {
+        if self.version.is_empty() {
+            format!(" {} ", self.product)
+        } else {
+            format!(" {} {} ", self.product, self.version)
+        }
+    }
+
     /// The current view's title.
     pub fn title(self, title: &'a str) -> Self {
         self.breadcrumb([title])
@@ -67,11 +88,7 @@ impl Widget for Header<'_> {
         }
         let t = self.theme;
         let width = usize::from(area.width);
-        let brand = if self.version.is_empty() {
-            format!(" {} ", self.product)
-        } else {
-            format!(" {} {} ", self.product, self.version)
-        };
+        let brand = self.brand();
         let right_width: usize = self.right.iter().map(Span::width).sum();
         // The right side needs the brand, the scope, a gap, and itself. The
         // path collapses to fit what is left; it does not push the right side
@@ -151,5 +168,18 @@ mod tests {
         let mut buf = Buffer::empty(Rect::new(0, 0, 10, 1));
         Header::new(&theme, "pg-probe", "").render(Rect::new(0, 0, 10, 0), &mut buf);
         assert_eq!(row(&buf), " ".repeat(10));
+    }
+
+    #[test]
+    fn the_scope_area_covers_the_scope() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let header = Header::new(&theme, "pg-probe", "0.4.0").scope("pg-main").title("Machines");
+        let area = Rect::new(2, 0, 60, 1);
+        let scope = header.scope_area(area).unwrap();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 62, 1));
+        header.clone().render(area, &mut buf);
+        let text: String = (scope.x..scope.right()).map(|x| buf[(x, 0)].symbol().to_owned()).collect();
+        assert_eq!(text, "pg-main");
+        assert_eq!(header.scope_area(Rect::new(0, 0, 20, 1)), None);
     }
 }

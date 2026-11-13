@@ -135,16 +135,23 @@ corner marks. Padding `--spacing-xs` around the list; item padding
 
 ## Terminal
 
-In a terminal, the actions of a row are `tui-kiso` `Menu`, the terminal
-form of a `⋯` menu. `a` opens it: a small rounded `primary` frame right
-under the selected row, or above it when there is no room below, titled
-with what it acts on. Each action has its key on the right in
-`muted-foreground`. The selected action is filled with `primary`; a
-destructive action is in `danger-on-dark`, and selected it takes the
-`danger` fill with `danger-foreground`. `↑` `↓` and `Enter`, or an
-action's key, run one, and `Esc` closes. A copy action sends the text with
-OSC 52 and says what it copied in a toast, since some terminals block the
-clipboard. See [terminal interfaces](../terminal-interfaces.md#layout).
+In a terminal, the actions of a row are `tui-kiso` `DropdownMenu`, the
+terminal form of a `⋯` menu. `Menu` is its first name and still works.
+
+| State | Terminal form |
+| --- | --- |
+| open | The popover surface under the selected row, or above it when there is no room below, with no scrim. A muted caption names what it acts on. |
+| row | The label on the left, its key on the right in `muted-foreground`. |
+| selected | The `primary` fill with `primary-foreground`. |
+| danger | `danger-on-dark` text; selected, the `danger` fill with `danger-foreground`. |
+| disabled | `disabled` text; `↑` `↓` skip it. |
+| separator | A `border` rule between groups of actions. |
+| check | A `✓` on the right of the current choice. |
+
+`a` opens it. `↑` `↓` and `Enter`, or an action's key, run one, and `Esc`
+closes. A copy action sends the text with OSC 52 and says what it copied in
+a toast, since some terminals block the clipboard. See
+[terminal interfaces](../terminal-interfaces.md#layout).
 
 ## When to use
 

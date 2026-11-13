@@ -102,7 +102,7 @@ impl<'a> Textarea<'a> {
         body.resize_with(view, Vec::new);
         let mut lines = frame(&paint, c.size, width, body);
         if total > view {
-            let top = usize::from(c.size == Size::Md);
+            let top = usize::from(c.size != Size::Sm);
             let thumb = thumb(view, offset, total);
             let r = c.theme.tokens();
             for dy in 0..view {

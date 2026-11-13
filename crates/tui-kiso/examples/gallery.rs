@@ -18,7 +18,7 @@ use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
     ButtonVariant, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
-    AppShell, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Question, Scroll, Search,
+    AppShell, Ink, KeyHints, Look, Mark, Meter, Modal, Page, PanelFill, Pattern, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
     Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, TimeRangeControl, Title,
     Toast, Tone, ACCENTS,
@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 67] = [
+const PAGES: [(&str, &str); 71] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -39,14 +39,14 @@ const PAGES: [(&str, &str); 67] = [
     ("KeyHints", "The footer keys. Help and quit always stay."),
     ("FormActions", "The buttons that end a form: primary last, stacked when narrow."),
     ("Form", "Labels in a column; focus is the list selection."),
-    ("Modal", "The one framed element: a dialog over the page."),
+    ("Modal", "A dialog over the dimmed page, opened with enter."),
     ("Question", "A question with facts, what happens, and buttons."),
-    ("Palette", "Commands with their keys, opened with ctrl+p."),
+    ("CommandPalette", "Commands with their keys, opened with ctrl+p."),
     ("ThemePicker", "The accent and dark or light on an elevated card, previewed live."),
     ("Toast", "Notices, spinners and the steps of a run."),
     ("Sidebar", "The navigation: groups, counts, a disabled item, and scrolling."),
     ("Filters", "One select per facet; f edits them, the page follows."),
-    ("Menu", "The actions of one row, opened with a, under the row."),
+    ("DropdownMenu", "The actions of one row, opened with a, under the row."),
     ("Detail", "A record as a page: tabs, facts, a failure and its run."),
     ("Chart", "Series across a window, in braille, with a scale and a legend."),
     ("Sparkline", "The shape of one series in a cell; the number is beside it."),
@@ -96,6 +96,10 @@ const PAGES: [(&str, &str); 67] = [
     ("Combobox", "A select you type into: the list keeps what matches."),
     ("ChipInput", "Short values typed one by one, each a chip."),
     ("IconButton", "A button with a glyph and a name it falls back to."),
+    ("Drawer", "A panel over the page from one edge, for a record's details."),
+    ("Popover", "Details next to what they are about, over a lit page."),
+    ("ScopeSwitcher", "The scope in the header, and the menu to change it."),
+    ("DetailSelect", "One choice whose options each have a description."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -167,6 +171,12 @@ struct App {
     panel: Option<usize>,
     form: Form,
     filters: Filters,
+    /// The open overlay of a wave 8 page: its selected row or button, and
+    /// what was typed into it.
+    overlay: Option<usize>,
+    query: String,
+    /// The choice of the DetailSelect page.
+    detail: usize,
     scroll: Scroll,
     /// The window of time of the range control and the dashboard.
     range: usize,
@@ -187,6 +197,9 @@ impl App {
             panel: None,
             form: demo_form(),
             filters: demo_filters(),
+            overlay: None,
+            query: String::new(),
+            detail: 0,
             scroll: Scroll::default(),
             range: 1,
             quit: false,
@@ -210,7 +223,9 @@ impl App {
             return;
         }
         // Help opens over any layer: F1 always, ? wherever it is not text.
-        let typing = self.main && self.page == FORM && self.picker.is_none() && !self.filters.is_open();
+        let name = PAGES[self.page].0;
+        let typing = (self.main && self.page == FORM && self.picker.is_none() && !self.filters.is_open())
+            || (self.overlay.is_some() && wave_08::types(name));
         if key.code == KeyCode::F(1) || (key.code == KeyCode::Char('?') && !typing) {
             self.layer = Some(Layer::Help);
             return;
@@ -238,6 +253,34 @@ impl App {
                 self.scroll.top();
             }
             return;
+        }
+        if let Some(pick) = self.overlay {
+            let rows = wave_08::rows(&self.theme, name, &self.query);
+            match key.code {
+                KeyCode::Esc | KeyCode::Enter => {
+                    self.overlay = None;
+                    self.query.clear();
+                }
+                KeyCode::Up | KeyCode::Left => self.overlay = Some(pick.saturating_sub(1)),
+                KeyCode::Down | KeyCode::Right => self.overlay = Some((pick + 1).min(rows.saturating_sub(1))),
+                KeyCode::Backspace if wave_08::types(name) => _ = self.query.pop(),
+                KeyCode::Char(c) if wave_08::types(name) => {
+                    self.query.push(c);
+                    self.overlay = Some(0);
+                }
+                _ => {}
+            }
+            return;
+        }
+        if self.main {
+            match key.code {
+                KeyCode::Enter | KeyCode::Char('o') if wave_08::opens(name) => return self.overlay = Some(wave_08::first(name)),
+                KeyCode::Enter if name == "ThemePicker" => return self.picker = Some(ThemePicker::new(self.accent, self.light)),
+                KeyCode::Up | KeyCode::Down | KeyCode::Char('j' | 'k') if name == "DetailSelect" => {
+                    return self.detail = wave_08::detail_key(&self.theme, self.detail, key.code);
+                }
+                _ => {}
+            }
         }
         if self.main && self.page == FILTERS {
             match key.code {
@@ -373,6 +416,8 @@ impl App {
 
         let keys: Vec<(&str, &str)> = match (self.layer, self.main) {
             (Some(Layer::Help), _) => vec![("any key", "close")],
+            _ if self.overlay.is_some() => vec![("↑/↓", "choose"), ("enter", "pick"), ("esc", "close")],
+            (None, true) if wave_08::opens(name) => vec![("enter", "open"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
@@ -397,6 +442,9 @@ impl App {
         }
         if let Some(picker) = &self.picker {
             picker.view(t).render(screen, buf);
+        }
+        if let Some(pick) = self.overlay {
+            wave_08::overlay(t, buf, screen, area, name, pick, &self.query);
         }
         // Help goes over every other layer.
         if self.layer == Some(Layer::Help) {
@@ -436,31 +484,10 @@ impl App {
                     list.render(area, buf);
                 }
             }
-            "Modal" => {
-                caption(t, buf, area, 0, "Help, as ? opens it. The page under it stays as it was.");
-                help(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
-            }
-            "Question" => {
-                caption(t, buf, area, 0, "Focus starts on the safe answer; a destructive one turns danger.");
-                let question = Question::new(t, "Delete pg-main-2?")
-                    .facts([("Machine", "pg-main-2"), ("Region", "eu-west")])
-                    .block(["This deletes the machine and its disk.", "Backups stay for 7 days."])
-                    .buttons(["Cancel", "Delete"])
-                    .focused(1)
-                    .danger(true);
-                question.render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
-            }
-            "Palette" => {
-                caption(t, buf, area, 0, "Typing filters; the selected command is filled with primary.");
-                let commands = [("Go to Machines", "1"), ("Go to Logs", "2"), ("Restart machine", "r"), ("Theme", "t"), ("Quit", "q")];
-                let palette = Palette::new(t, commands).filter("").selected(0);
-                palette.render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
-            }
-            "ThemePicker" => {
-                caption(t, buf, area, 0, "Press t anywhere: the app redraws in the accent under the cursor.");
-                let picker = ThemePicker::new(self.accent, self.light);
-                picker.view(t).render(Rect { y: area.y + 2, height: area.height.saturating_sub(2), ..area }, buf);
-            }
+            "Modal" => wave_08::backdrop_page(t, buf, area, "Enter opens a dialog to rename the machine; esc closes it."),
+            "Question" => wave_08::backdrop_page(t, buf, area, "Enter asks before a delete. Focus starts on the safe answer."),
+            "CommandPalette" => wave_08::backdrop_page(t, buf, area, "Enter opens the commands; typing filters them."),
+            "ThemePicker" => wave_08::backdrop_page(t, buf, area, "Enter or t opens it: the app redraws in the accent under the cursor."),
             "Toast" => toast_page(t, buf, area),
             "Sidebar" => wave_07::sidebar_page(t, buf, area),
             "AppShell" => wave_07::app_shell_page(t, buf, area),
@@ -470,14 +497,11 @@ impl App {
                 let page = filtered_page(t, width, &self.filters);
                 page.view(t, &self.scroll).selected(Some(0)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
             }
-            "Menu" => {
-                let (page, scroll) = (machine_page(t, width), Scroll::default());
-                page.view(t, &scroll).selected(Some(1)).render(area, buf);
-                if let Some(row) = page.item_area(1, area, &scroll) {
-                    let menu = Menu::new(t, "pg-main-2", row).action("Open", "enter").action("Restart", "r").action("Copy URL", "c");
-                    menu.danger("Delete", "x").selected(3).render(area, buf);
-                }
-            }
+            "DropdownMenu" => wave_08::backdrop_page(t, buf, area, "Enter opens the actions of the selected row."),
+            "Drawer" => wave_08::backdrop_page(t, buf, area, "Enter opens the details of the selected row from the right edge."),
+            "Popover" => wave_08::popover_page(t, buf, area),
+            "ScopeSwitcher" => wave_08::scope_page(t, buf, area, self.main),
+            "DetailSelect" => wave_08::detail_select_page(t, buf, area, self.detail, self.main),
             "Detail" => detail_page(t, width).view(t, &self.scroll).render(area, buf),
             "Chart" => chart_page(t, buf, area),
             "Sparkline" => sparkline_page(t, width).view(t, &self.scroll).render(area, buf),
@@ -1249,9 +1273,10 @@ fn states() -> Vec<State> {
     // Every dialog fits 80 by 24.
     states.push(("29-help-80".into(), keys("?"), small));
     states.push(("30-picker-80".into(), keys("t"), small));
-    states.push(("31-palette-80".into(), [vec![code(KeyCode::Down); 12], vec![code(KeyCode::Enter)]].concat(), small));
-    states.push(("32-question-80".into(), [vec![code(KeyCode::Down); 11], vec![code(KeyCode::Enter)]].concat(), small));
-    states.push(("33-menu-80".into(), open(17), small));
+    let enter = vec![code(KeyCode::Enter)];
+    states.push(("31-palette-80".into(), [open(12), enter.clone()].concat(), small));
+    states.push(("32-question-80".into(), [open(11), enter.clone()].concat(), small));
+    states.push(("33-menu-80".into(), [open(17), enter.clone()].concat(), small));
     states.push(("34-filters-80".into(), filters, small));
     states.push(("35-chart-80".into(), open(CHART), small));
     // Dots, and a rail on the cards. The panel pushes a wide page and covers a narrow one.
@@ -1265,9 +1290,34 @@ fn states() -> Vec<State> {
     let dashboard = PAGES.iter().position(|(name, _)| *name == "Dashboard").unwrap_or(0);
     states.push(("39-dashboard-80".into(), open(dashboard), small));
     let dots = [keys("s"), vec![code(KeyCode::Right), code(KeyCode::Right)], vec![code(KeyCode::Down); 3], vec![code(KeyCode::Right)]].concat();
-    states.push(("40-dashboard-rail".into(), [open(dashboard), dots].concat(), (136, 30)));
+    states.push(("40-dashboard-rail".into(), [open(dashboard), dots.clone()].concat(), (136, 30)));
     // The list of the form's select, open over the fields under it.
     states.push(("41-form-list".into(), [open(FORM), vec![code(KeyCode::BackTab), code(KeyCode::BackTab), code(KeyCode::Enter), code(KeyCode::Down)]].concat(), SIZE));
+    // Each overlay open, at full size, at 80 by 24, and on dots with a rail.
+    let at = |name: &str| open(PAGES.iter().position(|(page, _)| *page == name).unwrap_or(0));
+    let opened = |name: &str, more: Vec<KeyEvent>| [at(name), enter.clone(), more].concat();
+    states.push(("42-modal-open".into(), opened("Modal", vec![]), SIZE));
+    states.push(("43-question-open".into(), opened("Question", vec![]), SIZE));
+    states.push(("44-palette-open".into(), opened("CommandPalette", vec![code(KeyCode::Down)]), SIZE));
+    states.push(("45-palette-filter".into(), opened("CommandPalette", keys("re")), SIZE));
+    states.push(("46-palette-empty".into(), opened("CommandPalette", keys("zz")), SIZE));
+    states.push(("47-menu-open".into(), opened("DropdownMenu", vec![code(KeyCode::Down); 4]), SIZE));
+    states.push(("48-drawer-open".into(), opened("Drawer", vec![]), SIZE));
+    states.push(("49-popover-open".into(), opened("Popover", vec![]), SIZE));
+    states.push(("50-scope-open".into(), opened("ScopeSwitcher", vec![]), SIZE));
+    states.push(("51-scope-filter".into(), opened("ScopeSwitcher", keys("pg")), SIZE));
+    states.push(("52-detail-select".into(), [at("DetailSelect"), vec![code(KeyCode::Down)]].concat(), SIZE));
+    states.push(("53-picker-page".into(), opened("ThemePicker", vec![]), SIZE));
+    states.push(("54-drawer-80".into(), opened("Drawer", vec![]), small));
+    states.push(("55-modal-80".into(), opened("Modal", vec![]), small));
+    states.push(("56-scope-80".into(), opened("ScopeSwitcher", vec![]), small));
+    states.push(("57-popover-80".into(), opened("Popover", vec![]), small));
+    let rail = |name: &str| [at(name), dots.clone(), keys("s"), enter.clone()].concat();
+    states.push(("58-modal-rail".into(), rail("Modal"), (136, 30)));
+    states.push(("59-drawer-rail".into(), rail("Drawer"), (136, 30)));
+    states.push(("60-palette-rail".into(), rail("CommandPalette"), (136, 30)));
+    states.push(("61-menu-rail".into(), rail("DropdownMenu"), (136, 30)));
+    states.push(("62-popover-rail".into(), rail("Popover"), (136, 30)));
     states
 }
 
@@ -1393,6 +1443,8 @@ fn export(file: &Path, accent: usize, light: bool) -> std::io::Result<usize> {
 /// A ratatui buffer as HTML: one span per run of equal style.
 #[path = "support/html.rs"]
 mod html;
+#[path = "support/wave_08.rs"]
+mod wave_08;
 #[path = "support/wave_07.rs"]
 mod wave_07;
 

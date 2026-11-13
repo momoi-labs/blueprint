@@ -78,20 +78,24 @@ control. Clicking the overlay may close only when losing work is impossible.
 
 ## Terminal
 
-In a terminal, Modal is `tui-kiso` `Modal`: a dialog centered over the
-page, and the one framed element on screen. It clears the cells beneath it
-and draws a rounded `primary` frame on `background`, with two columns of
-padding at the sides. The title is bold `primary` in the top border, and
-the dialog's own key hints sit in the bottom border. There is no shadow and
-the page under it is not dimmed. It fits in 80 by 24.
+In a terminal, Modal is `tui-kiso` `Modal`: a dialog centered on the
+overlay surface over a dimmed page. `tui-kiso` `Scrim` dims the page first,
+and the dialog owns every cell it covers.
 
-Use it for help, questions, pickers, the command palette and short forms.
-`tui-kiso` `Question` lays out a question: facts, a block on `card` with
-what will happen, then [buttons](button.md). Focus starts on the safe
-answer, `←` `→` move between the buttons, and each button's first letter
-takes it. Help opens with `?` or `F1`, and any key closes it. `q` and
-`Esc` close one layer at a time, and `Ctrl+C` quits from anywhere. See
-[terminal interfaces](../terminal-interfaces.md).
+| State | Terminal form |
+| --- | --- |
+| open | `Scrim` over the screen: in truecolor each cell blends toward `background`; in 256 colors the text turns `subtle-foreground`. The dialog is an opaque `popover` fill with a half row above and below, square, with no border and no shadow. |
+| content | Bold title, a blank row, the body, then the footer: key hints on the left, [buttons](button.md) on the right. Three columns of padding at the sides. |
+| sizes | `Sm`, `Md` and `Lg` take 3, 4 and 6 grid tracks, never closer than two cells to the screen edge. With no size, the dialog takes the smallest that fits. |
+| focus | The focused button carries its focus bars. Focus starts on the safe answer. |
+
+`Esc` closes the dialog; say so in its hints. `←` `→` move between the
+buttons, and each button's first letter takes it. `tui-kiso` `Question`
+lays out a question in the same dialog: facts, a block on `card` with what
+will happen, then the buttons. Help opens with `?` or `F1`, and the theme
+picker, the filter editor and the command palette use the same layer. Use
+a dialog for one decision or a short form; open a page for anything longer.
+See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

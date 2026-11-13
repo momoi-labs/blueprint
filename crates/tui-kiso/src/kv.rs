@@ -77,7 +77,7 @@ impl<'a> KV<'a> {
         let (_, per) = self.layout(Rect::new(0, 0, width, 1));
         let rows = match self.size {
             Size::Sm => per,
-            Size::Md => (per * 2).saturating_sub(1),
+            Size::Md | Size::Lg => (per * 2).saturating_sub(1),
         };
         u16::try_from(rows).unwrap_or(u16::MAX)
     }
@@ -91,7 +91,7 @@ impl Widget for KV<'_> {
         }
         let pitch = match self.size {
             Size::Sm => 1,
-            Size::Md => 2,
+            Size::Md | Size::Lg => 2,
         };
         let (areas, per) = self.layout(area);
         for (column, chunk) in areas.iter().zip(self.pairs.chunks(per)) {

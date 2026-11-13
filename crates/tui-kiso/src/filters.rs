@@ -169,8 +169,10 @@ impl Widget for FiltersView<'_> {
         let (t, form) = (self.theme, &self.filters.form);
         let label = form.fields.iter().map(|field| crate::text::cells(&field.label)).max().unwrap_or(0) + 2;
         let keys = [("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")];
-        let height = form.fields.len() as u16 + 3;
-        let area = Modal::new(t, self.title).width(60).height(height).hints(keys).draw(screen, buf);
+        // A blank body row per facet and one more, as the form takes, so the
+        // modal fits them under its title.
+        let rows = vec![ratatui::text::Line::default(); form.fields.len() + 1];
+        let area = Modal::new(t, self.title).width(60).body(rows).hints(keys).draw(screen, buf);
         if area.is_empty() {
             return;
         }

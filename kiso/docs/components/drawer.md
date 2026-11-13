@@ -64,12 +64,20 @@ must not be the only way out, and must not discard work accidentally.
 
 ## Terminal
 
-A terminal has no drawer. A record's details open as a page in place of
-the list, as pg-probe opens a query: a side panel would leave the list too
-narrow. The page has the record's name on the title line, its facts as
-`tui-kiso` `fact` rows, and sections for what it did, such as a failure in
-a code block. `Esc` and `q` go back to the list as it was: the same search,
-filters, selected row and scroll. See
+In a terminal, Drawer is `tui-kiso` `Drawer`: a panel the full height of
+the screen, against the right edge by default, over a dimmed page.
+
+| State | Terminal form |
+| --- | --- |
+| open | `Scrim` over the screen, then an opaque `popover` panel with a half row at the top and the bottom. No border and no shadow. |
+| content | Bold title, the body, then the footer: key hints on the left, [buttons](button.md) on the right. Two columns of padding. |
+| sizes | 3 grid tracks wide, or 4 with `.tracks(4)`. On a screen narrower than 3 tracks it takes the full width. |
+| side | `.side(Side::Left)` puts it against the left edge. |
+
+`Esc` closes it; say so in its hints. Use a drawer for a record's details
+next to the list it came from. When the details need more room than 4
+tracks, open them as a page in place of the list, and keep the list's
+search, filters, selection and scroll for `Esc`. See
 [terminal interfaces](../terminal-interfaces.md#layout).
 
 ## When to use

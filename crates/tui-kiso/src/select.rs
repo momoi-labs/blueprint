@@ -8,7 +8,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::input::{draw, frame, one_row, placeholder, Flags, Paint};
 use crate::surface::{under, write};
 use crate::text::{cells, cut, take_cells};
-use crate::{Card, CardVariant, Size, Theme};
+use crate::overlay::{place, surface};
+use crate::{Size, Theme};
 
 /// The most options an [`OptionList`] shows at once.
 const ROWS: usize = 8;
@@ -123,7 +124,7 @@ impl<'a> Select<'a> {
 
     /// The rows the field takes, without the list.
     pub fn height(&self) -> u16 {
-        if self.size == Size::Md { 3 } else { 1 }
+        if self.size != Size::Sm { 3 } else { 1 }
     }
 
     pub(crate) fn lines(&self, width: u16, behind: Rgb) -> Vec<Line<'static>> {
@@ -145,7 +146,7 @@ impl<'a> Select<'a> {
 
 impl Widget for Select<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size == Size::Md)));
+        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size != Size::Sm)));
         let lines = self.lines(area.width, behind);
         draw_open(buf, area, &lines, self.list(area));
     }
@@ -208,7 +209,7 @@ impl<'a> Combobox<'a> {
 
     /// The rows the field takes, without the list.
     pub fn height(&self) -> u16 {
-        if self.size == Size::Md { 3 } else { 1 }
+        if self.size != Size::Sm { 3 } else { 1 }
     }
 
     pub(crate) fn lines(&self, width: u16, behind: Rgb) -> Vec<Line<'static>> {
@@ -240,14 +241,14 @@ impl<'a> Combobox<'a> {
 
 impl Widget for Combobox<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size == Size::Md)));
+        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size != Size::Sm)));
         let lines = self.lines(area.width, behind);
         draw_open(buf, area, &lines, self.list(area));
     }
 }
 
-/// The open list of a [`Select`] or a [`Combobox`]: the options on an
-/// elevated [`Card`] as wide as the field, the selected one filled with
+/// The open list of a [`Select`] or a [`Combobox`]: the options on the
+/// overlay surface, as wide as the field with its bars, the selected one filled with
 /// `primary`, the chosen one marked `✓`. It shows eight options at most
 /// and keeps the selected one in view.
 ///
@@ -290,21 +291,13 @@ impl<'a> OptionList<'a> {
     }
 
     /// The area the list takes on `screen`: under the anchor, or above it,
-    /// or on the side with more room, cut to fit.
+    /// or on the side with more room, cut to fit. It takes one more column
+    /// on each side than the field, so it covers the field's bars.
     pub fn area(&self, screen: Rect) -> Rect {
-        let wanted = self.options.len().clamp(1, ROWS) as u16 + 2;
-        let below = screen.bottom().saturating_sub(self.anchor.bottom());
-        let above = self.anchor.y.saturating_sub(screen.y);
-        let (y, height) = if wanted <= below {
-            (self.anchor.bottom(), wanted)
-        } else if wanted <= above {
-            (self.anchor.y - wanted, wanted)
-        } else if below >= above {
-            (self.anchor.bottom(), below)
-        } else {
-            (screen.y, above)
-        };
-        Rect::new(self.anchor.x, y, self.anchor.width, height).intersection(screen)
+        let height = self.options.len().clamp(1, ROWS) as u16 + 2;
+        let anchor = Rect { x: self.anchor.x.saturating_sub(1), ..self.anchor };
+        let width = self.anchor.width.saturating_add(self.anchor.x - anchor.x).saturating_add(1);
+        place(screen, anchor, width, height)
     }
 }
 
@@ -315,10 +308,11 @@ impl Widget for OptionList<'_> {
         if area.height < 3 || area.width < 3 {
             return;
         }
-        Card::new(t).variant(CardVariant::Elevated).size(Size::Sm).render(area, buf);
+        // The list owns its cells: nothing of the field under it shows.
+        surface(t, buf, area);
         let rows = usize::from(area.height - 2);
-        let (x, right) = (area.x.saturating_add(1), area.right().saturating_sub(1));
-        let inner = usize::from(area.width - 2);
+        let (x, right) = (area.x.saturating_add(2), area.right().saturating_sub(2));
+        let inner = usize::from(right.saturating_sub(x));
         if self.options.is_empty() {
             write(buf, x, area.y + 1, take_cells(self.empty, inner).0, t.muted());
             return;
@@ -372,8 +366,8 @@ mod tests {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
         let screen = Rect::new(0, 0, 40, 12);
         let list = |y| OptionList::new(&theme, REGIONS.map(String::from).to_vec(), Rect::new(2, y, 20, 3));
-        assert_eq!(list(1).area(screen), Rect::new(2, 4, 20, 5));
-        assert_eq!(list(8).area(screen), Rect::new(2, 3, 20, 5));
+        assert_eq!(list(1).area(screen), Rect::new(1, 4, 22, 5));
+        assert_eq!(list(8).area(screen), Rect::new(1, 3, 22, 5));
         let mut buf = Buffer::empty(screen);
         Select::new(&theme, REGIONS, Some(0)).open(Some(1)).render(Rect::new(2, 1, 20, 3), &mut buf);
         assert_eq!(row(&buf, 5), "   eu-west          ✓");

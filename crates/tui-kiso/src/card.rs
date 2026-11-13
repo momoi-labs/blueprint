@@ -16,12 +16,16 @@ pub enum CardVariant {
     Elevated,
 }
 
-/// The size of a [`Card`] or a [`Button`](crate::Button).
+/// The size of a [`Card`], a [`Button`](crate::Button) or a
+/// [`Modal`](crate::Modal).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum Size {
     Sm,
     #[default]
     Md,
+    /// The large size of a [`Modal`](crate::Modal). Elsewhere it draws as
+    /// `Md`.
+    Lg,
 }
 
 /// Groups related content on one surface: a fill with half a row above and
@@ -85,7 +89,7 @@ impl<'a> Card<'a> {
     pub fn inner(&self, area: Rect) -> Rect {
         let pad = match self.size {
             Size::Sm => 1,
-            Size::Md => 2,
+            Size::Md | Size::Lg => 2,
         };
         Rect {
             x: area.x.saturating_add(pad),

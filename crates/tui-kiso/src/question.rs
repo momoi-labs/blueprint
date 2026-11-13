@@ -1,14 +1,15 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Style;
-use ratatui::text::{Line, Span};
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::Widget;
 
 use crate::text::cells;
-use crate::{Button, ButtonState, ButtonVariant, FormActions, Modal, Theme};
+use crate::{Button, ButtonState, ButtonVariant, Modal, Theme};
 
 /// A question in a [`Modal`], laid out as Crush's permission dialog: facts,
-/// a block on `card` with what will happen, then the buttons. ←→ choose,
+/// a block on `card` with what will happen, then the buttons in the footer.
+/// The screen behind dims. ←→ choose,
 /// enter confirms the focused button and esc cancels.
 #[derive(Clone, Debug)]
 pub struct Question<'a> {
@@ -72,28 +73,37 @@ impl Widget for Question<'_> {
         let t = self.theme;
         let content = self.block.iter().map(|line| cells(line) + 4).max().unwrap_or(0).max(44);
         let gap = usize::from(!self.facts.is_empty());
-        let rows = self.facts.len() + gap + self.block.len() + 2 + 3;
+        let rows = self.facts.len() + gap + self.block.len() + 2;
         let clamp = |n: usize| n.min(usize::from(u16::MAX) - 2) as u16;
+        let last = self.buttons.len().saturating_sub(1);
+        let buttons = self.buttons.iter().enumerate().map(|(i, label)| {
+            let variant = match (i == last, self.danger) {
+                (false, _) => ButtonVariant::Default,
+                (true, false) => ButtonVariant::Primary,
+                (true, true) => ButtonVariant::Destructive,
+            };
+            let state = if i == self.focused { ButtonState::Focus } else { ButtonState::Rest };
+            Button::new(t, label).variant(variant).state(state)
+        });
         let modal = Modal::new(t, self.title)
+            .body(Text::from(vec![Line::default(); rows]))
             .width(clamp(content + 6))
-            .height(clamp(rows) + 2)
+            .actions(buttons.collect::<Vec<_>>())
             .hints([("←/→", "choose"), ("enter", "confirm"), ("esc", "cancel")]);
+        // The footer keeps its rows when the screen is too short for
+        // everything: the body gives first.
         let area = modal.draw(screen, buf);
         if area.is_empty() {
             return;
         }
-        // The buttons keep the last three rows, so they stay reachable when
-        // the screen is too short for everything above them.
-        let wanted = area.y.saturating_add(clamp(rows - 3));
-        let buttons = wanted.min(area.bottom().saturating_sub(3)).max(area.y);
         let row = |y: usize| -> Option<u16> {
             let y = area.y.saturating_add(clamp(y));
-            (y < buttons).then_some(y)
+            (y < area.bottom()).then_some(y)
         };
 
         for (i, (key, value)) in self.facts.iter().enumerate() {
             if let Some(y) = row(i) {
-                let line = Line::from(vec![Span::styled(format!("{key:<12}"), t.muted()), Span::raw(*value)]);
+                let line = Line::from(vec![Span::styled(format!("{key:<12}"), t.muted()), Span::styled(*value, t.text())]);
                 buf.set_line(area.x, y, &line, area.width);
             }
         }
@@ -106,18 +116,6 @@ impl Widget for Question<'_> {
                 }
             }
         }
-
-        let last = self.buttons.len().saturating_sub(1);
-        let row = self.buttons.iter().enumerate().map(|(i, label)| {
-            let variant = match (i == last, self.danger) {
-                (false, _) => ButtonVariant::Default,
-                (true, false) => ButtonVariant::Primary,
-                (true, true) => ButtonVariant::Destructive,
-            };
-            let state = if i == self.focused { ButtonState::Focus } else { ButtonState::Rest };
-            Button::new(t, label).variant(variant).state(state)
-        });
-        FormActions::new(t, row.collect::<Vec<_>>()).render(Rect::new(area.x, buttons, area.width, 3).intersection(area), buf);
     }
 }
 

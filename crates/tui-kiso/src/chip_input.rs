@@ -58,7 +58,7 @@ impl<'a> ChipInput<'a> {
 
     /// The rows the field takes `width` columns wide.
     pub fn height(&self, width: u16) -> u16 {
-        let half = if self.size == Size::Md { 2 } else { 0 };
+        let half = if self.size != Size::Sm { 2 } else { 0 };
         (self.body(usize::from(width.saturating_sub(2)), &Paint::new(self.theme, self.flags, [0; 3])).len() as u16).saturating_add(half)
     }
 
@@ -138,7 +138,7 @@ impl<'a> ChipInput<'a> {
 
 impl Widget for ChipInput<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size == Size::Md)));
+        let behind = under(self.theme, buf, area.x, area.y.saturating_add(u16::from(self.size != Size::Sm)));
         draw(buf, area, &self.lines(area.width, behind));
     }
 }
