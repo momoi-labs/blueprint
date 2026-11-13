@@ -144,8 +144,10 @@ call, then the new one.
   next field.
 - `Modal` has no line frame. With a fixed `height`, its body has 4 fewer
   rows when it has key hints or buttons, and 2 fewer without them. On an 80
-  by 24 screen, a modal with a title and key hints shows 18 rows of body: it
-  takes the whole height when its content needs it.
+  by 24 screen, a modal with a title and key hints still shows 21 rows of
+  body: when its content needs them, it takes the whole height, then drops
+  the half rows and the empty row above the footer. Ask for the height the
+  content needs (the body plus 6); a height that fits keeps the margin.
 - `Tabs::line(width)` is now the labels only. The rule under them is
   `Tabs::rule(width)`, on a second row. A caller that draws only `line`
   compiles and loses the rule. `Tabs::height()` is the rows both take.
