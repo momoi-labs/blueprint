@@ -135,6 +135,25 @@ Compose the existing chip, input, button, and menu surfaces. Consume
 Use the existing spacing, radius, font, and shadow tokens. No new palette or
 spacing scale is introduced.
 
+## Terminal
+
+In a terminal, FilterInput is `tui-kiso` `FilterInput`: a text filter
+field over a `Search`, not chips or typed conditions. It has the field
+surface of [Input](input.md), a bold `primary` `/`, the query or a
+placeholder, and the count at the right.
+
+| State | Terminal form |
+| --- | --- |
+| rest | The `input` fill, the query in `foreground`, the placeholder and the count in `subtle-foreground`. |
+| typing | A block cursor and the focus bars, as a focused Input. |
+| filtered | The count reads "3 of 12". Without a query it is the total. |
+| narrow | The count goes first, so that a few letters of the query stay. |
+| size | `Size::Md` has half a row of fill above and below. `Size::Sm` is one row. |
+
+The keys are `Search::key`: letters filter, `Enter` keeps the query, `Esc`
+clears it. A terminal list filters on text; `Filters` narrow it by facet.
+See [Search](search.md).
+
 ## Boundaries
 
 This is a small filter grammar, not SQL or a query-language interpreter. It

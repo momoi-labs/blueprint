@@ -284,20 +284,26 @@ headings and `.num` cells too, so a wide table fits the sheet. A
 
 ## Terminal
 
-In a terminal, Table is `tui-kiso` `Table`: one line per row, two columns
-in, with no frame and no fill. The column titles are `subtle-foreground`.
-Numeric columns align right, titles included. Cells keep their role
-colors, such as `muted-foreground` for secondary text and a
-[StatusBadge](status-badge.md) for state. On a scrolling page, `tui-kiso`
-`Columns` lays out the same rows as items of a `Page`.
+In a terminal, Table is `tui-kiso` `Table`: records in columns two cells
+apart, with no frame and no card. The header row has `muted-foreground`
+titles on a `secondary` fill. Numeric columns align right, titles
+included. Cells keep their role colors, such as `muted-foreground` for
+secondary text and a plain [StatusBadge](status-badge.md) for state.
 
 | State | Terminal form |
 | --- | --- |
-| default | No row is selected. |
+| default | `Size::Sm` has one row per record. `Size::Md` leaves a blank row between records. |
+| striped | `.striped(true)` puts a faint `secondary` fill on every other record. Off by default. |
 | selected | A `primary` `▌` in the first column, and the background turns `selected`. A cell below 4.5:1 for text or 3:1 for a mark on `selected` takes `foreground`, and a status word in a state color that loses it turns bold. |
+| overflow | A scrollbar in the last column: a faint track and a `primary` thumb. The selection stays on screen. |
+| empty | `.empty(EmptyState)` shows the [EmptyState](empty-state.md) under the header. |
+| loading | `.loading(rows)` shows [Skeleton](skeleton.md) bars in each column, on the lower half of each row. |
+| paged | `.pagination(Pagination)` adds a [Pagination](pagination.md) row under the records, after a blank row. |
 
 `↑` `↓` and `j` `k` move the selected row. The product owns other keys,
-such as `Enter` to open a row. See
+such as `Enter` to open a row. `.height(width)` gives the rows a table
+needs. On a scrolling page, `tui-kiso` `Columns` lays out the same rows
+as items of a `Page`. See
 [terminal interfaces](../terminal-interfaces.md) for the 256-color rule
 for `selected`.
 

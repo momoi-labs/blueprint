@@ -97,6 +97,25 @@ scroller in the target browser. Root props do not configure that scroller.
 No custom keymap. Scrolling uses browser behavior when the scroller is focused.
 Follow and Jump to end use their Switch and Button keyboard contracts.
 
+## Terminal
+
+In a terminal, LogView is `tui-kiso` `LogView`: one row per log line, with
+an optional time column in `subtle-foreground` and an optional level
+column.
+
+| State | Terminal form |
+| --- | --- |
+| level | `Level::Error` in `danger`, `Warn` in `warning`, `Info` in `foreground`, `Debug` in `muted-foreground`. |
+| following | It starts at the end and stays there as lines arrive. |
+| paused | Scrolling up pauses it. The last row has a `secondary` fill with "Paused, N new lines" and `G follow`. |
+| long line | Cut with `…`. With `.wrap(true)`, it continues under the message column. |
+| match | `.highlight(query)` marks each match in bold, underlined `primary`. |
+| overflow | The scrollbar of a `Page` in the last column. |
+
+`LogState::key` takes `↑` `↓` and `k` `j` for a row, `Page Up` and
+`Page Down` for half a view, `Home` and `g` for the top, `End` and `G` to
+follow again. The product owns the lines and how many it keeps.
+
 ## When to use
 
 - A stream of operational output beside configuration or resource details.

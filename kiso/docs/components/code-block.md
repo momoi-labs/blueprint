@@ -120,6 +120,24 @@ header keeps one `--color-border` divider.
 - Syntax role colors are gated at 4.5:1 against the code block surface in both
   themes and every accent.
 
+## Terminal
+
+In a terminal, CodeBlock is `tui-kiso` `CodeBlock`: code on a card
+surface, square, with half a row of fill above and below. The code is in
+`foreground` with no syntax color: `tui-kiso` has no highlighter and adds
+no dependency for one.
+
+| State | Terminal form |
+| --- | --- |
+| default | The padding of a Card: two cells at `Size::Md`, one at `Size::Sm`. |
+| line numbers | `.line_numbers(true)` numbers each line in `subtle-foreground`, aligned right. |
+| title | `.title("yaml")` puts a title or the language at the top right in `muted-foreground`. |
+| long line | Cut with `…`. With `.wrap(true)`, it continues on the next row. |
+| marked lines | `.highlight(3..=4)` gives those lines the `selected` fill and a `primary` `▌`. |
+
+CodeBlock takes no keys. Copy is the product's. `.height(width)` gives
+the rows it needs. A tab becomes four spaces.
+
 ## When to use
 
 - Commands a person copies and runs, such as setup steps and `curl` examples.
