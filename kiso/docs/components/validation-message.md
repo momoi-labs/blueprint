@@ -63,6 +63,21 @@ do not flash an error before the result exists.
 - Color and icon are supplementary; understandable text is mandatory.
 - Embedded recovery actions use native keyboard interaction and clear names.
 
+## Terminal
+
+In a terminal, ValidationMessage is `tui-kiso` `ValidationMessage`: `× `
+and the message in `danger`, under the control, in place of the
+HelperText.
+
+| State | Terminal form |
+| --- | --- |
+| error | `×` and the text in `danger`. Wrapped lines start under the text, not under the mark. |
+| valid | Not drawn. |
+
+The control shows `danger` bars on each side while the message shows. A
+`Field` keeps its error until its value changes. Say what to do, as "Use a
+port from 1 to 65535." See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For actionable validation feedback tied to one field.

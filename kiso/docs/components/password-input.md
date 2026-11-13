@@ -77,6 +77,25 @@ This follows the [GOV.UK password input](https://design-system.service.gov.uk/co
 and [WCAG 2.2 accessible authentication](https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html),
 which treats paste and password managers as assistance.
 
+## Terminal
+
+In a terminal, PasswordInput is `tui-kiso` `PasswordInput`: an Input whose
+value shows as `•`, with the word `show` or `hide` in `muted-foreground` at
+the end of the fill.
+
+| State | Terminal form |
+| --- | --- |
+| masked | One `•` per character, and `show`. |
+| revealed | The value as typed, and `hide`. |
+| read-only | The fill at half strength, no cursor. |
+| disabled | `disabled-surface` fill, `subtle-foreground` text and word, no cursor. |
+| invalid | The focus bars in `danger`. |
+
+`ctrl+r` shows and hides the value in a `Field` made with `.secret()`; the
+word names what the key does next. The word goes away when the field is
+too narrow for it and some text. Other keys and sizes are those of Input.
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Passwords, passphrases, API keys and other secrets a person enters or

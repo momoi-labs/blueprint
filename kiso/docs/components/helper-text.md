@@ -56,6 +56,21 @@ the control, HelperText, and ValidationMessage.
 - Keep instructions concise, direct, and available before input—not only on
   hover or focus.
 
+## Terminal
+
+In a terminal, HelperText is `tui-kiso` `HelperText`: lines in
+`muted-foreground` under the control, starting where the control's fill
+starts, and wrapped to its width.
+
+| State | Terminal form |
+| --- | --- |
+| default | `muted-foreground`, under the control. |
+| error | Replaced by the ValidationMessage. |
+| disabled | No change. |
+
+FormField always shows it. A Form shows the hint of the focused field only,
+to keep the list short. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - To state a format, unit, scope, consequence, or short example.

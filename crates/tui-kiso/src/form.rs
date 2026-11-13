@@ -7,18 +7,23 @@ use ratatui::text::{Line, Span};
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::text::{cells, cut, first_grapheme, take_cells};
-use crate::{wrap, Page, Press, Theme};
+use crate::form_field::control_lines;
+use crate::input::{one_row, placeholder, Flags};
+use crate::text::{cells, cut};
+use crate::{Grid, HelperText, Label, Page, Press, Size, Theme, ValidationMessage};
 
 /// What a form field holds.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Input {
+pub enum Control {
     /// Text, and the cursor as a count of graphemes, what a person sees as
     /// one character. A secret shows dots until it is shown.
     Text { value: String, cursor: usize, secret: bool, shown: bool },
     Check(bool),
     /// One of a few options, changed with ←/→, and the chosen one.
     Select(Vec<String>, usize),
+    /// Several lines of text, drawn as a [`Textarea`](crate::Textarea).
+    /// enter starts a line and ↑↓ move between lines.
+    Area { value: String, cursor: usize },
 }
 
 /// One field of a form: the label in a column on the left, the value on
@@ -26,7 +31,7 @@ pub enum Input {
 #[derive(Clone, Debug)]
 pub struct Field {
     pub label: String,
-    pub input: Input,
+    pub input: Control,
     /// Shown in `subtle` while the field is empty.
     pub placeholder: String,
     /// A line under the field while it has focus.
@@ -38,21 +43,26 @@ pub struct Field {
 }
 
 impl Field {
-    fn new(label: impl Into<String>, input: Input, placeholder: impl Into<String>) -> Self {
+    fn new(label: impl Into<String>, input: Control, placeholder: impl Into<String>) -> Self {
         Self { label: label.into(), input, placeholder: placeholder.into(), hint: String::new(), error: None, hidden: false }
     }
 
     pub fn text(label: impl Into<String>, placeholder: impl Into<String>) -> Self {
-        Self::new(label, Input::Text { value: String::new(), cursor: 0, secret: false, shown: false }, placeholder)
+        Self::new(label, Control::Text { value: String::new(), cursor: 0, secret: false, shown: false }, placeholder)
+    }
+
+    /// A field of several lines of text.
+    pub fn area(label: impl Into<String>, placeholder: impl Into<String>) -> Self {
+        Self::new(label, Control::Area { value: String::new(), cursor: 0 }, placeholder)
     }
 
     pub fn check(label: impl Into<String>) -> Self {
-        Self::new(label, Input::Check(false), "")
+        Self::new(label, Control::Check(false), "")
     }
 
     /// A select over `options`, on the first one.
     pub fn select(label: impl Into<String>, options: impl IntoIterator<Item = impl Into<String>>) -> Self {
-        Self::new(label, Input::Select(options.into_iter().map(Into::into).collect(), 0), "")
+        Self::new(label, Control::Select(options.into_iter().map(Into::into).collect(), 0), "")
     }
 
     #[must_use]
@@ -63,7 +73,7 @@ impl Field {
 
     #[must_use]
     pub fn secret(mut self) -> Self {
-        if let Input::Text { secret, .. } = &mut self.input {
+        if let Control::Text { secret, .. } = &mut self.input {
             *secret = true;
         }
         self
@@ -75,32 +85,32 @@ impl Field {
         self
     }
 
-    /// Starts a text field with `text`, the cursor at its end.
+    /// Starts a text field or an area with `text`, the cursor at its end.
     #[must_use]
     pub fn filled(mut self, text: &str) -> Self {
-        if let Input::Text { value, cursor, .. } = &mut self.input {
+        if let Control::Text { value, cursor, .. } | Control::Area { value, cursor } = &mut self.input {
             *value = text.to_owned();
             *cursor = text.graphemes(true).count();
         }
         self
     }
 
-    /// The text of a text field, or "".
+    /// The text of a text field or an area, or "".
     pub fn value(&self) -> &str {
         match &self.input {
-            Input::Text { value, .. } => value,
+            Control::Text { value, .. } | Control::Area { value, .. } => value,
             _ => "",
         }
     }
 
     pub fn checked(&self) -> bool {
-        self.input == Input::Check(true)
+        self.input == Control::Check(true)
     }
 
     /// The index of the chosen option of a select, or 0.
     pub fn chosen(&self) -> usize {
         match self.input {
-            Input::Select(_, chosen) => chosen,
+            Control::Select(_, chosen) => chosen,
             _ => 0,
         }
     }
@@ -108,94 +118,56 @@ impl Field {
     /// The text of the chosen option of a select, if there is one.
     pub fn option(&self) -> Option<&str> {
         match &self.input {
-            Input::Select(options, chosen) => options.get(*chosen).map(String::as_str),
+            Control::Select(options, chosen) => options.get(*chosen).map(String::as_str),
             _ => None,
         }
     }
 
     /// Shows or hides the value of a secret.
     pub fn show(&mut self, on: bool) {
-        if let Input::Text { shown, .. } = &mut self.input {
+        if let Control::Text { shown, .. } = &mut self.input {
             *shown = on;
         }
     }
 
     /// Edits the field with a key: typing, ←→, home, end and ctrl+u on
-    /// text, ctrl+r to show a secret, space on a checkbox, ←→ on a select.
+    /// text, ctrl+r to show a secret, space on a checkbox, ←→ on a select,
+    /// and on an area also enter for a new line and ↑↓ between lines.
     /// Returns true when the value changed, which clears the error.
     #[cfg(feature = "crossterm")]
     pub fn key(&mut self, key: KeyEvent) -> bool {
+        self.edit(key).unwrap_or(false)
+    }
+
+    /// [`Field::key`], or None when the field has no use for the key, as
+    /// ↑ on the first line of an area.
+    #[cfg(feature = "crossterm")]
+    pub(crate) fn edit(&mut self, key: KeyEvent) -> Option<bool> {
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         let changed = match &mut self.input {
-            Input::Text { value, cursor, secret, shown } => {
-                // Where each grapheme starts, then the end.
-                let bounds: Vec<usize> = value.grapheme_indices(true).map(|(i, _)| i).chain([value.len()]).collect();
-                let n = bounds.len() - 1;
-                // The value is public, so the cursor may be past its end.
-                *cursor = (*cursor).min(n);
-                match key.code {
-                    KeyCode::Char('u') if ctrl => {
-                        let had = !value.is_empty();
-                        value.clear();
-                        *cursor = 0;
-                        had
-                    }
-                    KeyCode::Char('r') if ctrl && *secret => {
-                        *shown = !*shown;
-                        false
-                    }
-                    KeyCode::Char(c) if !ctrl => {
-                        let at = bounds[*cursor] + c.len_utf8();
-                        value.insert(bounds[*cursor], c);
-                        // A combining mark joins the grapheme before it.
-                        *cursor = value[..at].graphemes(true).count();
-                        true
-                    }
-                    KeyCode::Backspace if *cursor > 0 => {
-                        value.replace_range(bounds[*cursor - 1]..bounds[*cursor], "");
-                        *cursor -= 1;
-                        true
-                    }
-                    KeyCode::Delete if *cursor < n => {
-                        value.replace_range(bounds[*cursor]..bounds[*cursor + 1], "");
-                        true
-                    }
-                    KeyCode::Left => {
-                        *cursor = cursor.saturating_sub(1);
-                        false
-                    }
-                    KeyCode::Right => {
-                        *cursor = (*cursor + 1).min(n);
-                        false
-                    }
-                    KeyCode::Home => {
-                        *cursor = 0;
-                        false
-                    }
-                    KeyCode::End => {
-                        *cursor = n;
-                        false
-                    }
-                    _ => false,
-                }
+            Control::Text { secret: true, shown, .. } if ctrl && key.code == KeyCode::Char('r') => {
+                *shown = !*shown;
+                Some(false)
             }
-            Input::Check(on) => {
+            Control::Text { value, cursor, .. } => edit_text(value, cursor, key, false),
+            Control::Area { value, cursor } => edit_text(value, cursor, key, true),
+            Control::Check(on) => {
                 let hit = key.code == KeyCode::Char(' ');
                 *on ^= hit;
-                hit
+                Some(hit)
             }
-            Input::Select(options, _) if options.is_empty() => false,
-            Input::Select(options, chosen) => {
+            Control::Select(options, _) if options.is_empty() => Some(false),
+            Control::Select(options, chosen) => {
                 let before = *chosen;
                 match key.code {
                     KeyCode::Left | KeyCode::Char('h') => *chosen = (before + options.len() - 1) % options.len(),
                     KeyCode::Right | KeyCode::Char('l' | ' ') => *chosen = (before + 1) % options.len(),
                     _ => {}
                 }
-                *chosen != before
+                Some(*chosen != before)
             }
         };
-        if changed {
+        if changed == Some(true) {
             self.error = None;
         }
         changed
@@ -208,51 +180,17 @@ impl Field {
         let cursor = t.fill(r.primary_foreground, r.primary);
         let width = width.max(1);
         match &self.input {
-            Input::Text { value, cursor: at, secret, shown } => {
+            Control::Text { value, cursor: at, .. } | Control::Area { value, cursor: at } => {
                 if value.is_empty() {
-                    let (placeholder, _) = take_cells(&self.placeholder, width);
-                    if !focused {
-                        return vec![Span::styled(placeholder.to_owned(), t.subtle())];
-                    }
-                    let (first, rest) = first_grapheme(placeholder);
-                    let first = if first.is_empty() { " " } else { first };
-                    return vec![Span::styled(first.to_owned(), cursor), Span::styled(rest.to_owned(), t.subtle())];
+                    return placeholder(&self.placeholder, focused.then_some(cursor), width, t.subtle());
                 }
-                let graphemes: Vec<&str> =
-                    if *secret && !*shown { vec!["•"; value.graphemes(true).count()] } else { value.graphemes(true).collect() };
-                let cell = |g: &&str| cells(g);
-                if !focused {
-                    let text = graphemes.concat();
-                    if cells(&text) <= width {
-                        return vec![Span::styled(text, t.text())];
-                    }
-                    let (head, _) = take_cells(&text, width - 1);
-                    return vec![Span::styled(format!("{head}…"), t.text())];
-                }
-                // The cell under the cursor, as much before it as fits, then
-                // as much after it. A grapheme wider than the room shows as
-                // a one-cell cursor.
-                let at = (*at).min(graphemes.len());
-                let under = graphemes.get(at).copied().filter(|g| cells(g) <= width).unwrap_or(" ");
-                let mut used = cells(under).max(1);
-                let mut start = at;
-                while start > 0 && used + cell(&graphemes[start - 1]) <= width {
-                    start -= 1;
-                    used += cell(&graphemes[start]);
-                }
-                let after = (at + 1).min(graphemes.len());
-                let mut end = after;
-                while end < graphemes.len() && used + cell(&graphemes[end]) <= width {
-                    used += cell(&graphemes[end]);
-                    end += 1;
-                }
-                vec![
-                    Span::styled(graphemes[start..at].concat(), t.text()),
-                    Span::styled(under.to_owned(), cursor),
-                    Span::styled(graphemes[after..end].concat(), t.text()),
-                ]
+                let graphemes: Vec<&str> = match &self.input {
+                    Control::Text { secret: true, shown: false, .. } => vec!["•"; value.graphemes(true).count()],
+                    _ => value.graphemes(true).map(|g| if g == "\n" { " " } else { g }).collect(),
+                };
+                one_row(&graphemes, focused.then_some((*at, cursor)), width, t.text(), t.subtle())
             }
-            Input::Check(on) => cut(
+            Control::Check(on) => cut(
                 vec![
                     Span::styled("[", t.subtle()),
                     if *on { Span::styled("✓", t.fg(r.primary).add_modifier(Modifier::BOLD)) } else { Span::raw(" ") },
@@ -261,7 +199,7 @@ impl Field {
                 width,
             )
             .0,
-            Input::Select(options, chosen) => {
+            Control::Select(options, chosen) => {
                 let arrow = if focused { t.fg(r.primary) } else { t.subtle() };
                 let Some(option) = options.get(*chosen) else {
                     return cut(vec![Span::styled("No options", t.subtle())], width).0;
@@ -280,38 +218,132 @@ impl Field {
     }
 
     /// The field as rows: the label in a column `label` wide, then the
-    /// value, as a row of a list. A checkbox puts its label after the box.
-    /// Under them, the error, or the hint while the field has focus.
+    /// value on the field surface at `Sm`, as a row of a list. A checkbox
+    /// puts its label after the box. Under the value, the error, or the
+    /// hint while the field has focus. The row selection of the list shows
+    /// the focus, so the surface draws no focus bars.
     pub fn lines(&self, t: &Theme, width: usize, label: usize, focused: bool) -> Vec<Line<'static>> {
-        let mut first = vec![Span::raw("  ")];
-        let indent = if let Input::Check(_) = self.input {
+        if let Control::Check(_) = self.input {
+            let mut first = vec![Span::raw("  ")];
             first.extend(self.spans(t, 3, focused));
             first.push(Span::styled(format!(" {}", self.label), if focused { t.strong() } else { t.text() }));
-            6
-        } else {
-            let name = match (&self.error, focused) {
-                (Some(_), _) => t.danger(),
-                (None, true) => t.strong(),
-                (None, false) => t.muted(),
-            };
-            let (text, used) = take_cells(&self.label, label);
-            first.push(Span::styled(format!("{text}{}", " ".repeat(label - used)), name));
-            first.extend(self.spans(t, width.saturating_sub(label + 3), focused));
-            label + 2
-        };
-        let mut lines = vec![Line::from(first)];
-        let under = match &self.error {
-            Some(error) => Some((format!("× {error}"), t.danger())),
-            None if focused && !self.hint.is_empty() => Some((self.hint.clone(), t.subtle())),
-            None => None,
-        };
-        if let Some((text, style)) = under {
-            for line in wrap(&text, width.saturating_sub(indent + 1)) {
-                lines.push(Line::from(vec![Span::raw(" ".repeat(indent)), Span::styled(line, style)]));
+            let mut lines = vec![Line::from(first)];
+            if let Some(error) = &self.error {
+                for line in ValidationMessage::new(t, error).lines(width.saturating_sub(7) as u16) {
+                    lines.push(Line::from([vec![Span::raw("      ")], line.spans].concat()));
+                }
             }
+            return lines;
+        }
+        // The fill starts after the label and a gap of two, and is two
+        // tracks wide at most.
+        let indent = label + 4;
+        let fill = (usize::from(Grid::TRACK) * 2 + usize::from(Grid::GAP)).min(width.saturating_sub(indent + 1)).max(2);
+        let flags = Flags { focused, invalid: self.error.is_some(), selection: true, ..Flags::default() };
+        let behind = t.tokens().background;
+        let control = control_lines(t, self, fill as u16, Size::Sm, flags, behind, None);
+        let style = if focused { t.strong() } else { t.text() };
+        let mut lines = Vec::new();
+        for (i, line) in control.into_iter().enumerate() {
+            let mut spans = vec![Span::raw("  ")];
+            if i == 0 {
+                spans.extend(Label::new(t, &self.label).spans(label, style));
+                let used: usize = spans.iter().map(Span::width).sum();
+                spans.push(Span::raw(" ".repeat((label + 3).saturating_sub(used))));
+            } else {
+                spans.push(Span::raw(" ".repeat(label + 1)));
+            }
+            spans.extend(line.spans);
+            lines.push(Line::from(spans));
+        }
+        let under = match &self.error {
+            Some(error) => ValidationMessage::new(t, error).lines(fill as u16),
+            None if focused && !self.hint.is_empty() => HelperText::new(t, &self.hint).lines(fill as u16),
+            None => Vec::new(),
+        };
+        for line in under {
+            lines.push(Line::from([vec![Span::raw(" ".repeat(indent))], line.spans].concat()));
         }
         lines
     }
+}
+
+/// Edits text with a key, as [`Field::key`]. `multiline` adds enter for a
+/// new line and ↑↓ between lines, and home and end go to the ends of the
+/// line. Returns None for a key it has no use for.
+#[cfg(feature = "crossterm")]
+fn edit_text(value: &mut String, cursor: &mut usize, key: KeyEvent, multiline: bool) -> Option<bool> {
+    let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+    // Where each grapheme starts, then the end.
+    let bounds: Vec<usize> = value.grapheme_indices(true).map(|(i, _)| i).chain([value.len()]).collect();
+    let n = bounds.len() - 1;
+    // The value is public, so the cursor may be past its end.
+    *cursor = (*cursor).min(n);
+    let graphemes: Vec<&str> = value.graphemes(true).collect();
+    // The start of the line the cursor is on, and its end.
+    let line_start = |at: usize| graphemes[..at].iter().rposition(|g| *g == "\n").map_or(0, |i| i + 1);
+    let line_end = |at: usize| graphemes[at..].iter().position(|g| *g == "\n").map_or(n, |i| at + i);
+    let (start, end) = if multiline { (line_start(*cursor), line_end(*cursor)) } else { (0, n) };
+    let insert = |value: &mut String, cursor: &mut usize, c: char| {
+        let at = bounds[*cursor] + c.len_utf8();
+        value.insert(bounds[*cursor], c);
+        // A combining mark joins the grapheme before it.
+        *cursor = value[..at].graphemes(true).count();
+    };
+    Some(match key.code {
+        KeyCode::Char('u') if ctrl => {
+            let had = !value.is_empty();
+            value.clear();
+            *cursor = 0;
+            had
+        }
+        KeyCode::Char(c) if !ctrl => {
+            insert(value, cursor, c);
+            true
+        }
+        KeyCode::Enter if multiline => {
+            insert(value, cursor, '\n');
+            true
+        }
+        KeyCode::Up | KeyCode::Down if multiline => {
+            let column = *cursor - start;
+            *cursor = if key.code == KeyCode::Up {
+                let previous = line_start(start.checked_sub(1)?);
+                previous + column.min(start - 1 - previous)
+            } else {
+                let next = (end < n).then_some(end + 1)?;
+                next + column.min(line_end(next) - next)
+            };
+            false
+        }
+        KeyCode::Backspace if *cursor > 0 => {
+            value.replace_range(bounds[*cursor - 1]..bounds[*cursor], "");
+            *cursor -= 1;
+            true
+        }
+        KeyCode::Delete if *cursor < n => {
+            value.replace_range(bounds[*cursor]..bounds[*cursor + 1], "");
+            true
+        }
+        KeyCode::Left => {
+            *cursor = cursor.saturating_sub(1);
+            false
+        }
+        KeyCode::Right => {
+            *cursor = (*cursor + 1).min(n);
+            false
+        }
+        KeyCode::Home => {
+            *cursor = start;
+            false
+        }
+        KeyCode::End => {
+            *cursor = end;
+            false
+        }
+        KeyCode::Enter | KeyCode::Up | KeyCode::Down => return None,
+        _ => false,
+    })
 }
 
 /// What a key on a form asks for.
@@ -397,6 +429,13 @@ impl Form {
     pub fn key(&mut self, key: KeyEvent) -> Act {
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         self.settle();
+        if matches!(key.code, KeyCode::Enter | KeyCode::Up | KeyCode::Down) {
+            let area = self.fields.get_mut(self.focus).filter(|f| !f.hidden && matches!(f.input, Control::Area { .. }));
+            if let Some(changed) = area.and_then(|field| field.edit(key)) {
+                self.changed |= changed;
+                return Act::None;
+            }
+        }
         match key.code {
             KeyCode::Char('s') if ctrl => return Act::Submit,
             KeyCode::Esc => return Act::Cancel,
@@ -431,8 +470,12 @@ impl Form {
     /// [`PageView::selected`](crate::PageView::selected).
     pub fn rows(&self, page: &mut Page, t: &Theme, width: usize, label: usize, range: Range<usize>) -> Option<usize> {
         let mut focused = None;
+        let mut first = true;
         for (i, field) in self.fields.iter().enumerate().take(range.end).skip(range.start) {
             if !field.hidden {
+                if !std::mem::take(&mut first) {
+                    page.blank();
+                }
                 if i == self.focus {
                     focused = Some(page.items());
                 }
@@ -440,6 +483,14 @@ impl Form {
             }
         }
         focused
+    }
+
+    /// The width of the label column for [`Form::rows`]: the longest
+    /// label, at most one grid track. A checkbox's label goes after the
+    /// box, so it does not count.
+    pub fn label_width(&self) -> usize {
+        let labels = self.fields.iter().filter(|f| !matches!(f.input, Control::Check(_)));
+        labels.map(|f| cells(&f.label)).max().unwrap_or(0).min(usize::from(Grid::TRACK))
     }
 
     /// The focused field as an item of a page whose only items are all the
@@ -515,7 +566,7 @@ mod tests {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
         let mut field = Field::select("Choice", Vec::<String>::new());
         assert!(!field.key(key(KeyCode::Right)));
-        assert_eq!(field.lines(&theme, 40, 10, true)[0].to_string().trim_end(), "  Choice    No options");
+        assert_eq!(field.lines(&theme, 40, 10, true)[0].to_string().trim_end(), "  Choice       No options");
     }
 
     #[test]
@@ -525,7 +576,7 @@ mod tests {
         let spans = field.spans(&theme, 4, true);
         let width: usize = spans.iter().map(Span::width).sum();
         assert!(width <= 4, "{spans:?}");
-        assert_eq!(spans[1].content, " ", "the cursor sits after the text");
+        assert_eq!(spans[2].content, " ", "the cursor sits after the text");
     }
 
     #[test]
@@ -540,7 +591,7 @@ mod tests {
     #[test]
     fn a_stale_cursor_and_hidden_fields_are_safe() {
         let mut field = Field::text("Name", "").filled("hello");
-        if let Input::Text { value, .. } = &mut field.input {
+        if let Control::Text { value, .. } = &mut field.input {
             value.clear();
         }
         assert!(!field.key(key(KeyCode::Backspace)));
@@ -590,6 +641,32 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn an_area_takes_enter_and_moves_between_lines() {
+        let mut form = Form::new(vec![Field::text("Name", ""), Field::area("Notes", ""), Field::text("Tag", "")], 0);
+        form.focus = 1;
+        for c in "ab".chars() {
+            form.key(key(KeyCode::Char(c)));
+        }
+        assert_eq!(form.key(key(KeyCode::Enter)), Act::None);
+        form.key(key(KeyCode::Char('c')));
+        assert_eq!(form.fields[1].value(), "ab\nc");
+        // ↑ goes to the same column of the line above, then on to the field
+        // above from the first line.
+        form.key(key(KeyCode::Up));
+        form.key(key(KeyCode::Char('!')));
+        assert_eq!(form.fields[1].value(), "a!b\nc");
+        form.key(key(KeyCode::End));
+        form.key(key(KeyCode::Down));
+        assert!(matches!(form.fields[1].input, Control::Area { cursor: 5, .. }) && form.focus == 1);
+        form.key(key(KeyCode::Down));
+        assert_eq!(form.focus, 2);
+        form.key(key(KeyCode::Up));
+        form.key(key(KeyCode::Up));
+        form.key(key(KeyCode::Up));
+        assert_eq!(form.focus, 0);
     }
 
     #[test]

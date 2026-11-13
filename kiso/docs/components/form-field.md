@@ -144,6 +144,30 @@ control, Label, or existing help to lose their associations.
 - FormField adds no keyboard interaction. The contained control keeps its native
   or Radix keyboard contract, and clicking Label targets that control.
 
+## Terminal
+
+In a terminal, FormField is `tui-kiso` `FormField`: a Label, the control for
+a `Field`, and under the control its HelperText, or its ValidationMessage
+while the field has an error. The control is an Input, a PasswordInput for
+a secret, a Textarea for an area, a select on the same fill, or a checkbox
+with its label after the box.
+
+| State | Terminal form |
+| --- | --- |
+| default | Label, control, and help under the control. |
+| focus | The control's `focus` bars and cursor. |
+| disabled | Label in `subtle-foreground`, control disabled. |
+| read-only | The control's fill at half strength. |
+| error | `danger` bars on the control, ValidationMessage in place of the help. |
+
+`FieldLayout::Column`, the default, puts the label in a column on the row
+of the value, as wide as the label and at most one grid track; the field
+takes three tracks. `FieldLayout::Stacked` puts the label above, for a
+narrow area or a field alone; the field takes two tracks. Give the fields
+of a group one `.label_width()`. A Form draws its fields in a column at
+`Sm`, one blank row apart, and its row selection shows the focus in place
+of the bars. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For nearly every standalone labeled form control.
