@@ -71,11 +71,14 @@ pub enum ChartLegend {
 ///
 /// Series take `chart-1` to `chart-5` by slot; a sixth starts again at
 /// `chart-1`, and its number still names it. The scale and times are
-/// `muted-foreground`; grid lines are a dotted `┈` in `border`. Lines break
+/// `subtle-foreground`; grid lines are a faint dotted `┈` in `border`, and
+/// a legend mark is a short `▄▄` bar. Lines break
 /// where a sample is missing, and a lone sample is a dot. Where two series
 /// cross in one cell, the later one shows. When the area is short, the
 /// plot keeps its rows: the legend turns inline, then drops, then the times
-/// and the caption go.
+/// and the caption go. Rows start two columns in, as the rows of a page;
+/// [`indent`](Self::indent) `(0)` sets them flush, for a chart inside a
+/// [`Card`](crate::Card).
 #[derive(Clone, Debug)]
 pub struct Chart<'a> {
     theme: &'a Theme,
@@ -86,6 +89,7 @@ pub struct Chart<'a> {
     range: Option<(f64, f64)>,
     legend: ChartLegend,
     format: fn(f64) -> String,
+    indent: usize,
 }
 
 impl<'a> Chart<'a> {
@@ -100,6 +104,7 @@ impl<'a> Chart<'a> {
             range: None,
             legend: ChartLegend::Table,
             format: number,
+            indent: 2,
         }
     }
 
@@ -142,6 +147,15 @@ impl<'a> Chart<'a> {
         self
     }
 
+    /// Columns before the plot, the legend and the times. Two by default,
+    /// as the rows of a page; use 0 inside a card, which has its own
+    /// padding.
+    #[must_use]
+    pub fn indent(mut self, indent: usize) -> Self {
+        self.indent = indent;
+        self
+    }
+
     /// Text at the end of the caption's rule, such as "last hour".
     #[must_use]
     pub fn meta(mut self, meta: impl Into<String>) -> Self {
@@ -162,7 +176,7 @@ impl<'a> Chart<'a> {
     /// A series' stroke sample, number and label.
     fn name(&self, index: usize) -> Vec<Span<'static>> {
         vec![
-            Span::styled("━━ ", self.color(index)),
+            Span::styled("▄▄ ", self.color(index)),
             Span::styled(format!("{} ", self.slot(index)), self.theme.subtle()),
             Span::styled(self.series[index].label.clone(), self.theme.text()),
         ]
@@ -183,13 +197,13 @@ impl<'a> Chart<'a> {
         let names: Vec<Vec<Span<'static>>> = (0..self.series.len()).map(|i| self.name(i)).collect();
         let name_width = names.iter().map(|n| n.iter().map(Span::width).sum()).chain([cells("Series")]).max().unwrap_or(0);
         let mut shown: Vec<usize> = vec![0, 1, 2, 3];
-        let total = |shown: &[usize], name: usize| 2 + name + shown.iter().map(|&c| widths[c] + 2).sum::<usize>();
+        let total = |shown: &[usize], name: usize| self.indent + name + shown.iter().map(|&c| widths[c] + 2).sum::<usize>();
         while shown.len() > 1 && total(&shown, name_width.min(12)) > width {
             shown.remove(0);
         }
         let name_width = width.saturating_sub(total(&shown, 0)).min(name_width);
         let line = |name: Vec<Span<'static>>, cells: Vec<Span<'static>>| {
-            let mut spans = vec![Span::raw("  ")];
+            let mut spans = vec![Span::raw(" ".repeat(self.indent))];
             spans.extend(fit(name, name_width));
             spans.extend(cells);
             Line::from(fit(spans, width))
@@ -211,7 +225,7 @@ impl<'a> Chart<'a> {
 
     /// The legend on one row: each series and its current value.
     fn inline(&self, width: usize) -> Line<'static> {
-        let mut spans = vec![Span::raw("  ")];
+        let mut spans = vec![Span::raw(" ".repeat(self.indent))];
         for (i, series) in self.series.iter().enumerate() {
             if i > 0 {
                 spans.push(Span::raw("   "));
@@ -244,8 +258,8 @@ impl<'a> Chart<'a> {
     fn plot(&self, area: Rect, buf: &mut Buffer) -> u16 {
         let t = self.theme;
         let r = t.tokens();
-        // Two columns in, as the rows of a page.
-        let area = Rect { x: area.x.saturating_add(2), width: area.width.saturating_sub(2), ..area }.intersection(buf.area);
+        let indent = u16::try_from(self.indent).unwrap_or(u16::MAX);
+        let area = Rect { x: area.x.saturating_add(indent), width: area.width.saturating_sub(indent), ..area }.intersection(buf.area);
         if area.is_empty() {
             return area.x;
         }
@@ -271,7 +285,7 @@ impl<'a> Chart<'a> {
         for (row, label) in &labels {
             let y = area.y + *row as u16;
             if gutter > 0 {
-                buf.set_string(area.x, y, format!("{label:>w$}", w = gutter - 1), t.muted());
+                buf.set_string(area.x, y, format!("{label:>w$}", w = gutter - 1), t.subtle());
             }
             buf.set_string(plot.x, y, "┈".repeat(usize::from(plot.width)), t.fg(r.border));
         }
@@ -336,7 +350,7 @@ impl<'a> Chart<'a> {
             if i + 1 < n && start + w + 1 > width.saturating_sub(last) {
                 continue;
             }
-            buf.set_string(area.x + start as u16, area.y, label, self.theme.muted());
+            buf.set_string(area.x + start as u16, area.y, label, self.theme.subtle());
             next_free = start + w + 1;
         }
     }
@@ -427,13 +441,43 @@ mod tests {
         assert!(text(&buf, 5).starts_with("     5 "), "{}", text(&buf, 5));
         assert!(text(&buf, 6).starts_with("       18:00") && text(&buf, 6).trim_end().ends_with("19:00"), "{}", text(&buf, 6));
         assert!(text(&buf, 8).contains("Series") && text(&buf, 8).contains("Current"), "{}", text(&buf, 8));
-        assert!(text(&buf, 9).starts_with("  ━━ 1 Primary"), "{}", text(&buf, 9));
+        assert!(text(&buf, 9).starts_with("  ▄▄ 1 Primary"), "{}", text(&buf, 9));
         assert!(text(&buf, 9).trim_end().ends_with("50"), "{}", text(&buf, 9));
         // Braille dots in the plot, in the series colors.
         let braille = |c: &ratatui::buffer::Cell| c.symbol().chars().next().is_some_and(|ch| ('\u{2801}'..='\u{28ff}').contains(&ch));
         let colors: Vec<_> = buf.content().iter().filter(|c| braille(c)).map(|c| c.fg).collect();
         assert!(colors.contains(&theme.color(theme.tokens().chart_1)));
         assert!(colors.contains(&theme.color(theme.tokens().chart_2)));
+    }
+
+    #[test]
+    fn the_indent_moves_the_legend_and_the_plot() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 50, 11));
+        chart(&theme).indent(0).render(buf.area, &mut buf);
+        assert!(text(&buf, 1).starts_with("  50 ┈"), "{}", text(&buf, 1));
+        assert!(text(&buf, 9).starts_with("▄▄ 1 Primary"), "{}", text(&buf, 9));
+        // The scale is the subtle tone, the grid the border.
+        let r = theme.tokens();
+        assert_eq!(buf[(0, 1)].fg, theme.color(r.subtle_foreground));
+        assert_eq!(buf[(10, 1)].fg, theme.color(r.border));
+    }
+
+    #[test]
+    fn five_series_stay_distinct_in_256_colors() {
+        for accent in crate::ACCENTS {
+            for light in [false, true] {
+                let theme = Theme::xterm_256(accent.tokens(light));
+                let series: Vec<_> = (0..5).map(|i| Series::new(format!("s{i}"), [1.0, 2.0])).collect();
+                let chart = Chart::new(&theme, "x").series(series);
+                let colors: Vec<_> = (0..5).map(|i| chart.color(i).fg).collect();
+                for (i, a) in colors.iter().enumerate() {
+                    for b in &colors[i + 1..] {
+                        assert_ne!(a, b, "{colors:?}");
+                    }
+                }
+            }
+        }
     }
 
     #[test]

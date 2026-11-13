@@ -254,6 +254,32 @@ trigger wraps long ranges; the popover fits the viewport. No new calendar,
 time zone, or date dependency: time zones use `Intl` only, and the live
 calendar is internal to this component.
 
+## Terminal
+
+In a terminal, TimeRangeControl is `tui-kiso` `TimeRangeControl`, a
+segmented control on one row. It shows the presets, such as "15m", "1h"
+and "24h", on a `secondary` track, each with a cell of padding on both
+sides.
+
+| State | Terminal form |
+| --- | --- |
+| other | `muted-foreground` on the `secondary` track |
+| chosen | Bold `primary-foreground` on a `primary` fill |
+
+- Left and Right move the choice by one preset. `moved(by)` returns the
+  new index and stops at the first and the last. The app owns the keys and
+  decides when the control has focus.
+- A row too narrow for every preset drops the ones farthest from the
+  chosen one. The chosen preset always shows, cut with `…` if it alone is
+  too wide.
+- `width()` gives the columns the whole control needs, for a layout that
+  right-aligns it in a header.
+- There is no custom range, no pause and no calendar. Open a
+  [Form](form.md#terminal) in a dialog for a custom range, and show the
+  result in the chart's caption.
+- Bold and the fill are the two signals for the choice. Both survive a
+  terminal with few colors.
+
 ## Custom range form
 
 The artifact custom range editor composes [Form](form.md) with

@@ -78,7 +78,8 @@ No keymap and no tab stop. A Sparkline is never an action.
 
 In a terminal, Sparkline is `tui-kiso` `Sparkline`: one row, one block per
 sample, from `▁` to `█`. It converts into a line for a table cell or a
-page row. Neutral is `border-strong`; primary is `primary`.
+page row. Neutral is `border-strong`; primary is `link`, the accent that
+keeps its contrast on every theme.
 
 - With more samples than cells, each cell shows the mean of the known
   samples it covers. With fewer, the line is as long as the samples.
@@ -88,6 +89,8 @@ page row. Neutral is `border-strong`; primary is `primary`.
   ends. Without it, a flat series draws `▄` across.
 - On a selected row a block is a mark: below 3:1 on `selected` it takes
   `foreground`.
+- Under a [Stat](stat.md#terminal) value, pass it to `Stat::trend`. The
+  stat then takes one more row, between the value and the note.
 
 ## When to use
 

@@ -38,6 +38,13 @@ In a terminal, BarGauge is `tui-kiso` `BarGauge`: the group label as a
 section (the label in `muted-foreground` and the look's rule), then one
 [Meter](meter.md#terminal) row per measurement. Labels share one column,
 up to a third of the row, and values align right at the edge. `format`
-gives every known value the same unit and precision. A missing value reads
-"Not collected" over the hatch, and an empty group reads "No
-measurements." under the label.
+gives every known value the same unit and precision.
+
+- `.thresholds(warn, danger)` tones each row by its own value: `warning`
+  from `warn`, `danger` from `danger`. A group of rows then shows which
+  one is near its limit without a legend.
+- A missing value reads "Not collected" over the hatch, and an empty group
+  reads "No measurements." under the label.
+- `.indent(0)` sets the rows flush, for a gauge inside a
+  [Card](card.md#terminal).
+- The gauge has no keys.

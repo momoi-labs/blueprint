@@ -4,14 +4,15 @@ use ratatui::widgets::Widget;
 
 use crate::surface::write;
 use crate::text::cells;
-use crate::{Badge, Card, Skeleton, Theme};
+use crate::{Badge, Card, Skeleton, Sparkline, Theme};
 
 /// One number, its label, and how it changed: the label in
 /// `muted-foreground`, the value in bold under it, then a note.
 ///
 /// It sits on a [`Card`] of size `Md`. For a dense tool, [`Stat::card`]
 /// `(false)` draws the same rows with no surface. The delta is a
-/// [`Badge`] after the label.
+/// [`Badge`] after the label. A [`Sparkline`] from [`Stat::trend`] takes
+/// the row under the value.
 #[derive(Clone, Debug)]
 pub struct Stat<'a> {
     theme: &'a Theme,
@@ -19,6 +20,7 @@ pub struct Stat<'a> {
     value: &'a str,
     delta: Option<Badge<'a>>,
     note: Option<&'a str>,
+    trend: Option<Sparkline<'a>>,
     card: bool,
     loading: bool,
     tick: Option<u32>,
@@ -26,7 +28,7 @@ pub struct Stat<'a> {
 
 impl<'a> Stat<'a> {
     pub fn new(theme: &'a Theme, label: &'a str, value: &'a str) -> Self {
-        Self { theme, label, value, delta: None, note: None, card: true, loading: false, tick: None }
+        Self { theme, label, value, delta: None, note: None, trend: None, card: true, loading: false, tick: None }
     }
 
     /// The numbers are on their way. The label stays, since it is known;
@@ -61,6 +63,15 @@ impl<'a> Stat<'a> {
         self
     }
 
+    /// The shape of the value over time, in one row under the value. It
+    /// is as wide as the stat. The number stays the content; the drawing
+    /// is the shape.
+    #[must_use]
+    pub fn trend(mut self, trend: Sparkline<'a>) -> Self {
+        self.trend = Some(trend);
+        self
+    }
+
     /// `false` draws the rows with no card.
     #[must_use]
     pub fn card(mut self, card: bool) -> Self {
@@ -70,7 +81,7 @@ impl<'a> Stat<'a> {
 
     /// The rows the stat takes.
     pub fn height(&self) -> u16 {
-        2 + u16::from(self.note.is_some()) + if self.card { 2 } else { 0 }
+        2 + u16::from(self.note.is_some()) + u16::from(self.trend.is_some()) + if self.card { 2 } else { 0 }
     }
 }
 
@@ -98,11 +109,21 @@ impl Widget for Stat<'_> {
             }
             return;
         }
-        let rows = [(Some(self.label), t.muted()), (Some(self.value), t.strong()), (self.note, t.muted())];
+        let mut rows = vec![(Some(self.label), t.muted()), (Some(self.value), t.strong())];
+        if self.trend.is_some() {
+            rows.push((None, t.muted()));
+        }
+        rows.push((self.note, t.muted()));
         for (y, (text, style)) in (inner.top()..inner.bottom()).zip(rows) {
             if let Some(text) = text {
                 let (cut, _) = crate::text::take_cells(text, width);
                 write(buf, inner.x, y, cut, style);
+            }
+        }
+        if let Some(trend) = &self.trend {
+            let row = Rect::new(inner.x, inner.y.saturating_add(2), inner.width, 1).intersection(inner).intersection(buf.area);
+            if !row.is_empty() {
+                buf.set_line(row.x, row.y, &trend.line(width), row.width);
             }
         }
         if let Some(delta) = self.delta {
@@ -148,6 +169,31 @@ mod tests {
         // The bars are 8 cells for the value and 60% of 14 for the note.
         assert_eq!((bar(2), bar(3)), (8, 8));
         assert_ne!(buf[(2, 2)].bg, buf[(0, 2)].bg);
+    }
+
+    #[test]
+    fn a_trend_takes_the_row_under_the_value() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let spark = Sparkline::new(&theme, [0.0, 7.0, 3.5]).primary(true);
+        let stat = Stat::new(&theme, "Queries", "1.2k").trend(spark).note("last hour");
+        assert_eq!(stat.height(), 6);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 14, 6));
+        stat.render(buf.area, &mut buf);
+        assert_eq!(row(&buf, 2), "  1.2k        ");
+        assert_eq!(row(&buf, 3), "  ▁█▅         ");
+        assert_eq!(row(&buf, 4), "  last hour   ");
+        // The card fill stays under the drawing.
+        assert_eq!(buf[(2, 3)].bg, buf[(8, 3)].bg);
+        assert_ne!(buf[(2, 3)].bg, ratatui::style::Color::Reset);
+    }
+
+    #[test]
+    fn a_short_stat_with_a_trend_does_not_panic() {
+        let theme = Theme::xterm_256(kiso_tokens::GOLD_DARK);
+        for (w, h) in [(1, 1), (6, 2), (10, 4), (14, 5)] {
+            let mut buf = Buffer::empty(Rect::new(0, 0, w, h));
+            Stat::new(&theme, "Queries", "1.2k").trend(Sparkline::new(&theme, [1.0, 2.0])).render(buf.area, &mut buf);
+        }
     }
 
     #[test]

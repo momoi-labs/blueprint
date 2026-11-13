@@ -20,15 +20,15 @@ use tui_kiso::{
     ButtonVariant, Buttons, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
     AppShell, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Press, Question, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
-    Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, Title, Toast, Tone,
-    ACCENTS,
+    Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, TimeRangeControl, Title,
+    Toast, Tone, ACCENTS,
 };
 
 const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 39] = [
+const PAGES: [(&str, &str); 42] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -68,6 +68,9 @@ const PAGES: [(&str, &str); 39] = [
     ("AppShell", "The areas of a screen. It draws nothing."),
     ("PageHeader", "The top of one page: path, title, description and actions."),
     ("Breadcrumb", "Where the person is in a hierarchy; the middle collapses."),
+    ("Diagram", "A few boxes and arrows, placed by layer and row."),
+    ("TimeRangeControl", "A window of time from a few presets, on one row."),
+    ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -140,6 +143,8 @@ struct App {
     form: Form,
     filters: Filters,
     scroll: Scroll,
+    /// The window of time of the range control and the dashboard.
+    range: usize,
     quit: bool,
 }
 
@@ -158,8 +163,14 @@ impl App {
             form: demo_form(),
             filters: demo_filters(),
             scroll: Scroll::default(),
+            range: 1,
             quit: false,
         }
+    }
+
+    /// True on the pages the range control moves.
+    fn ranged(&self) -> bool {
+        matches!(PAGES[self.page].0, "TimeRangeControl" | "Dashboard")
     }
 
     fn key(&mut self, key: KeyEvent) {
@@ -226,6 +237,10 @@ impl App {
             KeyCode::Tab | KeyCode::Esc if self.main => self.main = false,
             KeyCode::Char('q') if self.main => self.main = false,
             KeyCode::Char('q') => self.quit = true,
+            KeyCode::Left | KeyCode::Right if self.main && self.ranged() => {
+                let by = if key.code == KeyCode::Left { -1 } else { 1 };
+                self.range = TimeRangeControl::new(&self.theme, wave_06::RANGES, self.range).moved(by);
+            }
             KeyCode::Up | KeyCode::Char('k') | KeyCode::Left if !self.main => self.open(self.page.saturating_sub(1)),
             KeyCode::Down | KeyCode::Char('j') | KeyCode::Right if !self.main => self.open(self.page + 1),
             KeyCode::Up | KeyCode::Char('k') => self.scroll.by(-1),
@@ -339,6 +354,7 @@ impl App {
             _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
+            (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
             (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
             (None, false) => {
@@ -450,6 +466,9 @@ impl App {
             "EmptyState" => wave_04::empty_state_page(t, buf, area),
             "Link" => wave_04::link_page(t, buf, area),
             "Separator" => wave_04::separator_page(t, buf, area),
+            "Diagram" => wave_06::diagram_page(t, buf, area),
+            "TimeRangeControl" => wave_06::time_range_page(t, buf, area, self.range),
+            "Dashboard" => wave_06::dashboard_page(t, buf, area, self.range),
             _ => grid_page(t, buf, area),
         }
     }
@@ -695,9 +714,14 @@ fn stat_page(t: &Theme, buf: &mut Buffer, area: Rect) {
             stat.render(rect, buf);
         }
     }
-    caption(t, buf, area, 16, "Loading: the label stays, bars take the place of the numbers");
+    caption(t, buf, area, 14, "Loading keeps the height. A trend sits under the value");
     let stat = Stat::new(t, "Tasks completed", "").note("").loading(true).tick(1);
-    if let Some(rect) = inside(area, 0, 18, 34, stat.height()) {
+    if let Some(rect) = inside(area, 0, 16, 34, stat.height()) {
+        stat.render(rect, buf);
+    }
+    let trend = Sparkline::new(t, wave(40, 60.0, 20.0, 0.0)).primary(true);
+    let stat = Stat::new(t, "Queries/s", "1,284").delta(Badge::new(t, Tone::Success, "+4.2%")).trend(trend).note("last hour");
+    if let Some(rect) = inside(area, 36, 16, 34, stat.height()) {
         stat.render(rect, buf);
     }
 }
@@ -1005,6 +1029,12 @@ fn meter_page(t: &Theme, width: usize) -> Page {
     page.blank();
     page.line(Line::styled("  Memory is over its limit: the track stops full, the text keeps 18.4.", t.muted()));
     page.blank();
+    page.section(t, width, "Thresholds change the tone", None);
+    for (label, value) in [("Below", 54.0), ("Warning", 78.0), ("Danger", 95.0)] {
+        page.line(Meter::new(t, label, value).value_text(format!("{value:.0}")).thresholds(70.0, 90.0).label_width(12).line(row));
+    }
+    page.line(Line::styled("  Color is a weak signal: the number and a badge say the state too.", t.muted()));
+    page.blank();
     page.section(t, width, "At 24 columns, the track drops", None);
     page.line(Meter::new(t, "Connections", 64.0).value_text("64 of 100").line(24));
     page
@@ -1017,12 +1047,13 @@ fn bar_gauge_page(t: &Theme, width: usize) -> Page {
         .row("pg-main-2", 512.0)
         .row("pg-replica", 96.5)
         .row("pg-archive", None)
+        .thresholds(400.0, 480.0)
         .format(|v| format!("{v:.1} GiB"));
     for line in gauge.lines(width) {
         page.line(line);
     }
     page.blank();
-    page.line(Line::styled("  Rows keep their order; pg-archive did not report.", t.muted()));
+    page.line(Line::styled("  Rows keep their order. From 400 a row warns; from 480 it is in danger.", t.muted()));
     page.blank();
     for line in BarGauge::new(t, "Empty group", 100.0).lines(width) {
         page.line(line);
@@ -1195,6 +1226,11 @@ fn states() -> Vec<State> {
     // Stripes at full strength under a table: no pattern between its columns.
     let stripes = [keys("s"), vec![code(KeyCode::Left), code(KeyCode::Down), code(KeyCode::Right), code(KeyCode::Char('s'))]].concat();
     states.push(("38-table-stripes".into(), [open(5), stripes].concat(), SIZE));
+    // The dashboard at a small size, and on dots with a rail and translucent cards.
+    let dashboard = PAGES.iter().position(|(name, _)| *name == "Dashboard").unwrap_or(0);
+    states.push(("39-dashboard-80".into(), open(dashboard), small));
+    let dots = [keys("s"), vec![code(KeyCode::Right), code(KeyCode::Right)], vec![code(KeyCode::Down); 3], vec![code(KeyCode::Right)]].concat();
+    states.push(("40-dashboard-rail".into(), [open(dashboard), dots].concat(), (136, 30)));
     states
 }
 
@@ -1326,6 +1362,8 @@ mod wave_07;
 /// The feedback components: alert, toast stack, spinner, skeleton and more.
 #[path = "support/wave_04.rs"]
 mod wave_04;
+#[path = "support/wave_06.rs"]
+mod wave_06;
 
 /// The gallery as JSON for the Kiso site.
 #[path = "support/json.rs"]

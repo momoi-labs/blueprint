@@ -50,15 +50,25 @@ hatches keep their existing meaning.
 
 In a terminal, Meter is `tui-kiso` `Meter`, one row two columns in: the
 label in `foreground`, the track, and the value at the right edge.
+Progress shares this form.
 
-- The track is a heavy `━`. The filled part is `secondary-foreground`, to
-  the half cell with `╸`; the rest is `secondary`.
-- The value text is the number, or the product's `value_text`, such as
-  "64 of 100". Over the limit, the track stops full and the text keeps the
-  real number.
-- A missing or nonfinite value reads "Not collected" in
-  `muted-foreground` over a `╱` hatch in `hatch`.
+| Part | Terminal form |
+| --- | --- |
+| Track | `secondary` fill, one row tall |
+| Fill | `link` for a neutral meter, to the half cell with `▌`. `.tone()` sets `success`, `warning` or `danger` |
+| Value | The number, or the product's `value_text`, in `foreground` |
+| Missing | "Not collected" in `muted-foreground` over a `╱` hatch in `hatch` |
+
+- `.thresholds(warn, danger)` changes the tone of the fill by value: from
+  `warn` it is `warning`, from `danger` it is `danger`. The limits are
+  absolute values on the meter's own scale. Color alone is a weak signal,
+  so keep the number visible. In some light themes `warning` and the
+  neutral fill look alike.
+- Over the limit, the track stops full and the text keeps the real number.
 - `label_width` lines up the tracks of meters one under another. The label
   takes a third of the row at most and is cut with `…`. Below four cells,
   the track drops and the label and value stay.
-- Progress and the chart line and fill options are not in the terminal.
+- `.indent(0)` removes the two columns of margin, for a meter inside a
+  [Card](card.md#terminal).
+- The meter has no keys. The chart line and fill options are not in the
+  terminal.

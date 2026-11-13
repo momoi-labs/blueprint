@@ -703,6 +703,34 @@ marked by gaps:
 `DiagramEdge` renders nothing; it registers with the Diagram, which draws it
 once the nodes are measured. Node ids are unique within one Diagram.
 
+## Terminal
+
+In a terminal, Diagram is `tui-kiso` `Diagram`, a reduced form: boxes in
+layers from left to right, joined by edges that run one way. The product
+gives each `DiagramNode` a layer (the column) and a row, and each edge
+by node id. The widget does no layout of its own.
+
+| Part | Terminal form |
+| --- | --- |
+| Node | A box of three rows on a `secondary` fill, as wide as its longest line plus four cells. The label is in `foreground` |
+| Detail | A second line in `muted-foreground`. Any node with a detail makes all boxes four rows tall |
+| Edge | Box-drawing lines in `border-strong`, with a `▸` arrow at the target, bending in the gap before it |
+| Selected | `selected` fill, bold label and a `›` mark. Its edges take `link` |
+
+- Six cells separate two layers. Rows are one blank line apart.
+- `size()` returns the columns and rows the drawing needs, for a layout
+  that gives it a cell.
+- A node that does not fit whole in the area is left out, and so are the
+  edges that touch it. The widget never draws outside its area.
+- An edge that goes back, stays in one layer or names an unknown id is not
+  drawn. Cycles and meshes are out of reach.
+- The selection is the product's. Move it with its own keys, such as Up
+  and Down through a list of nodes, and pass the id to `selected`.
+- There is no zoom, drag, pan or edit. For a graph of many nodes, use
+  [Table](table.md#terminal) with [KV](kv.md) for the detail of
+  one node. A list of rows with a "connects to" column is easier to scan
+  and to search than a drawing past a dozen nodes.
+
 ## When to use
 
 - The summary of a deployed service: what reaches it, what runs it, what it

@@ -14,8 +14,10 @@ const LEVELS: [char; 8] = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█
 /// The number next to it carries the value; the drawing carries the shape.
 /// A missing or nonfinite sample is a blank cell, never zero. With fewer
 /// than two measurements it draws nothing. Neutral uses `border-strong`;
-/// [`primary`](Self::primary) uses `primary`, for the one series a view is
-/// about. Converts into a [`Line`].
+/// [`primary`](Self::primary) uses the accent, for the one series a view is
+/// about. The accent is `link`, since `primary` is too light a mark on some
+/// light themes. It paints no background, so it reads the same on a
+/// [`Card`](crate::Card) and on the page. Converts into a [`Line`].
 #[derive(Clone, Debug)]
 pub struct Sparkline<'a> {
     theme: &'a Theme,
@@ -31,7 +33,7 @@ impl<'a> Sparkline<'a> {
         Self { theme, values: values.into_iter().map(Into::into).collect(), range: None, primary: false }
     }
 
-    /// The `primary` tone. At most one sparkline among its siblings takes it.
+    /// The accent tone. At most one sparkline among its siblings takes it.
     #[must_use]
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
@@ -67,7 +69,7 @@ impl<'a> Sparkline<'a> {
             })
             .collect();
         let r = self.theme.tokens();
-        let color = if self.primary { r.primary } else { r.border_strong };
+        let color = if self.primary { r.link } else { r.border_strong };
         Line::from(Span::styled(text, self.theme.fg(color)))
     }
 }
