@@ -63,8 +63,8 @@ the selected item, the counts and the disabled state. Read the Sidebar
 doc for the states.
 
 A navigation that is not in a sidebar maps to the forms the crate has:
-`Tabs` for the views of one screen, `Breadcrumb` for the path, `Menu` for
-the actions of one row, and `KeyHints` for the keys. See
+`Tabs` for the views of one screen, `Breadcrumb` for the path, `DropdownMenu`
+for the actions of one row, and `KeyHints` for the keys. See
 [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use

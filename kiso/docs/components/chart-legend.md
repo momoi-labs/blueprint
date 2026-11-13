@@ -83,3 +83,5 @@ starts with a short `▄▄` bar in its chart color, its number in
 - The legend follows the chart's indent: two columns by default, none
   after `.indent(0)`.
 - The summary columns are fixed, and the legend has no keys.
+
+See [terminal interfaces](../terminal-interfaces.md).

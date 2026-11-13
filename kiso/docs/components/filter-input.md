@@ -154,6 +154,8 @@ The keys are `Search::key`: letters filter, `Enter` keeps the query, `Esc`
 clears it. A terminal list filters on text; `Filters` narrow it by facet.
 See [Search](search.md).
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## Boundaries
 
 This is a small filter grammar, not SQL or a query-language interpreter. It

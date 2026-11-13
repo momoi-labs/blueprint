@@ -4,35 +4,52 @@ Kiso components for [ratatui](https://ratatui.rs) terminal interfaces. Kiso
 is the Momoi Labs design system. See it at
 [kiso.momoi-labs.dev](https://kiso.momoi-labs.dev).
 
-The look follows Charm's Crush: no frames around parts of a page, a section
-is a title and a rule, and only the selection, code, cards, badges, buttons
-and dialogs get a fill or a frame. Your app keeps its own event loop and layout. The
-widgets follow the
+The look follows Charm's Crush and the Kiso web look: a page has no line
+borders, a section is a title and a rule, and related content sits on a
+card, a block of fill with half a row above and below (`▄` and `▀`). Corners
+are square, and nothing draws a shadow. In truecolor a glass card lets the
+backdrop show through. Dialogs, drawers and menus sit on an opaque surface,
+and a modal one dims the page behind it. Round ends need a Nerd Font and are
+opt-in. Your app keeps its own event loop and layout. The widgets follow the
 [terminal interfaces](https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/terminal-interfaces.md)
-contract, and each component doc has a Terminal section.
+contract, which has a table of every Kiso component and its terminal form,
+and each component doc has a Terminal section.
+
+The look is one `Look` on the `Theme`, set with `Theme::with_look`:
+
+| Option | Values |
+| --- | --- |
+| `fill` | `Glass` (default), `Translucent`, `Solid` |
+| `border` | `None` (default), `Rail`: half a column of the accent before a card |
+| `round` | `false` (default), `true` for round ends with a Nerd Font |
+| `title`, `rule` | The pattern and ink of the title line and the section rules |
+
+In 256 colors a blend would band, so every fill draws as `Solid`.
 
 | Part | What it is |
 | --- | --- |
-| `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the look: the patterns of the title line and section rules, the card fill and border, and round ends |
-| `Title`, `Tabs`, `Header` | Where the person is: the page title, the views of a screen, the brand and breadcrumb |
-| `Page`, `Scroll`, `Columns` | A page of rows that scrolls, with sections, items to select, columns and code blocks |
-| `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
-| `Table`, `Pagination`, `StatusBadge` | Records in columns with a header fill, a selection, and empty, loading and paged states; the pages of a list; the state of a record |
-| `KV`, `FilterInput`, `LogView`, `CodeBlock` | The facts of a record, the field that filters a list, log lines that follow the end, and code on a card surface |
-| `Chart`, `Series`, `ChartLegend`, `Sparkline` | Series over time in braille with a scale and a legend, and the trend of one series in a cell |
-| `Meter`, `BarGauge` | A measurement against its limit on one row, and labelled measurements on one scale |
-| `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |
-| `Filters`, `Menu`, `fact` | Faceted filters on `f`, the actions of a row on `a`, the facts of a record |
-| `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |
-| `Form`, `Field`, `FormActions` | Forms with labels in a column, and the buttons that end them, primary last |
-| `Checkbox`, `RadioGroup`, `Select`, `Combobox`, `ChipInput` | A choice on or off, one of a few, one from a list, one from a filtered list, and short values as chips |
+| `Theme`, `Accent`, `Look` | The tokens of one accent, dark or light, at the terminal's color depth, and the look |
+| `Grid`, `AppShell`, `Split` | The areas of a page on tracks of 13 columns, 2 apart, 3 to 6 by width, wrapping; the app bar, sidebar, page and footer; panes with dividers |
+| `Backdrop`, `Canvas` | The canvas behind a screen, drawn once: `Glow`, `Solid`, `Dots`, `Grid`, `Crosses`, `Stripes` |
 | `Card`, `Stat` | A surface of fill for related content, and one number with its label and delta |
-| `Badge`, `Dot`, `Tone` | A label or a mark in one of five tones |
-| `Button`, `Switch` | An action with a variant and a state, and a setting that is on or off |
-| `Grid`, `Backdrop` | The areas of a page on tracks of 13 columns, and the canvas behind it |
-| `Toast`, `scramble`, `braille`, `step`, `StepState` | Notices, spinners and the steps of a run, in five states |
-| `Alert`, `Spinner`, `Skeleton`, `EmptyState` | A tinted message per tone, a braille spinner with a label, loading blocks, and a region with nothing in it |
-| `Link`, `Separator` | An underlined destination with a focus state, and the one rule, horizontal or vertical |
+| `Badge`, `Dot`, `Tone`, `StatusBadge` | A label or a mark in one of five tones, and the state of a record |
+| `Button`, `Switch`, `Link` | An action with a variant and a state, a setting that is on or off, and an underlined destination |
+| `Input`, `PasswordInput`, `Textarea`, `Checkbox`, `RadioGroup` | Text, a secret, several lines, a choice on or off, and one of a few |
+| `Select`, `Combobox`, `OptionList`, `ChipInput`, `DetailSelect` | One from a list, one from a filtered list, the open list, short values as chips, and choices with a description |
+| `Form`, `Field`, `FormField`, `FormActions` | Forms with labels in a column, a field with its helper and error, and the buttons that end a form, primary last |
+| `Label`, `HelperText`, `ValidationMessage` | The name of a field, and the lines under it |
+| `Title`, `Tabs`, `Header`, `PageHeader`, `Breadcrumb`, `BrandMark` | Where the person is: the page title, the views of a screen, the app bar, the top of a page, the path and the product |
+| `Page`, `Scroll`, `Columns`, `fact` | A page of rows that scrolls, with sections, items to select, columns and facts |
+| `Sidebar`, `SideItem`, `ScopeSwitcher`, `AccentSelector` | The navigation, the scope in the app bar, and the accent swatches |
+| `Table`, `Pagination`, `KV`, `LogView`, `CodeBlock` | Records in columns with a header fill and a scrollbar, the pages of a list, the facts of a record, log lines, and code on a card surface |
+| `Chart`, `Series`, `ChartLegend`, `Sparkline`, `Diagram` | Series over time in braille, the trend of one series in a cell, and boxes joined by edges |
+| `Meter`, `BarGauge`, `StepBar`, `StepList`, `Steps`, `Lifecycle` | A measurement against its limit, labelled measurements, the steps of a run, and the header row of a detail screen |
+| `Alert`, `Spinner`, `Skeleton`, `EmptyState`, `Toast` | A tinted message, a braille spinner, loading blocks, a region with nothing in it, and a short notice |
+| `Modal`, `Question`, `Drawer`, `Scrim` | Dialogs on an opaque surface over a dimmed page: help or your own content, a question with buttons, a side panel |
+| `CommandPalette`, `DropdownMenu`, `Popover`, `ThemePicker` | The `ctrl+p` palette, the actions of a row on `a`, a small panel next to its anchor, and the theme picker. The palette and the picker dim the page; the menu and the popover do not |
+| `Search`, `Filters`, `FilterInput`, `TimeRangeControl` | The `/` search, faceted filters on `f`, a text filter field, and a range of time |
+| `Disclosure`, `Separator`, `KeyHints` | A section that opens, the one rule, horizontal or vertical, and the footer keys |
+| `scramble`, `braille`, `step`, `StepState` | Spinners and the steps of a run, in five states |
 | `set_background`, `set_foreground`, `set_progress`, `set_clipboard` | The terminal's colors with OSC 11 and OSC 10, its progress bar with OSC 9;4, and the clipboard with OSC 52 |
 
 The crate is not on crates.io yet. Depend on it and on `kiso-tokens` from
@@ -83,12 +100,17 @@ The gallery shows every component with its variants and states:
 cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery
 ```
 
-`t` opens the theme picker. `s` opens the appearance panel: up and down
-pick an option, left and right change it.
+`t` opens the theme picker. `s` opens the appearance panel: up and down pick
+an option, left and right change it. It sets the backdrop, the card fill,
+the border and round ends.
 
-Add `--accent <name>`, `--light` or `--256` to try another theme, or
-`--snapshot <dir>` to write every page at 100 by 30, and one at 80 by 24,
-as HTML without a terminal.
+| Flag | What it does |
+| --- | --- |
+| `--accent <name>` | Starts in another accent |
+| `--light` | Starts in the light theme |
+| `--256` | Maps colors to the xterm-256 palette |
+| `--snapshot <dir>` | Writes every page at 100 by 30, and one at 80 by 24, as HTML without a terminal |
+| `--json <file>` | Writes the pages for the Kiso site |
 
 The Kiso site shows the gallery under TUI, from
 `apps/kiso-gallery/src/generated/tui-gallery.json`. After a change to a
@@ -98,3 +120,32 @@ is out of date:
 ```sh
 cargo run --manifest-path crates/tui-kiso/Cargo.toml --example gallery -- --json apps/kiso-gallery/src/generated/tui-gallery.json
 ```
+
+## Migrating
+
+Breaking changes since the pg-probe pin (`49350a4`). Each line is the old
+call, then the new one.
+
+- `Buttons::new(t, [(label, Press)])` is now
+  `FormActions::new(t, [Button::new(t, label).variant(..).state(..)])`.
+- `Press::{Plain, Focused, Danger, Off}` is now `ButtonVariant::{Default,
+  Primary, Destructive}` plus `ButtonState::{Rest, Focus, Disabled}`. Focus
+  moved from the variant to the state, so the primary color no longer means
+  focus.
+- `Form::press(i, danger)` is now `Form::button_state(i)`, or
+  `Form::actions(t, labels, danger)` for the whole row.
+- `Buttons::lines(width: usize)` is now `FormActions::lines(width: u16)`.
+- `form::Input` is now `form::Control`, with the new variants `Switch`,
+  `Radio`, `Combo`, `Chips` and `Area`. `Input` now names the text field
+  widget.
+- `Field` has a new pub field, `list`. Build a `Field` with its
+  constructors, or set `list: None`.
+- Enter on a `Select` in a `Form` opens its list. It used to move to the
+  next field.
+- `Modal` has no line frame. With a fixed `height`, its body has 4 fewer
+  rows when it has key hints or buttons, and 2 fewer without them.
+- `Table` has a header fill, a 2-cell column gap and its own scrollbar.
+- `fact` cuts a key longer than its column with `…`.
+- `ThemePicker` sits on an Elevated card and dims the page.
+- `Menu` and `Palette` are aliases of `DropdownMenu` and `CommandPalette`.
+  The old names still compile.

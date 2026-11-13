@@ -98,7 +98,7 @@ button to size `Sm`.
 It draws from the left of its area, in one row; `Lifecycle::width` gives
 the columns. A part that does not fit is left out whole, from the end, so
 a narrow area loses Remove before the verbs. Below the status, show a
-`Menu` for the verbs, as the web moves them to a sheet. The destructive
+`DropdownMenu` for the verbs, as the web moves them to a sheet. The destructive
 action opens a `Question` to confirm. This is the detail header, not the
 steps of a run: use `StepList` for those. See
 [terminal interfaces](../terminal-interfaces.md).

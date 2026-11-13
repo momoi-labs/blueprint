@@ -167,9 +167,9 @@ The first letter or digit of the label is underlined: it is the button's
 hotkey, and `hotkey` returns it in lowercase. An icon before the label is not the hotkey.
 `Enter` presses the focused button; the app owns the keys.
 
-`Buttons` is the older row of buttons at the bottom of a dialog or a form,
-where the primary color means focus. It stays until forms move to
-`Button`. See [terminal interfaces](../terminal-interfaces.md).
+A row of buttons at the bottom of a dialog or a form is
+[FormActions](form-actions.md). See
+[terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

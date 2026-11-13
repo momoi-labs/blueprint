@@ -116,6 +116,8 @@ column.
 `Page Down` for half a view, `Home` and `g` for the top, `End` and `G` to
 follow again. The product owns the lines and how many it keeps.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A stream of operational output beside configuration or resource details.

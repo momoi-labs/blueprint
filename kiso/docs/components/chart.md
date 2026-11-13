@@ -272,3 +272,5 @@ a page. `.indent(0)` sets them flush, for a chart inside a
   another page or in the legend.
 - Stacked areas, split lanes and the chart appearance options do not
   apply.
+
+See [terminal interfaces](../terminal-interfaces.md).

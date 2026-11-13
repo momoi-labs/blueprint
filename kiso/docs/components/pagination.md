@@ -78,6 +78,8 @@ In a terminal, Pagination is `tui-kiso` `Pagination`: one row,
 changed. The product loads the rows. Put it under a [Table](table.md) with
 `Table::pagination`.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A known dataset where people benefit from page position or direct jumps.

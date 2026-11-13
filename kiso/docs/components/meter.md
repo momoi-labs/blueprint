@@ -72,3 +72,5 @@ Progress shares this form.
   [Card](card.md#terminal).
 - The meter has no keys. The chart line and fill options are not in the
   terminal.
+
+See [terminal interfaces](../terminal-interfaces.md).
