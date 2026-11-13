@@ -383,8 +383,22 @@
    middle; where it is wider, as on a phone, the panel scrolls sideways
    from its left edge, and the wheel still scrolls the page. */
 /* As tall as the tabs of the states, and their border, on every page. */
-.tui-caption { min-height: calc(var(--size-control-lg) + 1px + var(--spacing-sm)); }
-.tui-caption > nav { margin-inline-end: auto; }
+.tui-caption {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  min-height: calc(var(--size-control-lg) + 1px + var(--spacing-sm));
+}
+/* The tabs sit in the middle; their rule runs a little past the first and
+   last tab. */
+.tui-caption > nav { grid-column: 2; }
+.tui-caption > nav .nav-row { padding-inline: var(--spacing-md); }
+.tui-caption > nav .nav-item { white-space: nowrap; }
+.tui-caption > .badge { grid-column: 3; justify-self: end; }
+/* On a narrow screen the tabs take a row of their own, below the name. */
+@media (max-width: 699px) {
+  .tui-caption { grid-template-columns: 1fr auto; }
+  .tui-caption > nav { grid-column: 1 / -1; grid-row: 2; justify-self: start; max-width: 100%; overflow-x: auto; }
+  .tui-caption > .badge { grid-column: 2; }
+}
 .tui-frame { padding: 0; }
 .tui-stage {
   container-type: inline-size;
