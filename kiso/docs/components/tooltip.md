@@ -112,6 +112,22 @@ From Radix Tooltip:
 
 There is no Tooltip-specific tab stop. Content is not focused.
 
+## Terminal
+
+A terminal has no pointer to hover and no layer to float over the page, so
+Tooltip has no widget in `tui-kiso`. Put the same help where the person is
+looking.
+
+| Web | Terminal form |
+| --- | --- |
+| keyboard shortcut | `KeyHints` in the footer, or the key in the label. |
+| help for a field | `HelperText` under the field, visible all the time. |
+| what a row or a control does | A line in the status line, for the item in focus. |
+| long explanation | A [Modal](modal-dialog.md) or the help page, opened with `?`. |
+
+Never hide the only copy of a fact in help that needs a key to open. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Repeating an IconButton's `aria-label` for pointer users.

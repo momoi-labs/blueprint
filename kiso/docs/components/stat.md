@@ -90,7 +90,7 @@ In a terminal, Stat is `tui-kiso` `Stat`: a `md` Card with the label in
 | `StatValue` | Second row, bold `foreground`, in the size of the text. |
 | note | Third row, `muted-foreground`. |
 | without a card | `.card(false)`: the same rows with no surface, for a row of facts in a dense tool. |
-| loading | Skeleton bars inside a Card, drawn by the product. |
+| loading | `.loading(true)` keeps the label and draws `Skeleton` bars in place of the value and the note. `.tick(n)` pulses them. |
 
 A cell has one size of text, so the value is not larger than the label. A
 product with room can build a big value from a Card and a block font. Stat

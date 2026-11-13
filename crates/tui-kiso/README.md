@@ -29,6 +29,8 @@ contract, and each component doc has a Terminal section.
 | `Button`, `Switch` | An action with a variant and a state, and a setting that is on or off |
 | `Grid`, `Backdrop` | The areas of a page on tracks of 13 columns, and the canvas behind it |
 | `Toast`, `scramble`, `braille`, `step`, `StepState` | Notices, spinners and the steps of a run, in five states |
+| `Alert`, `Spinner`, `Skeleton`, `EmptyState` | A tinted message per tone, a braille spinner with a label, loading blocks, and a region with nothing in it |
+| `Link`, `Separator` | An underlined destination with a focus state, and the one rule, horizontal or vertical |
 | `set_background`, `set_foreground`, `set_progress`, `set_clipboard` | The terminal's colors with OSC 11 and OSC 10, its progress bar with OSC 9;4, and the clipboard with OSC 52 |
 
 The crate is not on crates.io yet. Depend on it and on `kiso-tokens` from

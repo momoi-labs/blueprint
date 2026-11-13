@@ -7,43 +7,112 @@ use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
-use crate::{blend, Theme};
+use crate::text::cells;
+use crate::{blend, Card, CardVariant, Size, Theme, Tone};
 
-/// A notice across the footer row, as Crush's: a bold label on the
-/// `success-on-dark` fill, then the message. Show it in place of the key
-/// hints for a few seconds after an action ends.
+/// A short notice on the `popover` surface, an elevated [`Card`] of size
+/// `Sm`: the tone's glyph and a bold label in the tone's color, then the
+/// message in `foreground`. It lasts a few seconds after an action ends,
+/// and any key clears it.
+///
+/// Give it three rows to draw the card with its half rows. Give it one row,
+/// such as the footer in place of the key hints, and it draws a flat fill
+/// across the row. [`Toast::stack`] places several at the top right.
 #[derive(Clone, Debug)]
 pub struct Toast<'a> {
     theme: &'a Theme,
-    label: &'a str,
+    tone: Tone,
+    label: Option<&'a str>,
     text: String,
 }
 
 impl<'a> Toast<'a> {
+    /// A `Success` toast, labelled "DONE!".
     pub fn new(theme: &'a Theme, text: impl Into<String>) -> Self {
-        Self { theme, label: "DONE!", text: text.into() }
+        Self { theme, tone: Tone::Success, label: None, text: text.into() }
     }
 
-    /// The label before the message. "DONE!" by default.
-    pub fn label(mut self, label: &'a str) -> Self {
-        self.label = label;
+    /// The tone of the glyph and the label. `Success` by default.
+    #[must_use]
+    pub fn tone(mut self, tone: Tone) -> Self {
+        self.tone = tone;
         self
     }
+
+    /// The label before the message. By default the tone's: "DONE!",
+    /// "INFO", "WARN", "FAILED", or none for `Neutral`.
+    #[must_use]
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = Some(label);
+        self
+    }
+
+    fn spans(&self) -> Vec<Span<'static>> {
+        let t = self.theme;
+        let head = t.fg(self.tone.rgb(t));
+        let label = self.label.unwrap_or(match self.tone {
+            Tone::Neutral => "",
+            Tone::Info => "INFO",
+            Tone::Success => "DONE!",
+            Tone::Warning => "WARN",
+            Tone::Danger => "FAILED",
+        });
+        let mut spans = vec![Span::styled(format!("{} ", crate::alert::glyph(self.tone)), head)];
+        if !label.is_empty() {
+            spans.push(Span::styled(format!("{label}  "), head.add_modifier(Modifier::BOLD)));
+        }
+        spans.push(Span::styled(self.text.clone(), t.text()));
+        spans
+    }
+
+    /// The columns the card takes: the glyph, the label and the message,
+    /// with one column of padding on each side.
+    pub fn width(&self) -> u16 {
+        let content: usize = self.spans().iter().map(|span| cells(&span.content)).sum();
+        (content as u16).saturating_add(2)
+    }
+
+    /// The rows the card takes.
+    pub fn height(&self) -> u16 {
+        3
+    }
+
+    /// Draws the newest `MAX_STACK` toasts at the top right of `area`, the
+    /// newest on top, one blank row apart. `toasts` runs from the oldest to
+    /// the newest. A toast wider than the area is cut with `…`. The rail,
+    /// when the look has one, needs the column before each card, so the
+    /// toasts keep one column from the right edge.
+    pub fn stack(area: Rect, buf: &mut Buffer, toasts: &[Toast<'_>]) {
+        let mut y = area.y;
+        for toast in toasts.iter().rev().take(Self::MAX_STACK) {
+            let width = toast.width().min(area.width.saturating_sub(3));
+            if width == 0 || y.saturating_add(toast.height()) > area.bottom() {
+                return;
+            }
+            let x = area.right().saturating_sub(width + 1);
+            toast.clone().render(Rect::new(x, y, width, toast.height()), buf);
+            y = y.saturating_add(toast.height() + 1);
+        }
+    }
+
+    /// The most toasts [`Toast::stack`] shows.
+    pub const MAX_STACK: usize = 3;
 }
 
 impl Widget for Toast<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let area = area.intersection(buf.area);
-        if area.is_empty() {
+        if area.intersection(buf.area).is_empty() {
             return;
         }
-        let r = self.theme.tokens();
-        buf.set_style(area, self.theme.fill(r.background, r.success_on_dark));
-        let line = Line::from(vec![
-            Span::styled(format!(" {} ", self.label), Style::new().add_modifier(Modifier::BOLD)),
-            Span::raw(format!(" {}", self.text)),
-        ]);
-        buf.set_line(area.x, area.y, &line, area.width);
+        let card = Card::new(self.theme).variant(CardVariant::Elevated).size(Size::Sm);
+        card.render(area, buf);
+        // One row has no half rows, so the text takes it.
+        let row = if area.height >= 3 { area.y + 1 } else { area.y };
+        let (x, width) = (area.x.saturating_add(1), area.width.saturating_sub(2));
+        let (spans, _) = crate::text::cut(self.spans(), usize::from(width));
+        if buf.area.contains(ratatui::layout::Position { x, y: row }) {
+            buf.set_line(x, row, &Line::from(spans), width);
+        }
     }
 }
 
@@ -201,6 +270,59 @@ mod tests {
             }
         }
         assert!(set_clipboard(&mut Broken, "hi").is_err());
+    }
+
+    fn row(buf: &Buffer, y: u16) -> String {
+        (0..buf.area.width).map(|x| buf[(x, y)].symbol().to_owned()).collect()
+    }
+
+    #[test]
+    fn a_toast_is_a_card_with_a_glyph_a_label_and_the_message() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let toast = Toast::new(&theme, "laya restarted");
+        assert_eq!(toast.width(), 25);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 3));
+        toast.render(Rect::new(1, 0, 25, 3), &mut buf);
+        assert_eq!(row(&buf, 0).trim(), "▄".repeat(25));
+        assert_eq!(row(&buf, 1), "  ✓ DONE!  laya restarted     ");
+        assert_eq!(buf[(2, 1)].fg, theme.color(theme.tokens().success_on_dark));
+        assert_ne!(buf[(5, 1)].bg, ratatui::style::Color::Reset);
+    }
+
+    #[test]
+    fn a_toast_in_one_row_is_a_flat_fill_across_it() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 20, 1));
+        Toast::new(&theme, "Copied").tone(Tone::Info).render(buf.area, &mut buf);
+        assert_eq!(row(&buf, 0), " ● INFO  Copied     ");
+        assert_eq!(buf[(0, 0)].bg, buf[(19, 0)].bg);
+    }
+
+    #[test]
+    fn a_stack_shows_the_newest_three_on_top_at_the_right() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let texts = ["one", "two", "three", "four"];
+        let toasts: Vec<_> = texts.iter().map(|text| Toast::new(&theme, *text).tone(Tone::Neutral)).collect();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 14));
+        Toast::stack(buf.area, &mut buf, &toasts);
+        let text = |y| row(&buf, y).trim().to_owned();
+        assert_eq!(text(1), "○ four");
+        assert_eq!(text(5), "○ three");
+        assert_eq!(text(9), "○ two");
+        // The oldest is out, and one blank row parts the cards.
+        assert!(!(0..14).any(|y| text(y).contains("one")));
+        assert_eq!(text(3), "");
+        // One column stays free at the right.
+        assert_eq!(buf[(29, 1)].symbol(), " ");
+        assert_eq!(buf[(29, 1)].bg, ratatui::style::Color::Reset);
+    }
+
+    #[test]
+    fn a_toast_past_the_buffer_does_not_panic() {
+        let theme = Theme::xterm_256(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 8, 2));
+        Toast::new(&theme, "a long message").render(Rect::new(4, 1, 30, 3), &mut buf);
+        Toast::stack(buf.area, &mut buf, &[Toast::new(&theme, "a long message")]);
     }
 
     #[test]

@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 30] = [
+const PAGES: [(&str, &str); 36] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The brand and version, then where the person is."),
     ("Title", "Where the person is, across the width."),
@@ -59,6 +59,12 @@ const PAGES: [(&str, &str); 30] = [
     ("Button", "An action. The variant says what it is, the state what the keys do."),
     ("Switch", "One setting that is on or off, applied at once."),
     ("Grid", "The areas of a page, on tracks of whole columns. It draws nothing."),
+    ("Alert", "A message about this view: a tint, a glyph and a title per tone."),
+    ("Spinner", "A braille frame with an optional label. The app counts the ticks."),
+    ("Skeleton", "Blocks that stand for content on its way. The app owns time."),
+    ("EmptyState", "A region with nothing in it: what is empty and what to do."),
+    ("Link", "A destination, underlined, with a focus state."),
+    ("Separator", "The one rule: horizontal with a label, or vertical."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -427,6 +433,12 @@ impl App {
             "Dot" => dot_page(t, buf, area),
             "Button" => button_page(t, buf, area),
             "Switch" => switch_page(t, buf, area),
+            "Alert" => wave_04::alert_page(t, buf, area),
+            "Spinner" => wave_04::spinner_page(t, buf, area),
+            "Skeleton" => wave_04::skeleton_page(t, buf, area),
+            "EmptyState" => wave_04::empty_state_page(t, buf, area),
+            "Link" => wave_04::link_page(t, buf, area),
+            "Separator" => wave_04::separator_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -675,6 +687,12 @@ fn card_page(t: &Theme, buf: &mut Buffer, area: Rect) {
         card.rule(buf, rect, inner.y + 2);
         buf.set_stringn(inner.x, inner.y + 3, "Last run    12 min ago", width, t.text());
     }
+    for (x, name, card) in [(0, "Loading", Card::new(t).loading(true)), (35, "Loading, bars pulse", Card::new(t).loading(true).tick(2))] {
+        if let Some(rect) = inside(area, x, 20, 32, 6) {
+            buf.set_string(rect.x, rect.y - 2, name, t.muted());
+            card.render(rect, buf);
+        }
+    }
 }
 
 fn stat_page(t: &Theme, buf: &mut Buffer, area: Rect) {
@@ -689,6 +707,11 @@ fn stat_page(t: &Theme, buf: &mut Buffer, area: Rect) {
         if let Some(rect) = inside(area, i as u16 * 15, 10, 13, stat.height()) {
             stat.render(rect, buf);
         }
+    }
+    caption(t, buf, area, 16, "Loading: the label stays, bars take the place of the numbers");
+    let stat = Stat::new(t, "Tasks completed", "").note("").loading(true).tick(1);
+    if let Some(rect) = inside(area, 0, 18, 34, stat.height()) {
+        stat.render(rect, buf);
     }
 }
 
@@ -864,6 +887,7 @@ fn toast_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     for (i, line) in steps.into_iter().enumerate() {
         put(buf, area, 7 + i as u16, line);
     }
+    wave_04::toast_cards(t, buf, Rect { y: area.y.saturating_add(13), height: area.height.saturating_sub(13), ..area });
 }
 
 fn sidebar_page(t: &Theme, buf: &mut Buffer, area: Rect) {
@@ -1355,6 +1379,10 @@ fn export(file: &Path, accent: usize, light: bool) -> std::io::Result<usize> {
 /// A ratatui buffer as HTML: one span per run of equal style.
 #[path = "support/html.rs"]
 mod html;
+
+/// The feedback components: alert, toast stack, spinner, skeleton and more.
+#[path = "support/wave_04.rs"]
+mod wave_04;
 
 /// The gallery as JSON for the Kiso site.
 #[path = "support/json.rs"]

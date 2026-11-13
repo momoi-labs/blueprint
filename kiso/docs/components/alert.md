@@ -154,6 +154,31 @@ does not shrink to `sm`.
 | `Tab` / `Shift+Tab` | Move between Action and Dismiss (and the rest of the page). |
 | `Enter` / `Space` | Activate the focused Button / IconButton (including Dismiss). |
 
+## Terminal
+
+In a terminal, Alert is `tui-kiso` `Alert`: a `Card` with a tint of its
+tone, the tone's glyph and the title in the tone's color, an optional text
+and an optional action.
+
+| Web | Terminal form |
+| --- | --- |
+| `default` | `○` and a neutral title. |
+| `info` | `●`, title in `info`. |
+| `success` | `✓`, title in `success`. |
+| `warning` | `▲`, title in `warning`. |
+| `danger` | `✕`, title in `danger`. |
+| title | First row after the glyph, bold, in the tone's color. |
+| description | Wrapped under the title in `foreground`, aligned with it. |
+| action | A `Button` of size `sm` after a blank row. It is the only part that takes focus. |
+| tint | 12% of the tone mixed into the card, in truecolor only. In 256 colors the card keeps its fill and the glyph and the title carry the tone. |
+| dismiss | No terminal form. The app clears the alert, for example with `Esc`. |
+
+Each tone has its own glyph, so color is never the only signal. The rail of
+the `Look`, when there is one, stays `primary`: it marks the surface, not
+the tone. `height` gives the rows the alert takes at a width, since the text
+wraps. An alert has no keys of its own. For a short message that goes away,
+use a [Toast](toast.md). See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A condition about this page or section the person should see before

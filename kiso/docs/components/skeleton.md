@@ -103,6 +103,26 @@ one swap. Do not leave a Skeleton sitting next to the loaded widget.
 
 No keymap. Placeholders are skipped.
 
+## Terminal
+
+In a terminal, Skeleton is `tui-kiso` `Skeleton`: a square block of `border`
+at low strength, the size of the area it gets. It draws no text. `muted`
+equals the page in the light theme, so the block uses `border`, which shows
+in both themes.
+
+| State | Terminal form |
+| --- | --- |
+| static | No tick. One strength between low and high. |
+| pulse | `.tick(n)` cycles three strengths: low, rest, high, rest. Raise `n` about three times a second. |
+| 256 colors | Static. A blend would band, so the strength has no effect. |
+| in a card | `Card::loading(true)` draws bars for the title, the description and the body. |
+| in a stat | `Stat::loading(true)` keeps the label and puts a bar in place of the value and the note. |
+
+The app owns time, as with a spinner: with no tick the block does not
+move. Size the blocks like the content they stand for, so the page does
+not jump when the content arrives. A skeleton has no keys. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - First load of a list, table, Card, or form whose structure is known.

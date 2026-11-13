@@ -3,7 +3,7 @@ use ratatui::layout::Rect;
 use ratatui::widgets::Widget;
 
 use crate::surface::{fill, over, put};
-use crate::{Border, Theme};
+use crate::{Border, Skeleton, Theme};
 
 /// The surface color of a [`Card`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -36,11 +36,29 @@ pub struct Card<'a> {
     variant: CardVariant,
     size: Size,
     hover: bool,
+    loading: bool,
+    tick: Option<u32>,
 }
 
 impl<'a> Card<'a> {
     pub fn new(theme: &'a Theme) -> Self {
-        Self { theme, variant: CardVariant::Plain, size: Size::Md, hover: false }
+        Self { theme, variant: CardVariant::Plain, size: Size::Md, hover: false, loading: false, tick: None }
+    }
+
+    /// The content is on its way: [`Skeleton`] bars fill the content area,
+    /// a short one for a title, a longer one for a description, then three
+    /// for the body. Draw no content over them.
+    #[must_use]
+    pub fn loading(mut self, loading: bool) -> Self {
+        self.loading = loading;
+        self
+    }
+
+    /// Pulses the loading bars as `tick` counts up. See [`Skeleton::tick`].
+    #[must_use]
+    pub fn tick(mut self, tick: u32) -> Self {
+        self.tick = Some(tick);
+        self
     }
 
     #[must_use]
@@ -90,6 +108,24 @@ impl<'a> Card<'a> {
 
 impl Widget for Card<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        self.surface(area, buf);
+        if self.loading {
+            // The share of the width of each row: a title, a description,
+            // a gap, then the body.
+            let inner = self.inner(area);
+            for (dy, share) in [40_u32, 70, 0, 100, 85, 60].into_iter().enumerate() {
+                let width = (u32::from(inner.width) * share / 100) as u16;
+                if width > 0 && (dy as u16) < inner.height {
+                    let bar = Rect::new(inner.x, inner.y.saturating_add(dy as u16), width, 1);
+                    Skeleton::new(self.theme).pulse(self.tick).render(bar, buf);
+                }
+            }
+        }
+    }
+}
+
+impl Card<'_> {
+    fn surface(&self, area: Rect, buf: &mut Buffer) {
         let t = self.theme;
         let r = t.tokens();
         let color = match (self.hover, self.variant) {
@@ -157,6 +193,22 @@ mod tests {
         Card::new(&theme).render(Rect::new(1, 0, 10, 5), &mut buf);
         let rail: String = (0..5).map(|y| buf[(0, y)].symbol().to_owned()).collect();
         assert_eq!(rail, "▗▐▐▐▝");
+    }
+
+    #[test]
+    fn a_loading_card_draws_bars_of_different_lengths_in_its_content() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut shown = Buffer::empty(Rect::new(0, 0, 22, 8));
+        let mut plain = shown.clone();
+        Card::new(&theme).render(plain.area, &mut plain);
+        let card = Card::new(&theme).loading(true);
+        card.render(shown.area, &mut shown);
+        let bar = |y: u16| (0..22).filter(|x| shown[(*x, y)].bg != plain[(*x, y)].bg).count();
+        // The inner width is 18: 40%, 70%, nothing, then 100%, 85%, 60%.
+        assert_eq!([1, 2, 3, 4, 5, 6].map(bar), [7, 12, 0, 18, 15, 10]);
+        // The half rows and the sides stay card.
+        assert_eq!(bar(0), 0);
+        assert_eq!(shown[(0, 1)], plain[(0, 1)]);
     }
 
     #[test]
