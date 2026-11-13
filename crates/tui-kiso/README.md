@@ -143,7 +143,12 @@ call, then the new one.
 - Enter on a `Select` in a `Form` opens its list. It used to move to the
   next field.
 - `Modal` has no line frame. With a fixed `height`, its body has 4 fewer
-  rows when it has key hints or buttons, and 2 fewer without them.
+  rows when it has key hints or buttons, and 2 fewer without them. On an 80
+  by 24 screen, a modal with a title and key hints shows 18 rows of body: it
+  takes the whole height when its content needs it.
+- `Tabs::line(width)` is now the labels only. The rule under them is
+  `Tabs::rule(width)`, on a second row. A caller that draws only `line`
+  compiles and loses the rule. `Tabs::height()` is the rows both take.
 - `Table` has a header fill, a 2-cell column gap and its own scrollbar.
 - `fact` cuts a key longer than its column with `…`.
 - `ThemePicker` sits on an Elevated card and dims the page.
