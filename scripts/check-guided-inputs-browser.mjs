@@ -198,7 +198,7 @@ for (const theme of ['light', 'dark']) test(`Choice frames and step markers foll
   for (const scope of ['all', 'panels', 'outer']) for (const borderStyle of borders) for (const cornerStyle of shapes) {
    await page.evaluate(settings => Object.assign(document.documentElement.dataset, settings), { frameScope: scope, borderStyle, cornerStyle });
    const styles = await page.evaluate(() => {
-    const read = selector => { const el = document.querySelector(selector), s = getComputedStyle(el), ink = getComputedStyle(el, '::before'); return { radius: [s.borderTopLeftRadius, s.borderTopRightRadius], width: s.borderTopWidth, border: s.borderTopStyle, line: s.borderTopColor, image: s.backgroundImage, background: s.backgroundColor, shadow: s.boxShadow, ink: { content: ink.content, clip: ink.clipPath, inset: ink.inset, radius: ink.borderRadius, image: ink.backgroundImage, shadow: ink.boxShadow } }; };
+    const read = selector => { const el = document.querySelector(selector), s = getComputedStyle(el), ink = getComputedStyle(el, '::before'); return { radius: [s.borderTopLeftRadius, s.borderTopRightRadius], width: s.borderTopWidth, border: s.borderTopStyle, line: s.borderTopColor, image: s.backgroundImage, background: s.backgroundColor, clip: s.clipPath, shadow: s.boxShadow, ink: { content: ink.content, clip: ink.clipPath, inset: ink.inset, radius: ink.borderRadius, image: ink.backgroundImage, shadow: ink.boxShadow } }; };
     return { reference: read('#choices > button'), panel: read('#frame-reference'), radio: read('.radio-group[data-variant="tiles"] > .radio-item'), file: read('.file-dropzone'), marker: read('.steps-list [data-state="completed"] .steps-marker') };
    });
    for (const [name, actual] of [['radio', styles.radio], ['file', styles.file], ...(scope === 'all' ? [['marker', styles.marker]] : [])]) {
@@ -213,7 +213,9 @@ for (const theme of ['light', 'dark']) test(`Choice frames and step markers foll
     }
     if (scope === 'all' && cornerStyle === 'pixel' && !['manga', 'brush'].includes(borderStyle)) {
      assert(actual.image.includes('linear-gradient'), `${where}: stepped edge is painted`);
-     assert.equal(actual.background, 'rgba(0, 0, 0, 0)', `${where}: no square background behind the steps`);
+     // The marker paints its fill as a color clipped to the steps.
+     if (name === 'marker') assert(actual.clip.startsWith('polygon('), `${where}: background clipped to the steps`);
+     else assert.equal(actual.background, 'rgba(0, 0, 0, 0)', `${where}: no square background behind the steps`);
      assert.equal(actual.shadow, 'none', `${where}: no rectangular shadow`);
     }
     if (scope === 'all' && ['manga', 'brush'].includes(borderStyle)) {

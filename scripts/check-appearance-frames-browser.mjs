@@ -212,9 +212,15 @@ test('React dialogs and drawers retain Pixel paint and obey outer-only scope', a
     for (const kind of ['dialog', 'drawer']) {
       await page.getByRole('button', { name: `Open ${kind}`, exact: true }).click();
       const modal = page.getByRole('dialog'); await modal.waitFor();
-      const paint = await modal.evaluate(el => { const s = getComputedStyle(el); return { fill: s.backgroundColor, image: s.backgroundImage, border: s.borderColor, shadow: s.boxShadow }; });
+      const paint = await modal.evaluate(el => {
+        const s = getComputedStyle(el), layer = getComputedStyle(el.querySelector(':scope > .panel-shadow > span + span'));
+        return { fill: s.backgroundColor, image: s.backgroundImage, border: s.borderColor, shadow: s.boxShadow, layerFill: layer.backgroundColor, layerClip: layer.clipPath };
+      });
       assert.match(paint.fill, /(?:\/ 0|, 0\))/);
-      assert(paint.image.includes('linear-gradient'), `${kind}: the React stylesheet retains Pixel fill layers`);
+      // The paint layer fills the steps as one polygon, so the bands are off.
+      assert.equal(paint.image, 'none', `${kind}: banded fill seams at fractional zoom`);
+      assert.doesNotMatch(paint.layerFill, /(?:\/ 0|, 0\))/, `${kind}: the paint layer carries the Pixel fill`);
+      assert.match(paint.layerClip, /^polygon\(/, `${kind}: the Pixel fill follows the steps`);
       assert.match(paint.border, /(?:\/ 0|, 0\))/);
       assert.equal(paint.shadow, 'none', `${kind}: a rectangular shadow cannot fill the Pixel cutouts`);
       await page.evaluate(() => document.documentElement.dataset.frameScope = 'outer');

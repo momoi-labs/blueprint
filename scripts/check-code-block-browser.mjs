@@ -145,7 +145,9 @@ for (const query of ['cornerStyle=pixel&frameScope=all&markScope=all&cornerMarks
    }
    if (query.includes('pixel')) {
     const frame = page.locator('#plain');
-    assert.match(await frame.evaluate(el => getComputedStyle(el).backgroundImage), /gradient/);
+    // The paint layer fills the steps as one polygon.
+    assert.match(await frame.evaluate(el => getComputedStyle(el.querySelector(':scope > .panel-shadow > span + span')).clipPath), /^polygon\(/);
+    assert.doesNotMatch(await frame.evaluate(el => getComputedStyle(el.querySelector(':scope > .panel-shadow > span + span')).backgroundColor), /rgba\(0, 0, 0, 0\)|\/ 0\)$/, 'Pixel paints the fill');
     assert.match(await frame.evaluate(el => getComputedStyle(el).borderTopColor), /rgba\(0, 0, 0, 0\)|\/ 0\)$/, 'Pixel draws the line itself');
    }
   } finally { await page.close(); }

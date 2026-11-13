@@ -436,11 +436,13 @@ remain independent. Forced colors suppress projected shadows.
 React panel components, including `GridPane`, include the empty paint layer
 required for Pixel, Manga and Brush. Native HTML panels need the same child markup. A native
 panel without this child still renders standard-corner shadows, but cannot
-paint a shaped shadow:
+paint a shaped shadow. Under Pixel corners the last empty span paints the
+panel fill as one shape, so fractional browser zoom shows no seams. A layer
+without that span keeps the older banded fill:
 
 ```html
 <div class="card" data-shadow-style="soft">
-  <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+  <span class="panel-shadow" aria-hidden="true"><span><span></span></span><span></span></span>
   <!-- Panel content -->
 </div>
 ```
@@ -457,7 +459,7 @@ the shell or outside it:
 
 ```html
 <header class="topbar" data-variant="floating">
-  <span class="panel-shadow" aria-hidden="true"><span><span></span></span></span>
+  <span class="panel-shadow" aria-hidden="true"><span><span></span></span><span></span></span>
   <!-- Header content -->
 </header>
 ```
