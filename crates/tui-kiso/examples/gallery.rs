@@ -263,7 +263,7 @@ impl App {
             let count = self.looks.len();
             match key.code {
                 KeyCode::Char('s' | 'q') | KeyCode::Esc => self.panel = None,
-                KeyCode::Char('c') => self.layer = Some(Layer::Code),
+                KeyCode::Char('e') => self.layer = Some(Layer::Code),
                 KeyCode::Down | KeyCode::Char('j') | KeyCode::Tab => self.panel = Some((focus + 1) % count),
                 KeyCode::Up | KeyCode::Char('k') | KeyCode::BackTab => self.panel = Some((focus + count - 1) % count),
                 KeyCode::Enter => _ = self.looks[focus].key(KeyEvent::new(KeyCode::Right, KeyModifiers::NONE)),
@@ -479,7 +479,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
-            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("c", "export"), ("s", "close")],
+            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("e", "export"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
@@ -1192,7 +1192,7 @@ fn help(t: &Theme) -> Modal<'_> {
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
         ("s", "Background, fill, border, ends and page width"),
-        ("c", "In the appearance panel: export the code for the look"),
+        ("e", "In the appearance panel: export the code for the look"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
         ("tab", "In a form: the next field"),
@@ -1387,7 +1387,7 @@ fn states() -> Vec<State> {
     // six tracks, in the center or at the end.
     let wide = (200, 30);
     let contained = |aligns: usize| [keys("s"), vec![code(KeyCode::Down); 5], vec![code(KeyCode::Right), code(KeyCode::Down)], vec![code(KeyCode::Right); aligns], keys("s")].concat();
-    states.push(("67-look-code".into(), [open(CARD), contained(1), keys("sc")].concat(), wide));
+    states.push(("67-look-code".into(), [open(CARD), contained(1), keys("se")].concat(), wide));
     states.push(("63-page-full".into(), open(dashboard), wide));
     states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
     states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));
