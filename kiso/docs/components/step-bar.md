@@ -50,6 +50,26 @@ current shape, stepped has square ends, and curved has round ends. Dots,
 squares and scanlines screen each segment; none and tint keep it solid.
 Segment order, state colors, and running progress stay the same.
 
+## Terminal
+
+In a terminal, StepBar is `tui-kiso` `StepBar`: one row with one segment
+per step. It draws no text, so the app writes the count, the current step
+or the last line of output beside it.
+
+| State | Segment |
+| --- | --- |
+| done | `━` in `success-on-dark`. |
+| running | `━` in `link`, as far as `progress` (0 to 1) says, then `─` in `subtle-foreground`. Without `progress`, it is full. |
+| pending | `─` in `subtle-foreground`. |
+| skipped | `╌` in `muted-foreground`, the terminal form of the hatch. |
+| failed | `━` in `danger-on-dark`, with `×` in the middle when the segment is three cells wide. |
+
+The segments share the width, with one cell between them. Below the least
+width (`min_width`, two cells per step less one) the gaps go and the
+segments touch. The shape of each mark says the state as well as the color.
+Use it in a table cell, 12 to 24 columns wide, next to a `StatusBadge`. Use
+`Meter` for a continuous ratio and `StepList` when the steps need names.
+See [terminal interfaces](../terminal-interfaces.md).
 ## When to use
 
 - A machine's summary tab or card while an action runs or after it fails.

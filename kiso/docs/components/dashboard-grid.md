@@ -113,3 +113,25 @@ Compose [Chart](chart.md), [Stat](stat.md), [Meter](meter.md),
 [BarGauge](bar-gauge.md), [Disclosure](disclosure.md), and
 [TimeRangeControl](time-range-control.md) under the
 [Dashboard pattern](../patterns/dashboard.md).
+
+## Terminal
+
+In a terminal, DashboardGrid is `tui-kiso` `Grid`. There is no `DashboardGrid`
+type. A dashboard is `Grid` cells that each hold a `Card`, and a
+DashboardPanel is one of those cards.
+
+| Web | Terminal |
+| --- | --- |
+| twelve columns | 3 to 6 tracks of 13 columns, by the width of the screen. |
+| DashboardPanel | One `Card`, in a cell of whole tracks. |
+| panel size and row | The tracks and rows of the cell, set by the app. |
+| row that wraps | A cell that does not fit starts the next row. One blank row parts the rows. |
+| widget in the panel | A `Stat`, `Meter`, `BarGauge`, `Chart` or `Sparkline` drawn inside the card. |
+| move, resize, `layout`, persistence | Not in a terminal. The app fixes the layout in code. |
+| overflow, `scrollPages` | `Page` and its scrollbar. |
+
+Put the widget directly in the card; do not wrap it in a second card. The
+title of the card names the widget, as the panel title does on the web.
+`Grid` draws nothing: it gives areas, so a narrow terminal gets a longer
+page and not a cut one. See [PaneGrid](pane-grid.md) for panes with one
+active pane, and [terminal interfaces](../terminal-interfaces.md).

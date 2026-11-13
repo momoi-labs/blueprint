@@ -35,3 +35,22 @@ section starts a page and its summary reads as the section heading.
 Spacing uses `--spacing-sm`; the summary uses `--type-weight-medium`.
 Focus uses `--color-focus`. Touch targets use `--size-touch-min` only inside
 `@media (pointer: coarse)`. Native details needs no Radix dependency.
+
+## Terminal
+
+In a terminal, Disclosure is `tui-kiso` `Disclosure`: the title row of a
+section that opens. The app keeps `open`, and draws the content in
+`Disclosure::content`, two columns in and one row down.
+
+| State | Terminal form |
+| --- | --- |
+| closed | `▸`, then the title in bold `foreground`. The mark is `muted-foreground`. |
+| open | `▾`, then the title. The content shows under it, indented two columns. |
+| focus | The mark and the title in bold `primary-foreground` on `primary`, as `Link` and the list selection. |
+| disabled | `disabled` mark and title. It stays closed, even with `open(true)`. |
+
+`Enter` or `Space` toggles it, and a click does too; the app owns the keys.
+`Disclosure::height(rows)` gives the rows to reserve: one when closed, one
+more than the content when open. Sections open independently. Do not
+animate the content. The widget draws only the title row, so it keeps the
+fill under it. See [terminal interfaces](../terminal-interfaces.md).
