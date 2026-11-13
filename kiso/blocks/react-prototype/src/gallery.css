@@ -538,7 +538,10 @@
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   color: var(--color-foreground);
 }
+/* The fill covers the Header's lines. Under Pixel corners a raised layer
+   draws them, so the selected page sits above it. */
 .catalog-header .nav-row .nav-item[aria-current="page"] {
+  z-index: 2;
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   box-shadow: 0 -1px var(--color-primary), 0 1px var(--color-primary);
@@ -547,6 +550,12 @@
   background: var(--color-primary-hover);
   color: var(--color-primary-foreground);
   box-shadow: 0 -1px var(--color-primary-hover), 0 1px var(--color-primary-hover);
+}
+/* A status badge would vanish on the primary fill, so it takes the tab's ink. */
+.catalog-header .nav-row .nav-item[aria-current="page"] .badge {
+  background: transparent;
+  border-color: currentColor;
+  color: inherit;
 }
 .catalog-header .nav-row::after,
 .catalog-header .nav-row .nav-item::before { content: none; }
