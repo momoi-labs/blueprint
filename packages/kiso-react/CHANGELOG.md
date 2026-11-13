@@ -1,5 +1,27 @@
 # @momoi-labs/kiso-react
 
+## 0.30.1
+
+### Patch Changes
+
+- 8be9c81: Remove the thin lines across Pixel panels, the floating Header and controls at fractional browser zoom, such as 80%, 110% or a 1.75 device pixel ratio. Panels and the floating Header now paint their Pixel fill as one shape in the `.panel-shadow` layer, which gains a second empty span. Native markup without that span keeps the older fill. Controls and navigation items paint their fill from overlapping layers, so no edge falls between two of them.
+- Updated dependencies [8be9c81]
+- Updated dependencies [6047529]
+- Updated dependencies [fcfaa79]
+- Updated dependencies [5476f23]
+- Updated dependencies [6fefce0]
+- Updated dependencies [67ef0e9]
+- Updated dependencies [e894a4a]
+- Updated dependencies [6e822e5]
+- Updated dependencies [a447950]
+- Updated dependencies [41ab37d]
+- Updated dependencies [595570c]
+- Updated dependencies [1277161]
+- Updated dependencies [62601f2]
+- Updated dependencies [fce512d]
+- Updated dependencies [a84a8d6]
+  - @momoi-labs/kiso@1.8.1
+
 ## 0.30.0
 
 ### Minor Changes
