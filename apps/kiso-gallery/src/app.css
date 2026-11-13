@@ -382,6 +382,7 @@
    is an empty region with the EmptyState hatch. The screen sits in the
    middle; where it is wider, as on a phone, the panel scrolls sideways
    from its left edge, and the wheel still scrolls the page. */
+.tui-states-placeholder { visibility: hidden; }
 .tui-frame { padding: 0; }
 .tui-stage {
   container-type: inline-size;

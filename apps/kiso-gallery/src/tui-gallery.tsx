@@ -321,7 +321,9 @@ export function TuiGallery({
         </p>
         <Badge variant="neutral">Snapshot</Badge>
       </div>
-      {page.states.length > 1 && (
+      {/* A page with one state keeps the row of the tabs, hidden, so the
+          screen stays at the same height from page to page. */}
+      {page.states.length > 1 ? (
         <Navigation aria-label={`${page.name} states`}>
           <NavigationList className="nav-row">
             {page.states.map((s, i) => (
@@ -331,6 +333,16 @@ export function TuiGallery({
                 </NavigationLink>
               </NavigationItem>
             ))}
+          </NavigationList>
+        </Navigation>
+      ) : (
+        <Navigation className="tui-states-placeholder" aria-hidden="true" inert>
+          <NavigationList className="nav-row">
+            <NavigationItem>
+              <NavigationLink href={href(pageIndex, 0)} active tabIndex={-1}>
+                {page.name}
+              </NavigationLink>
+            </NavigationItem>
           </NavigationList>
         </Navigation>
       )}
