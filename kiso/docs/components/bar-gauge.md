@@ -48,3 +48,5 @@ gives every known value the same unit and precision.
 - `.indent(0)` sets the rows flush, for a gauge inside a
   [Card](card.md#terminal).
 - The gauge has no keys.
+
+See [terminal interfaces](../terminal-interfaces.md).

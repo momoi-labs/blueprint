@@ -54,6 +54,8 @@ with an optional `.glyph("◆")` before it. There is no block art.
 The [Header](header.md) draws the product and version in the filled form.
 Use `width()` to place the mark. Big text stays out of the crate.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## Radix/shadcn mapping
 
 There is no dedicated behavioral primitive. The React implementation uses

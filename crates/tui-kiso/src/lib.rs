@@ -1,10 +1,13 @@
 //! Kiso components for [ratatui](https://ratatui.rs), in the style of
-//! Charm's Crush: no frames around parts of a page, a section is a title
-//! and a rule, and only the selection, code, cards, badges, buttons and
-//! dialogs get a fill or a frame.
+//! Charm's Crush and the Kiso web look: no line borders and no shadows. A
+//! section is a title and a rule, and related content sits on a [`Card`], a
+//! block of fill with half a row above and below. Corners are square, and
+//! round ends are opt-in with a Nerd Font. Overlays sit on an opaque
+//! surface, and a modal one dims the page behind it with a [`Scrim`].
 //!
 //! A [`Theme`] built from one `kiso-tokens` accent, with the [`Look`] of
-//! titles, rules and surfaces, and the widgets that follow Kiso's terminal contract.
+//! titles, rules, fill and border, and the widgets that follow Kiso's
+//! terminal contract. A [`Grid`] of tracks of 13 columns lays out a page.
 //! The app owns its event loop and layout. Key handling for forms, filters,
 //! the search and the theme picker needs the `crossterm` feature, on by
 //! default.

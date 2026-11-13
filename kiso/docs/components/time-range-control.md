@@ -280,6 +280,8 @@ sides.
 - Bold and the fill are the two signals for the choice. Both survive a
   terminal with few colors.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## Custom range form
 
 The artifact custom range editor composes [Form](form.md) with

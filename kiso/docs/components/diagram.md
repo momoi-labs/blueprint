@@ -731,6 +731,8 @@ by node id. The widget does no layout of its own.
   one node. A list of rows with a "connects to" column is easier to scan
   and to search than a drawing past a dozen nodes.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - The summary of a deployed service: what reaches it, what runs it, what it

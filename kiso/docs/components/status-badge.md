@@ -107,8 +107,9 @@ The label always names the state, so color never carries it alone. On a
 selected table row, a `success` or `danger` label that misses contrast
 takes bold `foreground`; a `neutral` label takes plain `foreground`, as
 other secondary text does, and its `○` and word still name the state.
-StatusBadge has no keys. `series` is React only: the terminal draws no
-Diagram, so it has no edge for the colour to point to.
+StatusBadge has no keys. `series` is React only and has no terminal form.
+
+See [terminal interfaces](../terminal-interfaces.md).
 
 ## When to use
 

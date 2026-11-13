@@ -94,6 +94,8 @@ A terminal has no CodeEditor widget in `tui-kiso`. For short text, use
 `$EDITOR`, then read the file back when it exits. For code shown and not
 edited, see [Code block](code-block.md).
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Short scripts and configuration files that a person types or pastes, such

@@ -60,6 +60,8 @@ many terminals lack. Show the file's facts, name, type and size, as key and
 value rows, and a [Link](link.md) that opens
 the file outside the terminal.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## Tokens and appearance
 
 The thumbnail uses `--radius-sm` and `--color-muted` behind images that are

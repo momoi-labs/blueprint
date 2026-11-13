@@ -64,6 +64,8 @@ KV takes no keys. `.height(width)` gives the rows it needs. `fact` is one
 row of a KV, for the rows of a `Page`. Use KV for the facts of one record,
 and [Table](table.md) to compare records.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Fixed facts in a resource detail pane.

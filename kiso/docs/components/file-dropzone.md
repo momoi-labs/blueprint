@@ -60,6 +60,8 @@ A terminal has no drop target, so `tui-kiso` has no FileDropzone. Use an
 [Input](input.md) that takes a path, and validate it when the person presses
 `Enter`. Show the error under the Input as for any field.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## Tokens
 
 Use `--color-card`, `--color-foreground`, `--color-muted-foreground`,

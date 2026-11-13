@@ -92,6 +92,8 @@ keeps its contrast on every theme.
 - Under a [Stat](stat.md#terminal) value, pass it to `Stat::trend`. The
   stat then takes one more row, between the value and the note.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Trend cell in a table row: is this application busier than a minute ago.

@@ -156,6 +156,8 @@ keys and calls `AccentSelector::key`. `.light(true)` shows the light
 swatches. For the accent and dark or light in one dialog, use
 [Theme selector](theme-selector.md).
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When NOT to use
 
 - A free colour picker. Kiso has thirteen accents; a product colour that is not

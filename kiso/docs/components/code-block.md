@@ -138,6 +138,8 @@ no dependency for one.
 CodeBlock takes no keys. Copy is the product's. `.height(width)` gives
 the rows it needs. A tab becomes four spaces.
 
+See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - Commands a person copies and runs, such as setup steps and `curl` examples.
