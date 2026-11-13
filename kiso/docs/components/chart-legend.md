@@ -69,7 +69,7 @@ sample. `formatTime` formats its timestamp. A missing measurement stays
 
 In a terminal, ChartLegend is part of `tui-kiso` `Chart`, set with
 `ChartLegend::Table` (the default), `Inline` or `Hidden`. Each series
-starts with a `━━` stroke in its color, its number in
+starts with a short `▄▄` bar in its chart color, its number in
 `subtle-foreground` and its label in `foreground`.
 
 - Table: column titles in `subtle-foreground`, "Series", then Min, Max,
@@ -80,4 +80,6 @@ starts with a `━━` stroke in its color, its number in
 - A missing statistic is `—` in `muted-foreground`, the unknown value of
   [data-heavy interfaces](../data-interfaces.md), since "Not collected"
   does not fit a terminal column. Zero stays zero.
+- The legend follows the chart's indent: two columns by default, none
+  after `.indent(0)`.
 - The summary columns are fixed, and the legend has no keys.

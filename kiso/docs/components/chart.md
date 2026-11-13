@@ -241,14 +241,15 @@ From the top: the caption as a section (the label in `muted-foreground`,
 then the look's rule, with optional text at its end, such as "last
 hour"), the plot, the times under it, a blank row and the
 [ChartLegend](chart-legend.md#terminal). Rows start two columns in, as on
-a page.
+a page. `.indent(0)` sets them flush, for a chart inside a
+[Card](card.md#terminal), which already pads its content.
 
 | Part | Terminal form |
 | --- | --- |
 | Series | Braille lines in `chart-1` to `chart-5` by slot. A slot after 5 starts again at `chart-1`; its number still names it |
-| Scale | The highest and lowest value, and the middle one from five rows of plot, in `muted-foreground`, aligned right |
-| Grid | A dotted `┈` in `border` on each row of the scale |
-| Times | The labels the product passes, in `muted-foreground`, spread from the first sample to the last. A label that would touch the one before it drops |
+| Scale | The highest and lowest value, and the middle one from five rows of plot, in `subtle-foreground`, aligned right |
+| Grid | A faint dotted `┈` in `border` on each row of the scale |
+| Times | The labels the product passes, in `subtle-foreground`, spread from the first sample to the last. A label that would touch the one before it drops |
 
 - Lines break at a missing sample, and a lone sample is a dot. The
   component does not interpolate.
@@ -263,6 +264,9 @@ a page.
   rows of plot and the inline one four; below that the legend drops.
   Below three rows the times go, then the caption. Any size draws without
   a panic.
+- To change the window, pair the chart with a
+  [TimeRangeControl](time-range-control.md#terminal) and pass the new
+  samples and times.
 - The terminal chart has no keys: no inspection, pinning, range selection
   or highlight, and no exact values table. Show the exact values on
   another page or in the legend.
