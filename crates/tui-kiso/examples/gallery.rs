@@ -138,7 +138,7 @@ const APPEARANCE: [(&str, &[&str]); 7] = [
 ];
 const CANVASES: [Canvas; 6] = [Canvas::Solid, Canvas::Glow, Canvas::Dots, Canvas::Grid, Canvas::Crosses, Canvas::Stripes];
 /// The width of the appearance panel, and the width a page keeps beside it.
-const PANEL: u16 = 36;
+const PANEL: u16 = Grid::span(3);
 const BESIDE: u16 = 67;
 
 const USAGE: &str = "\
@@ -388,36 +388,28 @@ Backdrop::new(&theme, Canvas::{canvas})
         )
     }
 
-    /// The appearance panel, on the right of the page.
+    /// The appearance panel: a Drawer on the right. It gets only its own
+    /// columns as the screen, so the page beside it stays lit and shows each
+    /// change as it is made.
     fn appearance(&self, t: &Theme, buf: &mut Buffer, area: Rect, focus: usize) {
         if area.width < 20 || area.height < 4 {
             return;
         }
-        let r = t.tokens();
-        for at in area.positions() {
-            buf[at].reset();
-        }
-        buf.set_style(area, t.fill(r.popover_foreground, r.popover));
-        let (x, width) = (area.x + 2, area.width - 4);
-        buf.set_stringn(x, area.y + 1, "Appearance", usize::from(width), t.strong());
-        buf.set_line(x, area.y + 2, &Line::from(t.look().rule.spans(t, usize::from(width))), width);
+        let body = tui_kiso::Drawer::new(t, "Appearance").draw(area, buf);
         for (i, field) in self.looks.iter().enumerate() {
-            let y = area.y + 4 + i as u16;
-            if y >= area.bottom() {
+            let y = body.y + i as u16;
+            if y >= body.bottom() {
                 return;
             }
             if i == focus {
                 buf.set_style(Rect::new(area.x, y, area.width, 1), t.selected());
             }
-            let lines = field.lines(t, usize::from(width), 12, i == focus);
-            buf.set_line(area.x, y, &lines[0], width + 2);
+            let lines = field.lines(t, usize::from(body.width), 12, i == focus);
+            buf.set_line(area.x, y, &lines[0], body.width + 2);
         }
-        let note = area.y + 5 + self.looks.len() as u16;
-        if note < area.bottom() {
-            buf.set_stringn(x, note, "Round ends need a Nerd Font.", usize::from(width), t.subtle());
-        }
-        if note + 1 < area.bottom() {
-            buf.set_stringn(x, note + 1, "c shows the code for this look.", usize::from(width), t.subtle());
+        let note = body.y + 1 + self.looks.len() as u16;
+        if note < body.bottom() {
+            buf.set_stringn(body.x, note, "Round ends need a Nerd Font.", usize::from(body.width), t.subtle());
         }
     }
 
@@ -487,7 +479,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
             }
-            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("c", "code"), ("s", "close")],
+            _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("c", "export"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
@@ -518,7 +510,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             Some(Layer::Code) => {
                 let code = self.code();
                 let lines: Vec<Line> = code.lines().map(|line| Line::styled(line.to_owned(), t.text())).collect();
-                Modal::new(t, "Code for this look").width(70).body(lines).hints([("any key", "close")]).render(screen, buf);
+                Modal::new(t, "Export this look").width(70).body(lines).hints([("any key", "close")]).render(screen, buf);
             }
             None => {}
         }
@@ -1200,7 +1192,7 @@ fn help(t: &Theme) -> Modal<'_> {
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
         ("s", "Background, fill, border, ends and page width"),
-        ("c", "In the appearance panel: the code for the look"),
+        ("c", "In the appearance panel: export the code for the look"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
         ("tab", "In a form: the next field"),
