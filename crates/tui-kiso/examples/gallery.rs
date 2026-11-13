@@ -324,6 +324,7 @@ impl App {
             KeyCode::Char('?') | KeyCode::F(1) => self.layer = Some(Layer::Help),
             KeyCode::Char('t') => self.picker = Some(ThemePicker::new(self.accent, self.light)),
             KeyCode::Char('s') => self.panel = Some(0),
+            KeyCode::Char('e') => self.layer = Some(Layer::Code),
             KeyCode::Tab | KeyCode::Enter if !self.main => self.main = true,
             KeyCode::Tab | KeyCode::Esc if self.main => self.main = false,
             KeyCode::Char('q') if self.main => self.main = false,
@@ -483,11 +484,11 @@ Backdrop::new(&theme, Canvas::{canvas})
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
-            (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("?", "help"), ("esc", "back")],
+            (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
             (None, false) => {
                 let browse = if side.is_some() { "j/k" } else { "←/→" };
-                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("s", "appearance"), ("?", "help"), ("q", "quit")]
+                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("q", "quit")]
             }
         };
         KeyHints::new(t, keys).render(foot, buf);
@@ -1192,7 +1193,7 @@ fn help(t: &Theme) -> Modal<'_> {
         ("← →", "Previous or next component"),
         ("t", "Theme: accent, dark or light"),
         ("s", "Background, fill, border, ends and page width"),
-        ("e", "In the appearance panel: export the code for the look"),
+        ("e", "Export the code for the look"),
         ("f", "Filters, on the Filters page"),
         ("↑ ↓ ← →", "In the filters: facet, then its value"),
         ("tab", "In a form: the next field"),
@@ -1387,7 +1388,7 @@ fn states() -> Vec<State> {
     // six tracks, in the center or at the end.
     let wide = (200, 30);
     let contained = |aligns: usize| [keys("s"), vec![code(KeyCode::Down); 5], vec![code(KeyCode::Right), code(KeyCode::Down)], vec![code(KeyCode::Right); aligns], keys("s")].concat();
-    states.push(("67-look-code".into(), [open(CARD), contained(1), keys("se")].concat(), wide));
+    states.push(("67-look-code".into(), [open(CARD), contained(1), keys("e")].concat(), wide));
     states.push(("63-page-full".into(), open(dashboard), wide));
     states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
     states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));
