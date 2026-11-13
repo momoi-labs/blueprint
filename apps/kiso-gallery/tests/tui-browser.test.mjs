@@ -72,16 +72,19 @@ test("Keys on the screen move through pages and states, and keep the focus", asy
     await page.getByRole("group", { name: /Form, Changed select/ }).waitFor();
     assert.equal(new URL(page.url()).hash, "#tui/form/form-select");
     await page.keyboard.press("ArrowDown");
-    await page.getByRole("group", { name: /Modal, Default/ }).waitFor();
-    assert.equal(new URL(page.url()).hash, "#tui/modal");
+    await page.getByRole("group", { name: /FormField, Default/ }).waitFor();
+    assert.equal(new URL(page.url()).hash, "#tui/formfield");
     assert(await focused(), "The screen keeps the focus");
+    await page.getByRole("button", { name: "Expand navigation" }).click();
+    const components = page.getByRole("navigation", { name: "Terminal components" });
+    await components.getByRole("link", { name: "Modal", exact: true }).click();
+    await page.getByRole("group", { name: /Modal, Default/ }).waitFor();
     await page.getByRole("navigation", { name: "Modal states" }).getByRole("link", { name: "Help over a page" }).click();
     await page.getByRole("group", { name: /Modal, Help over a page/ }).waitFor();
     assert.equal(await page.getByRole("link", { name: "Help over a page" }).getAttribute("aria-current"), "page");
     assert(await focused(), "A state link gives the focus to the screen");
-    await page.getByRole("button", { name: "Expand navigation" }).click();
-    await page.getByRole("navigation", { name: "Terminal components" }).getByRole("link", { name: "Menu" }).click();
-    await page.getByRole("group", { name: /Menu, Default/ }).waitFor();
+    await components.getByRole("link", { name: "DropdownMenu", exact: true }).click();
+    await page.getByRole("group", { name: /DropdownMenu, Default/ }).waitFor();
     assert(await focused(), "A component link gives the focus to the screen");
   } finally {
     await page.close();
@@ -119,12 +122,14 @@ test("j, k and the wheel scroll the screen's page, then the wheel scrolls the si
 test("A click on a name in the screen's sidebar opens that component", async () => {
   const page = await open("tui/theme", { width: 1440 });
   try {
-    const menu = page.locator('.tui-link[data-page="menu"]');
-    const [link, name] = await Promise.all([menu.boundingBox(), page.locator(".tui-row span", { hasText: /^Menu\s*$/ }).first().boundingBox()]);
-    assert(Math.abs(link.y - name.y) <= 1 && Math.abs(link.x - name.x) <= 1, "The link lies over the name");
+    const menu = page.locator('.tui-link[data-page="tabs"]');
+    const [link, name] = await Promise.all([menu.boundingBox(), page.locator(".tui-row span", { hasText: /^Tabs\s*$/ }).first().boundingBox()]);
+    // The link takes the sidebar row, as the selection fill does.
+    const covers = link.x <= name.x + 1 && link.x + link.width >= name.x + name.width - 1;
+    assert(Math.abs(link.y - name.y) <= 1 && covers, "The link lies over the name");
     await menu.click();
-    await page.getByRole("group", { name: /Menu, Default/ }).waitFor();
-    assert.equal(new URL(page.url()).hash, "#tui/menu");
+    await page.getByRole("group", { name: /Tabs, Default/ }).waitFor();
+    assert.equal(new URL(page.url()).hash, "#tui/tabs");
     assert(await page.locator(".tui-screen").evaluate(el => el === document.activeElement), "The screen keeps the focus");
   } finally {
     await page.close();
@@ -146,10 +151,10 @@ test("A screen reader reads the screen's text, not its drawn lines", async () =>
   const page = await open("tui/form/form-typing");
   try {
     const tree = await page.getByRole("group", { name: /Form, Typing/ }).ariaSnapshot();
-    for (const text of ["Container image ghcr.io/kiso/app", "Another application is called this.", "tab next"]) {
+    for (const text of ["Image ghcr.io/kiso/app", "Another application is", "tab next"]) {
       assert(tree.includes(text), `The tree has "${text}"`);
     }
-    assert(!/[─━│╭╮╯╰▀▄█▌░]/.test(tree), "Drawn characters stay out of the tree");
+    assert(!/[─━│╭╮╯╰▀▄█▌▐░]/.test(tree), "Drawn characters stay out of the tree");
   } finally {
     await page.close();
   }
@@ -184,8 +189,8 @@ test("The screen keeps what a theme changes on its own", async () => {
   // would be too faint on the fill.
   page = await open("tui/table", { accent: "violet", theme: "dark" });
   try {
-    // The table's selected row is the last "Failed" on the page.
-    const failed = page.locator(".tui-row span", { hasText: /^Failed/ }).last();
+    // The table's selected row is the first "Failed" on the page.
+    const failed = page.locator(".tui-row span", { hasText: /^Failed/ }).first();
     assert.equal(await failed.evaluate(el => getComputedStyle(el).fontWeight), "700");
   } finally {
     await page.close();
