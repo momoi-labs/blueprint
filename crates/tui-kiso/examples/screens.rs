@@ -19,7 +19,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType, Sparkline, Widget};
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
-    set_background, set_foreground, Act, AppShell, Buttons, Columns, Field, Form, KeyHints, Mark, Page, Question, Scroll, Side, SideItem,
+    set_background, set_foreground, Act, AppShell, Columns, Field, Form, KeyHints, Mark, Page, Question, Scroll, Side, SideItem,
     Sidebar, StatusBadge, Tabs, Theme, Title, wrap, ACCENTS,
 };
 
@@ -272,8 +272,7 @@ impl App {
                 page.blank();
                 let selected = self.edit.rows(&mut page, t, width, 12, 0..self.edit.fields.len());
                 page.blank();
-                let buttons = [("Discard", self.edit.press(0, false)), ("Save", self.edit.press(1, false))];
-                for line in Buttons::new(t, buttons).lines(width.saturating_sub(1)) {
+                for line in self.edit.actions(t, &["Discard", "Save"], false).lines(width.saturating_sub(1) as u16) {
                     page.line(line);
                 }
                 page.view(t, &self.scroll).selected(selected).render(page_area(2), buf);
@@ -289,8 +288,8 @@ impl App {
                     selected = selected.or(self.create.rows(&mut page, t, width, 16, range));
                     page.blank();
                 }
-                let buttons = [("Cancel", self.create.press(0, false)), ("Create project", self.create.press(1, false))];
-                for line in Buttons::new(t, buttons).lines(width.saturating_sub(1)) {
+                let actions = self.create.actions(t, &["Cancel", "Create project"], false);
+                for line in actions.lines(width.saturating_sub(1) as u16) {
                     page.line(line);
                 }
                 page.view(t, &self.scroll).selected(selected).render(page_area(3), buf);
@@ -340,7 +339,7 @@ impl App {
         }
         let selected = self.login.rows(&mut page, t, width, 10, 0..self.login.fields.len());
         page.blank();
-        for line in Buttons::new(t, [("Sign in", self.login.press(0, false))]).lines(width.saturating_sub(1)) {
+        for line in self.login.actions(t, &["Sign in"], false).lines(width.saturating_sub(1) as u16) {
             page.line(line);
         }
         page.blank();

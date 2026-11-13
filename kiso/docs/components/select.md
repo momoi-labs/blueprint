@@ -78,6 +78,29 @@ the current value.
 - Focus returns to the trigger after selection or dismissal. Selection is not
   committed merely by moving focus through items.
 
+## Terminal
+
+In a terminal, Select is `tui-kiso` `Select`: the Input surface with the
+chosen option and `▾` at its right end. Open, an `OptionList` shows the
+options.
+
+| State | Terminal form |
+| --- | --- |
+| rest | `input` fill, the value in `foreground`, the placeholder in `subtle-foreground`. |
+| focus | Half a cell of `focus` on each side of the field. |
+| open | The list under the field on an elevated Card, or above it when there is no room below. |
+| selected option | `primary` fill; the chosen option has `✓` at its right end. |
+| invalid | The bars turn `danger` and stay on. |
+| disabled | `disabled-surface` fill, the value in `subtle-foreground`. |
+
+The list is as wide as the field and shows eight options at most, with
+the selected one kept in view. Render it last, with the whole screen as
+its area, so it covers the page. `Enter` opens and takes an option, `↑`
+`↓` move, `Esc` closes; the app owns the keys. Sizes are `Md`, three
+rows, and `Sm`, one row. In a [Form](form.md), a select is the compact
+`‹ value ›`: `←` `→` change it and `Enter` opens the list. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For one choice from a known set where a collapsed list saves meaningful space.

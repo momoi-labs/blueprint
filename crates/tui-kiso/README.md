@@ -24,7 +24,8 @@ contract, and each component doc has a Terminal section.
 | `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |
 | `Filters`, `Menu`, `fact` | Faceted filters on `f`, the actions of a row on `a`, the facts of a record |
 | `Modal`, `Question`, `ThemePicker` | Dialogs: help or your own content, a question with buttons, the theme picker |
-| `Form`, `Field`, `Buttons` | Forms with labels in a column, and solid buttons |
+| `Form`, `Field`, `FormActions` | Forms with labels in a column, and the buttons that end them, primary last |
+| `Checkbox`, `RadioGroup`, `Select`, `Combobox`, `ChipInput` | A choice on or off, one of a few, one from a list, one from a filtered list, and short values as chips |
 | `Card`, `Stat` | A surface of fill for related content, and one number with its label and delta |
 | `Badge`, `Dot`, `Tone` | A label or a mark in one of five tones |
 | `Button`, `Switch` | An action with a variant and a state, and a setting that is on or off |

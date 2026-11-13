@@ -62,6 +62,27 @@ actual value with a recovery action.
 - Keyboard: `Tab` focuses each enabled checkbox; `Space` toggles it. Do not add
   arrow-key exclusivity—that belongs to radio-group behavior.
 
+## Terminal
+
+In a terminal, Checkbox is `tui-kiso` `Checkbox`: a square box of two
+cells in the Switch family, then its label one cell after it.
+
+| State | Terminal form |
+| --- | --- |
+| unchecked | `input` fill, empty. |
+| checked | `primary` fill with `✓` in bold `primary-foreground`. |
+| indeterminate | `primary` fill with `−` in place of the check. It wins over checked. |
+| focus | Half a cell of `focus` on each side of the box. Leave one free cell before it. |
+| invalid | The bars turn `danger` and stay on, with or without focus. |
+| disabled | `disabled-surface` box, the label in `subtle-foreground`. |
+
+`Space` toggles it; the app owns the keys. Checkbox takes one row and has
+one size. In a [Form](form.md), `Field::checkbox` draws it and the
+focused label turns bold. Use Checkbox for a choice the form submits, and
+Switch for a setting that applies at once. Put the choices of a parent
+four cells under it, with the parent indeterminate while only some are
+on. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - For independent opt-in/opt-out choices submitted with a form.

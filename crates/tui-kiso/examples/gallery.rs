@@ -17,8 +17,8 @@ use ratatui::widgets::Widget;
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
-    ButtonVariant, Buttons, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
-    AppShell, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Press, Question, Scroll, Search,
+    ButtonVariant, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
+    AppShell, Ink, KeyHints, Look, Mark, Menu, Meter, Modal, Page, Palette, PanelFill, Pattern, Question, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
     Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, TimeRangeControl, Title,
     Toast, Tone, ACCENTS,
@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 61] = [
+const PAGES: [(&str, &str); 67] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
@@ -37,7 +37,7 @@ const PAGES: [(&str, &str); 61] = [
     ("Table", "Records in columns: a header on a fill, a selection, and its states."),
     ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
     ("KeyHints", "The footer keys. Help and quit always stay."),
-    ("Buttons", "Solid buttons, half a row of fill above and below."),
+    ("FormActions", "The buttons that end a form: primary last, stacked when narrow."),
     ("Form", "Labels in a column; focus is the list selection."),
     ("Modal", "The one framed element: a dialog over the page."),
     ("Question", "A question with facts, what happens, and buttons."),
@@ -90,6 +90,12 @@ const PAGES: [(&str, &str); 61] = [
     ("Search", "The footer search: / starts it, the list marks each match."),
     ("LogView", "Log lines that follow the end, pause when scrolled, and wrap."),
     ("CodeBlock", "Code on a card surface, with line numbers and marked lines."),
+    ("Checkbox", "A choice the form submits: a square box, then its label."),
+    ("RadioGroup", "One choice out of a few that all show."),
+    ("Select", "One choice from a list that opens under the field."),
+    ("Combobox", "A select you type into: the list keeps what matches."),
+    ("ChipInput", "Short values typed one by one, each a chip."),
+    ("IconButton", "A button with a glyph and a name it falls back to."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -413,18 +419,22 @@ impl App {
             "Table" => wave_05::table_page(t, buf, area),
             "StatusBadge" => badge_page(t, buf, area),
             "KeyHints" => wave_07::hints_page(t, buf, area),
-            "Buttons" => buttons_page(t, buf, area),
+            "FormActions" => wave_03::form_actions_page(t, buf, area),
             "Form" => {
                 let mut page = Page::default();
                 page.section(t, width, "Deploy application", None);
-                self.form.rows(&mut page, t, width, self.form.label_width(), 0..self.form.fields.len());
+                let label = self.form.label_width();
+                let item = self.form.rows(&mut page, t, width, label, 0..self.form.fields.len());
                 page.blank();
-                let buttons = [("Cancel", self.form.press(0, false)), ("Deploy", self.form.press(1, false))];
-                for line in Buttons::new(t, buttons).lines(width.saturating_sub(1)) {
+                for line in self.form.actions(t, &["Cancel", "Deploy"], false).lines(width.saturating_sub(1) as u16) {
                     page.line(line);
                 }
                 let selected = if self.main { self.form.item() } else { None };
                 page.view(t, &self.scroll).selected(selected).render(area, buf);
+                let row = item.and_then(|item| page.item_area(item, area, &self.scroll));
+                if let Some(list) = row.and_then(|row| self.form.list(t, Rect { height: 1, ..row }, label)) {
+                    list.render(area, buf);
+                }
             }
             "Modal" => {
                 caption(t, buf, area, 0, "Help, as ? opens it. The page under it stays as it was.");
@@ -507,6 +517,12 @@ impl App {
             "Search" => wave_05::search_page(t, buf, area),
             "LogView" => wave_05::log_view_page(t, buf, area),
             "CodeBlock" => wave_05::code_block_page(t, buf, area),
+            "Checkbox" => wave_03::checkbox_page(t, buf, area),
+            "RadioGroup" => wave_03::radio_group_page(t, buf, area),
+            "Select" => wave_03::select_page(t, buf, area),
+            "Combobox" => wave_03::combobox_page(t, buf, area),
+            "ChipInput" => wave_03::chip_input_page(t, buf, area),
+            "IconButton" => wave_03::icon_button_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -851,34 +867,22 @@ fn grid_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     }
 }
 
-fn buttons_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    let rows = [
-        ("Plain", Press::Plain),
-        ("Focused", Press::Focused),
-        ("Danger: focused and destructive", Press::Danger),
-        ("Off: does nothing yet", Press::Off),
-    ];
-    for (i, (label, press)) in rows.into_iter().enumerate() {
-        let y = area.y + i as u16 * 4;
-        if y + 3 > area.bottom() {
-            break;
-        }
-        put(buf, area, y - area.y + 1, Line::styled(label, t.muted()));
-        Buttons::new(t, [("Cancel", Press::Plain), ("Remove", press)]).render(Rect::new(area.x, y, 40, 3).intersection(area), buf);
-    }
-}
-
 fn demo_form() -> Form {
     let mut name = Field::text("Name", "My app");
     name.error = Some("Another application is called this.".into());
     let name = name.filled("laya");
+    let regions = ["eu-west-1", "eu-west-2", "eu-central-1", "us-east-1", "us-west-2", "ap-south-1"];
     let fields = vec![
         Field::select("Definition", ["Container image", "Compose file", "Native process"]).hint("An image that is already published."),
         name,
         Field::text("Image", "nginx:alpine").hint("One container serving HTTP."),
         Field::text("Token", "Leave empty to keep it").secret(),
+        Field::combobox("Region", regions, "Type a region").choose(0).hint("Type to filter, enter to open the list."),
+        Field::chips("Hosts", "Add a host").with_chips(["web-1", "web-2"]).hint("Enter or a comma adds a host."),
+        Field::radio("Size", ["Small", "Medium", "Large"]).choose(1),
         Field::area("Notes", "What changed in this release"),
-        Field::check("Start on boot"),
+        Field::switch("Backups").on(true),
+        Field::checkbox("Start on boot"),
     ];
     let mut form = Form::new(fields, 2);
     form.focus = 2;
@@ -1262,6 +1266,8 @@ fn states() -> Vec<State> {
     states.push(("39-dashboard-80".into(), open(dashboard), small));
     let dots = [keys("s"), vec![code(KeyCode::Right), code(KeyCode::Right)], vec![code(KeyCode::Down); 3], vec![code(KeyCode::Right)]].concat();
     states.push(("40-dashboard-rail".into(), [open(dashboard), dots].concat(), (136, 30)));
+    // The list of the form's select, open over the fields under it.
+    states.push(("41-form-list".into(), [open(FORM), vec![code(KeyCode::BackTab), code(KeyCode::BackTab), code(KeyCode::Enter), code(KeyCode::Down)]].concat(), SIZE));
     states
 }
 
@@ -1416,3 +1422,6 @@ mod wave_02;
 /// search, log view and code block.
 #[path = "support/wave_05.rs"]
 mod wave_05;
+/// The pages of the form choices and actions.
+#[path = "support/wave_03.rs"]
+mod wave_03;

@@ -137,6 +137,27 @@ does not exist marks the chip; "add at least one dependency" marks the field.
 `Enter` on an empty input does not submit the form. A form with a single
 ChipInput must have an explicit submit Button.
 
+## Terminal
+
+In a terminal, ChipInput is `tui-kiso` `ChipInput`: chips inside the Input
+fill, then the text being typed and its cursor. A chip is a square pill
+in the style of a neutral Badge. Chips wrap to more rows.
+
+| State | Terminal form |
+| --- | --- |
+| rest | `input` fill, the placeholder in `subtle-foreground` while empty. |
+| chip | `foreground` on a fill a little lighter than `input`, one cell of fill each side of the label. |
+| focus | The `focus` bars, and a block cursor in `primary` after the text. |
+| chosen chip | Bold `primary-foreground` on `primary`; the text cursor hides. |
+| invalid | The bars turn `danger` and stay on. |
+| disabled | Chips and text in `subtle-foreground`, no chip fill. |
+
+`Enter` or a comma turns the text into a chip. `←` or `Backspace` at the
+start of the text chooses the last chip, `←` `→` move between chips, and
+`Backspace` removes the chosen one. Any other key goes back to the text.
+With the round look, chips get round ends. In a [Form](form.md),
+`Field::chips` does this. See [terminal interfaces](../terminal-interfaces.md).
+
 ## When to use
 
 - A dependency, package, or tool list where each entry carries a version and

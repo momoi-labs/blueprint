@@ -129,6 +129,25 @@ until the person edits or retries. Verify sticky actions at narrow widths,
 zoom, and keyboard focus. Shared scroll spacing reserves room for typical
 wrapped actions; consumers must increase that space for unusually tall bars.
 
+## Terminal
+
+In a terminal, FormActions is `tui-kiso` `FormActions`: a row of Buttons
+against the right edge, the primary action last, with an optional
+message on the left.
+
+| State | Terminal form |
+| --- | --- |
+| row | `Md` buttons, three rows each, one free cell between two for the focus bars. |
+| message | Left of the buttons, in `muted-foreground` for neutral and in the tone's color for the others. |
+| narrow | Under three grid tracks, or when the row does not fit: each button as wide as the area, the primary first, the message above. |
+| focus, disabled, destructive | From [Button](button.md): give each button its variant and state. |
+
+Give one button `Primary`, or `Destructive` for a removal, and the rest
+`Default` or `Ghost`. `Form::actions` builds them from the labels, with
+`Focus` on the one with focus. Render it in a fixed area, or as lines
+with `.lines(width)` so the actions scroll with a Page. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## Tokens
 
 Spacing uses `--spacing-sm`, `--spacing-md`, and `--spacing-lg`. Scroll spacing

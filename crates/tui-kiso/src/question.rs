@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
 use crate::text::cells;
-use crate::{Buttons, Modal, Press, Theme};
+use crate::{Button, ButtonState, ButtonVariant, FormActions, Modal, Theme};
 
 /// A question in a [`Modal`], laid out as Crush's permission dialog: facts,
 /// a block on `card` with what will happen, then the buttons. ←→ choose,
@@ -108,15 +108,16 @@ impl Widget for Question<'_> {
         }
 
         let last = self.buttons.len().saturating_sub(1);
-        let presses = self.buttons.iter().enumerate().map(|(i, label)| {
-            let press = match i == self.focused {
-                true if self.danger && i == last => Press::Danger,
-                true => Press::Focused,
-                false => Press::Plain,
+        let row = self.buttons.iter().enumerate().map(|(i, label)| {
+            let variant = match (i == last, self.danger) {
+                (false, _) => ButtonVariant::Default,
+                (true, false) => ButtonVariant::Primary,
+                (true, true) => ButtonVariant::Destructive,
             };
-            (*label, press)
+            let state = if i == self.focused { ButtonState::Focus } else { ButtonState::Rest };
+            Button::new(t, label).variant(variant).state(state)
         });
-        Buttons::new(t, presses).render(Rect::new(area.x, buttons, area.width, 3).intersection(area), buf);
+        FormActions::new(t, row.collect::<Vec<_>>()).render(Rect::new(area.x, buttons, area.width, 3).intersection(area), buf);
     }
 }
 

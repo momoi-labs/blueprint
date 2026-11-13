@@ -2,6 +2,7 @@ use std::ops::Range;
 
 #[cfg(feature = "crossterm")]
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::layout::Rect;
 use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 
@@ -9,8 +10,12 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::form_field::control_lines;
 use crate::input::{one_row, placeholder, Flags};
+use crate::select::matches;
 use crate::text::{cells, cut};
-use crate::{Grid, HelperText, Label, Page, Press, Size, Theme, ValidationMessage};
+use crate::{
+    Button, ButtonState, ButtonVariant, Checkbox, FormActions, Grid, HelperText, Label, OptionList, Page, Size, Theme,
+    ValidationMessage,
+};
 
 /// What a form field holds.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -18,9 +23,23 @@ pub enum Control {
     /// Text, and the cursor as a count of graphemes, what a person sees as
     /// one character. A secret shows dots until it is shown.
     Text { value: String, cursor: usize, secret: bool, shown: bool },
+    /// A [`Checkbox`]: a choice the form submits. space toggles it.
     Check(bool),
-    /// One of a few options, changed with ←/→, and the chosen one.
+    /// A [`Switch`](crate::Switch): a setting that applies at once. space
+    /// toggles it.
+    Switch(bool),
+    /// One of a few options, changed with ←/→, and the chosen one. enter
+    /// opens the list of a [`Select`](crate::Select).
     Select(Vec<String>, usize),
+    /// One of a few options that all show, as a [`RadioGroup`](crate::RadioGroup)
+    /// in a row, and the chosen one. ←/→ change it.
+    Radio(Vec<String>, usize),
+    /// A [`Combobox`](crate::Combobox): the options, the chosen one, and the
+    /// typed filter with its cursor. Typing opens the list.
+    Combo { options: Vec<String>, chosen: Option<usize>, query: String, cursor: usize },
+    /// A [`ChipInput`](crate::ChipInput): the chips, the text being typed
+    /// and its cursor, and the chip the keys act on.
+    Chips { chips: Vec<String>, text: String, cursor: usize, chip: Option<usize> },
     /// Several lines of text, drawn as a [`Textarea`](crate::Textarea).
     /// enter starts a line and ↑↓ move between lines.
     Area { value: String, cursor: usize },
@@ -40,11 +59,14 @@ pub struct Field {
     pub error: Option<String>,
     /// Left out of the form, as a field that applies only after a choice.
     pub hidden: bool,
+    /// The selected row while the list of a select or a combobox is open.
+    /// For a combobox, it counts the options that match the typed text.
+    pub list: Option<usize>,
 }
 
 impl Field {
     fn new(label: impl Into<String>, input: Control, placeholder: impl Into<String>) -> Self {
-        Self { label: label.into(), input, placeholder: placeholder.into(), hint: String::new(), error: None, hidden: false }
+        Self { label: label.into(), input, placeholder: placeholder.into(), hint: String::new(), error: None, hidden: false, list: None }
     }
 
     pub fn text(label: impl Into<String>, placeholder: impl Into<String>) -> Self {
@@ -56,8 +78,70 @@ impl Field {
         Self::new(label, Control::Area { value: String::new(), cursor: 0 }, placeholder)
     }
 
+    /// A [`Checkbox`], off. Same as [`Field::checkbox`].
     pub fn check(label: impl Into<String>) -> Self {
+        Self::checkbox(label)
+    }
+
+    /// A [`Checkbox`], off, with its label after the box.
+    pub fn checkbox(label: impl Into<String>) -> Self {
         Self::new(label, Control::Check(false), "")
+    }
+
+    /// A [`Switch`](crate::Switch), off, with `On` or `Off` after it.
+    pub fn switch(label: impl Into<String>) -> Self {
+        Self::new(label, Control::Switch(false), "")
+    }
+
+    /// A radio group over `options`, in a row, on the first one.
+    pub fn radio(label: impl Into<String>, options: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        Self::new(label, Control::Radio(options.into_iter().map(Into::into).collect(), 0), "")
+    }
+
+    /// A combobox over `options`, with none chosen.
+    pub fn combobox(
+        label: impl Into<String>,
+        options: impl IntoIterator<Item = impl Into<String>>,
+        placeholder: impl Into<String>,
+    ) -> Self {
+        let options = options.into_iter().map(Into::into).collect();
+        Self::new(label, Control::Combo { options, chosen: None, query: String::new(), cursor: 0 }, placeholder)
+    }
+
+    /// A chip input with no chips.
+    pub fn chips(label: impl Into<String>, placeholder: impl Into<String>) -> Self {
+        let input = Control::Chips { chips: Vec::new(), text: String::new(), cursor: 0, chip: None };
+        Self::new(label, input, placeholder)
+    }
+
+    /// Starts a checkbox or a switch on.
+    #[must_use]
+    pub fn on(mut self, on: bool) -> Self {
+        if let Control::Check(value) | Control::Switch(value) = &mut self.input {
+            *value = on;
+        }
+        self
+    }
+
+    /// Starts a select or a radio group on option `index`, or a combobox
+    /// with it chosen.
+    #[must_use]
+    pub fn choose(mut self, index: usize) -> Self {
+        match &mut self.input {
+            Control::Select(options, chosen) | Control::Radio(options, chosen) => *chosen = index.min(options.len().saturating_sub(1)),
+            Control::Combo { options, chosen, .. } => *chosen = (index < options.len()).then_some(index),
+            _ => {}
+        }
+        self
+    }
+
+    /// Starts a chip input with `chips`.
+    #[must_use]
+    pub fn with_chips(mut self, list: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        if let Control::Chips { chips, .. } = &mut self.input {
+            *chips = list.into_iter().map(Into::into).collect();
+        }
+        self
     }
 
     /// A select over `options`, on the first one.
@@ -103,23 +187,60 @@ impl Field {
         }
     }
 
+    /// True for a checkbox or a switch that is on.
     pub fn checked(&self) -> bool {
-        self.input == Control::Check(true)
+        matches!(self.input, Control::Check(true) | Control::Switch(true))
     }
 
-    /// The index of the chosen option of a select, or 0.
+    /// The index of the chosen option of a select, a radio group or a
+    /// combobox, or 0.
     pub fn chosen(&self) -> usize {
         match self.input {
-            Control::Select(_, chosen) => chosen,
+            Control::Select(_, chosen) | Control::Radio(_, chosen) => chosen,
+            Control::Combo { chosen, .. } => chosen.unwrap_or(0),
             _ => 0,
         }
     }
 
-    /// The text of the chosen option of a select, if there is one.
+    /// The text of the chosen option of a select, a radio group or a
+    /// combobox, if there is one.
     pub fn option(&self) -> Option<&str> {
         match &self.input {
-            Control::Select(options, chosen) => options.get(*chosen).map(String::as_str),
+            Control::Select(options, chosen) | Control::Radio(options, chosen) => options.get(*chosen).map(String::as_str),
+            Control::Combo { options, chosen, .. } => chosen.and_then(|i| options.get(i)).map(String::as_str),
             _ => None,
+        }
+    }
+
+    /// The chips of a chip input, or none.
+    pub fn chip_list(&self) -> &[String] {
+        match &self.input {
+            Control::Chips { chips, .. } => chips,
+            _ => &[],
+        }
+    }
+
+    /// Closes the list of a select or a combobox, and drops the typed
+    /// filter of a combobox.
+    pub fn close(&mut self) {
+        self.list = None;
+        if let Control::Combo { query, cursor, .. } = &mut self.input {
+            query.clear();
+            *cursor = 0;
+        }
+    }
+
+    /// The list a select or a combobox shows while open: the options, and
+    /// the chosen one among them.
+    fn shown(&self) -> (Vec<String>, Option<usize>) {
+        match &self.input {
+            Control::Select(options, chosen) => (options.clone(), Some(*chosen)),
+            Control::Combo { options, chosen, query, .. } => {
+                let shown = matches(options, query);
+                let at = chosen.and_then(|c| shown.iter().position(|i| *i == c));
+                (shown.into_iter().map(|i| options[i].clone()).collect(), at)
+            }
+            _ => (Vec::new(), None),
         }
     }
 
@@ -131,12 +252,73 @@ impl Field {
     }
 
     /// Edits the field with a key: typing, ←→, home, end and ctrl+u on
-    /// text, ctrl+r to show a secret, space on a checkbox, ←→ on a select,
-    /// and on an area also enter for a new line and ↑↓ between lines.
-    /// Returns true when the value changed, which clears the error.
+    /// text, ctrl+r to show a secret, space on a checkbox or a switch, ←→
+    /// on a select or a radio group, and on an area also enter for a new
+    /// line and ↑↓ between lines. enter opens the list of a select or a
+    /// combobox, ↑↓ move in it, enter takes an option and esc closes it.
+    /// On a chip input, enter or a comma makes a chip, and ← from the
+    /// start of the text and backspace choose and remove one. Returns true
+    /// when the value changed, which clears the error.
     #[cfg(feature = "crossterm")]
     pub fn key(&mut self, key: KeyEvent) -> bool {
-        self.edit(key).unwrap_or(false)
+        self.grab(key).or_else(|| self.edit(key)).unwrap_or(false)
+    }
+
+    /// Takes a key a form would use to move or to close, when the field
+    /// has a use for it: enter, ↑↓ and esc on an area, an open list, a
+    /// select or a combobox to open, and text to make a chip of. None
+    /// leaves the key to the form.
+    #[cfg(feature = "crossterm")]
+    pub(crate) fn grab(&mut self, key: KeyEvent) -> Option<bool> {
+        if !matches!(key.code, KeyCode::Enter | KeyCode::Up | KeyCode::Down | KeyCode::Esc) {
+            return None;
+        }
+        let n = self.shown().0.len();
+        let changed = match (&mut self.input, self.list) {
+            (Control::Area { .. }, _) => return self.edit(key),
+            (Control::Select(..) | Control::Combo { .. }, Some(at)) => match key.code {
+                KeyCode::Up => {
+                    self.list = Some(at.saturating_sub(1));
+                    false
+                }
+                KeyCode::Down => {
+                    self.list = Some((at + 1).min(n.saturating_sub(1)));
+                    false
+                }
+                KeyCode::Esc => {
+                    self.close();
+                    false
+                }
+                _ => {
+                    self.list = None;
+                    match &mut self.input {
+                        Control::Select(options, chosen) if at < options.len() => std::mem::replace(chosen, at) != at,
+                        Control::Combo { options, chosen, query, cursor } => {
+                            let hit = matches(options, query).get(at).copied();
+                            query.clear();
+                            *cursor = 0;
+                            hit.is_some_and(|hit| chosen.replace(hit) != Some(hit))
+                        }
+                        _ => false,
+                    }
+                }
+            },
+            (Control::Select(..) | Control::Combo { .. }, None) if key.code == KeyCode::Enter => {
+                self.list = Some(self.shown().1.unwrap_or(0));
+                false
+            }
+            (Control::Chips { chips, text, cursor, chip }, _) if key.code == KeyCode::Enter && !text.trim().is_empty() => {
+                chips.push(text.trim().to_owned());
+                text.clear();
+                (*cursor, *chip) = (0, None);
+                true
+            }
+            _ => return None,
+        };
+        if changed {
+            self.error = None;
+        }
+        Some(changed)
     }
 
     /// [`Field::key`], or None when the field has no use for the key, as
@@ -151,13 +333,22 @@ impl Field {
             }
             Control::Text { value, cursor, .. } => edit_text(value, cursor, key, false),
             Control::Area { value, cursor } => edit_text(value, cursor, key, true),
-            Control::Check(on) => {
+            Control::Check(on) | Control::Switch(on) => {
                 let hit = key.code == KeyCode::Char(' ');
                 *on ^= hit;
                 Some(hit)
             }
-            Control::Select(options, _) if options.is_empty() => Some(false),
-            Control::Select(options, chosen) => {
+            Control::Combo { query, cursor, .. } => {
+                let before = query.clone();
+                let edited = edit_text(query, cursor, key, false);
+                if *query != before {
+                    self.list = Some(0);
+                }
+                edited.map(|_| false)
+            }
+            Control::Chips { chips, text, cursor, chip } => edit_chips(chips, text, cursor, chip, key),
+            Control::Select(options, _) | Control::Radio(options, _) if options.is_empty() => Some(false),
+            Control::Select(options, chosen) | Control::Radio(options, chosen) => {
                 let before = *chosen;
                 match key.code {
                     KeyCode::Left | KeyCode::Char('h') => *chosen = (before + options.len() - 1) % options.len(),
@@ -199,6 +390,29 @@ impl Field {
                 width,
             )
             .0,
+            Control::Switch(on) => match on {
+                true => vec![Span::styled("On", t.text())],
+                false => vec![Span::styled("Off", t.muted())],
+            },
+            Control::Radio(options, chosen) => {
+                cut(vec![Span::styled(options.get(*chosen).cloned().unwrap_or_default(), t.text())], width).0
+            }
+            Control::Combo { query, cursor: at, .. } if !query.is_empty() => {
+                let graphemes: Vec<&str> = query.graphemes(true).collect();
+                one_row(&graphemes, focused.then_some((*at, cursor)), width, t.text(), t.subtle())
+            }
+            Control::Combo { .. } => match self.option() {
+                Some(option) => cut(vec![Span::styled(option.to_owned(), t.text())], width).0,
+                None => placeholder(&self.placeholder, focused.then_some(cursor), width, t.subtle()),
+            },
+            Control::Chips { chips, text, .. } => {
+                let mut all = chips.clone();
+                all.extend((!text.is_empty()).then(|| text.clone()));
+                match all.is_empty() {
+                    true => placeholder(&self.placeholder, focused.then_some(cursor), width, t.subtle()),
+                    false => cut(vec![Span::styled(all.join(", "), t.text())], width).0,
+                }
+            }
             Control::Select(options, chosen) => {
                 let arrow = if focused { t.fg(r.primary) } else { t.subtle() };
                 let Some(option) = options.get(*chosen) else {
@@ -223,14 +437,15 @@ impl Field {
     /// hint while the field has focus. The row selection of the list shows
     /// the focus, so the surface draws no focus bars.
     pub fn lines(&self, t: &Theme, width: usize, label: usize, focused: bool) -> Vec<Line<'static>> {
-        if let Control::Check(_) = self.input {
-            let mut first = vec![Span::raw("  ")];
-            first.extend(self.spans(t, 3, focused));
-            first.push(Span::styled(format!(" {}", self.label), if focused { t.strong() } else { t.text() }));
+        if let Control::Check(on) = self.input {
+            let flags = Flags { focused, invalid: self.error.is_some(), selection: true, ..Flags::default() };
+            let checkbox = Checkbox::new(t, &self.label, on).flags(flags).strong(focused);
+            let mut first = vec![Span::raw(" ")];
+            first.extend(checkbox.line(width.saturating_sub(1) as u16).spans);
             let mut lines = vec![Line::from(first)];
             if let Some(error) = &self.error {
-                for line in ValidationMessage::new(t, error).lines(width.saturating_sub(7) as u16) {
-                    lines.push(Line::from([vec![Span::raw("      ")], line.spans].concat()));
+                for line in ValidationMessage::new(t, error).lines(width.saturating_sub(6) as u16) {
+                    lines.push(Line::from([vec![Span::raw("     ")], line.spans].concat()));
                 }
             }
             return lines;
@@ -265,6 +480,56 @@ impl Field {
             lines.push(Line::from([vec![Span::raw(" ".repeat(indent))], line.spans].concat()));
         }
         lines
+    }
+}
+
+/// Edits a chip input with a key, as [`Field::key`]: ←→ and backspace act
+/// on the chosen chip, ← or backspace at the start of the text choose the
+/// last chip, and a comma makes the text a chip.
+#[cfg(feature = "crossterm")]
+fn edit_chips(
+    chips: &mut Vec<String>,
+    text: &mut String,
+    cursor: &mut usize,
+    chip: &mut Option<usize>,
+    key: KeyEvent,
+) -> Option<bool> {
+    if let Some(at) = *chip {
+        match key.code {
+            KeyCode::Left => {
+                *chip = Some(at.saturating_sub(1));
+                return Some(false);
+            }
+            KeyCode::Right => {
+                *chip = (at + 1 < chips.len()).then_some(at + 1);
+                return Some(false);
+            }
+            KeyCode::Backspace | KeyCode::Delete => {
+                let removed = at < chips.len();
+                if removed {
+                    chips.remove(at);
+                }
+                *chip = None;
+                return Some(removed);
+            }
+            _ => *chip = None,
+        }
+    }
+    match key.code {
+        KeyCode::Left | KeyCode::Backspace if *cursor == 0 && !chips.is_empty() => {
+            *chip = Some(chips.len() - 1);
+            Some(false)
+        }
+        KeyCode::Char(',') => {
+            let word = text.trim().to_owned();
+            if !word.is_empty() {
+                chips.push(word);
+                text.clear();
+                *cursor = 0;
+            }
+            Some(true)
+        }
+        _ => edit_text(text, cursor, key, false),
     }
 }
 
@@ -429,11 +694,14 @@ impl Form {
     pub fn key(&mut self, key: KeyEvent) -> Act {
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         self.settle();
-        if matches!(key.code, KeyCode::Enter | KeyCode::Up | KeyCode::Down) {
-            let area = self.fields.get_mut(self.focus).filter(|f| !f.hidden && matches!(f.input, Control::Area { .. }));
-            if let Some(changed) = area.and_then(|field| field.edit(key)) {
-                self.changed |= changed;
-                return Act::None;
+        let field = self.fields.get_mut(self.focus).filter(|f| !f.hidden);
+        if let Some(changed) = field.and_then(|field| field.grab(key)) {
+            self.changed |= changed;
+            return Act::None;
+        }
+        if matches!(key.code, KeyCode::Tab | KeyCode::BackTab) {
+            if let Some(field) = self.fields.get_mut(self.focus) {
+                field.close();
             }
         }
         match key.code {
@@ -501,14 +769,39 @@ impl Form {
         Some(self.fields[..self.focus].iter().filter(|f| !f.hidden).count())
     }
 
-    /// How button `i` looks: focused, on `danger` for a destructive one,
-    /// or plain.
-    pub fn press(&self, i: usize, danger: bool) -> Press {
-        match self.button() == Some(i) {
-            true if danger => Press::Danger,
-            true => Press::Focused,
-            false => Press::Plain,
-        }
+    /// The state of button `i`: `Focus` while it has focus.
+    pub fn button_state(&self, i: usize) -> ButtonState {
+        if self.button() == Some(i) { ButtonState::Focus } else { ButtonState::Rest }
+    }
+
+    /// The buttons as [`FormActions`], in order, the last one the primary
+    /// action, or `Destructive` on `danger`.
+    pub fn actions<'a>(&self, t: &'a Theme, labels: &[&'a str], danger: bool) -> FormActions<'a> {
+        let last = labels.len().saturating_sub(1);
+        let buttons = labels.iter().enumerate().map(|(i, label)| {
+            let variant = match (i == last, danger) {
+                (false, _) => ButtonVariant::Default,
+                (true, false) => ButtonVariant::Primary,
+                (true, true) => ButtonVariant::Destructive,
+            };
+            Button::new(t, label).variant(variant).state(self.button_state(i))
+        });
+        FormActions::new(t, buttons.collect::<Vec<_>>())
+    }
+
+    /// The open list of the focused select or combobox, if there is one,
+    /// to render over the page with the whole screen as its area. `row` is
+    /// the first row of the field on screen, as wide as the form, and
+    /// `label` the label column of [`Form::rows`].
+    pub fn list<'a>(&self, t: &'a Theme, row: Rect, label: usize) -> Option<OptionList<'a>> {
+        let field = self.focused()?;
+        let selected = field.list?;
+        let (options, chosen) = field.shown();
+        let indent = label + 4;
+        let fill = (usize::from(Grid::TRACK) * 2 + usize::from(Grid::GAP)).min(usize::from(row.width).saturating_sub(indent + 1)).max(2);
+        let anchor = Rect::new(row.x.saturating_add(indent as u16), row.y, fill as u16, 1);
+        let list = OptionList::new(t, options, anchor).selected(selected).chosen(chosen);
+        Some(if matches!(field.input, Control::Combo { .. }) { list.empty("No matches") } else { list })
     }
 }
 
@@ -677,5 +970,72 @@ mod tests {
         assert!(field.error.is_some());
         assert!(field.key(key(KeyCode::Char('8'))));
         assert_eq!(field.error, None);
+    }
+
+    #[test]
+    fn enter_opens_the_list_of_a_select_and_takes_an_option() {
+        let mut form = Form::new(vec![Field::select("Size", ["S", "M", "L"]), Field::text("Note", "")], 1);
+        assert_eq!(form.key(key(KeyCode::Enter)), Act::None);
+        assert_eq!((form.fields[0].list, form.focus), (Some(0), 0), "enter opens, focus stays");
+        form.key(key(KeyCode::Down));
+        form.key(key(KeyCode::Down));
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        assert!(form.list(&theme, Rect::new(0, 0, 60, 1), 4).is_some());
+        form.key(key(KeyCode::Enter));
+        assert_eq!((form.fields[0].option(), form.fields[0].list, form.changed), (Some("L"), None, true));
+        form.key(key(KeyCode::Enter));
+        form.key(key(KeyCode::Esc));
+        assert_eq!((form.fields[0].list, form.focus), (None, 0), "esc closes the list first");
+        form.key(key(KeyCode::Right));
+        assert_eq!(form.fields[0].option(), Some("S"), "←→ still cycle");
+    }
+
+    #[test]
+    fn a_combobox_filters_as_you_type() {
+        let mut field = Field::combobox("Region", ["eu-west", "us-east", "eu-north"], "");
+        for c in "nor".chars() {
+            field.key(key(KeyCode::Char(c)));
+        }
+        assert_eq!(field.list, Some(0));
+        assert!(field.key(key(KeyCode::Enter)));
+        assert_eq!((field.option(), field.value()), (Some("eu-north"), ""));
+        let mut form = Form::new(vec![field], 1);
+        form.key(key(KeyCode::Char('x')));
+        assert_eq!(form.key(key(KeyCode::Tab)), Act::None);
+        assert_eq!((form.fields[0].list, form.focus), (None, 1), "tab closes the list");
+    }
+
+    #[test]
+    fn chips_come_from_enter_or_a_comma_and_go_with_backspace() {
+        let mut field = Field::chips("Hosts", "");
+        for c in "web,db".chars() {
+            field.key(key(KeyCode::Char(c)));
+        }
+        assert!(field.key(key(KeyCode::Enter)));
+        assert_eq!(field.chip_list(), ["web", "db"]);
+        assert!(!field.key(key(KeyCode::Left)), "← at the start chooses the last chip");
+        assert!(matches!(field.input, Control::Chips { chip: Some(1), .. }));
+        field.key(key(KeyCode::Left));
+        assert!(field.key(key(KeyCode::Backspace)));
+        assert_eq!(field.chip_list(), ["db"]);
+        let mut form = Form::new(vec![Field::chips("Hosts", ""), Field::text("Note", "")], 1);
+        form.key(key(KeyCode::Enter));
+        assert_eq!(form.focus, 1, "enter with no text goes on");
+    }
+
+    #[test]
+    fn space_toggles_a_switch_and_arrows_move_a_radio() {
+        let mut form = Form::new(vec![Field::switch("Backups"), Field::radio("Size", ["S", "M"])], 0);
+        form.key(key(KeyCode::Char(' ')));
+        assert!(form.fields[0].checked());
+        form.key(key(KeyCode::Down));
+        form.key(key(KeyCode::Right));
+        assert_eq!((form.focus, form.fields[1].option()), (1, Some("M")));
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        for width in [0, 8, 40] {
+            for field in &form.fields {
+                assert!(!field.lines(&theme, width, 6, true).is_empty());
+            }
+        }
     }
 }

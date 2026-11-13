@@ -48,6 +48,27 @@ Icons are decorative. Do not nest interactive content inside an option.
 Use a separate Button to confirm. Immediate actions use Button's tile
 presentation, which retains button semantics.
 
+## Terminal
+
+In a terminal, a radio group is `tui-kiso` `RadioGroup`: a mark and a
+label per option, one option per row, or in a row that wraps with
+`.horizontal(true)`.
+
+| State | Terminal form |
+| --- | --- |
+| chosen | `◉` in `primary`. |
+| other options | `○` in `muted-foreground`. |
+| focus | Half a cell of `focus` on each side of the chosen mark, or of the first one when none is chosen. |
+| invalid | The bars turn `danger` and stay on. |
+| disabled | Every mark in `disabled`, the labels in `subtle-foreground`. |
+
+`↑` `↓`, or `←` `→` in a row, move and choose at once; the app owns the
+keys. Keep one free cell before the group for the bar. In a
+[Form](form.md), `Field::radio` draws the group in a row and `←` `→`
+choose, so `↑` `↓` still move between fields. Use it for two to five
+options that all fit; use Select for more. See
+[terminal interfaces](../terminal-interfaces.md).
+
 ## Tokens
 
 Use `--color-card`, `--color-foreground`, `--color-muted-foreground`,
