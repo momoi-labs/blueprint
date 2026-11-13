@@ -454,7 +454,17 @@
 .tui-drawn[data-char="▀"] { background-image: linear-gradient(currentColor 50%, transparent 0); }
 .tui-drawn[data-char="▄"] { background-image: linear-gradient(transparent 50%, currentColor 0); }
 .tui-drawn[data-char="█"] { background-image: var(--line); }
-.tui-drawn[data-char="▌"] { background-image: linear-gradient(to right, currentColor 50%, transparent 0); background-size: 1ch 100%; background-repeat: repeat-x; }
+/* Half blocks and quadrants are boxes, not background tiles, so their edges
+   round the same way and meet across rows. */
+.tui-drawn[data-char="▌"]::before, .tui-drawn[data-char="▐"]::before,
+.tui-drawn[data-char="▗"]::before, .tui-drawn[data-char="▖"]::before,
+.tui-drawn[data-char="▝"]::before, .tui-drawn[data-char="▘"]::before { content: ""; position: absolute; background-color: currentColor; }
+.tui-drawn[data-char="▌"]::before { inset: 0 50% 0 0; }
+.tui-drawn[data-char="▐"]::before { inset: 0 0 0 50%; }
+.tui-drawn[data-char="▗"]::before { inset: 50% 0 0 50%; }
+.tui-drawn[data-char="▖"]::before { inset: 50% 50% 0 0; }
+.tui-drawn[data-char="▝"]::before { inset: 0 0 50% 50%; }
+.tui-drawn[data-char="▘"]::before { inset: 0 50% 50% 0; }
 .tui-drawn[data-char="░"] { background-image: linear-gradient(color-mix(in srgb, currentColor 25%, transparent), color-mix(in srgb, currentColor 25%, transparent)); }
 /* A long command wraps rather than scroll. */
 .tui-run { margin: 0; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
