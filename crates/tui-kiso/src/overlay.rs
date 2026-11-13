@@ -111,6 +111,10 @@ pub(crate) struct Panel<'a> {
     pub title: String,
     pub hints: Vec<(&'a str, &'a str)>,
     pub buttons: Vec<Button<'a>>,
+    /// Set when the surface fills the height of the screen and the body is
+    /// still cut: the half rows and the empty row above the footer go to
+    /// the body.
+    pub tight: bool,
 }
 
 impl<'a> Panel<'a> {
@@ -158,15 +162,25 @@ impl<'a> Panel<'a> {
     /// returns the area of the body.
     pub fn draw(&self, theme: &'a Theme, buf: &mut Buffer, area: Rect, pad: u16) -> Rect {
         let t = theme;
-        surface(t, buf, area);
+        if self.tight {
+            // No page shows above or below, so there is no edge to draw.
+            let r = t.tokens();
+            for at in area.intersection(buf.area).positions() {
+                buf[at].reset();
+            }
+            buf.set_style(area, t.fill(r.popover_foreground, r.popover));
+        } else {
+            surface(t, buf, area);
+        }
         if area.height < 3 {
             return Rect::new(area.x, area.y, 0, 0);
         }
+        let edge = u16::from(!self.tight);
         let inner = Rect {
             x: area.x.saturating_add(pad),
-            y: area.y + 1,
+            y: area.y + edge,
             width: area.width.saturating_sub(pad.saturating_mul(2)),
-            height: area.height - 2,
+            height: area.height - edge * 2,
         };
         let (title, _) = take_cells(&self.title, usize::from(inner.width));
         write(buf, inner.x, inner.y, title, t.strong());
@@ -204,7 +218,7 @@ impl<'a> Panel<'a> {
             }
         }
         let top = inner.y.saturating_add(2);
-        let end = bottom.saturating_sub(u16::from(footer > 1));
+        let end = bottom.saturating_sub(u16::from(footer > 1 && !self.tight));
         Rect::new(inner.x, top.min(end), inner.width, end.saturating_sub(top))
     }
 }
@@ -355,7 +369,7 @@ mod tests {
     #[test]
     fn a_panel_keeps_its_footer_on_a_short_screen() {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
-        let panel = Panel { title: "Delete".into(), hints: vec![("esc", "cancel")], buttons: vec![Button::new(&theme, "OK")] };
+        let panel = Panel { title: "Delete".into(), hints: vec![("esc", "cancel")], buttons: vec![Button::new(&theme, "OK")], tight: false };
         for height in 0..12 {
             let area = Rect::new(0, 0, 50, height);
             let body = panel.draw(&theme, &mut Buffer::empty(area), area, 3);

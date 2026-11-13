@@ -18,8 +18,10 @@ use crate::{Button, Grid, Scrim, Size, Theme};
 /// Its width is whole grid tracks: `Sm` is 3, `Md` 4 and `Lg` 6. Without a
 /// size it takes the fewest of those that hold its content. It keeps two
 /// columns from each side of the screen, and a row from the top and the
-/// bottom while its content fits. On a short screen it gives up those two
-/// rows first, so a body of 18 rows fits in 24 with a title and key hints.
+/// bottom while its content fits. On a short screen the body takes rows
+/// back in two steps. First the modal takes the whole height. If the body
+/// is still cut, the half rows and the empty row above the footer go too,
+/// so a modal with a title and key hints shows 21 rows of body in 24.
 /// Esc closes it: say so in the hints.
 ///
 /// Render it into the whole screen. For content of your own, take the area
@@ -92,8 +94,9 @@ impl<'a> Modal<'a> {
         }
     }
 
-    /// The area the modal takes on `screen`.
-    pub fn area(&self, screen: Rect) -> Rect {
+    /// The outer width and the height the modal asks for, before the screen
+    /// cuts the height.
+    fn wants(&self, screen: Rect) -> (u16, u16) {
         // Sizes are worked out in usize and clamped, so a huge body cannot
         // overflow a u16.
         let clamp = |n: usize| n.min(usize::from(u16::MAX)) as u16;
@@ -108,16 +111,22 @@ impl<'a> Modal<'a> {
         let width = width.min(screen.width.saturating_sub(4));
         let inner = width.saturating_sub(Self::PAD * 2);
         let height = self.height.unwrap_or_else(|| clamp(self.body.height()).saturating_add(self.panel.chrome(self.theme, inner)));
+        (width, height)
+    }
+
+    /// The area the modal takes on `screen`.
+    pub fn area(&self, screen: Rect) -> Rect {
+        let (width, height) = self.wants(screen);
         // The margin gives before the body does.
-        let height = height.min(screen.height);
-        screen.centered(Constraint::Length(width), Constraint::Length(height))
+        screen.centered(Constraint::Length(width), Constraint::Length(height.min(screen.height)))
     }
 
     /// Dims the screen, draws the surface, the title, the footer and the
     /// body, and returns the area of the body.
-    pub fn draw(self, screen: Rect, buf: &mut Buffer) -> Rect {
+    pub fn draw(mut self, screen: Rect, buf: &mut Buffer) -> Rect {
         let t = self.theme;
         let screen = screen.intersection(buf.area);
+        self.panel.tight = self.wants(screen).1 > screen.height;
         Scrim::new(t).render(screen, buf);
         let area = self.area(screen);
         if area.is_empty() {
@@ -150,8 +159,18 @@ mod tests {
         assert_eq!((modal(16).area(screen).y, modal(16).area(screen).height), (1, 22));
         // 18 rows take the whole height, and all of them show.
         assert_eq!(modal(18).area(screen).height, 24);
-        assert_eq!(modal(18).draw(screen, &mut Buffer::empty(screen)).height, 18);
-        assert_eq!(modal(40).draw(screen, &mut Buffer::empty(screen)).height, 18);
+        let mut buf = Buffer::empty(screen);
+        assert_eq!(modal(18).draw(screen, &mut buf).height, 18);
+        assert_eq!(buf[(40, 0)].symbol(), "▄");
+        // More rows take the half rows and the empty row above the hints.
+        let mut buf = Buffer::empty(screen);
+        let body = modal(21).draw(screen, &mut buf);
+        assert_eq!((body.y, body.height), (2, 21));
+        assert_eq!(buf[(40, 0)].symbol(), " ");
+        assert!(row(&buf, 0).contains("Help") && row(&buf, 23).contains("esc"));
+        assert_eq!(modal(40).draw(screen, &mut Buffer::empty(screen)).height, 21);
+        // A fixed height asks the same way.
+        assert_eq!(Modal::new(&theme, "Help").hints([("esc", "close")]).height(27).draw(screen, &mut Buffer::empty(screen)).height, 21);
     }
 
     fn row(buf: &Buffer, y: u16) -> String {
