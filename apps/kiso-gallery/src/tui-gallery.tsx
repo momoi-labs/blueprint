@@ -150,7 +150,7 @@ function TuiTerm({ rows, width, style, styles, children }: { rows: Run[][]; widt
 /** What a screen reader reads: the screen's text, line by line, without
  *  the lines and blocks drawn around it. */
 function screenText(rows: Run[][]): string {
-  const drawnChars = new RegExp(`[${DRAWN}]`, "g");
+  const drawnChars = new RegExp(`[${DRAWN}▐▗▝▖▘]`, "g");
   return rows
     .map((row) => row.map(([text]) => text).join("").replace(drawnChars, " ").replace(/ {3,}/g, "  ").trim())
     .filter(Boolean)
