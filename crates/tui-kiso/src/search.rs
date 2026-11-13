@@ -1,11 +1,12 @@
 #[cfg(feature = "crossterm")]
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::style::{Modifier, Style};
+use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 
 #[cfg(feature = "crossterm")]
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::input::{Flags, Paint};
 use crate::text::{cells, cut, tail_cells};
 use crate::{highlight, Theme};
 
@@ -77,18 +78,25 @@ impl Search {
         Line::styled(format!("  Nothing matches \"{}\".", self.query), theme.muted())
     }
 
-    /// The start of the footer, at most `width` cells: `/`, the query, a
-    /// cursor while typing, and how many of `matches` there are. A long
-    /// query shows its end, next to the cursor. Put the key hints after it
-    /// with [`KeyHints::prefix`](crate::KeyHints::prefix).
+    /// The start of the footer, at most `width` cells: the field surface of
+    /// a [`FilterInput`](crate::FilterInput) on one row, with `/`, the
+    /// query, a cursor while typing, and how many of `matches` there are,
+    /// then two blank columns. A long query shows its end, next to the
+    /// cursor. Put the key hints after it with
+    /// [`KeyHints::prefix`](crate::KeyHints::prefix). For a field above a
+    /// list, draw a [`FilterInput`](crate::FilterInput) instead.
     pub fn prompt(&self, theme: &Theme, matches: usize, width: usize) -> Vec<Span<'static>> {
         let r = theme.tokens();
+        let flags = Flags { focused: self.typing, selection: true, ..Flags::default() };
+        let paint = Paint::new(theme, flags, r.background);
         let count = if matches == 1 { "1 match".to_owned() } else { format!("{matches} matches") };
-        let mut count = format!("  {count}  ");
-        let fixed = 2 + usize::from(self.typing);
+        let mut count = format!("  {count}");
+        // A column of fill at each end, the glyph, the cursor and the gap
+        // after the field.
+        let fixed = 1 + 2 + usize::from(self.typing) + 1 + 2;
         // On a narrow row the count goes first, then the start of the query.
         if fixed + cells(&count) + 2 > width {
-            count = " ".to_owned();
+            count = String::new();
         }
         let room = width.saturating_sub(fixed + cells(&count));
         let query = match room {
@@ -96,12 +104,17 @@ impl Search {
             0 | 1 => String::new(),
             _ => format!("…{}", tail_cells(&self.query, room - 1).0),
         };
-        let mut spans =
-            vec![Span::styled("/ ", theme.fg(r.primary).add_modifier(Modifier::BOLD)), Span::styled(query, theme.text())];
-        if self.typing {
-            spans.push(Span::styled(" ", Style::new().bg(theme.color(r.primary))));
+        let mut spans = vec![
+            Span::styled(" ", paint.text),
+            Span::styled("/ ", paint.text.fg(theme.color(r.primary)).add_modifier(Modifier::BOLD)),
+            Span::styled(query, paint.text),
+        ];
+        if let Some(cursor) = paint.cursor {
+            spans.push(Span::styled(" ", cursor));
         }
-        spans.push(Span::styled(count, theme.subtle()));
+        spans.push(Span::styled(count, paint.faint));
+        spans.push(Span::styled(" ", paint.text));
+        spans.push(Span::raw("  "));
         cut(spans, width).0
     }
 
@@ -149,7 +162,7 @@ mod tests {
         let line = Line::from(search.prompt(&theme, 3, 40));
         assert!(line.width() <= 40, "{line}");
         let text = line.to_string();
-        assert!(text.starts_with("/ …a") && text.contains("aaatail   3 matches"), "{line}");
+        assert!(text.starts_with(" / …a") && text.contains("aaatail   3 matches"), "{line}");
     }
 
     #[test]

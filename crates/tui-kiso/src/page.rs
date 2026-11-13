@@ -292,7 +292,7 @@ impl Widget for PageView<'_> {
 }
 
 /// A scrollbar with no arrows: a faint `│` track and a `primary` thumb.
-fn scrollbar(buf: &mut Buffer, t: &Theme, area: Rect, offset: usize, total: usize) {
+pub(crate) fn scrollbar(buf: &mut Buffer, t: &Theme, area: Rect, offset: usize, total: usize) {
     let r = t.tokens();
     let area = area.intersection(buf.area);
     let view = usize::from(area.height);

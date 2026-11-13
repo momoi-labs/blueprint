@@ -76,6 +76,35 @@ pub(crate) fn cut<'a>(spans: Vec<Span<'a>>, width: usize) -> (Vec<Span<'a>>, usi
     (out, used + 1)
 }
 
+/// Spans in rows of at most `width` cells, cut between graphemes, as a
+/// log line or a line of code wraps.
+pub(crate) fn split(spans: Vec<Span<'static>>, width: usize) -> Vec<Vec<Span<'static>>> {
+    let width = width.max(1);
+    let (mut rows, mut row, mut used) = (Vec::new(), Vec::new(), 0);
+    for span in spans {
+        let mut part = String::new();
+        for grapheme in span.content.graphemes(true) {
+            let w = cells(grapheme);
+            if used + w > width && used > 0 {
+                if !part.is_empty() {
+                    row.push(Span::styled(std::mem::take(&mut part), span.style));
+                }
+                rows.push(std::mem::take(&mut row));
+                used = 0;
+            }
+            part.push_str(grapheme);
+            used += w;
+        }
+        if !part.is_empty() {
+            row.push(Span::styled(part, span.style));
+        }
+    }
+    if !row.is_empty() || rows.is_empty() {
+        rows.push(row);
+    }
+    rows
+}
+
 /// Spans cut to `width` cells with `…` when something is left out, or
 /// padded to it with spaces.
 pub fn fit(spans: Vec<Span<'static>>, width: usize) -> Vec<Span<'static>> {
@@ -106,10 +135,11 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
 
 /// A fact of a record, two columns in: the key in `muted-foreground` in a
 /// column `key_width` wide, then the value, which keeps its own styles.
+/// It is one row of a [`KV`](crate::KV), for the rows of a
+/// [`Page`](crate::Page): a key longer than its column is cut with `…`.
 pub fn fact(theme: &Theme, key_width: usize, key: &str, value: impl IntoIterator<Item = Span<'static>>) -> Line<'static> {
-    let (key, used) = take_cells(key, key_width);
-    let mut spans = vec![Span::styled(format!("  {key}{}", " ".repeat(key_width - used)), theme.muted())];
-    spans.extend(value);
+    let mut spans = vec![Span::raw("  ")];
+    spans.extend(crate::kv::pair(theme, key_width.saturating_sub(2), key, value));
     Line::from(spans)
 }
 
@@ -255,7 +285,7 @@ mod tests {
     fn a_fact_keeps_its_column() {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
         assert_eq!(fact(&theme, 8, "Status", [Span::raw("Failed")]).to_string(), "  Status  Failed");
-        assert_eq!(fact(&theme, 4, "Started", [Span::raw("x")]).to_string(), "  Starx");
+        assert_eq!(fact(&theme, 4, "Started", [Span::raw("x")]).to_string(), "  S…  x");
     }
 
     #[test]

@@ -61,6 +61,23 @@ The step indicator specification now lives in [Steps](steps.md). Steps keeps
 explicit completion, native navigation and current-step semantics, and adds
 vertical and compact layouts. Pagination's page API is unchanged.
 
+## Terminal
+
+In a terminal, Pagination is `tui-kiso` `Pagination`: one row,
+`‹ 1 2 3 4 … 9 ›`, with the current page on a `primary` fill.
+
+| State | Terminal form |
+| --- | --- |
+| default | Page numbers two cells apart. With more than 7 pages, the first, the last and the pages around the current one show, with `…` for the rest. |
+| current | Bold `primary-foreground` on `primary`, with round ends when the look has them. |
+| first, last | The arrow that cannot move takes `disabled`. |
+| narrow | When the numbers do not fit, about 24 cells, the row becomes `‹ 3 of 9 ›`. |
+| summary | `.summary(first, last, total)` adds "41 to 60 of 173" in `muted-foreground` at the left, and the pages move to the right. |
+
+`←` `→` and `h` `l` move the page through `key`, which says when the page
+changed. The product loads the rows. Put it under a [Table](table.md) with
+`Table::pagination`.
+
 ## When to use
 
 - A known dataset where people benefit from page position or direct jumps.

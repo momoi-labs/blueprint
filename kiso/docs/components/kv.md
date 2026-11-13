@@ -49,6 +49,21 @@ a value according to their own contracts.
 No list keymap or tab stop. Links and controls inside values remain in normal
 tab order.
 
+## Terminal
+
+In a terminal, KV is `tui-kiso` `KV`: a column of keys in
+`muted-foreground`, two cells, then each value with its own styles.
+
+| State | Terminal form |
+| --- | --- |
+| default | `Size::Sm` has one row per pair. `Size::Md` leaves a blank row between pairs. |
+| long key | The key column is as wide as the longest key, up to half the width. A longer key is cut with `…`. |
+| columns | `.columns(n)` puts the pairs on whole Grid tracks, down each column, then across. |
+
+KV takes no keys. `.height(width)` gives the rows it needs. `fact` is one
+row of a KV, for the rows of a `Page`. Use KV for the facts of one record,
+and [Table](table.md) to compare records.
+
 ## When to use
 
 - Fixed facts in a resource detail pane.

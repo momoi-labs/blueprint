@@ -17,7 +17,8 @@ contract, and each component doc has a Terminal section.
 | `Title`, `Tabs`, `Header` | Where the person is: the page title, the views of a screen, the brand and breadcrumb |
 | `Page`, `Scroll`, `Columns` | A page of rows that scrolls, with sections, items to select, columns and code blocks |
 | `Sidebar` | The navigation, as wide as its longest line, on the left or the right |
-| `Table`, `StatusBadge` | A ratatui table with Kiso's titles and selection, and the state of a record |
+| `Table`, `Pagination`, `StatusBadge` | Records in columns with a header fill, a selection, and empty, loading and paged states; the pages of a list; the state of a record |
+| `KV`, `FilterInput`, `LogView`, `CodeBlock` | The facts of a record, the field that filters a list, log lines that follow the end, and code on a card surface |
 | `Chart`, `Series`, `ChartLegend`, `Sparkline` | Series over time in braille with a scale and a legend, and the trend of one series in a cell |
 | `Meter`, `BarGauge` | A measurement against its limit on one row, and labelled measurements on one scale |
 | `KeyHints`, `Search`, `Palette` | The footer keys, the `/` search and the `ctrl+p` command palette |

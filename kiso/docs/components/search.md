@@ -112,12 +112,21 @@ a different global binding.
 ## Terminal
 
 In a terminal, search is `tui-kiso` `Search`, on the lists of the page.
-`/` starts it, and the footer starts with a bold `primary` `/`, the query,
-a block cursor while typing and the number of matches. Each letter filters
-the lists: the match is marked in bold, underlined `primary`, a section's
-count becomes "3 of 5", and a section with no match hides. A page with no
-match says "Nothing matches" with the query. `Enter` keeps the search,
-`Esc` clears it and `↑` `↓` move while typing. See
+`/` starts it. The footer starts with the field surface of a
+[FilterInput](filter-input.md) on one row: a bold `primary` `/`, the
+query, a block cursor while typing, and the number of matches.
+
+| State | Terminal form |
+| --- | --- |
+| typing | The `input` fill, the query, a block cursor, and the count in `subtle-foreground`. |
+| kept | The field stays, without a cursor. |
+| narrow | The count goes first, then the start of the query. A long query shows its end. |
+| match | Bold, underlined `primary` on each match. A section's count becomes "3 of 5", and a section with no match hides. |
+| no match | The page says "Nothing matches" with the query. |
+
+Each letter filters the lists. `Enter` keeps the search, `Esc` clears it
+and `↑` `↓` move while typing. For a field above a list, draw a
+`FilterInput` on the same `Search`. See
 [terminal interfaces](../terminal-interfaces.md#keys).
 
 ## When to use

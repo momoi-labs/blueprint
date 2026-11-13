@@ -13,7 +13,7 @@ use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, Ke
 use ratatui::layout::{Constraint, Rect};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{TableState, Widget};
+use ratatui::widgets::Widget;
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
@@ -28,13 +28,13 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 55] = [
+const PAGES: [(&str, &str); 61] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Header", "The app bar: brand, version, scope, path and the right side."),
     ("Title", "Where the person is, across the width."),
     ("Tabs", "The views of a screen; the current one has a heavy rule."),
     ("Page", "Rows that scroll: sections, columns, a selection, code."),
-    ("Table", "A ratatui table with Kiso's header and selection."),
+    ("Table", "Records in columns: a header on a fill, a selection, and its states."),
     ("StatusBadge", "A mark and a word, in the tone's color, plain or as a pill."),
     ("KeyHints", "The footer keys. Help and quit always stay."),
     ("Buttons", "Solid buttons, half a row of fill above and below."),
@@ -84,6 +84,12 @@ const PAGES: [(&str, &str); 55] = [
     ("StepBar", "One segment per step, for a table cell or a summary."),
     ("StepList", "The steps of a run, one row each, with a detail."),
     ("Lifecycle", "A detail header: status, verbs and the destructive action."),
+    ("KV", "The facts of one record: a muted key column, then the value."),
+    ("Pagination", "The pages of a long list on one row; the current one is filled."),
+    ("FilterInput", "The field that filters a list as the person types."),
+    ("Search", "The footer search: / starts it, the list marks each match."),
+    ("LogView", "Log lines that follow the end, pause when scrolled, and wrap."),
+    ("CodeBlock", "Code on a card surface, with line numbers and marked lines."),
 ];
 const FORM: usize = 9;
 const CARD: usize = 23;
@@ -404,7 +410,7 @@ impl App {
                 let page = list_page(t, width);
                 page.view(t, &self.scroll).selected(Some(1)).mark(if self.main { Mark::Bar } else { Mark::Dim }).render(area, buf);
             }
-            "Table" => table_page(t, buf, area),
+            "Table" => wave_05::table_page(t, buf, area),
             "StatusBadge" => badge_page(t, buf, area),
             "KeyHints" => wave_07::hints_page(t, buf, area),
             "Buttons" => buttons_page(t, buf, area),
@@ -495,6 +501,12 @@ impl App {
             "StepBar" => wave_09::step_bar_page(t, buf, area),
             "StepList" => wave_09::step_list_page(t, buf, area),
             "Lifecycle" => wave_09::lifecycle_page(t, buf, area),
+            "KV" => wave_05::kv_page(t, buf, area),
+            "Pagination" => wave_05::pagination_page(t, buf, area),
+            "FilterInput" => wave_05::filter_input_page(t, buf, area),
+            "Search" => wave_05::search_page(t, buf, area),
+            "LogView" => wave_05::log_view_page(t, buf, area),
+            "CodeBlock" => wave_05::code_block_page(t, buf, area),
             _ => grid_page(t, buf, area),
         }
     }
@@ -650,14 +662,6 @@ fn list_page(t: &Theme, width: usize) -> Page {
     page.blank();
     page.line(Line::styled("  The search \"pg-main\" keeps 2 of 4 and marks the match.", t.muted()));
     page
-}
-
-fn table_page(t: &Theme, buf: &mut Buffer, area: Rect) {
-    caption(t, buf, area, 0, "No selection. CPU % and Memory are numeric.");
-    machines(t).render(Rect::new(area.x, area.y + 1, area.width, 5).intersection(area), buf);
-    caption(t, buf, area, 7, "A selected row: a bar, and only the background changes.");
-    let rows = Rect::new(area.x, area.y + 8, area.width, 5).intersection(area);
-    ratatui::widgets::StatefulWidget::render(machines(t), rows, buf, &mut TableState::new().with_selected(1));
 }
 
 fn machines(t: &Theme) -> Table<'_> {
@@ -1407,3 +1411,8 @@ mod json;
 /// The pages of the field components.
 #[path = "support/wave_02.rs"]
 mod wave_02;
+
+/// The data display pages: table, key value, pagination, filter input,
+/// search, log view and code block.
+#[path = "support/wave_05.rs"]
+mod wave_05;
