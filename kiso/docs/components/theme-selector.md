@@ -120,13 +120,23 @@ server round-trip to repaint, and do not show a Toast for it.
 
 ## Terminal
 
-In a terminal, the theme selector is `tui-kiso` `ThemePicker`, in a
-[Modal](modal-dialog.md) titled Theme: dark or light on top, then each
-accent with its `primary` fill, its gradient and its name. The accent under
-the cursor is the selected row, and the screen redraws in that theme as
-the person moves. `↑` `↓` pick the accent, `←` `→` dark or light, `Enter`
-keeps it and `Esc` puts the theme before back. Dark is the default; see
-[terminal interfaces](../terminal-interfaces.md#color).
+In a terminal, the theme selector is `tui-kiso` `ThemePicker`, drawn by
+`PickerView` on an `Elevated` [Card](card.md) (`popover` surface) with no
+frame. A `Theme` title, a Mode row, then one row per accent with a swatch of
+two cells in its `primary` color before its name. The screen redraws in the
+theme under the cursor.
+
+| Part | Terminal form |
+| --- | --- |
+| mode | Two choices, Dark and Light. The current one is `primary-foreground` on `primary`, the other is `muted-foreground`. |
+| accent | A two-cell swatch, then the name in `foreground`. |
+| accent under the cursor | The selection fill across the row, the name in bold. The swatch keeps its color. |
+| keys | A hint row at the bottom of the card. |
+
+`↑` `↓` pick the accent, `←` `→` dark or light, `Enter` keeps it and `Esc`
+puts the theme before back. Dark is the default; see
+[terminal interfaces](../terminal-interfaces.md#color). For a single row of
+accents without the mode, use [Accent selector](accent-selector.md).
 
 ## When NOT to use
 

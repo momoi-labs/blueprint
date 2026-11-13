@@ -19,8 +19,10 @@
 //! ```
 
 mod accent;
+mod accent_selector;
 mod app_shell;
 mod backdrop;
+mod brand_mark;
 mod badge;
 mod breadcrumb;
 mod button;
@@ -66,9 +68,11 @@ mod skeleton;
 mod spinner;
 
 pub use accent::{Accent, ACCENTS};
+pub use accent_selector::AccentSelector;
 pub use app_shell::{AppShell, ShellAreas};
 pub use backdrop::{Backdrop, Canvas};
 pub use badge::Badge;
+pub use brand_mark::BrandMark;
 pub use breadcrumb::Breadcrumb;
 pub use button::{Button, ButtonState, ButtonVariant};
 pub use buttons::{Buttons, Press};

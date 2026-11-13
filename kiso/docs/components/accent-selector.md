@@ -139,6 +139,23 @@ server round-trip to repaint, and do not show a Toast for it.
 - Every accent passes the same [AA gate](../tokens.md#aa-gate) as the default,
   so the control does not need to warn about contrast.
 
+## Terminal
+
+In a terminal, the accent selector is `tui-kiso` `AccentSelector`: one row of
+swatches, each two cells of the accent's `primary`, with one free cell after
+each. It takes `AccentSelector::width()` columns, 37 for the 12 accents the
+crate has.
+
+| State | Terminal form |
+| --- | --- |
+| idle | Swatches only. |
+| current | Half a cell of `focus` on each side of the swatch, as the [Switch](switch.md) focus. |
+
+`←` `→` (or `h` `l`) move the mark and stop at the ends; the app owns the
+keys and calls `AccentSelector::key`. `.light(true)` shows the light
+swatches. For the accent and dark or light in one dialog, use
+[Theme selector](theme-selector.md).
+
 ## When NOT to use
 
 - A free colour picker. Kiso has thirteen accents; a product colour that is not

@@ -41,6 +41,19 @@ With frame scope `all`, the mark follows the selected corners like a control:
 Asymmetric, Pixel steps, or the Manga and Brush contour. See
 [Frames, scopes, and backgrounds](../tokens.md#frames-scopes-and-backgrounds).
 
+## Terminal
+
+In a terminal, BrandMark is `tui-kiso` `BrandMark`: the product name in text,
+with an optional `.glyph("◆")` before it. There is no block art.
+
+| Form | Terminal form |
+| --- | --- |
+| plain | Bold `primary` text. |
+| filled | `primary-foreground` on a `primary` fill, one cell of padding each side. `.filled(true)` |
+
+The [Header](header.md) draws the product and version in the filled form.
+Use `width()` to place the mark. Big text stays out of the crate.
+
 ## Radix/shadcn mapping
 
 There is no dedicated behavioral primitive. The React implementation uses

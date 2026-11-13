@@ -53,6 +53,13 @@ preview of the highlighted option without changing the selection. Use
 `isPlayPreviewKey` and `toggleAudioPreview` to implement it, and tell people
 about the key near the list. DetailSelect supports it already.
 
+## Terminal
+
+`tui-kiso` has no MediaPreview. Images need a terminal graphics protocol that
+many terminals lack. Show the file's facts, name, type and size, as key and
+value rows, and a [Link](link.md) that opens
+the file outside the terminal.
+
 ## Tokens and appearance
 
 The thumbnail uses `--radius-sm` and `--color-muted` behind images that are
