@@ -5,7 +5,7 @@ import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
 if (params.has('corners')) document.documentElement.dataset.cornerStyle = params.get('corners');
-for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail', 'appShellOuter', 'shadowStyle']) {
+for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail', 'appShellOuter', 'shadowStyle', 'outerShadowStyle', 'headerVariant', 'headerSize', 'appShell']) {
   if (params.has(key)) document.documentElement.dataset[key] = params.get(key);
 }
 function Sample({ id = 'sample', title = 'Environment' }) {
@@ -81,6 +81,15 @@ function Fixture() {
     )),
     h(AppShellPanel, { id: 'settings', hidden: params.has('hidePanel') }, 'Settings'),
   );
+  // A floating Header over scrolling content, in the Inset shell or bare.
+  if (params.has('floatingHeader')) {
+    const header = h(Header, { id: 'floating', variant: params.get('variant') || undefined, size: params.get('headerSizeProp') || undefined }, h(BrandMark, null, 'K'), 'Console', h(Button, { size: 'sm', style: { marginInlineStart: 'auto' } }, 'Deploy'));
+    const body = h('div', { className: 'page', id: 'floating-page' }, h('h1', null, 'Floating header'), h(Sample, { id: 'floating-card' }), h('div', { style: { height: '1600px' } }));
+    if (params.has('bare')) return h('div', { id: 'sample', style: { padding: '32px' } }, header, body);
+    return h(AppShell, { variant: params.get('shell') || undefined, id: 'sample' },
+      h('aside', { className: 'sidebar', id: 'rail' }, 'Navigation'),
+      h(AppShellMain, { id: 'outer' }, header, body));
+  }
   if (params.has('matrix')) return h('main', { className: 'page' },
     h('h1', null, 'Border style and corner shape'),
     h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 17rem), 1fr))', gap: 'var(--spacing-xl)' } },

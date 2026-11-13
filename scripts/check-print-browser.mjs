@@ -89,6 +89,8 @@ test('An ordinary dashboard prints its panes in order without overlap', async ()
     assert.equal(boxes.length, 3);
     for (let i = 1; i < boxes.length; i++) assert(boxes[i].top >= boxes[i - 1].bottom - 0.5, `Pane ${i + 1} starts below pane ${i}`);
     for (const chart of await page.locator('.chart-plot svg').all()) assert((await chart.boundingBox()).height > 0, 'The chart prints');
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { shadowStyle: 'soft', cornerStyle: 'pixel', frameScope: 'all' }));
+    assert.deepEqual(await page.locator('.grid-pane > .panel-shadow').evaluateAll(layers => layers.map(layer => getComputedStyle(layer).display)), ['none', 'none', 'none'], 'A pane prints without its shadow layer');
   } finally { await page.close(); }
 });
 

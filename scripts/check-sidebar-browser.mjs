@@ -168,3 +168,20 @@ for (const mode of ['plain', 'topbar']) {
     } finally { await page.close(); }
   });
 }
+
+test('A hovered navigation item steps its fill under Pixel corners', async () => {
+  const page = await open();
+  try {
+    const item = page.locator('.sidebar .nav-item:not([aria-current="page"])').first();
+    await item.hover();
+    const paint = () => item.evaluate(el => ({ color: getComputedStyle(el).backgroundColor, image: getComputedStyle(el).backgroundImage }));
+    const plain = await paint();
+    assert.equal(plain.image, 'none');
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { cornerStyle: 'pixel', frameScope: 'all' }));
+    const pixel = await paint();
+    assert.equal(pixel.color, 'rgba(0, 0, 0, 0)');
+    assert(pixel.image.startsWith(`linear-gradient(${plain.color}, ${plain.color})`), pixel.image);
+    await page.evaluate(() => { document.documentElement.dataset.frameScope = 'outer'; });
+    assert.deepEqual(await paint(), plain);
+  } finally { await page.close(); }
+});

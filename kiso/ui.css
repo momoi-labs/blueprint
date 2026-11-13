@@ -4063,6 +4063,23 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
    box. */
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible)) { clip-path: none; }
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible))::after { content: none; }
+/* A navigation item has no border, only a fill while hovered. Pixel steps the
+   corners of that fill in background layers, so the focus ring and the marker
+   of the current item, which sit outside the box, are not clipped. */
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .nav-item.nav-item {
+  --pixel-r: calc(6px * var(--appearance-scale, 1) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0)));
+  --pixel-step: calc(var(--pixel-r) / 3);
+  --pixel-fill: transparent;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill)), linear-gradient(var(--pixel-fill), var(--pixel-fill));
+  background-size: calc(100% - 2 * var(--pixel-r)) 100%, calc(var(--pixel-r) - var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), calc(var(--pixel-r) - var(--pixel-step)) calc(100% - 2 * var(--pixel-step)), var(--pixel-step) calc(100% - 2 * var(--pixel-r)), var(--pixel-step) calc(100% - 2 * var(--pixel-r));
+  background-position: center, left var(--pixel-step) center, right var(--pixel-step) center, left center, right center;
+}
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .nav-item:hover { --pixel-fill: var(--color-accent-surface-hover); }
+@media (forced-colors: active) {
+  :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) .nav-item.nav-item { background-image: none; }
+}
 /* Short surfaces cap their steps at the medium size, as switch tracks do, so
    each side keeps a straight run between its steps. */
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.btn.btn-xs, .badge, .skeleton-text) { --pixel-r: calc(min(calc(6px * var(--appearance-scale, 1)), 6px) * var(--appearance-pixel, 0) * (1 - var(--appearance-expressive, 0))); }
@@ -4320,7 +4337,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="plain"]::before, .topbar[data-variant="plain"]::before { content: none; }
 /* A floating header detaches from the page edges and stays pinned below the
    viewport top on a contact shadow, so content scrolls behind a raised bar. */
-.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"], .topbar[data-variant="floating"] { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--shadow-md); top: var(--spacing-md); }
+.app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"], .topbar[data-variant="floating"] { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--panel-shadow-legacy, var(--shadow-md)) var(--panel-shadow-projection, var(--panel-shadow-paint)); top: var(--spacing-md); }
 /* The document Appearance preference applies to a Header without an explicit
    variant, mirroring the explicit variant above. */
 :where([data-header-variant="plain"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
@@ -4328,7 +4345,61 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-header-variant="plain"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant]))::before,
 :where([data-header-variant="plain"]) .topbar:where(:not([data-variant]))::before { content: none; }
 :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
-:where([data-header-variant="floating"]) .topbar:where(:not([data-variant])) { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--shadow-md); top: var(--spacing-md); }
+:where([data-header-variant="floating"]) .topbar:where(:not([data-variant])) { position: sticky; margin: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--appearance-corners, var(--radius-surface)); box-shadow: var(--panel-shadow-legacy, var(--shadow-md)) var(--panel-shadow-projection, var(--panel-shadow-paint)); top: var(--spacing-md); }
+/* A floating header is a panel for data-shadow-style. Auto keeps the contact
+   shadow above. Hard and Soft cast the panel shadow, and None removes it. A
+   shaped contour paints through the .panel-shadow child, like a panel. */
+:is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) {
+  --panel-shadow-contour: var(--panel-shadow-ink-contour, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  --panel-shadow-shaped: max(var(--appearance-pixel, 0), var(--appearance-expressive, 0));
+  --panel-shadow-paint: var(--panel-shadow-x, 3px) var(--panel-shadow-y, 3px) var(--panel-shadow-blur, 0px) 0px color-mix(in srgb, var(--color-shadow-contact) calc((1 - var(--panel-shadow-shaped)) * 100%), transparent);
+  /* The floating bar owns its whole contour, so it drops the shell's header band clip. */
+  clip-path: none;
+}
+/* With frames on the outer shell only, the bar keeps its plain box and fill,
+   without the ink band of the shell header. */
+:where([data-frame-scope="outer"]) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) {
+  --panel-shadow-contour: 0 0, 100% 0, 100% 100%, 0 100%, 0 0;
+  --panel-shadow-shaped: 0;
+  background-color: var(--header-fill, var(--frame-fill, var(--color-background)));
+}
+:where([data-frame-scope="outer"]) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+)::before { content: none; }
+.topbar > .panel-shadow { display: none; }
+:is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) > .panel-shadow { display: var(--panel-shadow-layer, none); }
+@media (forced-colors: active) {
+  :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) { box-shadow: none; }
+  :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) > .panel-shadow { display: none; }
+}
 /* Pixel corners: a floating header is a surface of its own, so it takes the
    panel contour. The stepped ink draws the border, and the clip keeps the fill
    and the glass blur inside the steps. The header sits in the shell's main, so
@@ -4354,9 +4425,21 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   background-position: center top, center top var(--pixel-step), center, center bottom var(--pixel-step), center bottom;
   background-repeat: no-repeat;
   background-origin: border-box;
-  box-shadow: none;
-  /* Reach 1px past the border box so the ink ring is not trimmed on its outer edge. */
-  clip-path: polygon(calc(var(--pixel-r) - 1px) -1px, calc(100% + 1px - var(--pixel-r)) -1px, calc(100% + 1px - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-r)), -1px calc(100% + 1px - var(--pixel-r)), -1px calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) calc(var(--pixel-step) - 1px));
+  --panel-shadow-contour: var(--panel-shadow-ink-contour, var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step), var(--pixel-r) 0);
+  /* The box shadow is transparent on a stepped contour: the paint layer draws it. */
+  box-shadow: var(--panel-shadow-projection, var(--panel-shadow-paint));
+}
+/* Glass blurs the backdrop of the whole border box, so cut the corner steps
+   out of it. Everything outside the border box stays visible, so the clip
+   does not cut the shadow. The contour reaches 1px past the border box so the
+   ink ring keeps its outer edge. */
+:where([data-corner-style="pixel"][data-panel-fill="glass"]:not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) {
+  clip-path: polygon(evenodd, -40px -40px, calc(100% + 40px) -40px, calc(100% + 40px) calc(100% + 40px), -40px calc(100% + 40px), -40px -40px, -1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% + 1px), -1px calc(100% + 1px), -1px -1px, -40px -40px, calc(var(--pixel-r) - 1px) -1px, calc(100% + 1px - var(--pixel-r)) -1px, calc(100% + 1px - var(--pixel-r)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-step) - 1px), calc(100% + 1px - var(--pixel-step)) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(var(--pixel-r) - 1px), calc(100% + 1px) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-r)), calc(100% + 1px - var(--pixel-step)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px - var(--pixel-step)), calc(100% + 1px - var(--pixel-r)) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px), calc(var(--pixel-r) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-step)), calc(var(--pixel-step) - 1px) calc(100% + 1px - var(--pixel-r)), -1px calc(100% + 1px - var(--pixel-r)), -1px calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-r) - 1px), calc(var(--pixel-step) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) calc(var(--pixel-step) - 1px), calc(var(--pixel-r) - 1px) -1px);
 }
 :where([data-corner-style="pixel"]:not([data-frame-scope="outer"])) :is(
   .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
@@ -4374,6 +4457,40 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   clip-path: var(--corner-ink-clip, none);
   pointer-events: none;
   z-index: 1;
+}
+/* Manga and Brush: the floating bar draws the whole ink contour of its own
+   Appearance, like a panel, and not the open band of the shell header. */
+:where(:is([data-border-style="manga"], [data-border-style="brush"]):not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+) {
+  margin: calc(var(--spacing-md) + var(--appearance-effect-clearance, 0px) * var(--appearance-expressive, 0));
+  top: calc(var(--spacing-md) + var(--appearance-effect-clearance, 0px) * var(--appearance-expressive, 0));
+  border-color: color-mix(in srgb, var(--color-border) calc((1 - var(--appearance-expressive, 0)) * 100%), transparent);
+  background-color: color-mix(in srgb, var(--frame-fill, var(--color-background)) calc((1 - var(--appearance-expressive, 0)) * 100%), transparent);
+  /* Auto has no cast on an ink contour, like an expressive panel. */
+  box-shadow: var(--panel-shadow-projection, var(--panel-shadow-paint));
+}
+:where(:is([data-border-style="manga"], [data-border-style="brush"]):not([data-frame-scope="outer"])) :is(
+  .app-shell > :is(main, [data-slot="app-shell-main"]) > .topbar[data-variant="floating"],
+  .topbar[data-variant="floating"],
+  :where([data-header-variant="floating"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .topbar:where(:not([data-variant])),
+  :where([data-header-variant="floating"]) .topbar:where(:not([data-variant]))
+)::before {
+  content: var(--appearance-band-content, none);
+  position: absolute;
+  inset: var(--appearance-overlay-inset);
+  clip-path: var(--appearance-ink-clip);
+  background-color: var(--frame-fill, var(--color-background));
+  background-image: var(--appearance-ink-images);
+  background-size: var(--appearance-ink-image-size);
+  background-position: var(--appearance-ink-image-position);
+  background-repeat: no-repeat;
+  box-shadow: var(--appearance-ink-shadow);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* A grouped control gets its height from the shared frame. */
@@ -4670,7 +4787,7 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   :is(.app-shell, .app-shell > :is(main, [data-slot="app-shell-main"]))::before,
   .app-shell > :is(main, [data-slot="app-shell-main"])::after { content: none !important; }
   .topbar, .sidebar, .app-shell-panel, .bottom-nav, [data-slot="page-header-actions"],
-  .grid-pane-grip, .grid-pane-resizer, .pane-grid-rule, .pane-grid-free, .pane-grid-drop,
+  .grid-pane > .panel-shadow, .grid-pane-grip, .grid-pane-resizer, .pane-grid-rule, .pane-grid-free, .pane-grid-drop,
   .grid-pane-actions button, .chart-values, .chart-sync-marker, .chart-pin-readout { display: none !important; }
 
   .page { padding: 0; max-width: none; }

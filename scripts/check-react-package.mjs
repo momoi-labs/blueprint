@@ -245,7 +245,7 @@ try {
     assert.match(applicationShell, /aria-label="Primary"/);
     assert.match(applicationShell, /aria-current="page"[^>]*href="#app-1"/);
     assert.match(applicationShell, /data-phone-drawer="true"/);
-    assert.match(applicationShell, /<header [^>]*class="topbar"><button [^>]*aria-label="Open navigation"[^>]*>.*?<[/]button><span>Healthy/);
+    assert.match(applicationShell, /<header [^>]*class="topbar"><span class="panel-shadow" aria-hidden="true"><span><span><[/]span><[/]span><[/]span><button [^>]*aria-label="Open navigation"[^>]*>.*?<[/]button><span>Healthy/);
     assert.match(applicationShell, /<main [^>]*class="grow"/);
     const topbarShell = render(h(ApplicationShell, {
       layout: 'topbar',
