@@ -127,7 +127,8 @@
 .hero-panel-project { top: 85px; left: 0; z-index: 2; animation-duration: 7.5s; animation-delay: -2s; }
 .hero-panel-preferences { top: 145px; left: 25%; z-index: 1; animation-duration: 8.5s; animation-delay: -4s; }
 .hero-panel[data-front="true"] { z-index: 4; }
-.hero-panel .card { background: var(--color-elevated-surface); box-shadow: var(--shadow-sm), var(--shadow-lg); }
+/* The lifted hero shadow is the automatic look. A selected shadow style replaces it. */
+.hero-panel .card { background-color: color-mix(in srgb, var(--color-elevated-surface) calc((1 - var(--pixel-enabled, 0)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent); box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-sm), var(--shadow-lg)))) var(--panel-shadow-projection, var(--panel-shadow-paint)); }
 .studio-landing .hero-panel h2 { font-size: var(--type-size-h3); letter-spacing: -.02em; }
 .hero-panel .card-header, .hero-panel .card-body, .hero-panel .card-footer { padding: var(--spacing-lg); }
 .hero-panel .card-header + .card-body { padding-block-start: var(--spacing-sm); }
@@ -140,7 +141,7 @@
 .hero-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
 .hero-metrics > div { display: grid; gap: var(--spacing-xs); }
 .hero-metrics strong { font-size: var(--type-size-h1); font-weight: var(--type-weight-semibold); letter-spacing: -.04em; }
-.hero-panel .hero-preferences { display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.hero-panel .hero-preferences { display: grid; grid-template-columns: minmax(0, 1fr); }
 .hero-preferences-rail { display: none; }
 .hero-preferences-main { display: grid; gap: var(--spacing-md); padding: var(--spacing-lg); }
 .hero-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding-block: var(--spacing-sm); border-block-end: 1px solid var(--color-border); font-size: var(--type-size-label); }
@@ -150,10 +151,11 @@
 @keyframes hero-panel-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .hero-panel { animation: none; } }
 @media (max-width: 550px) { .hero-panel-stack { width: 70%; height: 475px; transform: rotateX(12deg) rotateZ(-4deg); } .hero-panel-identity { left: -16%; } .hero-panel-preferences { left: 16%; top: 185px; } .hero-panel-project { top: 110px; } .studio-landing .studio-scene { min-height: 535px; } }
-/* Overlapping examples need an opaque surface to keep their text readable. */
+/* Overlapping examples need an opaque surface to keep their text readable.
+   Shaped corners paint it from --frame-fill, so the box itself stays clear. */
 .intro-page.studio-landing .hero-panel .card {
   --frame-fill: var(--color-elevated-surface);
-  background-color: var(--color-elevated-surface);
+  background-color: color-mix(in srgb, var(--color-elevated-surface) calc((1 - var(--pixel-enabled, 0)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent);
 }
 
 /* The light boundary reveals the same real components in two themes. */
@@ -217,7 +219,7 @@
 .shell-assembly .steps-list > li[data-current="true"] .steps-marker { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-link) 22%, transparent); }
 .studio-landing .shell-assembly-replay { color: var(--color-muted-foreground); font-weight: var(--type-weight-regular); padding-inline: var(--spacing-xs); }
 .shell-assembly-stage { position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: var(--spacing-sm); min-height: 200px; align-content: start; font-size: var(--type-size-metadata); transform: perspective(900px) rotateX(6deg) rotateZ(-1.5deg); }
-.shell-assembly-piece { display: flex; gap: var(--spacing-xs); padding: var(--spacing-sm); box-shadow: var(--shadow-md); transition: opacity .45s cubic-bezier(.2, .8, .2, 1), translate .55s cubic-bezier(.2, .8, .2, 1); }
+.shell-assembly-piece { display: flex; gap: var(--spacing-xs); padding: var(--spacing-sm); box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-md)))) var(--panel-shadow-projection, var(--panel-shadow-paint)); transition: opacity .45s cubic-bezier(.2, .8, .2, 1), translate .55s cubic-bezier(.2, .8, .2, 1); }
 .shell-assembly-header { grid-column: 1 / -1; align-items: center; justify-content: space-between; }
 .shell-assembly-sidebar { flex-direction: column; grid-row: 2; }
 .shell-assembly-content { flex-direction: column; grid-row: 2; grid-column: 2; min-width: 0; }
@@ -225,7 +227,7 @@
 .shell-assembly-content .table { --table-cell-inline: var(--spacing-xs); font-size: var(--type-size-metadata); }
 .shell-assembly-content .table thead th { font-size: var(--type-size-metadata); }
 .shell-assembly-content .badge { font-size: var(--type-size-metadata); padding-inline: var(--spacing-xs); }
-.shell-assembly-sidebar > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-assembly-sidebar > :not(.panel-shadow) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shell-assembly-stage[data-sidebar="false"] .shell-assembly-content { grid-column: 1 / -1; }
 .shell-assembly-stage[data-header="false"] .shell-assembly-header { position: absolute; inset: 0 0 auto; opacity: 0; translate: 0 -24px; }
 .shell-assembly-stage[data-sidebar="false"] .shell-assembly-sidebar { position: absolute; opacity: 0; translate: -32px 0; }
