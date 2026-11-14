@@ -1,5 +1,13 @@
 # kiso-tokens
 
+## 0.6.0
+
+### Minor Changes
+
+- 60c29b7: Add the `pine` accent: a deep green ink and fill with a sage step, warmer and
+  greener than `teal`. Neutrals stay unchanged. The `kiso-tokens` crate gains
+  `PINE_LIGHT` and `PINE_DARK`, and the tui-kiso theme picker lists the accent.
+
 ## 0.5.0
 
 ### Minor Changes
