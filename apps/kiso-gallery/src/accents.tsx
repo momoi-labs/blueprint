@@ -33,6 +33,7 @@ const about: Record<Accent, string> = {
   plum: "Same roles, hue turned to plum, between violet and red.",
   stone: "Warm gray in the paper's hue. The dark fill is light, with dark text.",
   steel: "Blue-gray, with enough chroma to read apart from stone.",
+  pine: "Deep green ink and fill with a sage step, warmer and greener than teal.",
   snes: "Super Nintendo: purple ink over beige in light, plum in dark.",
 };
 

@@ -14,6 +14,7 @@ export const accents = [
   "stone",
   "steel",
   "snes",
+  "pine",
 ] as const;
 
 export type Accent = (typeof accents)[number];

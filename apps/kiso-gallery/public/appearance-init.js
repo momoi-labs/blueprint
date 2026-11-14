@@ -2,7 +2,7 @@
 (() => {
   const options = {
     theme: ["system", "light", "dark"],
-    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes"],
+    accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine"],
     neutral: ["warm", "zinc"],
     primary: ["accent", "contrast"],
     typeface: ["inter", "dm-sans"],

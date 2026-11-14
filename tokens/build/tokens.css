@@ -185,6 +185,17 @@
   --color-snes-900: #32207e;
   --color-snes-950: #221553;
   --color-snes-base: light-dark(#5a3bb5, #a99bea);
+  --color-pine-50: #e7f3e3;
+  --color-pine-200: #e1efd9;
+  --color-pine-300: #c8e0b4;
+  --color-pine-400: #a7c97a;
+  --color-pine-500: #6fae74;
+  --color-pine-600: #2f8f6a;
+  --color-pine-700: #1f7358;
+  --color-pine-800: #16524b;
+  --color-pine-900: #0b3d3b;
+  --color-pine-950: #062826;
+  --color-pine-base: light-dark(#0b3d3b, #c2dca0);
   --color-background: light-dark(var(--color-neutral-200), var(--color-dark-900));
   --color-surface: light-dark(var(--color-neutral-100), var(--color-dark-800));
   --color-elevated-surface: light-dark(var(--color-white), var(--color-dark-700));
@@ -754,6 +765,31 @@
   --color-ring: var(--color-focus);
   --color-corner-mark: var(--color-border-strong);
   --color-code-comment: var(--color-muted-foreground);
+  --color-code-name: var(--color-accent);
+}
+
+[data-accent="pine"] {
+  --color-accent-50: var(--color-pine-50);
+  --color-accent-200: var(--color-pine-200);
+  --color-accent-300: var(--color-pine-300);
+  --color-accent-400: var(--color-pine-400);
+  --color-accent-500: var(--color-pine-500);
+  --color-accent-600: var(--color-pine-600);
+  --color-accent-700: var(--color-pine-700);
+  --color-accent-800: var(--color-pine-800);
+  --color-accent-900: var(--color-pine-900);
+  --color-accent-950: var(--color-pine-950);
+  --color-accent-base: var(--color-pine-base);
+  --color-primary: light-dark(var(--color-pine-base), #a7c97a);
+  --color-primary-hover: light-dark(#16524b, #c2dca0);
+  --color-primary-foreground: light-dark(var(--color-white), var(--color-neutral-900));
+  --color-accent-surface: light-dark(var(--color-pine-50), #1b4039);
+  --color-accent-surface-hover: light-dark(var(--color-pine-200), #244d44);
+  --color-selected: light-dark(var(--color-pine-300), #2e5e54);
+  --color-accent: light-dark(var(--color-accent-800), var(--color-accent-300));
+  --color-focus: var(--color-accent-base);
+  --color-link: var(--color-accent-base);
+  --color-ring: var(--color-focus);
   --color-code-name: var(--color-accent);
 }
 

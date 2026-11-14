@@ -181,9 +181,9 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 ## Accents
 
 The accent is a second axis over the same custom properties, orthogonal to the
-theme. Thirteen accents ship: `violet` (the default), `terracotta`, `teal`,
+theme. Fourteen accents ship: `violet` (the default), `terracotta`, `teal`,
 `cobalt`, `nocturne`, `tangerine`, `red`, `gold`, `lime`, `plum`, `stone`,
-`steel`, and `snes`. Violet, terracotta, teal, cobalt and plum are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
+`steel`, `snes`, and `pine`. Violet, terracotta, teal, cobalt, plum and pine are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
 and so on) with the same lightness per step, so every role keeps the contrast
 it was gated at.
 `color.accent.*` is the *active* ramp: an alias layer that points at violet by
@@ -232,7 +232,7 @@ the hue was tried and rejected; at any visible strength it reads as a filter
 over the screen rather than as a colour choice.
 
 Values inside the block still use `light-dark()`, so accent and theme compose
-without a cross product. Twelve accents and two themes need twelve blocks.
+without a cross product. Fourteen accents and two themes need fourteen blocks.
 Nesting resets cleanly: a `data-accent="violet"` container inside a teal page
 is violet again.
 
@@ -255,6 +255,10 @@ paper's hue: a dark ink fill in light, and a light stone fill with dark text in
 dark. `steel` is a blue-gray with enough chroma to read apart from stone. A gray
 link has about the colour of `muted-foreground`, so under either accent plain
 links (`a` without a class, and `.link`) carry an underline at rest.
+
+`pine` is the sewa brand green: a deep green ink and fill, with a sage step. In dark the
+fill is sage (`#a7c97a`) with dark text, and the ink is a lighter sage (`#c2dca0`). Its hue is warmer and greener than `teal`, so the two read as
+different accents side by side. Neutrals stay unchanged.
 
 Applications own the choice and its persistence, exactly as with the theme.
 Use [AccentSelector](components/accent-selector.md) for the control.
