@@ -145,7 +145,7 @@ const USAGE: &str = "\
 Usage: gallery [--accent <name>] [--light] [--256] [--snapshot <dir>] [--json <file>]
 
   --accent <name>    violet, terracotta, teal, cobalt, nocturne, tangerine,
-                     red, gold, lime, plum, stone or steel. Default: gold.
+                     red, gold, lime, plum, stone, steel or pine. Default: gold.
   --light            Start with the light theme.
   --256              Send xterm-256 colors, as on a terminal without
                      truecolor.

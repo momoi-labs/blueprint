@@ -184,6 +184,17 @@ $color-snes-800: #462cad;
 $color-snes-900: #32207e;
 $color-snes-950: #221553;
 $color-snes-base: #a99bea; // The snes ink: link and focus colour, text-eligible in both themes.
+$color-pine-50: #e7f3e3;
+$color-pine-200: #e1efd9;
+$color-pine-300: #c8e0b4;
+$color-pine-400: #a7c97a;
+$color-pine-500: #6fae74;
+$color-pine-600: #2f8f6a;
+$color-pine-700: #1f7358;
+$color-pine-800: #16524b;
+$color-pine-900: #0b3d3b;
+$color-pine-950: #062826;
+$color-pine-base: #c2dca0; // Text and focus ink, text-eligible in both themes.
 $semantic-background: #211f1c; // App canvas. Surface role, never text.
 $semantic-surface: #2d2b28; // Cards, panels, table rows. Surface role.
 $semantic-elevated-surface: #3a3834; // Menus, popovers, dialogs. Surface role.
@@ -508,6 +519,23 @@ $accent-snes-disabled: #48463f;
 $accent-snes-disabled-surface: #32312c;
 $accent-snes-skeleton: #3b3a34;
 $accent-snes-hatch: #3b3a34;
+$accent-pine-accent-50: #e7f3e3;
+$accent-pine-accent-200: #e1efd9;
+$accent-pine-accent-300: #c8e0b4;
+$accent-pine-accent-400: #a7c97a;
+$accent-pine-accent-500: #6fae74;
+$accent-pine-accent-600: #2f8f6a;
+$accent-pine-accent-700: #1f7358;
+$accent-pine-accent-800: #16524b;
+$accent-pine-accent-900: #0b3d3b;
+$accent-pine-accent-950: #062826;
+$accent-pine-accent-base: #c2dca0;
+$accent-pine-primary: #a7c97a; // The primary fill. Light: the ink. Dark: the sage fill, with dark text.
+$accent-pine-primary-hover: #c2dca0;
+$accent-pine-primary-foreground: #1b1a1e;
+$accent-pine-accent-surface: #1b4039;
+$accent-pine-accent-surface-hover: #244d44;
+$accent-pine-selected: #2e5e54;
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

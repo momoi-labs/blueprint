@@ -223,6 +223,18 @@ export const colorSnes900: string;
 export const colorSnes950: string;
 /** The snes ink: link and focus colour, text-eligible in both themes. */
 export const colorSnesBase: string;
+export const colorPine50: string;
+export const colorPine200: string;
+export const colorPine300: string;
+export const colorPine400: string;
+export const colorPine500: string;
+export const colorPine600: string;
+export const colorPine700: string;
+export const colorPine800: string;
+export const colorPine900: string;
+export const colorPine950: string;
+/** Text and focus ink, text-eligible in both themes. */
+export const colorPineBase: string;
 /** App canvas. Surface role, never text. */
 export const semanticBackground: string;
 /** Cards, panels, table rows. Surface role. */
@@ -624,6 +636,24 @@ export const accentSnesDisabled: string;
 export const accentSnesDisabledSurface: string;
 export const accentSnesSkeleton: string;
 export const accentSnesHatch: string;
+export const accentPineAccent50: string;
+export const accentPineAccent200: string;
+export const accentPineAccent300: string;
+export const accentPineAccent400: string;
+export const accentPineAccent500: string;
+export const accentPineAccent600: string;
+export const accentPineAccent700: string;
+export const accentPineAccent800: string;
+export const accentPineAccent900: string;
+export const accentPineAccent950: string;
+export const accentPineAccentBase: string;
+/** The primary fill. Light: the ink. Dark: the sage fill, with dark text. */
+export const accentPinePrimary: string;
+export const accentPinePrimaryHover: string;
+export const accentPinePrimaryForeground: string;
+export const accentPineAccentSurface: string;
+export const accentPineAccentSurfaceHover: string;
+export const accentPineSelected: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */
