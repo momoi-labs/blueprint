@@ -60,6 +60,9 @@ padding, and measure again on resize and when the page attributes change.
   Content scrolls under it.
 - The sidebar and the settings panel start below the bar: bar height plus
   `2 * --spacing-md`.
+- The bar row is one surface across the full width. A background canvas
+  stays behind main on section pages. On the home page, with no sidebar, it
+  runs behind the bar too.
 
 ## Invariants
 
