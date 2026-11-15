@@ -1,5 +1,5 @@
 import { usePaneLayout } from "./use-pane-layout";
-import { BookOpen, Boxes, ChevronDown, Compass, FileText, Globe, Layers, LayoutDashboard, LayoutGrid, LayoutTemplate, ListTree, MessageSquare, PanelLeft, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, SquareTerminal, Table2, TextCursorInput, ToggleLeft, UserRound, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Boxes, ChevronDown, Compass, FileText, Globe, Layers, LayoutDashboard, LayoutGrid, LayoutTemplate, ListTree, MessageSquare, PanelLeft, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, SquareTerminal, Table2, TextCursorInput, ToggleLeft, UserRound, X, Palette, type LucideIcon } from "lucide-react";
 import { VisuallyHidden } from "radix-ui";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
@@ -25,7 +25,7 @@ import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
 import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
 import { FeatureGridDemo, FeatureListDemo, PerspectiveStackDemo, SiteFooterDemo, SiteHeaderDemo, SiteHeadingDemo, SiteSectionDemo, WindowFrameDemo } from "./site-demo";
-import { Fragment, memo, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Fragment, memo, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   AccentSelector,
   type Accent,
@@ -183,6 +183,7 @@ import {
   PasswordInput,
   ValidationMessage,
   useToast,
+  accents as accentList,
 } from "@momoi-labs/kiso-react";
 
 const catalog = [
@@ -2158,6 +2159,21 @@ function sizeRank(size: "wide" | "full" | undefined) {
   return size === "full" ? 0 : size === "wide" ? 1 : 2;
 }
 
+// The appearance settings write data-app-shell and data-header-variant on the
+// root element. The shell layout follows them.
+function subscribeRootLook(listener: () => void) {
+  const observer = new MutationObserver(listener);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-app-shell", "data-header-variant"] });
+  return () => observer.disconnect();
+}
+function readRootLook() {
+  const { appShell = "", headerVariant = "" } = document.documentElement.dataset;
+  return `${appShell} ${headerVariant}`;
+}
+function useRootLook() {
+  return useSyncExternalStore(subscribeRootLook, readRootLook).split(" ");
+}
+
 export function ComponentGallery({
   route,
   version,
@@ -2198,10 +2214,8 @@ export function ComponentGallery({
   const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
   const demoSettings = useContext(DemoSettingsContext);
   const [optionsLinkTarget, setOptionsLinkTarget] = useState<HTMLSpanElement | null>(null);
-  const [pagesCollapsed, setPagesCollapsed] = useState(() => route === "intro");
-  // The TUI screen lists its own components, so there the navigation starts
-  // closed, and opening it does not open it on the other pages.
-  const [terminalCollapsed, setTerminalCollapsed] = useState(true);
+  // One open state for every section page. Home has no sidebar.
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1024px)").matches);
   useEffect(() => {
     const media = matchMedia("(min-width: 1024px)");
@@ -2223,8 +2237,45 @@ export function ComponentGallery({
   const showingIntro = route === "intro" && intro !== undefined;
   const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
   const showingAccents = route === "accents" && accents !== undefined;
-  const navigationCollapsed = showingTerminal ? terminalCollapsed : pagesCollapsed;
-  const setNavigationCollapsed = showingTerminal ? setTerminalCollapsed : setPagesCollapsed;
+  // The logo follows the header variant. A floating header is a full-width
+  // pill that holds the logo on every page; any other header leaves it to the
+  // sidebar header. On an inset home with a non-floating header, the bar
+  // leaves the card and spans the page on the outer surface.
+  const [appShell, headerVariant] = useRootLook();
+  const floating = headerVariant === "floating";
+  const homeBar = desktop && showingIntro && appShell === "inset" && !floating;
+  const pageBar = desktop && (floating || homeBar);
+  // With a contained page, the home bar's row follows the home content
+  // column. The column is measured, not recomputed in CSS, so the intro's
+  // edge-to-edge bleed, the card border and a classic scrollbar all count.
+  useEffect(() => {
+    if (!homeBar) return;
+    const gallery = document.querySelector<HTMLElement>(".component-gallery");
+    if (!gallery) return;
+    let wrap: Element | null = null;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const next = gallery.querySelector(".studio-landing .studio-wrap");
+      if (next !== wrap) { if (wrap) resize.unobserve(wrap); wrap = next; if (wrap) resize.observe(wrap); }
+      const bar = gallery.querySelector(":scope > .catalog-header");
+      if (!wrap || !bar) return;
+      const b = bar.getBoundingClientRect(), w = wrap.getBoundingClientRect(), cs = getComputedStyle(wrap);
+      gallery.style.setProperty("--catalog-col-start", `${w.left + parseFloat(cs.paddingLeft) - b.left}px`);
+      gallery.style.setProperty("--catalog-col-end", `${b.right - (w.right - parseFloat(cs.paddingRight))}px`);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(gallery);
+    const mutations = new MutationObserver(schedule);
+    mutations.observe(gallery, { childList: true, subtree: true });
+    mutations.observe(document.documentElement, { attributes: true, attributeFilter: ["data-page-width", "data-page-align"] });
+    measure();
+    return () => {
+      cancelAnimationFrame(frame); resize.disconnect(); mutations.disconnect();
+      gallery.style.removeProperty("--catalog-col-start"); gallery.style.removeProperty("--catalog-col-end");
+    };
+  }, [homeBar]);
   const browsing = !showingExample && !showingIntro && !showingTerminal && !showingAccents && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
@@ -2304,6 +2355,29 @@ export function ComponentGallery({
         </NavigationList>
       </NavigationGroup>
     </Navigation>
+  ) : showingAccents ? (
+    <Navigation aria-label="Accents">
+      <NavigationGroup label="Accents">
+        <NavigationList>
+          {accentList.map((name) => (
+            <NavigationItem key={name}>
+              <NavigationLink
+                href="#accents"
+                className="sidebar-link-with-icon"
+                title={name}
+                onClick={(event) => {
+                  event.preventDefault();
+                  document.getElementById(`accents-${name}`)?.scrollIntoView({ block: "start" });
+                }}
+              >
+                <span className="sidebar-link-icon" aria-hidden="true"><Palette className="icon" /></span>
+                <span className="sidebar-link-label grow truncate">{name[0].toUpperCase() + name.slice(1)}</span>
+              </NavigationLink>
+            </NavigationItem>
+          ))}
+        </NavigationList>
+      </NavigationGroup>
+    </Navigation>
   ) : showingExample && examples.length > 0 ? (
     <Navigation aria-label="Example layouts">
       <NavigationGroup label="Layouts">
@@ -2363,7 +2437,7 @@ export function ComponentGallery({
   const navigationDrawer = (
     <DrawerContent id="component-navigation-drawer" placement="side" className="app-shell-drawer catalog-sheet" aria-describedby={undefined}>
             <DrawerHeader>
-              <VisuallyHidden.Root asChild><DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></VisuallyHidden.Root>
+              <VisuallyHidden.Root asChild><DrawerTitle>{showingTerminal ? "TUI" : showingAccents ? "Accents" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></VisuallyHidden.Root>
               {brandLink}
               <DrawerClose asChild><Button className="btn-icon catalog-quiet-icon" size="sm" variant="ghost" aria-label="Close navigation" title="Close navigation"><X className="icon" aria-hidden="true" /></Button></DrawerClose>
             </DrawerHeader>
@@ -2401,43 +2475,8 @@ export function ComponentGallery({
           </DrawerContent>
   );
 
-  return (
-    <AppShell
-      className={`component-gallery${showingIntro ? " catalog-landing" : ""}`}
-    >
-      {!phone && <Sidebar
-        id="component-navigation"
-        // Narrow navigation lives in the drawer instead of taking a grid row.
-        hidden={!desktop}
-        // Closed, the sidebar is Kiso's icon rail.
-        collapsed={navigationCollapsed}
-        className="catalog-sidebar"
-      >
-        {/* The brand and the toggle share the top bar's height and bottom line. */}
-        <SidebarHeader className="sidebar-header-collapsible catalog-sidebar-header">
-          <div className="sidebar-expanded-content">{brandLink}</div>
-          {/* One button in both states, so focus stays on it. In the rail it
-              shows the mark, and hover or focus turns it into the expand icon. */}
-          <Button className="catalog-sidebar-toggle btn-icon catalog-quiet-icon" size="sm" variant="ghost"
-            aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
-            title={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
-            aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
-            onClick={toggleNavigation}>
-            {navigationCollapsed ? <>
-              <span className="catalog-rail-mark" aria-hidden="true">{brandMark}</span>
-              <PanelLeftOpen className="icon catalog-rail-open" aria-hidden="true" />
-            </> : <PanelLeftClose className="icon" aria-hidden="true" />}
-          </Button>
-        </SidebarHeader>
-        <SidebarBody>
-          {destinations}
-        </SidebarBody>
-        {!settingsEnabled && <SidebarFooter className="sidebar-expanded-content">
-          <ThemeSelector theme={theme} onChange={onThemeChange} />
-        </SidebarFooter>}
-      </Sidebar>}
-      <AppShellMain>
-        <Header className="catalog-header">
+  const topBar = (
+        <Header className="catalog-header" data-catalog-bar={pageBar ? "page" : undefined}>
           {searching ? <>
             <Search
               aria-label="Find a component"
@@ -2465,8 +2504,9 @@ export function ComponentGallery({
             >
               <PanelLeft className="icon" aria-hidden="true" />
             </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
-          {/* From 1024px the brand lives in the sidebar header. */}
-          {!desktop && (
+          {/* From 1024px the brand lives in the sidebar header, except on home
+              and in a floating pill. */}
+          {(!desktop || pageBar || showingIntro) && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
               {brandMark}
             </a>
@@ -2525,6 +2565,49 @@ export function ComponentGallery({
           </div>
           </>}
         </Header>
+  );
+
+  return (
+    <AppShell
+      className={`component-gallery${showingIntro ? " catalog-landing" : ""}`}
+      data-catalog-layout={showingIntro ? "home" : "section"}
+    >
+      {pageBar && topBar}
+      {!phone && <Sidebar
+        id="component-navigation"
+        // Narrow navigation lives in the drawer instead of taking a grid row.
+        // Home has no sidebar.
+        hidden={!desktop || showingIntro}
+        // Closed, the sidebar is Kiso's icon rail.
+        collapsed={navigationCollapsed}
+        className="catalog-sidebar"
+      >
+        {/* The brand and the toggle share the top bar's height and bottom line.
+            In a floating pill the brand is in the bar, so only the toggle stays. */}
+        <SidebarHeader className="sidebar-header-collapsible catalog-sidebar-header">
+          {!floating && <div className="sidebar-expanded-content">{brandLink}</div>}
+          {/* One button in both states, so focus stays on it. In the rail it
+              shows the mark, and hover or focus turns it into the expand icon. */}
+          <Button className="catalog-sidebar-toggle btn-icon catalog-quiet-icon" size="sm" variant="ghost"
+            aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
+            title={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
+            aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
+            onClick={toggleNavigation}>
+            {navigationCollapsed ? <>
+              {!floating && <span className="catalog-rail-mark" aria-hidden="true">{brandMark}</span>}
+              <PanelLeftOpen className="icon catalog-rail-open" aria-hidden="true" />
+            </> : <PanelLeftClose className="icon" aria-hidden="true" />}
+          </Button>
+        </SidebarHeader>
+        <SidebarBody>
+          {destinations}
+        </SidebarBody>
+        {!settingsEnabled && <SidebarFooter className="sidebar-expanded-content">
+          <ThemeSelector theme={theme} onChange={onThemeChange} />
+        </SidebarFooter>}
+      </Sidebar>}
+      <AppShellMain>
+        {!pageBar && topBar}
         <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
           {!browsing && !showingExample && !showingTerminal && !showingAccents && (

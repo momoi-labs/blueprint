@@ -550,7 +550,9 @@ for (const width of [320, 1440]) test(`Appearance samples stay centered and isol
       const left = await page.locator('.component-gallery .catalog-sidebar-toggle').boundingBox();
       const right = await page.locator('.gallery-settings-trigger').boundingBox();
       const end = header.x + header.width - right.x - right.width;
-      assert(end <= 24, 'The settings toggle keeps a small outer margin');
+      // A floating bar pads its end by at least its radius, inside its border.
+      const curve = await page.locator('.catalog-header').evaluate(el => parseFloat(getComputedStyle(el).borderTopRightRadius) + parseFloat(getComputedStyle(el).borderRightWidth));
+      assert(end <= Math.max(24, curve), 'The settings toggle keeps a small outer margin');
       // A floating bar leaves the sidebar header's line on purpose.
       const floating = await page.evaluate(() => document.documentElement.dataset.headerVariant === 'floating');
       if (!floating) assert(Math.abs((left.y + left.height / 2) - (right.y + right.height / 2)) <= 1, 'Both toggles share a center line');
@@ -749,8 +751,9 @@ test('Intro keeps its reading width while scrolling at the frame edge', async ()
   } finally { await page.close(); }
 });
 
+// Intro has no sidebar, so the toggles are measured on a section page.
 test('Header toggle spacing stays stable as either rail opens and closes', async () => {
-  const page = await open('intro', 1440);
+  const page = await open('components', 1440);
   try {
     const spacing = () => page.evaluate(() => {
       const box = selector => document.querySelector(selector).getBoundingClientRect();
@@ -758,7 +761,10 @@ test('Header toggle spacing stays stable as either rail opens and closes', async
       const left = box('.component-gallery .catalog-sidebar-toggle');
       const right = box('.gallery-settings-trigger'), nav = box('.catalog-header > nav');
       const floating = document.querySelector('.catalog-header').matches('[data-variant="floating"]') || document.documentElement.dataset.headerVariant === 'floating';
-      return { end: header.right - right.right, gap: nav.left - sidebar.right, floating, leftY: left.y + left.height / 2, rightY: right.y + right.height / 2 };
+      // A floating bar pads its end by at least its radius, inside its border.
+      const css = getComputedStyle(document.querySelector('.catalog-header'));
+      const curve = floating ? parseFloat(css.borderTopRightRadius) + parseFloat(css.borderRightWidth) : 0;
+      return { end: header.right - right.right, curve, gap: nav.left - sidebar.right, floating, leftY: left.y + left.height / 2, rightY: right.y + right.height / 2 };
     });
     const initial = await spacing();
     for (const width of [1440, 1200]) {
@@ -772,28 +778,15 @@ test('Header toggle spacing stays stable as either rail opens and closes', async
           for (const settingsOpen of [true, false]) {
             if (settingsOpen) await settings(page); else await close(page);
             const measured = await spacing();
-            assert(measured.gap >= 0, `${preset}/${width}: the tabs start after the sidebar`);
-            assert(measured.end <= 24, `${preset}/${width}: small end inset`);
+            // A floating bar spans the page above the sidebar.
+            if (!measured.floating) assert(measured.gap >= 0, `${preset}/${width}: the tabs start after the sidebar`);
+            assert(measured.end <= Math.max(24, measured.curve), `${preset}/${width}: small end inset`);
             // A floating bar leaves the sidebar header's line on purpose.
             if (!measured.floating) assert(Math.abs(measured.leftY - measured.rightY) <= 1, `${preset}/${width}: toggles share a center line`);
           }
         }
       }
     }
-  } finally { await page.close(); }
-});
-
-test('Intro stacks within the space left by both rails', async () => {
-  const page = await open('appearance', 1200);
-  try {
-    const panel = await settings(page);
-    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
-    await page.getByRole('button', { name: 'Expand navigation', exact: true }).click();
-    const copy = await page.locator('.studio-copy').boundingBox();
-    const sample = await page.locator('.studio-scene').boundingBox();
-    assert(sample.y >= copy.y + copy.height, 'A narrow content column stacks the hero instead of squeezing two columns');
-    const hero = await page.locator('.studio-hero').boundingBox();
-    assert(sample.width <= hero.width + 1);
   } finally { await page.close(); }
 });
 
@@ -967,20 +960,24 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
     const expanded = 'Collapse navigation';
     const collapsed = phone ? 'Browse' : 'Expand navigation';
     const nav = page.getByRole('navigation', { name: 'Component categories', exact: true });
-    await page.getByRole('button', { name: collapsed, exact: true }).click();
-    assert(await nav.isVisible());
-    if (phone) await page.keyboard.press('Escape');
+    // A desktop Intro is the home and has no sidebar; a phone opens the drawer.
+    if (phone) {
+      await page.getByRole('button', { name: collapsed, exact: true }).click();
+      assert(await nav.isVisible());
+      await page.keyboard.press('Escape');
+    } else assert.equal(await nav.isVisible(), false, 'Intro has no sidebar on desktop');
     await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Components', exact: true }).click();
     await page.waitForURL(`${url}#components`);
     await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
-    // On desktop the open sidebar holds the brand; on a phone the top bar does.
-    await page.locator(phone ? '.catalog-header-brand' : '.component-gallery .catalog-sidebar .catalog-brand').click();
+    if (!phone) assert(await nav.isVisible(), 'Section pages open the sidebar');
+    // The brand sits in the sidebar header, the floating bar or the phone's top bar.
+    await page.locator('.component-gallery .catalog-brand:visible').first().click();
     await page.waitForURL(`${url}#intro`);
     if (phone) {
       await page.getByRole('button', { name: collapsed, exact: true }).waitFor();
       await page.getByRole('button', { name: collapsed, exact: true }).click();
     }
-    assert(await nav.isVisible());
+    await nav.waitFor({ state: phone ? 'visible' : 'hidden' });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   } finally { await page.close(); }
 });

@@ -447,8 +447,10 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
   const page = await open(1440);
   try {
     await page.goto(`${url}#components`);
+    // With a default or plain header, the sidebar header owns the brand.
+    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "default" }));
     const navigation = page.locator(".catalog-sidebar");
-    if (!await navigation.isVisible()) await page.getByRole("button", { name: "Expand navigation", exact: true }).click();
+    await navigation.locator(".kiso-brand").waitFor();
     assert.equal(await page.locator(".catalog-header-brand").count(), 0, "An open desktop sidebar owns the brand");
     for (const theme of ["light", "dark"]) for (const accent of ["snes", "gold"]) {
       await page.evaluate(({ theme, accent }) => window.kisoAppearance.save({ ...window.kisoAppearance.read(), theme, accent }), { theme, accent });
@@ -466,6 +468,10 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
     // The closed sidebar is the icon rail, and the rail keeps the mark.
     await page.locator(".component-gallery .catalog-sidebar[data-collapsed='true'] .catalog-rail-mark .kiso-brand").waitFor();
     assert.equal(await page.locator(".catalog-header-brand").count(), 0, "The rail owns the brand on desktop");
+    // The floating header keeps the brand in the full-width pill instead.
+    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));
+    await page.locator(".catalog-header[data-catalog-bar='page'] .catalog-header-brand .kiso-brand").waitFor();
+    assert.equal(await page.locator(".catalog-sidebar .kiso-brand").count(), 0, "The floating rail has no mark");
     for (const width of [768, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.locator(".catalog-header-brand .kiso-brand").waitFor();
