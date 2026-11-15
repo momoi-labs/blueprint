@@ -64,6 +64,21 @@ padding, and measure again on resize and when the page attributes change.
   stays behind main on section pages. On the home page, with no sidebar, it
   runs behind the bar too.
 
+## Settings panel open
+
+From 1024px the settings panel docks as a column at the end of the shell.
+Below 1024px it opens as an overlay and the grid does not change.
+
+- The Header keeps the layout of its page type and stays one row. A
+  floating Header still spans the screen. Brand, tabs, version, search and
+  the gear stay inside the bar.
+- Place the panel in the last grid column (`grid-column: -2`). Do not leave
+  it to auto-placement: a background canvas that covers every cell pushes it
+  into an extra implicit column, and main and the bar shrink to the first
+  tracks.
+- The panel follows the sidebar's top rule: below the bar when the bar spans
+  its column, at the top of the frame when the bar sits beside it.
+
 ## Invariants
 
 - The brand does not move when the sidebar opens or closes.
