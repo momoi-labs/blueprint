@@ -603,30 +603,33 @@
 .catalog-rail-open { display: none; }
 .catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-mark { display: none; }
 .catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-open { display: block; }
+/* Without the mark (the floating pill holds it), the expand icon always shows. */
+.catalog-sidebar-toggle:not(:has(> .catalog-rail-mark)) > .catalog-rail-open { display: block; }
 
 /* From 1024px the brand is in the sidebar, so the page links start the top
    bar at the content's left padding, and the tools sit at its end. */
 @media (min-width: 1024px) {
-  .component-gallery .catalog-header-identity { display: none; }
+  .component-gallery .catalog-header-identity:not(:has(> .catalog-brand)) { display: none; }
+  .component-gallery .catalog-header-identity > .catalog-menu { display: none; }
   .component-gallery .catalog-header:not(:has(> [data-slot="search"])) { display: flex; }
   /* A floating bar already sits on the content's edges, with its own inset. */
-  :root:not([data-header-variant="floating"]) .component-gallery .catalog-header:not([data-variant="floating"]) {
+  :root:not([data-header-variant="floating"]) .component-gallery[data-catalog-layout="section"] .catalog-header:not([data-variant="floating"]) {
     padding-inline-start: var(--catalog-page-start);
   }
   .component-gallery .catalog-header > nav { justify-self: start; }
   .component-gallery .catalog-header .catalog-tools { margin-inline-start: auto; }
-  /* An inset frame starts the bar below the frame's outer gap and border.
-     The sidebar header grows by the same amount to keep one bottom line.
-     A patterned background lets the sidebar reach the top edge, so the
-     header also takes the outer gap; a solid one already starts the
-     sidebar at that gap. */
+  /* An inset frame starts the bar below the frame's outer gap and its 1px
+     edge (no edge when the outer border or the outer frame is "none"). The
+     sidebar header grows by the same amount to keep one bottom line. A
+     patterned background lets the sidebar reach the top edge, so the header
+     also takes the outer gap; a solid one already starts the sidebar there. */
+  .component-gallery { --catalog-card-edge: 1px; }
+  :root:is([data-outer-border-style="none"], [data-border-style="none"], [data-app-shell-outer="none"]) .component-gallery { --catalog-card-edge: 0px; }
+  :root[data-app-shell="inset"] .component-gallery { --catalog-frame-top: calc(var(--app-shell-outer, 0px) + var(--catalog-card-edge)); }
+  :root[data-app-shell="inset"]:is(:not([data-background-style]), [data-background-style="solid"]) .component-gallery { --catalog-frame-top: var(--catalog-card-edge); }
   :root[data-app-shell="inset"]:not([data-header-variant="floating"]) .component-gallery:not([data-variant]):not(:has(.catalog-header[data-variant="floating"])) > .catalog-sidebar > .catalog-sidebar-header {
-    --catalog-frame-top: calc(var(--app-shell-outer, 0px) + 1px);
     height: calc(var(--header-min-height, calc(var(--size-control-lg) + var(--spacing-lg) + var(--spacing-xs))) + var(--catalog-frame-top));
     padding-block: var(--catalog-frame-top) 0;
-  }
-  :root[data-app-shell="inset"]:is(:not([data-background-style]), [data-background-style="solid"]) .component-gallery > .catalog-sidebar > .catalog-sidebar-header {
-    --catalog-frame-top: 1px;
   }
 }
 
@@ -645,3 +648,107 @@
   :root { --catalog-bar-height: calc(var(--size-touch-min) + 2 * var(--header-padding-block, calc((var(--spacing-lg) + var(--spacing-xs)) / 2)) + 1px); }
   .catalog-sheet > [data-slot="dialog-header"] .btn-icon { width: var(--size-touch-min); height: var(--size-touch-min); }
 }
+
+/* Shell layout from 1024px. Home (#intro) has no sidebar; section pages keep
+   it. The logo keeps one place per variant: the rail centers the mark, and
+   the open sidebar header and the home bar start the logo at that inset.
+   The top bar and the sidebar header share one height. */
+@media (min-width: 1024px) {
+  .component-gallery {
+    --catalog-bar: var(--header-min-height, calc(var(--size-control-lg) + var(--spacing-lg) + var(--spacing-xs)));
+    --catalog-brand-inset: calc((var(--size-touch-min) + 2 * var(--spacing-md) - var(--size-control-xs)) / 2);
+  }
+  /* One fixed bar height in both layouts, so the logo's center matches. */
+  .component-gallery .catalog-header {
+    box-sizing: border-box;
+    height: var(--catalog-bar);
+    min-height: 0;
+    padding-block: 0;
+  }
+  .component-gallery .catalog-header:not(:has(> [data-slot="search"])) { gap: 0; }
+  .component-gallery .catalog-header > nav { margin-block: 0; margin-inline-start: 0; }
+  .catalog-sidebar:not([data-collapsed="true"]) > .catalog-sidebar-header { padding-inline-start: var(--catalog-brand-inset); }
+  /* The rail's 1px border moves its center by half a pixel, so the mark is
+     pinned to the inset instead of centered. */
+  .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header {
+    justify-items: start;
+    padding-inline-start: calc(var(--catalog-brand-inset) - (var(--size-control-sm) - var(--size-control-xs)) / 2);
+  }
+
+  /* Home: the logo starts the bar at the inset, and the tabs follow it with
+     the gap between two tab labels. */
+  :root .component-gallery[data-catalog-layout="home"] .catalog-header { padding-inline-start: var(--catalog-brand-inset); }
+  .component-gallery .catalog-header-identity:has(> .catalog-brand) + nav { margin-inline-start: var(--spacing-lg); }
+
+  /* A page bar is a grid row above the sidebar and the main column. */
+  .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) { grid-template-rows: auto minmax(0, 1fr); }
+  .component-gallery > .catalog-header[data-catalog-bar="page"] {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    box-sizing: border-box;
+    height: var(--catalog-bar);
+    min-height: 0;
+    padding-block: 0;
+    padding-inline: var(--catalog-brand-inset) var(--spacing-md);
+  }
+  .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :not(.catalog-header) { grid-row: 2; }
+
+  /* Inset home with a non-floating header: the bar sits on the outer surface
+     at the sidebar header's row, so the logo keeps its section place. */
+  :root[data-app-shell="inset"]:not([data-header-variant="floating"]) .component-gallery > .catalog-header[data-catalog-bar="page"] {
+    margin-block-start: var(--catalog-frame-top);
+    background: transparent;
+    border-bottom: 0;
+    box-shadow: none;
+  }
+  /* A contained page: the bar background spans the page, and its row follows
+     the home content column, measured in gallery.tsx. */
+  :root[data-page-width="contained"][data-app-shell="inset"]:not([data-header-variant="floating"]) .component-gallery > .catalog-header[data-catalog-bar="page"] {
+    padding-inline: var(--catalog-col-start, var(--catalog-brand-inset)) var(--catalog-col-end, var(--spacing-md));
+  }
+
+  /* Floating: the pill holds the logo on every page and keeps its gap when
+     the page scrolls. Both rails start below it; the sidebar holds only the toggle. */
+  :root[data-header-variant="floating"] .component-gallery > .catalog-header[data-catalog-bar="page"] { top: var(--spacing-md); }
+  :root[data-header-variant="floating"] .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel) {
+    top: calc(var(--catalog-bar) + 2 * var(--spacing-md));
+    height: calc(100dvh - var(--catalog-bar) - 2 * var(--spacing-md));
+  }
+  :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar > .catalog-sidebar-header {
+    height: auto;
+    min-height: 0;
+    padding-block: var(--spacing-sm) 0;
+    justify-content: end;
+    justify-items: end;
+    border-bottom: 0;
+  }
+  :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { justify-items: center; padding-inline: 0; }
+  :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar .sidebar-body { padding-block-start: var(--spacing-sm); }
+}
+
+/* Floating pill: the content clears the rounded ends, and the tabs sit
+   inside the pill as rounded segments instead of blocks that cut the outline.
+   --appearance-corners holds two radii, so the math uses the surface radius. */
+:root[data-header-variant="floating"] .component-gallery .catalog-header {
+  --catalog-pill-r: var(--radius-surface);
+  --catalog-tab-inset: var(--spacing-sm);
+}
+@media (min-width: 1024px) {
+  :root[data-header-variant="floating"] .component-gallery .catalog-header:not(:has(> [data-slot="search"])) {
+    padding-inline: max(var(--catalog-brand-inset), var(--catalog-pill-r)) max(var(--spacing-md), var(--catalog-pill-r));
+  }
+}
+:root[data-header-variant="floating"] .component-gallery .catalog-header .nav-row .nav-item {
+  margin-block: var(--catalog-tab-inset);
+  border-radius: max(0px, calc(var(--catalog-pill-r) - var(--catalog-tab-inset)));
+}
+:root[data-header-variant="floating"] .component-gallery .catalog-header .nav-row .nav-item[aria-current="page"],
+:root[data-header-variant="floating"] .component-gallery .catalog-header .nav-row .nav-item[aria-current="page"]:hover {
+  box-shadow: none;
+}
+
+/* The sticky bar paints above the page content: the inset card has z-index 1,
+   and a page bar sits beside it. */
+.component-gallery .catalog-header { z-index: 25; }
+/* A plain header stays in the flow, also as the home bar outside main. */
+:root[data-header-variant="plain"] .component-gallery .catalog-header { position: static; }

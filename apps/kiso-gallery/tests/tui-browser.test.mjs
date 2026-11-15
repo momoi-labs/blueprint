@@ -34,15 +34,8 @@ const hex = rgb => `#${rgb.match(/\d+/g).slice(0, 3).map(n => Number(n).toString
 test("The TUI tab lists every gallery page and draws the first", async () => {
   const page = await open("tui");
   try {
-    // The screen lists the components itself, so the site's navigation
-    // starts closed as the icon rail, and opens on demand.
-    const rail = "#component-navigation[data-collapsed='true']";
-    assert.equal(await page.locator(rail).count(), 1, "The navigation starts closed");
-    await page.evaluate(() => { location.hash = "components"; });
-    await page.locator("#component-navigation:not([data-collapsed])").waitFor();
-    await page.evaluate(() => { location.hash = "tui"; });
-    await page.locator(rail).waitFor();
-    await page.getByRole("button", { name: "Expand navigation" }).click();
+    // Every section page shares one navigation state, open by default.
+    assert.equal(await page.locator("#component-navigation:not([data-collapsed])").count(), 1, "The navigation starts open");
     const links = page.getByRole("navigation", { name: "Terminal components" }).getByRole("link");
     assert.deepEqual(await links.allTextContents(), data.pages.map(p => p.name));
     assert.match(await page.locator(".tui-term").textContent(), /Token colors at this depth/);
@@ -76,7 +69,6 @@ test("Keys on the screen move through pages and states, and keep the focus", asy
     await page.getByRole("group", { name: /FormField, Default/ }).waitFor();
     assert.equal(new URL(page.url()).hash, "#tui/formfield");
     assert(await focused(), "The screen keeps the focus");
-    await page.getByRole("button", { name: "Expand navigation" }).click();
     const components = page.getByRole("navigation", { name: "Terminal components" });
     await components.getByRole("link", { name: "Modal", exact: true }).click();
     await page.getByRole("group", { name: /Modal, Default/ }).waitFor();
