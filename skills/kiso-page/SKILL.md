@@ -24,7 +24,8 @@ holds no rules of its own.
 1. Name the product task and the states the screen needs.
 2. Check Pattern choices in `docs/kiso.md`. A changed screen keeps its pattern.
 3. For a new screen, pick the closest pattern in `kiso/docs/patterns/`. Read
-   the pattern file in full.
+   the pattern file in full. For the shell chrome, also read
+   `kiso/docs/patterns/shell-layout.md`.
 4. If no pattern fits, say so in one or two sentences, with what the screen
    needs. Do not force a pattern and do not invent a layout. Ask the user
    before going on.

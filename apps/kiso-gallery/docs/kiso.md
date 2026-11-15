@@ -31,14 +31,14 @@ The lockup sits directly in the shell brand link, without a BrandMark tile.
 The introduction uses `基礎` with a smaller `kiso` reading in foreground color.
 New visits and Reset appearance use the complete SNES preset. Saved preferences
 remain in effect until reset.
-The shell lockup is 24 px high. Show it in the sidebar while desktop navigation
-is open, and in the header when navigation is closed or on smaller screens.
+The shell lockup is 24 px high. Its place follows
+[shell layout](../../../kiso/docs/patterns/shell-layout.md): Intro is the home,
+every other route is a section page.
 Canvas offers the centered Kiso enso background.
 The landing follows the gallery page width and alignment without another
 content width cap. Its contrast bands span that width.
-On Intro, the existing header and landing share one continuous panel, with
-no floating header frame or outer content gutter. Other routes keep the
-selected header variant. Intro removes the inset shell margin in both width modes. Landing bands sets
+On Intro, the header and landing share one continuous panel, with no outer
+content gutter. Intro removes the inset shell margin in both width modes. Landing bands sets
 where section backgrounds stop: Inside frame (default) keeps them within the
 outer frame, so its border, ink and shadow stay whole; Full width reaches the
 shell edges over the frame. Full, Contained and alignment apply to inner content. The closing links use a light violet section. The hero uses the approved A + E + B stack, with E in front, click to reveal

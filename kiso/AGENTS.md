@@ -37,7 +37,9 @@ documented; it does not become Kiso by repetition or copy-paste.
 ## Consumption sequence
 
 1. Identify the product task and required states.
-2. Choose the closest existing [pattern](docs/patterns/README.md).
+2. Choose the closest existing [pattern](docs/patterns/README.md). For the
+   shell chrome (brand, Header variant, sidebar), follow
+   [shell layout](docs/patterns/shell-layout.md).
 3. Compose it from documented [components](docs/components/README.md).
 4. Apply semantic [tokens](docs/tokens.md), not raw visual values. A
    terminal UI also follows [terminal interfaces](docs/terminal-interfaces.md).
