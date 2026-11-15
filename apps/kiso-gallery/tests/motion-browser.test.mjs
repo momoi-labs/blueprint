@@ -45,7 +45,7 @@ test('Both rails animate, accept interrupted toggles and retain demo values', as
     const notes = page.getByRole('textbox', { name: 'Operator notes', exact: true });
     await page.locator('[data-pane-id="textarea"]').scrollIntoViewIfNeeded();
     await notes.fill('Keep this draft');
-    for (const selector of ['.gallery-settings-trigger', '.catalog-sidebar-toggle']) {
+    for (const selector of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle']) {
       for (let click = 0; click < 2; click++) {
         await page.locator(selector).click();
         await settled(page);
@@ -70,7 +70,7 @@ test('Both rails animate, accept interrupted toggles and retain demo values', as
 test('The header and catalog accept pointer input during rail animations', async () => {
   const page = await open();
   try {
-    for (const selector of ['.gallery-settings-trigger', '.catalog-sidebar-toggle']) {
+    for (const selector of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle']) {
       const initial = await page.locator(selector).getAttribute('aria-expanded');
       for (let click = 0; click < 2; click++) {
         const box = await page.locator(selector).boundingBox();
@@ -81,7 +81,7 @@ test('The header and catalog accept pointer input during rail animations', async
             animation.currentTime = 80;
           }
         });
-        for (const target of ['.gallery-settings-trigger', '.catalog-sidebar-toggle', '.catalog-open']) {
+        for (const target of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle', '.catalog-open']) {
           assert(await page.locator(target).first().evaluate(el => {
             const box = el.getBoundingClientRect();
             return el.contains(document.elementFromPoint(box.right - 4, box.top + box.height / 2));
@@ -108,9 +108,9 @@ for (const mode of ['reduce', 'unsupported']) test(`Rail toggles respond without
     await page.locator('#gallery-settings').waitFor({ state: 'hidden' });
     await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Open settings');
     await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click();
-    await page.locator('#component-navigation').waitFor({ state: 'hidden' });
+    await page.locator("#component-navigation[data-collapsed='true']").waitFor();
     await page.getByRole('button', { name: 'Expand navigation', exact: true }).click();
-    await page.locator('#component-navigation').waitFor();
+    await page.locator('#component-navigation:not([data-collapsed])').waitFor();
     assert.equal(await page.evaluate(() => window.railAnimations.length), 0);
     assert.deepEqual(errors, []);
   } finally { await page.close(); }

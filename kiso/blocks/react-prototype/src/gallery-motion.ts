@@ -10,7 +10,9 @@ export function animateGalleryPanels(selector: string, update: () => void) {
     update();
     return;
   }
-  const closing = !panel.hidden;
+  // A collapsed navigation is Kiso's icon rail: it stays in the page, but it is closed.
+  const closing = !panel.hidden && panel.dataset.collapsed !== "true";
+  const fromRail = !panel.hidden && panel.dataset.collapsed === "true";
   const bounds = panel.getBoundingClientRect();
   const snapshot = closing ? panel.cloneNode(true) as HTMLElement : null;
   const scrollSelector = ".sidebar-body, .appearance-controls-scroll";
@@ -39,7 +41,14 @@ export function animateGalleryPanels(selector: string, update: () => void) {
   const styles = getComputedStyle(target);
   const duration = styles.getPropertyValue("--motion-duration-normal").trim();
   const collapsed = selector === ".catalog-sidebar" ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)";
-  const frames = [{ opacity: 0, clipPath: collapsed }, { opacity: 1, clipPath: "inset(0 0 0 0)" }];
+  let frames: Keyframe[] = [{ opacity: 0, clipPath: collapsed }, { opacity: 1, clipPath: "inset(0 0 0 0)" }];
+  if (fromRail) {
+    // The rail stays, and its header holds the toggle, so the header shows at
+    // once and keeps taking clicks. The rest opens from the rail's edge.
+    const top = panel.querySelector<HTMLElement>(".catalog-sidebar-header")?.offsetHeight ?? 0;
+    const shape = (x: string) => `polygon(0 0, 100% 0, 100% ${top}px, ${x} ${top}px, ${x} 100%, 0 100%)`;
+    frames = [{ clipPath: shape(`${bounds.width}px`) }, { clipPath: shape("100%") }];
+  }
   const animation = target.animate(closing ? frames.reverse() : frames, {
     duration: parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000),
     easing: styles.getPropertyValue("--motion-easing-standard").trim(),

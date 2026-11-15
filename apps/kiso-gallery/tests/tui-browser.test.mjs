@@ -35,12 +35,13 @@ test("The TUI tab lists every gallery page and draws the first", async () => {
   const page = await open("tui");
   try {
     // The screen lists the components itself, so the site's navigation
-    // starts closed, and opens on demand.
-    assert.equal(await page.locator("#component-navigation").isVisible(), false, "The navigation starts closed");
+    // starts closed as the icon rail, and opens on demand.
+    const rail = "#component-navigation[data-collapsed='true']";
+    assert.equal(await page.locator(rail).count(), 1, "The navigation starts closed");
     await page.evaluate(() => { location.hash = "components"; });
-    await page.locator("#component-navigation").waitFor({ state: "visible" });
+    await page.locator("#component-navigation:not([data-collapsed])").waitFor();
     await page.evaluate(() => { location.hash = "tui"; });
-    await page.locator("#component-navigation").waitFor({ state: "hidden" });
+    await page.locator(rail).waitFor();
     await page.getByRole("button", { name: "Expand navigation" }).click();
     const links = page.getByRole("navigation", { name: "Terminal components" }).getByRole("link");
     assert.deepEqual(await links.allTextContents(), data.pages.map(p => p.name));
