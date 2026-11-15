@@ -694,6 +694,10 @@
     padding-inline: var(--catalog-brand-inset) var(--spacing-md);
   }
   .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :not(.catalog-header) { grid-row: 2; }
+  /* The settings panel docks in the last column. A canvas that covers every
+     cell would otherwise push it into a new implicit column, and main and
+     the bar would shrink to the first tracks. */
+  .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > .app-shell-panel { grid-column: -2; }
 
   /* Inset home with a non-floating header: the bar sits on the outer surface
      at the sidebar header's row, so the logo keeps its section place. */

@@ -504,3 +504,27 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
     }
   } finally { await page.close(); }
 });
+
+// The docked settings panel takes the last column. On a floating home page the
+// canvas covers every cell, and the panel once landed in an extra column that
+// squeezed the bar to the first tracks.
+test("The floating bar keeps one full-width row with the settings panel open", async () => {
+  const page = await open(1440, "inset");
+  try {
+    await page.goto(url);
+    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));
+    const header = page.locator(".catalog-header[data-catalog-bar='page']");
+    await header.locator(".catalog-header-brand").waitFor();
+    await settings(page, true);
+    const bar = await header.evaluate(el => {
+      const box = el.getBoundingClientRect();
+      const outside = [...el.querySelectorAll("nav a, .catalog-tools > *")].filter(child => {
+        const r = child.getBoundingClientRect();
+        return r.width && (r.left < box.left || r.right > box.right || r.top < box.top || r.bottom > box.bottom);
+      }).length;
+      return { width: box.width, outside, viewport: innerWidth };
+    });
+    assert(bar.width > bar.viewport - 48, `The bar spans the page, got ${bar.width}px`);
+    assert.equal(bar.outside, 0, "Tabs, search and the gear stay inside the bar");
+  } finally { await page.close(); }
+});
