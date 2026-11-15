@@ -443,6 +443,31 @@ for (const width of [390, 900]) test(`Navigation overlays the page from the left
 });
 
 
+// A floating bar spans both columns, so the surface behind it is one color.
+for (const frame of ["inset", "default"]) for (const theme of ["light", "dark"]) test(`The floating bar sits on one surface over both columns in ${frame}/${theme}`, async () => {
+  const page = await open(1440, frame, theme);
+  try {
+    await page.goto(`${url}#components`);
+    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));
+    await page.locator(".catalog-header[data-catalog-bar='page'] .catalog-header-brand").waitFor();
+    const x = await page.evaluate(() => {
+      const sidebar = document.querySelector(".component-gallery > .catalog-sidebar").getBoundingClientRect();
+      return { sidebar: Math.round(sidebar.left + sidebar.width / 2), main: Math.round(sidebar.right + 150) };
+    });
+    const shot = (await page.screenshot({ clip: { x: 0, y: 0, width: 1440, height: 8 } })).toString("base64");
+    const [sidebar, main] = await page.evaluate(async ({ shot, x }) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${shot}`;
+      await image.decode();
+      const canvas = Object.assign(document.createElement("canvas"), { width: image.width, height: image.height });
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      return [x.sidebar, x.main].map(left => [...context.getImageData(left, 4, 1, 1).data.slice(0, 3)]);
+    }, { shot, x });
+    assert.deepEqual(main, sidebar, `${frame}/${theme}: the top over main matches the top over the sidebar`);
+  } finally { await page.close(); }
+});
+
 test("gallery lockups stay compact and use the accent with navigation open", async () => {
   const page = await open(1440);
   try {

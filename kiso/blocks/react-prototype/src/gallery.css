@@ -680,8 +680,10 @@
   :root .component-gallery[data-catalog-layout="home"] .catalog-header { padding-inline-start: var(--catalog-brand-inset); }
   .component-gallery .catalog-header-identity:has(> .catalog-brand) + nav { margin-inline-start: var(--spacing-lg); }
 
-  /* A page bar is a grid row above the sidebar and the main column. */
-  .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) { grid-template-rows: auto minmax(0, 1fr); }
+  /* A page bar is a grid row above the sidebar and the main column. The
+     background canvas follows main to row 2, so the bar row shows the shell
+     surface across the full width. */
+  .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) { grid-template-rows: auto minmax(0, 1fr); --canvas-row: 2; }
   .component-gallery > .catalog-header[data-catalog-bar="page"] {
     grid-column: 1 / -1;
     grid-row: 1;
@@ -710,6 +712,8 @@
   /* Floating: the pill holds the logo on every page and keeps its gap when
      the page scrolls. Both rails start below it; the sidebar holds only the toggle. */
   :root[data-header-variant="floating"] .component-gallery > .catalog-header[data-catalog-bar="page"] { top: var(--spacing-md); }
+  /* With no sidebar, the home canvas runs behind the pill too: one surface. */
+  :root[data-header-variant="floating"] .component-gallery[data-catalog-layout="home"]:has(> .catalog-header[data-catalog-bar="page"])::before { grid-area: 1 / 1 / -1 / -1; }
   :root[data-header-variant="floating"] .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel) {
     top: calc(var(--catalog-bar) + 2 * var(--spacing-md));
     height: calc(100dvh - var(--catalog-bar) - 2 * var(--spacing-md));
