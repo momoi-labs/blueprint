@@ -61,6 +61,13 @@ test("landing catalog exposes source and only web devices", async () => {
   } finally { await page.close(); }
 });
 
+// Intro starts with the navigation closed: on desktop that is the icon rail,
+// so the landing runs edge to edge from the rail's edge.
+const railEdge = page => page.evaluate(() => {
+  const rail = document.querySelector(".component-gallery > .catalog-sidebar");
+  return rail && !rail.hidden ? rail.getBoundingClientRect().right : 0;
+});
+
 test("landing follows Full and Contained without a second width limit", async () => {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   try {
@@ -79,7 +86,7 @@ test("landing follows Full and Contained without a second width limit", async ()
       }));
       for (const width of [...geometry.wraps, ...geometry.bands]) assert(Math.abs(width - geometry.width) <= 1, `${pageWidth}: section fills the landing`);
       assert.equal(geometry.radius, "0px", "The landing is a page, not a nested card");
-      assert.equal(geometry.width, 1920, "Both modes keep backgrounds edge to edge");
+      assert.equal(geometry.width, 1920 - await railEdge(page), "Both modes keep backgrounds edge to edge");
       widths[pageWidth] = geometry.contentWidth;
     }
     assert(widths.full > widths.contained + 200, JSON.stringify(widths));
@@ -105,8 +112,9 @@ for (const headerVariant of ["default", "floating", "plain"]) test(`Intro keeps 
     assert.deepEqual(await header("intro"), await header("components"));
     await page.goto(`${url}#intro`);
     const band = await page.locator(".studio-cta").boundingBox();
-    assert.equal(band.x, 0, "The colored section still runs edge to edge");
-    assert.equal(band.width, 1440);
+    const edge = await railEdge(page);
+    assert.equal(band.x, edge, "The colored section still runs edge to edge");
+    assert.equal(band.width, 1440 - edge);
   } finally { await page.close(); }
 });
 
@@ -126,8 +134,9 @@ for (const panelFill of ["glass", "translucent"]) test(`Inset Intro reveals the 
     ].map(el => ({ background: getComputedStyle(el).backgroundColor, x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
     for (const surface of surfaces) assert.equal(surface.background, "rgba(0, 0, 0, 0)", JSON.stringify(surfaces));
     const band = await page.locator(".studio-cta").boundingBox();
-    assert.equal(band.x, 0, "The colored section has no outer strip");
-    assert.equal(band.width, 1440);
+    const edge = await railEdge(page);
+    assert.equal(band.x, edge, "The colored section has no outer strip");
+    assert.equal(band.width, 1440 - edge);
     assert(await page.locator(".hero-panel-project .card").evaluate(el => getComputedStyle(el).backgroundColor !== "rgba(0, 0, 0, 0)"), "Cards keep their own surface");
   } finally { await page.close(); }
 });

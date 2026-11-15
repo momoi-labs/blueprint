@@ -463,8 +463,9 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
       assert.notEqual(actual.symbol, actual.ink, `${theme}/${accent}: the symbol retains the accent`);
     }
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
-    await page.locator(".catalog-header-brand .kiso-brand").waitFor();
-    assert.equal(await navigation.isVisible(), false);
+    // The closed sidebar is the icon rail, and the rail keeps the mark.
+    await page.locator(".component-gallery .catalog-sidebar[data-collapsed='true'] .catalog-rail-mark .kiso-brand").waitFor();
+    assert.equal(await page.locator(".catalog-header-brand").count(), 0, "The rail owns the brand on desktop");
     for (const width of [768, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.locator(".catalog-header-brand .kiso-brand").waitFor();

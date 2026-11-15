@@ -303,12 +303,16 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     assert.equal(await page.getByRole("table").getAttribute("data-density"), "spacious");
     assert.equal(await page.getByRole("table").getAttribute("data-header"), "plain");
     const initialPanelBox = await panel.boundingBox();
+    const sidebarWidth = () => page.locator(".component-gallery .catalog-sidebar").evaluate(el => el.getBoundingClientRect().width);
+    const sidebarOpen = await sidebarWidth();
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
     await page.getByRole("button", { name: "Expand navigation", exact: true }).waitFor();
-    assert(await width() > start + 200);
+    // The closed navigation is the icon rail, so main gains the rest of its width.
+    const released = sidebarOpen - await sidebarWidth();
+    assert(released > 150 && await width() >= start + released - 1);
     assert.equal((await panel.boundingBox()).width, initialPanelBox.width);
     await close(page);
-    assert(await width() > start + 500);
+    assert(await width() > start + released + 250);
     assert.equal((await page.locator(".catalog-detail").boundingBox()).width, await main.evaluate(el => el.clientWidth));
     await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open settings");
     if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-rails-closed-${frame}.png` });
@@ -541,11 +545,15 @@ for (const width of [320, 1440]) test(`Appearance samples stay centered and isol
     }
     if (width >= 1200) for (const frame of ['Default', 'Inset']) {
       await frames.getByRole('radio', { name: frame, exact: true }).check();
+      // The navigation toggle sits in the sidebar header, which shares the top bar's line.
       const header = await page.locator('.catalog-header').boundingBox();
-      const left = await page.locator('.catalog-sidebar-toggle').boundingBox();
+      const left = await page.locator('.component-gallery .catalog-sidebar-toggle').boundingBox();
       const right = await page.locator('.gallery-settings-trigger').boundingBox();
-      const start = left.x - header.x, end = header.x + header.width - right.x - right.width;
-      assert(Math.abs(start - end) <= 1 && start <= 24 && end <= 24, 'Header toggles have equal small outer margins');
+      const end = header.x + header.width - right.x - right.width;
+      assert(end <= 24, 'The settings toggle keeps a small outer margin');
+      // A floating bar leaves the sidebar header's line on purpose.
+      const floating = await page.evaluate(() => document.documentElement.dataset.headerVariant === 'floating');
+      if (!floating) assert(Math.abs((left.y + left.height / 2) - (right.y + right.height / 2)) <= 1, 'Both toggles share a center line');
       assert.equal(left.width, right.width, 'Both toggles use the same icon-button target');
     }
   } finally { await page.close(); }
@@ -746,9 +754,11 @@ test('Header toggle spacing stays stable as either rail opens and closes', async
   try {
     const spacing = () => page.evaluate(() => {
       const box = selector => document.querySelector(selector).getBoundingClientRect();
-      const header = box('.catalog-header'), left = box('.catalog-sidebar-toggle');
+      const header = box('.catalog-header'), sidebar = box('.component-gallery .catalog-sidebar');
+      const left = box('.component-gallery .catalog-sidebar-toggle');
       const right = box('.gallery-settings-trigger'), nav = box('.catalog-header > nav');
-      return { start: left.left - header.left, end: header.right - right.right, gap: nav.left - left.right, leftY: left.y + left.height / 2, rightY: right.y + right.height / 2 };
+      const floating = document.querySelector('.catalog-header').matches('[data-variant="floating"]') || document.documentElement.dataset.headerVariant === 'floating';
+      return { end: header.right - right.right, gap: nav.left - sidebar.right, floating, leftY: left.y + left.height / 2, rightY: right.y + right.height / 2 };
     });
     const initial = await spacing();
     for (const width of [1440, 1200]) {
@@ -757,14 +767,15 @@ test('Header toggle spacing stays stable as either rail opens and closes', async
         const panel = await settings(page);
         await panel.getByRole('button', { name: preset, exact: true }).click();
         for (const navOpen of [true, false]) {
-          const toggle = page.locator('.catalog-sidebar-toggle');
+          const toggle = page.locator('.component-gallery .catalog-sidebar-toggle');
           if ((await toggle.getAttribute('aria-expanded') === 'true') !== navOpen) await toggle.click();
           for (const settingsOpen of [true, false]) {
             if (settingsOpen) await settings(page); else await close(page);
             const measured = await spacing();
-            assert(measured.gap >= 0, `${preset}/${width}: navigation does not overlap the identity`);
-            assert.equal(measured.start, measured.end, `${preset}/${width}: equal edge insets`);
-            assert.equal(measured.leftY, measured.rightY, `${preset}/${width}: toggles share a center line`);
+            assert(measured.gap >= 0, `${preset}/${width}: the tabs start after the sidebar`);
+            assert(measured.end <= 24, `${preset}/${width}: small end inset`);
+            // A floating bar leaves the sidebar header's line on purpose.
+            if (!measured.floating) assert(Math.abs(measured.leftY - measured.rightY) <= 1, `${preset}/${width}: toggles share a center line`);
           }
         }
       }
@@ -962,11 +973,13 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
     await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Components', exact: true }).click();
     await page.waitForURL(`${url}#components`);
     await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
-    if (!phone) await page.getByRole('button', { name: expanded, exact: true }).click();
-    await page.locator('.catalog-header-brand').click();
+    // On desktop the open sidebar holds the brand; on a phone the top bar does.
+    await page.locator(phone ? '.catalog-header-brand' : '.component-gallery .catalog-sidebar .catalog-brand').click();
     await page.waitForURL(`${url}#intro`);
-    await page.getByRole('button', { name: collapsed, exact: true }).waitFor();
-    await page.getByRole('button', { name: collapsed, exact: true }).click();
+    if (phone) {
+      await page.getByRole('button', { name: collapsed, exact: true }).waitFor();
+      await page.getByRole('button', { name: collapsed, exact: true }).click();
+    }
     assert(await nav.isVisible());
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   } finally { await page.close(); }

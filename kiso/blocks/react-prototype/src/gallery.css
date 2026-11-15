@@ -581,3 +581,67 @@
 .site-demo-frame { block-size: 320px; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-surface); }
 .site-demo-phone { inline-size: min(100%, 360px); block-size: 260px; }
 .chart-spark-demo > .card { flex: 1 1 16rem; min-width: 0; }
+
+/* The sidebar header holds the brand and the collapse toggle. It is as high
+   as the top bar, so both share one bottom line. */
+.catalog-sidebar > .catalog-sidebar-header {
+  box-sizing: border-box;
+  height: var(--header-min-height, calc(var(--size-control-lg) + var(--spacing-lg) + var(--spacing-xs)));
+  align-items: center;
+  padding-block: 0;
+  padding-inline: var(--spacing-md) var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+.catalog-sidebar .sidebar-body { padding-block-start: var(--spacing-lg); }
+.catalog-sidebar-header .catalog-brand { display: flex; align-items: center; }
+.btn.catalog-quiet-icon { color: var(--color-muted-foreground); }
+.btn.catalog-quiet-icon:hover { color: var(--color-foreground); }
+/* Kiso's rail keeps the mark: it is the expand control, and shows the expand
+   icon on hover or focus. */
+.catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { padding: 0; justify-items: center; }
+.catalog-rail-mark { display: block; width: var(--size-control-xs); overflow: hidden; }
+.catalog-rail-open { display: none; }
+.catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-mark { display: none; }
+.catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-open { display: block; }
+
+/* From 1024px the brand is in the sidebar, so the page links start the top
+   bar at the content's left padding, and the tools sit at its end. */
+@media (min-width: 1024px) {
+  .component-gallery .catalog-header-identity { display: none; }
+  .component-gallery .catalog-header:not(:has(> [data-slot="search"])) { display: flex; }
+  /* A floating bar already sits on the content's edges, with its own inset. */
+  :root:not([data-header-variant="floating"]) .component-gallery .catalog-header:not([data-variant="floating"]) {
+    padding-inline-start: var(--catalog-page-start);
+  }
+  .component-gallery .catalog-header > nav { justify-self: start; }
+  .component-gallery .catalog-header .catalog-tools { margin-inline-start: auto; }
+  /* An inset frame starts the bar below the frame's outer gap and border.
+     The sidebar header grows by the same amount to keep one bottom line.
+     A patterned background lets the sidebar reach the top edge, so the
+     header also takes the outer gap; a solid one already starts the
+     sidebar at that gap. */
+  :root[data-app-shell="inset"]:not([data-header-variant="floating"]) .component-gallery:not([data-variant]):not(:has(.catalog-header[data-variant="floating"])) > .catalog-sidebar > .catalog-sidebar-header {
+    --catalog-frame-top: calc(var(--app-shell-outer, 0px) + 1px);
+    height: calc(var(--header-min-height, calc(var(--size-control-lg) + var(--spacing-lg) + var(--spacing-xs))) + var(--catalog-frame-top));
+    padding-block: var(--catalog-frame-top) 0;
+  }
+  :root[data-app-shell="inset"]:is(:not([data-background-style]), [data-background-style="solid"]) .component-gallery > .catalog-sidebar > .catalog-sidebar-header {
+    --catalog-frame-top: 1px;
+  }
+}
+
+/* The navigation drawer opens with the brand where the bar has it, a quiet
+   close button, and the bar's height and bottom line. */
+.catalog-sheet > [data-slot="dialog-header"] {
+  box-sizing: border-box;
+  height: var(--catalog-bar-height, auto);
+  padding-block: 0;
+  padding-inline: var(--spacing-lg) var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+.catalog-sheet.app-shell-drawer > [data-slot="dialog-body"] { padding-block-start: var(--spacing-lg); }
+/* The phone bar is one row of touch targets; its drawer header matches it. */
+@media (max-width: 699px) {
+  :root { --catalog-bar-height: calc(var(--size-touch-min) + 2 * var(--header-padding-block, calc((var(--spacing-lg) + var(--spacing-xs)) / 2)) + 1px); }
+  .catalog-sheet > [data-slot="dialog-header"] .btn-icon { width: var(--size-touch-min); height: var(--size-touch-min); }
+}

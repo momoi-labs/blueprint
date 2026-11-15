@@ -1,5 +1,6 @@
 import { usePaneLayout } from "./use-pane-layout";
-import { BookOpen, Boxes, ChevronDown, FileText, LayoutDashboard, ListTree, PanelLeft, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, UserRound, X } from "lucide-react";
+import { BookOpen, Boxes, ChevronDown, Compass, FileText, Globe, Layers, LayoutDashboard, LayoutGrid, LayoutTemplate, ListTree, MessageSquare, PanelLeft, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search as SearchIcon, SquareArrowOutUpRight, SquareTerminal, Table2, TextCursorInput, ToggleLeft, UserRound, X, type LucideIcon } from "lucide-react";
+import { VisuallyHidden } from "radix-ui";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
 import { CodeBlockDemo } from "./code-block-demo";
@@ -2141,6 +2142,17 @@ const Demo = memo(function Demo({
   }
 });
 
+// The sidebar's icons, which the collapsed rail keeps.
+const categoryIcons: Record<string, LucideIcon> = {
+  all: LayoutGrid, Navigation: Compass, Forms: TextCursorInput, Controls: ToggleLeft, Data: Table2,
+  Feedback: MessageSquare, Structure: LayoutTemplate, Site: Globe, Overlays: Layers,
+};
+
+function CategoryIcon({ category }: { category: string }) {
+  const Icon = categoryIcons[category] ?? LayoutGrid;
+  return <Icon className="icon" />;
+}
+
 // Wide cards go first so the small ones fill the columns left over.
 function sizeRank(size: "wide" | "full" | undefined) {
   return size === "full" ? 0 : size === "wide" ? 1 : 2;
@@ -2280,9 +2292,12 @@ export function ComponentGallery({
             <NavigationItem key={page.id}>
               <NavigationLink
                 href={`#tui/${page.id}`}
+                className="sidebar-link-with-icon"
+                title={page.label}
                 active={selected === page.id || (selected === "all" && index === 0)}
               >
-                {page.label}
+                <span className="sidebar-link-icon" aria-hidden="true"><SquareTerminal className="icon" /></span>
+                <span className="sidebar-link-label grow truncate">{page.label}</span>
               </NavigationLink>
             </NavigationItem>
           ))}
@@ -2297,9 +2312,12 @@ export function ComponentGallery({
             <NavigationItem key={layout.id}>
               <NavigationLink
                 href={`#example/${layout.id}`}
+                className="sidebar-link-with-icon"
+                title={layout.label}
                 active={selected === layout.id}
               >
-                {layout.label}
+                <span className="sidebar-link-icon" aria-hidden="true"><LayoutDashboard className="icon" /></span>
+                <span className="sidebar-link-label grow truncate">{layout.label}</span>
               </NavigationLink>
             </NavigationItem>
           ))}
@@ -2315,14 +2333,17 @@ export function ComponentGallery({
               <NavigationLink
                 href="#components"
                 active={browsing && group === category}
+                className="sidebar-link-with-icon"
+                title={label}
                 onClick={(event) => {
                   event.preventDefault();
                   if (category === "all") showAll();
                   else showGroup(category);
                 }}
               >
-                <span className="grow">{label}</span>
-                <Badge variant="neutral">{count}</Badge>
+                <span className="sidebar-link-icon" aria-hidden="true"><CategoryIcon category={category} /></span>
+                <span className="sidebar-link-label grow truncate">{label}</span>
+                <span className="sidebar-link-trailing"><Badge variant="neutral">{count}</Badge></span>
               </NavigationLink>
             </NavigationItem>
           ))}
@@ -2331,11 +2352,20 @@ export function ComponentGallery({
     </Navigation>
   );
 
+  const brandMark = brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>);
+  const brandLink = (
+    <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
+      {brandMark}
+    </a>
+  );
+  const toggleNavigation = () => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value));
+
   const navigationDrawer = (
     <DrawerContent id="component-navigation-drawer" placement="side" className="app-shell-drawer catalog-sheet" aria-describedby={undefined}>
             <DrawerHeader>
-              <DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle>
-              <DrawerClose asChild><Button size="sm" variant="ghost" aria-label="Close navigation">Close</Button></DrawerClose>
+              <VisuallyHidden.Root asChild><DrawerTitle>{showingTerminal ? "TUI" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></VisuallyHidden.Root>
+              {brandLink}
+              <DrawerClose asChild><Button className="btn-icon catalog-quiet-icon" size="sm" variant="ghost" aria-label="Close navigation" title="Close navigation"><X className="icon" aria-hidden="true" /></Button></DrawerClose>
             </DrawerHeader>
             <DrawerBody
               onClick={(event) => {
@@ -2378,18 +2408,31 @@ export function ComponentGallery({
       {!phone && <Sidebar
         id="component-navigation"
         // Narrow navigation lives in the drawer instead of taking a grid row.
-        hidden={!desktop || navigationCollapsed}
+        hidden={!desktop}
+        // Closed, the sidebar is Kiso's icon rail.
+        collapsed={navigationCollapsed}
         className="catalog-sidebar"
       >
-        <SidebarHeader>
-          <a className="brand catalog-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-            {brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>)}
-          </a>
+        {/* The brand and the toggle share the top bar's height and bottom line. */}
+        <SidebarHeader className="sidebar-header-collapsible catalog-sidebar-header">
+          <div className="sidebar-expanded-content">{brandLink}</div>
+          {/* One button in both states, so focus stays on it. In the rail it
+              shows the mark, and hover or focus turns it into the expand icon. */}
+          <Button className="catalog-sidebar-toggle btn-icon catalog-quiet-icon" size="sm" variant="ghost"
+            aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
+            title={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
+            aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
+            onClick={toggleNavigation}>
+            {navigationCollapsed ? <>
+              <span className="catalog-rail-mark" aria-hidden="true">{brandMark}</span>
+              <PanelLeftOpen className="icon catalog-rail-open" aria-hidden="true" />
+            </> : <PanelLeftClose className="icon" aria-hidden="true" />}
+          </Button>
         </SidebarHeader>
         <SidebarBody>
           {destinations}
         </SidebarBody>
-        {!settingsEnabled && <SidebarFooter>
+        {!settingsEnabled && <SidebarFooter className="sidebar-expanded-content">
           <ThemeSelector theme={theme} onChange={onThemeChange} />
         </SidebarFooter>}
       </Sidebar>}
@@ -2412,12 +2455,6 @@ export function ComponentGallery({
             </Button>
           </> : <>
           <div className="catalog-header-identity">
-          <Button className="catalog-sidebar-toggle btn-icon" size="sm" variant="ghost"
-            aria-label={navigationCollapsed ? "Expand navigation" : "Collapse navigation"}
-            aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
-            onClick={() => animateGalleryPanels(".catalog-sidebar", () => setNavigationCollapsed(value => !value))}>
-            <PanelLeft className="icon" aria-hidden="true" />
-          </Button>
             {!phone && <Drawer open={!desktop && menuOpen} onOpenChange={setMenuOpen}><DrawerTrigger asChild><Button
               className="catalog-menu btn-icon"
               size="sm"
@@ -2428,9 +2465,10 @@ export function ComponentGallery({
             >
               <PanelLeft className="icon" aria-hidden="true" />
             </Button></DrawerTrigger>{!desktop && navigationDrawer}</Drawer>}
-          {(intro !== undefined || phone) && (!desktop || navigationCollapsed) && (
+          {/* From 1024px the brand lives in the sidebar header. */}
+          {!desktop && (
             <a className="brand catalog-brand catalog-header-brand" href={intro !== undefined ? "#intro" : "#components"} onClick={intro !== undefined ? undefined : showAll}>
-              {brand ?? (<span>Kiso <span className="catalog-kanji" lang="ja">基礎</span></span>)}
+              {brandMark}
             </a>
           )}
           </div>
