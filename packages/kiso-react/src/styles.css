@@ -2,13 +2,15 @@
 @import "@momoi-labs/kiso/tokens.css";
 @import "@momoi-labs/kiso/ui.css";
 
+/* The row brings no outer padding; the host that places it sets the inset,
+   so in a header it fits the bar's height. */
 .theme-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
 }
+.sidebar-footer .theme-row { padding-inline: var(--spacing-sm); } /* match .nav-item's inset */
 .theme-buttons {
   display: flex;
   padding: var(--spacing-2xs);
