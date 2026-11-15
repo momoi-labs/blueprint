@@ -1,5 +1,15 @@
 # @momoi-labs/kiso-react
 
+## 0.31.1
+
+### Patch Changes
+
+- 8392fc8: ThemeSelector and AccentSelector rows no longer add their own 8px padding.
+  In a header the row made the bar taller than `--header-min-height`. The host
+  now sets the inset; a sidebar footer keeps the inline inset of its nav items.
+- Updated dependencies [246d7ad]
+  - @momoi-labs/kiso@1.9.1
+
 ## 0.31.0
 
 ### Minor Changes
