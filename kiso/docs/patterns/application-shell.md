@@ -135,6 +135,8 @@ Narrow viewport (Sidebar collapsed):
 
 ## Related patterns
 
+- [Shell layout](shell-layout.md): brand placement per header variant, home
+  and section pages, and the floating Header rules.
 - [List-detail](list-detail.md), [CRUD](crud.md), [Dashboard](dashboard.md),
   [Settings](settings.md) — render inside main.
 - [Login / authentication](login-authentication.md) — outside this shell.

@@ -24,6 +24,7 @@ to re-derive a working screen from prose.
 | `console.html` | A full product screen — sidebar, stat row, chart, table, list-detail — composed only from those components. |
 | `scope.html` | A console header with an org / project / server [scope switcher](../docs/components/scope-switcher.md). Switching keeps the page; below 700px the levels move into one compact popup. |
 | `app.js` | Enough behaviour to review states. Not production code. |
+| `react-prototype/` | The gallery app. Its shell implements [shell layout](../docs/patterns/shell-layout.md). |
 | `scope.js` | The same, for `scope.html`: popups, keyboard, filter, and scope in the URL. |
 
 Neither `tokens.css` nor `ui.css` lives here, on purpose. Both pages link
