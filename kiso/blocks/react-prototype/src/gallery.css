@@ -599,12 +599,11 @@
 /* Kiso's rail keeps the mark: it is the expand control, and shows the expand
    icon on hover or focus. */
 .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { padding: 0; justify-items: center; }
-.catalog-rail-mark { display: block; width: var(--size-control-xs); overflow: hidden; }
-.catalog-rail-open { display: none; }
-.catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-mark { display: none; }
-.catalog-sidebar-toggle:is(:hover, :focus-visible) > .catalog-rail-open { display: block; }
+/* Kiso's .sidebar-rail-mark swaps the mark for the expand icon. The gallery
+   clips its word mark to the mark's width. */
+.catalog-sidebar-toggle > .sidebar-rail-mark { width: var(--size-control-xs); }
 /* Without the mark (the floating pill holds it), the expand icon always shows. */
-.catalog-sidebar-toggle:not(:has(> .catalog-rail-mark)) > .catalog-rail-open { display: block; }
+.catalog-sidebar-toggle:not(:has(> .sidebar-rail-mark)) > .sidebar-rail-open { display: block; }
 
 /* From 1024px the brand is in the sidebar, so the page links start the top
    bar at the content's left padding, and the tools sit at its end. */
@@ -674,6 +673,10 @@
     justify-items: start;
     padding-inline-start: calc(var(--catalog-brand-inset) - (var(--size-control-sm) - var(--size-control-xs)) / 2);
   }
+  /* Kiso's rail mark button starts the mark at its edge, so the mark sits at
+     the inset itself. */
+  .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header:has(.sidebar-rail-mark) { padding-inline-start: var(--catalog-brand-inset); }
+  .catalog-sidebar-toggle:has(> .sidebar-rail-mark) { border-inline-width: 0; }
 
   /* Home: the logo starts the bar at the inset, and the tabs follow it with
      the gap between two tab labels. */
