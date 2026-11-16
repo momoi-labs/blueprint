@@ -96,6 +96,10 @@ type ApplicationShellSharedProps = Omit<
   headerVariant?: React.ComponentProps<typeof Header>["variant"]
   headerSize?: React.ComponentProps<typeof Header>["size"]
   panel?: React.ReactNode
+  /** Follow the shell layout pattern from 1024px: the Header and the sidebar
+   *  header share one bar height, the brand starts at the brand inset, and
+   *  the primary action sits below the bar. */
+  shellLayout?: boolean
   children: React.ReactNode
 }
 
@@ -115,6 +119,9 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
   onDrawerOpenChange?: (open: boolean) => void
   /** Below 700px, "bottom" moves the destinations to a BottomNav. */
   phoneNavigation?: "drawer" | "bottom"
+  /** The brand's mark, such as a BrandMark. A collapsed sidebar keeps it in
+   *  the rail as the control that expands the sidebar. */
+  brandMark?: React.ReactNode
   bottomNav?: never
 }
 
@@ -123,6 +130,7 @@ type ApplicationShellTopbarProps = ApplicationShellSharedProps & {
   /** A BottomNav for phones, below 700px. */
   bottomNav?: React.ReactNode
   phoneNavigation?: never
+  brandMark?: never
   navigation?: never
   navigationLabel?: never
   footer?: never
@@ -191,10 +199,10 @@ function ApplicationShellNavigation({
 
 function ApplicationShell(props: ApplicationShellProps) {
   if (props.layout === "topbar") {
-    const { brand, primaryAction, header, headerVariant, headerSize, panel, bottomNav, children, layout: _layout, ...shellProps } =
+    const { brand, primaryAction, header, headerVariant, headerSize, panel, bottomNav, shellLayout, children, layout: _layout, ...shellProps } =
       props
     return (
-      <AppShell {...shellProps} data-layout="topbar">
+      <AppShell {...shellProps} data-layout="topbar" {...shellLayoutAttributes(shellLayout, headerSize)}>
         <AppShellMain>
           <Header variant={headerVariant} size={headerSize}>
             {brand}
@@ -210,6 +218,12 @@ function ApplicationShell(props: ApplicationShellProps) {
   }
 
   return <ApplicationShellSidebar {...props} />
+}
+
+/* The shell carries the Header size too, so the sidebar header reads the
+   same bar height as the Header. */
+function shellLayoutAttributes(shellLayout: boolean | undefined, headerSize: ApplicationShellSharedProps["headerSize"]) {
+  return shellLayout ? { "data-shell-layout": "true", "data-header-size": headerSize } : {}
 }
 
 function ApplicationShellSidebar({
@@ -232,6 +246,8 @@ function ApplicationShellSidebar({
   drawerOpen: controlledDrawer,
   onDrawerOpenChange,
   phoneNavigation = "drawer",
+  brandMark,
+  shellLayout,
   ...shellProps
 }: ApplicationShellSidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = React.useState(defaultCollapsed)
@@ -263,6 +279,14 @@ function ApplicationShellSidebar({
     onCollapsedChange?.(next)
   }
 
+  // A floating Header holds the brand, so the rail has no mark.
+  const railMark = collapsible && isCollapsed && brandMark && headerVariant !== "floating" ? (
+    <>
+      <span className="sidebar-rail-mark" aria-hidden="true">{brandMark}</span>
+      <PanelLeftOpen className="icon sidebar-rail-open" aria-hidden="true" />
+    </>
+  ) : null
+
   const toggle = collapsible ? (
     <Button
       ref={toggleRef}
@@ -275,9 +299,35 @@ function ApplicationShellSidebar({
       title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       onClick={toggleSidebar}
     >
-      {isCollapsed ? <PanelLeftOpen className="icon" aria-hidden="true" /> : <PanelLeftClose className="icon" aria-hidden="true" />}
+      {togglePlacement === "sidebar" && railMark ? railMark : isCollapsed ? <PanelLeftOpen className="icon" aria-hidden="true" /> : <PanelLeftClose className="icon" aria-hidden="true" />}
     </Button>
   ) : null
+
+  // With the toggle in the Header, the rail mark is a second way to expand.
+  const railButton = togglePlacement === "header" && railMark ? (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="sidebar-toggle btn-icon"
+      aria-controls={sidebarId}
+      aria-expanded={false}
+      aria-label="Expand sidebar"
+      title="Expand sidebar"
+      onClick={toggleSidebar}
+    >
+      {railMark}
+    </Button>
+  ) : null
+
+  // In the shell layout the sidebar header is the bar: only the brand row
+  // and the toggle. The primary action goes below it.
+  const action = shellLayout && primaryAction ? (
+    <div className={cn("sidebar-actions", collapsible && "sidebar-expanded-content")}>{primaryAction}</div>
+  ) : null
+  const headerAction = shellLayout ? null : primaryAction
+  // A floating Header in the shell layout spans the screen above the
+  // sidebar and holds the brand on every width.
+  const barOnTop = shellLayout && headerVariant === "floating"
 
   const menu = (
     <Button
@@ -294,18 +344,32 @@ function ApplicationShellSidebar({
     </Button>
   )
 
+  const shellHeader = (
+    <Header variant={headerVariant} size={headerSize} data-phone-only={header || barOnTop || (collapsible && togglePlacement === "header") ? undefined : "true"}>
+      {menu}
+      {barOnTop
+        ? <div className="app-shell-bar-brand">{brand}</div>
+        : (phoneNavigation === "bottom" || shellLayout) && <div className="app-shell-phone-brand">{brand}</div>}
+      {phoneNavigation === "bottom" && primaryAction && <div className="app-shell-phone-action">{primaryAction}</div>}
+      {togglePlacement === "header" && toggle}
+      {header}
+    </Header>
+  )
+
   return (
-    <AppShell {...shellProps} data-phone-drawer="true" data-phone-navigation={phoneNavigation}>
+    <AppShell {...shellProps} {...shellLayoutAttributes(shellLayout, headerSize)} data-phone-drawer="true" data-phone-navigation={phoneNavigation}>
+      {barOnTop && shellHeader}
       <Sidebar ref={sidebarRef} id={sidebarId} collapsed={isCollapsed}>
-        <SidebarHeader className={collapsible && togglePlacement === "sidebar" ? "sidebar-header-collapsible" : undefined}>
+        <SidebarHeader className={collapsible && (togglePlacement === "sidebar" || railButton) ? "sidebar-header-collapsible" : undefined}>
           {collapsible ? <>
             <div className="sidebar-expanded-content">
-              {brand}
-              {primaryAction}
+              {!barOnTop && brand}
+              {headerAction}
             </div>
-            {togglePlacement === "sidebar" && toggle}
-          </> : <>{brand}{primaryAction}</>}
+            {togglePlacement === "sidebar" ? toggle : railButton}
+          </> : <>{!barOnTop && brand}{headerAction}</>}
         </SidebarHeader>
+        {action}
         <SidebarBody>
           <ApplicationShellNavigation
             navigation={navigation}
@@ -316,13 +380,7 @@ function ApplicationShellSidebar({
         {footer && <SidebarFooter className={collapsible ? "sidebar-expanded-content" : undefined}>{footer}</SidebarFooter>}
       </Sidebar>
       <AppShellMain>
-        <Header variant={headerVariant} size={headerSize} data-phone-only={header || (collapsible && togglePlacement === "header") ? undefined : "true"}>
-          {menu}
-          {phoneNavigation === "bottom" && <div className="app-shell-phone-brand">{brand}</div>}
-          {phoneNavigation === "bottom" && primaryAction && <div className="app-shell-phone-action">{primaryAction}</div>}
-          {togglePlacement === "header" && toggle}
-          {header}
-        </Header>
+        {!barOnTop && shellHeader}
         {children}
       </AppShellMain>
       {panel}

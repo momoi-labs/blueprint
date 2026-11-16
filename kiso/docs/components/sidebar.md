@@ -57,6 +57,8 @@ their labels remain accessible to assistive technology. Plain-text labels also
 provide native titles. Destinations without icons keep visible, wrapping text.
 The current destination keeps its active marker. Brand, primary action, group
 headings, trailing badges, and footer return when the user expands the sidebar.
+With `brandMark`, the rail keeps the brand's mark as the expand control, at the
+same place as in the open sidebar.
 
 When the current destination changes without a page load, its marker slides
 along the gutter to the new Link, across sections too. Each navigation landmark
