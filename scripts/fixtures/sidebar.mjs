@@ -46,10 +46,13 @@ function Fixture() {
       { label: 'Settings', href: '#settings' },
     ] }],
     footer: h('label', { className: 'field' }, 'Workspace name', h('input', { className: 'input', defaultValue: 'homelab' })),
+    ...(params.has('brandMark') ? { brandMark: h(BrandMark, null, 'H') } : {}),
   };
   return h(ApplicationShell, {
     ...sidebarProps,
     variant: params.get('variant') || undefined,
+    shellLayout: params.has('shellLayout') || undefined,
+    headerVariant: params.get('headerVariant') || undefined,
     brand: h('div', { className: 'brand' }, h(BrandMark, null, 'H'), h('span', { className: 't-label' }, 'self-host')),
     primaryAction: h(Button, { variant: 'primary', onClick: () => setCollapsed(true) }, 'Create application'),
     header: params.has('noHeader') ? undefined : h('span', null, 'homelab / ', page),

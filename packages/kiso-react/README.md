@@ -162,7 +162,12 @@ names, the active destination, and keyboard focus. `defaultCollapsed` sets the
 initial state; `collapsed` with `onCollapsedChange` lets the product control or
 persist the preference. On narrow screens the navigation keeps its labels and
 returns to the chosen state when the viewport widens. Existing appearance
-settings apply to both states.
+settings apply to both states. Pass `brandMark` to keep the brand's mark in
+the rail as the expand control.
+
+Add `shellLayout` to give the Header and the sidebar header one bar height,
+start the brand at the brand inset, and move `primaryAction` below the bar.
+With `headerVariant="floating"`, the brand moves into the floating Header.
 
 PageHeader accepts `variant="editorial"` for a larger responsive title and
 more space around the heading.

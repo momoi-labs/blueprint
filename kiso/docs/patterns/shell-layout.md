@@ -34,6 +34,10 @@ The brand starts at the brand inset: `(--size-touch-min + 2 *
 --spacing-md - --size-control-xs) / 2` from the sidebar edge. The open
 sidebar, the rail and the home Header all use it.
 
+ApplicationShell applies this with `shellLayout` and `brandMark`. The CSS
+exposes `--app-shell-brand-inset` and `--app-shell-bar-height` on
+`.app-shell`. See [App shell](../components/app-shell.md#shell-layout).
+
 ## Home bar on an inset shell
 
 With `appShell="inset"` and a `default` or `plain` Header, the home Header

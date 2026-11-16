@@ -185,3 +185,70 @@ test('A hovered navigation item steps its fill under Pixel corners', async () =>
     assert.deepEqual(await paint(), plain);
   } finally { await page.close(); }
 });
+
+const box = (page, selector) => page.locator(selector).first().boundingBox();
+const openMark = '.sidebar-header .sidebar-expanded-content .brand-mark';
+const railMark = '.sidebar-rail-mark .brand-mark';
+
+for (const placement of ['sidebar', 'header']) test(`The rail keeps the brand mark and expands the sidebar, toggle in ${placement}`, async () => {
+  const page = await open(`brandMark&shellLayout${placement === 'header' ? '&headerToggle' : ''}`);
+  try {
+    assert.equal(await page.locator('.sidebar-rail-mark').count(), 0, 'The open sidebar has no rail mark');
+    const before = await box(page, openMark);
+    const collapse = page.getByRole('button', { name: 'Collapse sidebar' });
+    await collapse.click();
+    await page.mouse.move(900, 500);
+    const mark = page.locator(railMark);
+    assert(await mark.isVisible(), 'The rail shows the mark');
+    const after = await mark.boundingBox();
+    assert.equal(after.x, before.x, 'The mark keeps its x on collapse');
+    assert.equal(after.y, before.y, 'The mark keeps its y on collapse');
+    assert.equal(before.x, 22, 'The mark starts at the brand inset');
+    const expand = page.locator('.sidebar').getByRole('button', { name: 'Expand sidebar' });
+    assert.equal(await expand.getAttribute('aria-expanded'), 'false');
+    assert.equal(await expand.locator('.sidebar-rail-mark').count(), 1, 'The mark is the expand control');
+    await expand.click();
+    assert.notEqual(await page.locator('.sidebar').getAttribute('data-collapsed'), 'true', 'A click on the mark expands');
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    for (const key of ['Enter', 'Space']) {
+      await page.locator('.sidebar').getByRole('button', { name: 'Expand sidebar' }).focus();
+      await page.keyboard.press(key);
+      assert.notEqual(await page.locator('.sidebar').getAttribute('data-collapsed'), 'true', `${key} on the mark expands`);
+      await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    }
+  } finally { await page.close(); }
+});
+
+for (const border of ['soft', 'inset']) test(`The Header and the sidebar header share one bar, ${border}`, async () => {
+  const page = await open(`brandMark&shellLayout&border=${border}`);
+  try {
+    const head = await box(page, '.sidebar-header');
+    const bar = await box(page, '.app-shell-main > .topbar, [data-slot="app-shell-main"] > .topbar');
+    assert.equal(head.y + head.height, bar.y + bar.height, 'Both bars end on one line');
+    assert.equal(bar.height, 60, 'The bar keeps its height');
+    const action = await box(page, '.sidebar-actions');
+    assert(action.y >= head.y + head.height, 'The primary action sits below the bar');
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    const rail = await box(page, '.sidebar-header');
+    assert.equal(rail.y + rail.height, bar.y + bar.height, 'The rail header keeps the bar line');
+  } finally { await page.close(); }
+});
+
+test('A floating Header holds the brand and the rail has no mark', async () => {
+  const page = await open('brandMark&shellLayout&headerVariant=floating');
+  try {
+    assert.equal(await page.locator('.app-shell-bar-brand .brand-mark').count(), 1, 'The brand is in the bar');
+    assert.equal(await page.locator('.sidebar .brand-mark').count(), 0);
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    assert.equal(await page.locator('.sidebar-rail-mark').count(), 0, 'The rail has no mark');
+    assert(await page.getByRole('button', { name: 'Expand sidebar' }).isVisible());
+  } finally { await page.close(); }
+});
+
+for (const query of ['brandMark&shellLayout', 'brandMark&shellLayout&headerVariant=floating', 'brandMark&shellLayout&collapsed']) test(`No sideways scroll at 390px, ${query}`, async () => {
+  const page = await open(query, { viewport: { width: 390, height: 850 } });
+  try {
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+    assert(await page.locator('.topbar .brand-mark').first().isVisible(), 'The phone header shows the brand');
+  } finally { await page.close(); }
+});

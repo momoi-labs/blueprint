@@ -106,9 +106,47 @@ not write to browser storage.
 
 Use each destination's `leading` slot for its icon. Collapsed destinations keep
 their accessible labels and active indication; destinations without icons keep
-visible text. The collapsed header retains the toggle, while brand, primary
-action, group labels, trailing content, and footer are hidden. Expanding brings
-them back. These props apply only to `layout="sidebar"`.
+visible text. The collapsed header retains the toggle. Primary action, group
+labels, trailing content, and footer are hidden, and expanding brings them
+back. The open brand is hidden too. Pass `brandMark` to keep the brand's mark
+in the rail: the mark is the expand control, named "Expand sidebar", and hover
+or focus shows the expand icon in its place. These props apply only to
+`layout="sidebar"`.
+
+```tsx
+<ApplicationShell
+  collapsible
+  shellLayout
+  brand={<ProductBrand />}
+  brandMark={<BrandMark>H</BrandMark>}
+  primaryAction={<CreateProject />}
+  navigation={groups}
+>
+  {page}
+</ApplicationShell>
+```
+
+A hand-composed Sidebar gets the same rail mark from a Button that holds
+`<span className="sidebar-rail-mark">` and an icon with class
+`sidebar-rail-open`.
+
+### Shell layout
+
+`shellLayout` applies the [shell layout pattern](../patterns/shell-layout.md)
+from 1024px:
+
+- The Header and the sidebar header share one bar height,
+  `--app-shell-bar-height`. Both are border-box with no block padding, so the
+  bottom lines meet in every `variant`.
+- The brand starts at `--app-shell-brand-inset` from the sidebar edge: in the
+  open sidebar, in the rail, and in a `layout="topbar"` Header.
+- `primaryAction` moves out of the bar into `.sidebar-actions`, below it. Content
+  below the brand row does not grow the bar.
+- With `headerVariant="floating"`, the brand moves into the floating Header,
+  which spans the screen. The sidebar starts below it and the rail has no mark.
+- Below 1024px the phone Header shows the brand.
+
+Without `shellLayout`, the shell keeps its earlier geometry.
 
 The control uses the current appearance tokens. It does not choose a border
 style, corner shape, accent, or theme for the product.
