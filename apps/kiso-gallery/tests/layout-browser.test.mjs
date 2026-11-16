@@ -491,7 +491,7 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
     }
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
     // The closed sidebar is the icon rail, and the rail keeps the mark.
-    await page.locator(".component-gallery .catalog-sidebar[data-collapsed='true'] .catalog-rail-mark .kiso-brand").waitFor();
+    await page.locator(".component-gallery .catalog-sidebar[data-collapsed='true'] .sidebar-rail-mark .kiso-brand").waitFor();
     assert.equal(await page.locator(".catalog-header-brand").count(), 0, "The rail owns the brand on desktop");
     // The floating header keeps the brand in the full-width pill instead.
     await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));

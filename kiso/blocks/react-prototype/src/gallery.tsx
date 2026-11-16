@@ -2594,8 +2594,8 @@ export function ComponentGallery({
             aria-expanded={!navigationCollapsed} aria-controls="component-navigation"
             onClick={toggleNavigation}>
             {navigationCollapsed ? <>
-              {!floating && <span className="catalog-rail-mark" aria-hidden="true">{brandMark}</span>}
-              <PanelLeftOpen className="icon catalog-rail-open" aria-hidden="true" />
+              {!floating && <span className="sidebar-rail-mark" aria-hidden="true">{brandMark}</span>}
+              <PanelLeftOpen className="icon sidebar-rail-open" aria-hidden="true" />
             </> : <PanelLeftClose className="icon" aria-hidden="true" />}
           </Button>
         </SidebarHeader>
