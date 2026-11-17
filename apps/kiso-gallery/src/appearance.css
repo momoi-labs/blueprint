@@ -7,38 +7,18 @@
 .appearance-colors .accent-row .theme-row { flex-direction: column; align-items: stretch; }
 .appearance-colors .accent-pills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .appearance-colors .accent-pill { justify-content: start; }
-.appearance-choices, .appearance-size { border: 0; padding: 0; margin: 0; min-width: 0; }
-.appearance-choices legend, .appearance-size legend { margin-bottom: var(--spacing-sm); }
+.appearance-choices { border: 0; padding: 0; margin: 0; min-width: 0; }
+.appearance-choices legend { margin-bottom: var(--spacing-sm); }
 .appearance-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--spacing-xs); }
 .appearance-option { position: relative; cursor: pointer; min-width: 0; }
-.appearance-option input, .appearance-segments input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.appearance-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .appearance-option-body { display: grid; grid-template-columns: var(--spacing-3xl) minmax(0, 1fr); height: 100%; min-height: var(--size-touch-min); align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs); border: 1px solid transparent; border-radius: var(--radius-md); }
 .appearance-option:hover .appearance-option-body { background: var(--color-accent-surface-hover); }
 .appearance-option-description { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .appearance-option input:checked + .appearance-option-body { border-color: var(--color-focus); background: var(--color-accent-surface); }
-.appearance-option input:focus-visible + .appearance-option-body, .appearance-segments input:focus-visible + span { outline: 2px solid var(--color-focus); outline-offset: 3px; }
-.appearance-swatch { display: block; padding: var(--spacing-sm); }
-.appearance-sample { display: grid; align-content: center; gap: var(--spacing-xs); padding: var(--spacing-xs); height: var(--spacing-xl); }
-.appearance-sample i { display: block; background: var(--color-border-strong); height: 3px; width: 75%; }
-.appearance-sample i + i { width: 45%; background: var(--color-border); }
-.appearance-heading-sample { height: var(--spacing-xl); padding: 0; justify-items: center; background: var(--color-card); }
-.appearance-heading-sample i { display: none; }
-.appearance-heading-title { font-family: var(--font-heading); font-size: var(--type-size-label); font-weight: var(--type-weight-semibold); line-height: var(--type-line-height-tight); letter-spacing: var(--type-letter-spacing-heading); }
-.appearance-heading-sample[data-heading-style="editorial"] .appearance-heading-title { font-size: var(--type-size-h3); }
-/* Draw the frame at thumbnail scale without inheriting full-size card marks. */
-.appearance-frame-sample { display: block; width: 100%; height: var(--spacing-xl); color: var(--color-muted-foreground); }
-.appearance-frame-outline { fill: var(--color-sidebar); stroke: var(--color-border-strong); }
-.appearance-frame-main { fill: var(--color-background); }
-.appearance-size:disabled { opacity: .5; }
-.appearance-segments { display: flex; flex-wrap: wrap; gap: var(--spacing-2xs); padding: var(--spacing-2xs); border: 1px solid var(--color-sidebar-border); border-radius: var(--radius-md); }
-.appearance-segments label { position: relative; cursor: pointer; flex: 1; text-align: center; }
-.appearance-segment-body { display: grid; place-items: center; min-height: var(--size-control-sm); padding: var(--spacing-xs); font-size: var(--type-size-label); border-radius: var(--radius-sm); }
-.appearance-segment-body .appearance-panel-preview { width: var(--spacing-3xl); }
-.appearance-segments input:checked + span { background: var(--color-card); box-shadow: var(--shadow-xs); }
-.appearance-size:disabled label, .appearance-segments label:has(input:disabled) { cursor: default; }
-.appearance-size:not(:disabled) input:disabled + span { opacity: .5; }
+.appearance-option input:focus-visible + .appearance-option-body { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 @media (pointer: coarse) {
-  .appearance-segments span, .appearance-colors .accent-pill { min-height: var(--size-touch-min); }
+  .appearance-colors .accent-pill { min-height: var(--size-touch-min); }
 }
 
 .appearance-usage { display: grid; gap: var(--spacing-md); padding-block: var(--spacing-lg); border-top: 1px solid var(--color-sidebar-border); }
@@ -65,7 +45,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-preview-text { stroke: var(--color-muted-foreground); }
 .appearance-scope-panel { fill: var(--color-muted); }
 .appearance-scope-accent { stroke: var(--color-link); stroke-width: 2; }
-.appearance-options-wide .appearance-option-body, .appearance-options-scope .appearance-option-body {
+.appearance-options-wide .appearance-option-body {
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   text-align: center;
@@ -73,8 +53,14 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
   padding: var(--spacing-sm);
   border-color: var(--color-sidebar-border);
 }
-.appearance-options-scope { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .appearance-options-wide .appearance-background-sample { height: calc(2 * var(--spacing-2xl)); }
+.appearance-presets { display: flex; gap: var(--spacing-xs); overflow-x: auto; padding-bottom: var(--spacing-xs); }
+.appearance-presets > .appearance-composition.btn { flex: none; width: 9rem; }
+.appearance-sketch { display: block; margin-top: var(--spacing-lg); width: 100%; height: auto; color: var(--color-muted-foreground); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-background); }
+.appearance-sketch-frame { fill: var(--color-sidebar); stroke: var(--color-border-strong); }
+.appearance-sketch-main { fill: var(--color-card); stroke: var(--color-border-strong); }
+.appearance-sketch-bar { fill: var(--color-accent-surface); stroke: var(--color-link); }
+.appearance-sketch-line { fill: none; stroke: var(--color-border-strong); }
 .appearance-composition.btn { display: grid; grid-template-columns: var(--spacing-3xl) minmax(0, 1fr); height: auto; min-height: var(--size-touch-min); gap: var(--spacing-xs); padding: var(--spacing-xs); white-space: normal; text-align: start; font-weight: var(--type-weight-regular); border: 1px solid transparent; }
 .appearance-composition[aria-pressed="true"] { border-color: var(--color-focus); background: var(--color-accent-surface); }
 .appearance-composition-preview { position: relative; width: 100%; height: var(--spacing-3xl); }
@@ -108,20 +94,6 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 .appearance-background-sample[data-background-style="momoi"] { --canvas-size: 35px auto; --canvas-position: right var(--spacing-sm) bottom var(--spacing-sm); }
 .appearance-background-sample[data-background-style="momoi-repeat"] { --canvas-size: 48px 48px; }
 .appearance-options-wide .appearance-background-sample[data-background-style="momoi"] { --canvas-size: 64px auto; }
-.appearance-fill-panel {
-  position: absolute;
-  inset: var(--spacing-xs) var(--spacing-lg) var(--spacing-lg) var(--spacing-xs);
-  display: grid;
-  align-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  background: var(--color-card);
-  border: 1px solid var(--color-border-strong);
-}
-[data-preview-fill="translucent"] .appearance-fill-panel { background: color-mix(in srgb, var(--color-card) 65%, transparent); }
-[data-preview-fill="glass"] .appearance-fill-panel { background: light-dark(color-mix(in srgb, var(--color-card) 38%, transparent), color-mix(in srgb, var(--color-card) 34%, transparent)); }
-.appearance-fill-title { height: 3px; width: 65%; background: var(--color-foreground); }
-.appearance-fill-field { height: var(--spacing-sm); width: 100%; background: var(--color-background); border: 1px solid var(--color-border-strong); }
 .appearance-option:has(input:disabled) { opacity: .5; cursor: default; }
 
 /* The mobile settings drawer belongs to the gallery's selected paper. */
@@ -136,7 +108,6 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
   background-color: var(--color-accent-surface);
 }
 
-.appearance-outer-customization > .disclosure-content { display: grid; gap: var(--spacing-md); }
 .appearance-section:has(> .disclosure) { padding-block: 0; }
 .appearance-section > .disclosure > summary { color: var(--color-muted-foreground); }
 .appearance-section > .disclosure > .disclosure-content { display: grid; gap: var(--spacing-md); }
@@ -144,7 +115,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 /* Tabs group the settings. The strip stays in view while a tab scrolls. */
 /* It takes the panel's own fill, which changes with the frame and background. */
 .appearance-controls-scroll, .appearance-tabs { background: inherit; }
-.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; }
+.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; gap: var(--spacing-sm); }
 .appearance-tabs [role="tabpanel"] > :is(.appearance-section, .appearance-usage):first-child { border-top: 0; }
 
 /* Scale the canvas to the thumbnail instead of cropping a full-size pattern. */

@@ -29,12 +29,13 @@ async function open(route, width = 1440, colorScheme = "dark") {
   await page.goto(`${url}#${route}`);
   return page;
 }
+const scopeName = { outer: 'Outer only', panels: 'With panels', all: 'With controls' };
 async function settings(page) {
   const panel = page.locator("#gallery-settings");
   if (!await panel.isVisible()) await toggleSettings(page);
   await panel.waitFor();
   // Rarely used sections start closed; these tests work on their contents.
-  await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details:not(.appearance-outer-customization)").forEach(details => { details.open = true; }));
+  await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details").forEach(details => { details.open = true; }));
   return panel;
 }
 async function group(panel, name) {
@@ -84,15 +85,9 @@ for (const width of [390, 1440]) test(`Chart treatments select, persist and expo
     for (const [select, label, attribute, value] of [['Chart line', 'Stepped', 'chartLine', 'stepped'], ['Chart line', 'Curved', 'chartLine', 'curved'],
       ['Chart fill', 'Dots', 'chartFill', 'dots'], ['Chart fill', 'Scanlines', 'chartFill', 'scanlines']]) {
       const panel = await settings(page);
-      await tab(panel, 'Charts');
-      const trigger = panel.locator('.detail-select-trigger').nth(select === 'Chart line' ? 0 : 1);
       const baseline = await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]);
-      await trigger.click();
-      const options = page.getByRole('dialog', { name: `${select}: options` });
-      const bounds = await options.boundingBox();
-      assert(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 901);
+      await (await field(panel, select)).getByRole('radio', { name: label, exact: true }).check();
       assert.deepEqual(await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]), baseline);
-      await options.getByRole('button', { name: label, exact: true }).click();
       await page.waitForFunction(([key, expected]) => document.documentElement.dataset[key] === expected, [attribute, value]);
       await page.waitForFunction(([key, expected]) => document.querySelector('[data-slot="chart"]')?.dataset[key === 'chartLine' ? 'line' : 'fill'] === expected, [attribute, value]);
       await page.reload();
@@ -250,8 +245,7 @@ for (const [width, frame, theme] of [
     const panel = await settings(page);
     await (await field(panel, "Application frame")).getByRole("radio", { name: frame, exact: true }).check({ timeout: 15000 });
     assert(await panel.getByRole("heading", { name: "Appearance", exact: true }).isVisible());
-    assert.equal(await panel.locator("details:not([open])").count(), 1);
-    for (const name of ["Colors", "Presets", "Background", "Charts", "Main style", "Where to apply", "Layout", "Phone", "Use in code"]) {
+    for (const name of ["Colors and type", "Presets", "Background", "Charts", "Panels", "Where it applies", "Shell", "Phone", "Use in code"]) {
       await tab(panel, name);
       assert(await panel.getByRole("region", { name, exact: true }).isVisible());
     }
@@ -289,8 +283,8 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
   const page = await open("components/table");
   try {
     const panel = await settings(page);
-    const layout = await group(panel, "Layout");
-    await layout.getByRole("group", { name: "Application frame", exact: true }).getByRole("radio", { name: frame, exact: true }).check();
+    const layout = await group(panel, "Shell");
+    await layout.getByRole("radiogroup", { name: "Application frame", exact: true }).getByRole("radio", { name: frame, exact: true }).check();
     const main = page.locator('.component-gallery > [data-slot="app-shell-main"]');
     const width = async () => (await main.boundingBox()).width;
     const start = await width();
@@ -324,7 +318,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     assert.equal(await width(), start);
     const scroll = panel.getByRole("region", { name: "Settings options" });
     const previewBox = await page.locator(".catalog-preview").boundingBox();
-    await group(panel, "Main style");
+    await group(panel, "Panels");
     await scroll.evaluate(el => el.scrollTop = 200);
     assert(await scroll.evaluate(el => el.scrollTop > 0));
     assert.deepEqual(await page.locator(".catalog-preview").boundingBox(), previewBox);
@@ -370,29 +364,29 @@ for (const width of [390, 1440]) test(`Rounded is one type with independent size
   const page = await open("components/table", width);
   try {
     let panel = await settings(page);
-    let corners = await group(panel, "Main style");
+    let corners = await group(panel, "Panels");
     const choices = corners.getByRole("group", { name: "Corner type", exact: true });
     assert.equal(await choices.getByRole("radio").count(), 4);
     await choices.getByRole("radio", { name: /^Square / }).check();
-    const size = corners.getByRole("group", { name: "Corner size", exact: true });
-    for (const radio of await size.getByRole("radio").all()) assert(await radio.isDisabled(), "Square disables size adjustments");
+    const size = corners.getByRole("radiogroup", { name: "Corner size", exact: true });
+    assert.equal(await size.count(), 0, "Square hides size adjustments");
     await choices.getByRole("radio", { name: /^Rounded / }).check();
-    assert(await size.getByRole("radio", { name: "Off", exact: true }).isDisabled());
+    assert.equal(await size.getByRole("radio", { name: "Off", exact: true }).count(), 0);
     const table = page.locator(".catalog-preview .table-wrap");
     for (const [size, radius] of [["Small", "8px"], ["Medium", "16px"], ["Large", "24px"]]) {
-      await corners.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: size, exact: true }).check();
+      await corners.getByRole("radiogroup", { name: "Corner size", exact: true }).getByRole("radio", { name: size, exact: true }).check();
       assert.equal(await table.evaluate(el => getComputedStyle(el).borderTopLeftRadius), radius);
     }
     await choices.getByRole("radio", { name: /^Square / }).check();
-    assert(await size.getByRole("radio", { name: "Large", exact: true }).isChecked(), "Square keeps the last size for a later shape switch");
+    assert.equal(await size.count(), 0);
     await choices.getByRole("radio", { name: /^Asymmetric / }).check();
-    assert(await size.getByRole("radio", { name: "Off", exact: true }).isDisabled());
+    assert.equal(await size.getByRole("radio", { name: "Off", exact: true }).count(), 0);
     assert.equal(await table.evaluate(el => getComputedStyle(el).borderTopLeftRadius), "18px");
     await choices.getByRole("radio", { name: /^Rounded / }).check();
-    assert(await size.getByRole("radio", { name: "Large", exact: true }).isChecked(), "Switching shapes retains an enabled size");
+    assert(await size.getByRole("radio", { name: "Large", exact: true }).isChecked(), "Switching shapes retains the last size");
     const large = size.getByRole("radio", { name: "Large", exact: true });
-    await large.focus(); await page.keyboard.press("Space"); await page.keyboard.press("ArrowRight");
-    assert(await size.getByRole("radio", { name: "Small", exact: true }).isChecked(), "Keyboard navigation skips disabled Off");
+    await large.focus(); await page.keyboard.press("Space"); await page.keyboard.press("ArrowRight"); await page.waitForFunction(() => document.activeElement?.value === "small"); await page.keyboard.press("Space");
+    assert(await size.getByRole("radio", { name: "Small", exact: true }).isChecked(), "Keyboard navigation wraps without an Off choice");
     const borders = (await field(panel, "Border style"));
     assert.equal(await borders.getByRole("radio").count(), 9);
     for (const border of ["none", "dash", "solid"]) {
@@ -401,9 +395,9 @@ for (const width of [390, 1440]) test(`Rounded is one type with independent size
     }
     await page.reload();
     panel = await settings(page);
-    corners = await group(panel, "Main style");
+    corners = await group(panel, "Panels");
     assert(await corners.getByRole("radio", { name: /^Rounded / }).isChecked());
-    assert(await corners.getByRole("group", { name: "Corner size", exact: true }).getByRole("radio", { name: "Small", exact: true }).isChecked());
+    assert(await corners.getByRole("radiogroup", { name: "Corner size", exact: true }).getByRole("radio", { name: "Small", exact: true }).isChecked());
     if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-corner-settings-${width}.png` });
     await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerStyle), "rounded");
@@ -414,8 +408,8 @@ test("Component options replace each other and open on arrival without resetting
   const page = await open("components/table");
   try {
     let panel = await settings(page);
-    await (await group(panel, "Colors")).getByRole("radio", { name: "Light theme", exact: true }).check();
-    await group(panel, "Main style");
+    await (await group(panel, "Colors and type")).getByRole("radio", { name: "Light theme", exact: true }).check();
+    await group(panel, "Panels");
     for (const [route, title, control, value] of [["alert", "Alert options", "Appearance", "rail"], ["app-shell", "ApplicationShell options", /^Sidebar toggle placement/, "header"], ["form-field", "Inline fields options", /^Control size/, "lg"]]) {
       await close(page);
       await page.goto(`${url}#components/${route}`);
@@ -495,7 +489,7 @@ for (const width of [390, 1440]) test(`Appearance usage copies current settings 
   try {
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
     const panel = await settings(page);
-    await (await group(panel, "Colors")).getByRole("radio", { name: "Dark theme", exact: true }).check();
+    await (await group(panel, "Colors and type")).getByRole("radio", { name: "Dark theme", exact: true }).check();
     await (await field(panel, "Visual style")).getByRole("radio", { name: "Editorial", exact: true }).check();
     const usage = await group(panel, "Use in code");
     const saved = await page.evaluate(() => window.kisoAppearance.read());
@@ -524,25 +518,11 @@ for (const width of [320, 1440]) test(`Appearance samples stay centered and isol
   const page = await open('components', width);
   try {
     const panel = await settings(page);
-    await tab(panel, 'Main style');
+    await tab(panel, 'Panels');
     await panel.getByRole('radio', { name: /^Rounded / }).check();
     await (await field(panel, 'Corner size')).getByRole('radio', { name: 'Large', exact: true }).check();
-    for (const sample of await panel.locator('.appearance-heading-sample').all()) {
-      assert(await sample.evaluate(el => {
-        const box = el.getBoundingClientRect();
-        const text = el.querySelector('.appearance-heading-title').getBoundingClientRect();
-        return Math.abs(text.x + text.width / 2 - box.x - box.width / 2) <= 1 && Math.abs(text.y + text.height / 2 - box.y - box.height / 2) <= 1;
-      }), 'Aa is centered within its sample');
-    }
     const frames = (await field(panel, 'Application frame'));
-    assert.equal(await frames.locator('svg').count(), 2);
-    assert.equal(await frames.locator('.card').count(), 0, 'Frame thumbnails do not inherit full-size card marks');
-    for (const svg of await frames.locator('svg').all()) {
-      assert(await svg.evaluate(el => {
-        const box = el.getBBox(), view = el.viewBox.baseVal;
-        return box.x >= view.x && box.y >= view.y && box.x + box.width <= view.width && box.y + box.height <= view.height;
-      }), 'Frame drawing stays inside its viewBox');
-    }
+    assert.equal(await frames.getByRole('radio').count(), 2);
     if (width >= 1200) for (const frame of ['Default', 'Inset']) {
       await frames.getByRole('radio', { name: frame, exact: true }).check();
       // The navigation toggle sits in the sidebar header, which shares the top bar's line.
@@ -568,13 +548,12 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
     await (await field(panel, 'Application frame')).getByRole('radio', { name: 'Inset', exact: true }).check();
     await (await field(panel, 'Canvas background')).getByRole('radio', { name: 'Momoi watermark', exact: true }).check();
     await (await field(panel, 'Panel fill')).getByRole('radio', { name: 'Translucent', exact: true }).check();
-    await tab(panel, 'Where to apply');
-    await panel.locator('summary').filter({ hasText: 'Customize outer frame' }).click();
+    await tab(panel, 'Where it applies');
     await (await field(panel, 'Outer border')).locator('input[value="brush"]').check();
-    await (await field(panel, 'Apply frames to')).locator('input[value="panels"]').check();
-    await (await field(panel, 'Apply marks to')).locator('input[value="outer"]').check();
+    await (await field(panel, 'Apply frames to')).getByRole('radio', { name: scopeName.panels, exact: true }).check();
+    await (await field(panel, 'Apply marks to')).getByRole('radio', { name: scopeName.outer, exact: true }).check();
     await (await field(panel, 'Outer marks')).locator('input[value="none"]').check();
-    assert(await (await field(panel, 'Outer corners')).getByRole('radio').first().isDisabled(), 'Brush owns the outer contour');
+    assert.equal(await panel.getByRole('group', { name: 'Outer corners', exact: true }).count(), 0, 'Brush owns the outer contour');
     const selected = await page.evaluate(() => ({ ...document.documentElement.dataset }));
     assert.equal(selected.borderStyle, 'solid', 'Outer Brush does not change inner borders');
     assert.equal(selected.backgroundStyle, 'momoi');
@@ -583,10 +562,9 @@ for (const width of [390, 1440]) test(`Canvas choices and independent outer styl
     assert((await panel.locator('.appearance-usage').innerText()).includes('data-outer-border-style="brush"'));
     await page.reload(); panel = await settings(page);
     assert(await (await field(panel, 'Canvas background')).getByRole('radio', { name: 'Momoi watermark', exact: true }).isChecked());
-    await tab(panel, 'Where to apply');
-    await panel.locator('summary').filter({ hasText: 'Customize outer frame' }).click();
+    await tab(panel, 'Where it applies');
     assert(await (await field(panel, 'Outer border')).locator('input[value="brush"]').isChecked());
-    assert(await (await field(panel, 'Apply marks to')).locator('input[value="outer"]').isChecked());
+    assert(await (await field(panel, 'Apply marks to')).getByRole('radio', { name: scopeName.outer, exact: true }).isChecked());
     await panel.getByRole('button', { name: 'Reset appearance', exact: true }).click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.backgroundStyle), 'glow');
     assert(await (await field(panel, 'Outer border')).locator('input[value="none"]').isChecked());
@@ -597,7 +575,7 @@ for (const theme of ['light', 'dark']) test(`Switching the application frame kee
   const page = await open('intro', 1440, theme);
   try {
     const panel = await settings(page);
-    const frames = panel.getByRole('group', { name: 'Application frame', exact: true });
+    const frames = panel.getByRole('radiogroup', { name: 'Application frame', exact: true });
     // The paper under the pattern is the inset shell's ::after layer, else the shell or page background.
     const paper = () => page.evaluate(() => {
       const shell = document.querySelector('.app-shell'), layer = getComputedStyle(shell, '::after');
@@ -648,7 +626,7 @@ test('Legacy selections remain explicit until replaced, and incompatible choices
     await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, borderStyle: 'bevel', cornerMarks: 'dots' }));
     await page.reload();
     const panel = await settings(page);
-    await tab(panel, 'Main style');
+    await tab(panel, 'Panels');
     assert(await panel.getByRole('radio', { name: /^Inset edge \(legacy\)/ }).isChecked());
     assert(await panel.getByRole('radio', { name: 'Corner dots (legacy)', exact: true }).isChecked());
     await (await field(panel, 'Border style')).getByRole('radio', { name: /^Solid / }).check();
@@ -657,8 +635,8 @@ test('Legacy selections remain explicit until replaced, and incompatible choices
     assert(await panel.getByRole('radio', { name: /^Dashed outline / }).isDisabled());
     assert(await (await field(panel, 'Corner marks')).getByRole('radio', { name: 'Curved brackets', exact: true }).isDisabled());
     await panel.getByRole('radio', { name: /^Brush frame / }).check();
-    assert(await panel.getByRole('radio', { name: /^Pixel classic / }).isChecked(), 'Brush retains the selected corner');
-    assert(await panel.getByRole('radio', { name: /^Pixel classic / }).isDisabled());
+    assert.equal(await panel.getByRole('radio', { name: /^Pixel classic / }).count(), 0, 'Brush hides the corner choices');
+    assert.equal(await page.evaluate(() => window.kisoAppearance.read().cornerStyle), 'pixel', 'Brush retains the selected corner');
   } finally { await page.close(); }
 });
 
@@ -674,15 +652,11 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
       const probe = document.createElement('span'); probe.style.color = 'var(--color-accent-surface)'; el.append(probe);
       const matches = getComputedStyle(el).backgroundColor === getComputedStyle(probe).color; probe.remove(); return matches;
     }), 'Settings share the selected accent paper on desktop and mobile');
-    const paperSamples = (await field(panel, 'Paper tone')).locator('.appearance-background-sample');
-    const paperColors = await paperSamples.evaluateAll(els => els.map(el => getComputedStyle(el).backgroundColor));
-    assert.notEqual(paperColors[0], paperColors[1], 'Theme paper and Accent paper retain distinct previews inside tinted settings');
     await tab(panel, 'Presets');
     assert(await panel.getByRole('button', { name: 'Blueprint', exact: true }).getAttribute('aria-pressed') === 'true');
     assert(await (await field(panel, 'Canvas background')).getByRole('radio', { name: 'Construction lines', exact: true }).isEnabled(), 'The module grid remains available');
-    await tab(panel, 'Where to apply');
-    await panel.locator('summary').filter({ hasText: 'Customize outer frame' }).click();
-    for (const label of ['Outer border', 'Outer corners', 'Outer marks', 'Apply frames to', 'Apply marks to', 'Paper tone', 'Pattern placement', 'Background strength', 'Panel fill']) {
+    await tab(panel, 'Where it applies');
+    for (const label of ['Outer border', 'Outer corners', 'Outer marks']) {
       const choices = await field(panel, label);
       for (const option of await choices.locator('label.appearance-option').all()) {
         assert.equal(await option.locator('svg[aria-hidden="true"], .appearance-background-sample[aria-hidden="true"]').count(), 1, `${label} has a decorative preview for every choice`);
@@ -690,10 +664,10 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
     }
     const placement = (await field(panel, 'Pattern placement'));
     const inside = placement.getByRole('radio', { name: 'Inside frame', exact: true });
-    await inside.focus(); await page.keyboard.press('ArrowRight');
+    await inside.focus(); await page.keyboard.press('ArrowRight'); await page.waitForFunction(() => document.activeElement?.value === 'both'); await page.keyboard.press('Space');
     assert(await placement.getByRole('radio', { name: 'Both', exact: true }).isChecked());
     assert.equal(await page.evaluate(() => document.documentElement.dataset.backgroundPlacement), 'both');
-    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft'); await page.waitForFunction(() => document.activeElement?.value === 'inside'); await page.keyboard.press('Space');
     await (await field(panel, 'Panel fill')).getByRole('radio', { name: 'Translucent', exact: true }).check();
     assert(await page.locator('.component-orbit-node').first().evaluate(el => getComputedStyle(el).backgroundColor.includes('0.65')), 'Blueprint demo surfaces can be translucent without a Momoi background');
     assert.equal(await page.locator('.hero-panel-project .badge').first().evaluate(el => getComputedStyle(el).opacity), '1');
@@ -813,14 +787,12 @@ for (const [width, theme] of fullSweep ? [[320, 'dark'], [390, 'light'], [1200, 
       if (preset.endsWith('panels')) await (await field(panel, 'Border style')).locator(`input[value="${preset.startsWith('Manga') ? 'manga' : 'brush'}"]`).check();
       // Exercise changes after applying a preset, not only static snapshots.
       for (const scope of ['all', 'panels', 'outer']) {
-        await (await field(panel, 'Apply frames to')).locator(`input[value="${scope}"]`).check();
-        await (await field(panel, 'Apply marks to')).locator(`input[value="${scope}"]`).check();
+        await (await field(panel, 'Apply frames to')).getByRole('radio', { name: scopeName[scope], exact: true }).check();
+        await (await field(panel, 'Apply marks to')).getByRole('radio', { name: scopeName[scope], exact: true }).check();
         await (await field(panel, 'Panel fill')).getByRole('radio', { name: scope === 'panels' ? 'Solid' : 'Translucent', exact: true }).check();
         await (await field(panel, 'Visual style')).getByRole('radio', { name: scope === 'panels' ? 'Editorial' : 'Default', exact: true }).check();
         await (await field(panel, 'Mark clearance')).getByRole('radio', { name: scope === 'all' ? 'Drawing sheet' : 'Normal', exact: true }).check();
-        await tab(panel, 'Where to apply');
-        const disclosure = panel.locator('.appearance-outer-customization');
-        if (!await disclosure.getAttribute('open').then(value => value !== null)) await disclosure.locator('summary').click();
+        await tab(panel, 'Where it applies');
         const detail = (await field(panel, 'Border detail'));
         if (await detail.count()) await detail.getByRole('radio', { name: scope === 'all' ? 'Large' : 'Small', exact: true }).check();
         await close(page);
@@ -856,8 +828,8 @@ for (const [width, theme] of [[390, 'light'], [1200, 'dark']]) test(`New frames 
       if (frame === 'pixel') await (await field(panel, 'Corner type')).locator('input[value="pixel"]').check();
       else await (await field(panel, 'Border style')).locator(`input[value="${frame}"]`).check();
       for (const scope of ['all', 'panels', 'outer']) {
-        await (await field(panel, 'Apply frames to')).locator(`input[value="${scope}"]`).check();
-        await (await field(panel, 'Apply marks to')).locator(`input[value="${scope}"]`).check();
+        await (await field(panel, 'Apply frames to')).getByRole('radio', { name: scopeName[scope], exact: true }).check();
+        await (await field(panel, 'Apply marks to')).getByRole('radio', { name: scopeName[scope], exact: true }).check();
         await (await field(panel, frame === 'pixel' ? 'Corner size' : 'Border detail')).getByRole('radio', { name: scope === 'all' ? 'Large' : 'Small', exact: true }).check();
         await close(page);
         assert.equal(await ram.inputValue(), '24', `${frame}/${scope}: controlled value survives appearance changes`);
@@ -982,18 +954,21 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
   } finally { await page.close(); }
 });
 
-for (const width of [390, 1440]) test(`Main style, outer overrides and Pixel size remain distinct at ${width}px`, async () => {
+for (const width of [390, 1440]) test(`Panel style, outer overrides and Pixel size remain distinct at ${width}px`, async () => {
   const page = await open('intro', width);
   try {
-    let panel = await settings(page);
-    await tab(panel, 'Main style');
-    const outer = panel.locator('.appearance-outer-customization');
+    await toggleSettings(page);
+    let panel = page.locator('#gallery-settings');
+    await panel.waitFor();
+    await tab(panel, 'Panels');
+    const outer = panel.locator('details').filter({ has: page.locator('summary', { hasText: 'Outer frame style' }) });
+    await tab(panel, 'Outer frame style');
     assert.equal(await outer.getAttribute('open'), null);
     assert.equal(await panel.getByRole('group', { name: 'Outer border', exact: true }).count(), 0, 'Collapsed overrides stay out of keyboard navigation');
     await (await field(panel, 'Corner type')).locator('input[value="pixel"]').check();
     const size = (await field(panel, 'Corner size'));
-    assert(await size.getByRole('radio', { name: 'Off', exact: true }).isDisabled());
-    assert.equal(await panel.getByRole('group', { name: 'Border detail', exact: true }).count(), 0, 'Pixel has only one size control');
+    assert.equal(await size.getByRole('radio', { name: 'Off', exact: true }).count(), 0);
+    assert.equal(await panel.getByRole('radiogroup', { name: 'Border detail', exact: true }).count(), 0, 'Pixel has only one size control');
     const card = page.locator('.hero-panel-project .card');
     const geometries = [];
     for (const name of ['Small', 'Medium', 'Large']) {
@@ -1003,24 +978,29 @@ for (const width of [390, 1440]) test(`Main style, outer overrides and Pixel siz
     assert.equal(new Set(geometries).size, 3, 'All three choices change the rendered steps');
     await size.getByRole('radio', { name: 'Large', exact: true }).focus();
     await page.keyboard.press('ArrowRight');
-    assert(await size.getByRole('radio', { name: 'Small', exact: true }).isChecked(), 'Arrow navigation skips Off');
+    await page.waitForFunction(() => document.activeElement?.value === 'small');
+    await page.keyboard.press('Space');
+    assert(await size.getByRole('radio', { name: 'Small', exact: true }).isChecked(), 'Arrow navigation wraps without an Off choice');
+    await tab(panel, 'Outer frame style');
     await outer.locator('summary').focus();
     await page.keyboard.press('Enter');
     await (await field(panel, 'Outer border')).getByRole('radio', { name: 'Brush frame', exact: true }).check();
     const detail = (await field(panel, 'Border detail'));
-    assert.equal(await detail.count(), 1);
-    assert(await outer.getByRole('group', { name: 'Border detail', exact: true }).isVisible(), 'An outer-only ink adjustment stays with its override');
+    assert.equal(await detail.count(), 1, 'Border detail appears once');
     await detail.getByRole('radio', { name: 'Large', exact: true }).check();
     assert.equal(await card.evaluate(el => getComputedStyle(el, '::before').clipPath), geometries[0], 'Brush detail does not resize Pixel');
     await outer.locator('summary').click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.outerBorderStyle), 'brush', 'Collapsing the disclosure does not reset the override');
-    await page.reload(); panel = await settings(page);
-    await tab(panel, 'Where to apply');
-    assert.equal(await panel.locator('.appearance-outer-customization').getAttribute('open'), null);
+    await page.reload();
+    panel = page.locator('#gallery-settings');
+    if (!await panel.isVisible()) await toggleSettings(page);
+    await panel.waitFor();
+    await tab(panel, 'Outer frame style');
+    assert.equal(await outer.getAttribute('open'), null);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerSize), 'small');
-    await panel.locator('.appearance-outer-customization summary').click();
-    await (await field(panel, 'Outer border')).getByRole('radio', { name: 'Same as main style', exact: true }).check();
-    assert.equal(await panel.getByRole('group', { name: 'Border detail', exact: true }).count(), 0);
+    await outer.locator('summary').click();
+    await (await field(panel, 'Outer border')).getByRole('radio', { name: 'Same as panels', exact: true }).check();
+    assert.equal(await panel.getByRole('radiogroup', { name: 'Border detail', exact: true }).count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.outerBorderStyle), 'inherit');
     await tab(panel, 'Presets');
     await panel.getByRole('button', { name: 'Pixel workshop', exact: true }).click();
@@ -1047,13 +1027,13 @@ for (const width of [390, 1440]) test(`Use in code appears once, only in the Cod
     assert.equal(await panel.getByRole('button', { name: 'Copy HTML', exact: true }).count(), 1);
     if (width >= 1024) {
       const list = panel.getByRole('tablist', { name: 'Appearance groups', exact: true });
-      assert(await list.evaluate(el => el.scrollWidth <= el.clientWidth), 'Five tabs fit without sideways scrolling');
+      assert(await list.evaluate(el => el.scrollWidth <= el.clientWidth), 'The tabs fit without sideways scrolling');
       await panel.getByRole('tab', { name: 'Look', exact: true }).click();
       await page.keyboard.press('ArrowRight');
       // Arrow keys move between tabs.
-      await panel.getByRole('tab', { name: 'Canvas', exact: true, selected: true }).waitFor();
+      await panel.getByRole('tab', { name: 'Layout', exact: true, selected: true }).waitFor();
     } else {
-      assert.equal(await panel.locator('.tabs-section').count(), 5, 'A phone shows the tabs as sections');
+      assert.equal(await panel.locator('.tabs-section').count(), 6, 'A phone shows the tabs as sections');
     }
   } finally { await page.close(); }
 });

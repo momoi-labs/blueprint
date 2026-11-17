@@ -1,9 +1,9 @@
-import { Fragment, useId, type ReactNode } from "react";
-import { AccentSelector, Button, DetailSelect, Disclosure, ThemeSelector, type ChartFill, type ChartLayout, type ChartLegendPlacement, type ChartLine } from "@momoi-labs/kiso-react";
+import { Fragment, useId, useState, type ReactNode } from "react";
+import { AccentSelector, Button, Disclosure, RadioGroup, RadioGroupItem, ThemeSelector } from "@momoi-labs/kiso-react";
 import { chartFillOptions, chartLayoutOptions, chartLegendOptions, chartLineOptions } from "../../../kiso/blocks/react-prototype/src/chart-style-options";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 import { randomAppearance } from "./appearance-settings";
-import { BackgroundPreview, PanelPreview, PlacementPreview, ScopePreview } from "./appearance-previews";
+import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 
 const borders: { value: BorderStyle; label: string; description: string }[] = [
   { value: "solid", label: "Solid", description: "A single outline" },
@@ -36,40 +36,6 @@ const sizes: Size[] = ["off", "small", "medium", "large"];
 
 const markSizes: MarkSize[] = ["small", "medium", "large"];
 
-const visualStyles = [
-  { value: "default", label: "Default", description: "Compact hierarchy and spacing" },
-  { value: "editorial", label: "Editorial", description: "Prominent titles, metrics, and more space" },
-] as const;
-
-const applicationFrames = [
-  { value: "default", label: "Default", description: "Content meets the application edges" },
-  { value: "inset", label: "Inset", description: "Content sits inside a separate frame" },
-] as const;
-
-const headerVariants = [
-  { value: "default", label: "Default", description: "The bar keeps the surface fill and separator" },
-  { value: "plain", label: "Plain", description: "No fill or separator; the bar stays in flow" },
-  { value: "floating", label: "Floating", description: "A detached bar with a contact shadow, pinned below the top" },
-] as const;
-
-const outerFrames = [
-  { value: "auto", label: "Automatic", description: "Full from 700px wide, edge to edge on phones" },
-  { value: "full", label: "Full", description: "The full frame at every width" },
-  { value: "compact", label: "Compact", description: "A narrow frame with smaller corners" },
-  { value: "none", label: "None", description: "Edge to edge at every width" },
-] as const;
-
-const pageWidths = [
-  { value: "full", label: "Full", description: "Pages fill the content column" },
-  { value: "contained", label: "Contained", description: "Pages stop at 1280px" },
-] as const;
-
-const pageAligns = [
-  { value: "start", label: "Start", description: "The page sits at the start of the free space" },
-  { value: "center", label: "Center", description: "The page sits in the middle of the free space" },
-  { value: "end", label: "End", description: "The page sits at the end of the free space" },
-] as const;
-
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
   { label: "Default", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
   { label: "Blueprint", settings: { shadowStyle: "hard", accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
@@ -83,22 +49,6 @@ const compositions: { label: string; settings: Partial<AppearanceSettings> }[] =
   { label: "pg-probe", settings: { theme: "dark", accent: "gold", neutral: "zinc", primary: "contrast", typeface: "dm-sans", shadowStyle: "none", borderStyle: "solid", cornerStyle: "rounded", cornerSize: "small", cornerMarks: "none", visualStyle: "default", appShell: "default", headerVariant: "default", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", backgroundStyle: "solid", panelFill: "solid", paperTone: "theme" } },
   { label: "Pixel everywhere", settings: { shadowStyle: "hard", theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
 ];
-
-function ChoiceSelector<T extends string>({ label, value, onChange, options, disabled = false, disabledOptions = [], preview, names }: {
-  label: string; value: T; onChange: (size: T) => void; options: readonly T[]; disabled?: boolean; disabledOptions?: readonly T[];
-  preview?: (value: T) => ReactNode; names?: Partial<Record<T, string>>;
-}) {
-  const name = useId();
-  return <fieldset className="appearance-size" disabled={disabled}>
-    <legend className="t-label">{label}</legend>
-    <div className="appearance-segments">
-      {options.map(size => <label key={size}>
-        <input type="radio" name={name} value={size} checked={value === size} disabled={disabledOptions.includes(size)} onChange={() => onChange(size)} />
-        <span className="appearance-segment-body">{preview?.(size)}{names?.[size] ?? size[0].toUpperCase() + size.slice(1)}</span>
-      </label>)}
-    </div>
-  </fieldset>;
-}
 
 export function VisualSelector<T extends string>({ label, value, options, onChange, preview, disabled = false, disabledOptions = [], layout = "compact" }: {
   label: string; value: T; options: readonly (readonly [T, string])[]; onChange: (value: T) => void;
@@ -119,37 +69,42 @@ export function VisualSelector<T extends string>({ label, value, options, onChan
   </fieldset>;
 }
 
-function FramePreview({ inset }: { inset: boolean }) {
-  const x = inset ? 13 : 10;
-  const y = inset ? 4 : 1;
-  const width = inset ? 22 : 28;
-  const height = inset ? 28 : 34;
-  return <svg className="appearance-frame-sample" viewBox="0 0 48 36" fill="none" stroke="currentColor" strokeWidth="1.5" focusable="false">
-    <rect className="appearance-frame-outline" x="1" y="1" width="46" height="34" rx="2" />
-    <path d="M4 7h3m-3 5h3m-3 5h3M41 7h3m-3 5h3m-3 5h3" />
-    <g transform={`translate(${x} ${y})`}>
-      <rect className="appearance-frame-main" width={width} height={height} rx={inset ? 2 : 0} />
-      <path d={`M0 7h${width}M4 12h${width - 8}M4 17h${width - 12}`} />
-    </g>
+function Segmented<T extends string>({ label, value, onChange, options, names, disabledOptions = [] }: {
+  label: string; value: T; onChange: (value: T) => void; options: readonly T[];
+  names?: Partial<Record<T, string>>; disabledOptions?: readonly T[];
+}) {
+  return <RadioGroup label={label} variant="segmented" value={value} onValueChange={next => onChange(next as T)}>
+    {options.map(option => <RadioGroupItem key={option} value={option} label={names?.[option] ?? option[0].toUpperCase() + option.slice(1)} disabled={disabledOptions.includes(option)} />)}
+  </RadioGroup>;
+}
+
+function LayoutSketch({ settings }: { settings: AppearanceSettings }) {
+  const inset = settings.appShell === "inset";
+  const margin = inset ? { auto: 4, full: 4, compact: 2, none: 0 }[settings.appShellOuter] : 0;
+  const x = 4 + margin;
+  const y = 4 + margin;
+  const width = 112 - 2 * margin;
+  const height = 72 - 2 * margin;
+  const bar = { compact: 6, default: 9, editorial: 14 }[settings.headerSize];
+  const contained = settings.pageWidth === "contained";
+  const pageWidth = contained ? width * 0.6 : width - 8;
+  const pageX = contained ? { start: x + 4, center: x + (width - pageWidth) / 2, end: x + width - pageWidth - 4 }[settings.pageAlign] : x + 4;
+  const barWidth = settings.headerWidth === "page" ? pageWidth : width;
+  const barX = settings.headerWidth === "page" ? pageX : x;
+  const floating = settings.headerVariant === "floating";
+  const plain = settings.headerVariant === "plain";
+  const barY = floating ? y + 3 : y;
+  const barRadius = floating ? 2 : 0;
+  return <svg className="appearance-sketch" viewBox="0 0 120 80" role="img" aria-label="Layout sketch" focusable="false">
+    <rect className="appearance-sketch-frame" x="0.5" y="0.5" width="119" height="79" rx="2" />
+    <rect className="appearance-sketch-main" x={x} y={y} width={width} height={height} rx={inset ? 2 : 0} />
+    {floating && <rect x={barX + 1} y={barY + 1.5} width={barWidth - 2} height={bar} rx="2" fill="currentColor" opacity=".18" />}
+    <rect className={plain ? "appearance-sketch-line" : "appearance-sketch-bar"} x={barX + (floating ? 1 : 0)} y={barY} width={barWidth - (floating ? 2 : 0)} height={bar} rx={barRadius} strokeDasharray={plain ? "2 2" : undefined} />
+    <rect className="appearance-sketch-line" x={pageX} y={y + bar + 8} width={pageWidth} height={height - bar - 14} rx="1" />
+    <path className="appearance-sketch-line" d={`M${pageX + 4} ${y + bar + 14}h${pageWidth * 0.5}M${pageX + 4} ${y + bar + 20}h${pageWidth * 0.7}`} />
   </svg>;
 }
 
-// A desktop and a phone side by side, each with its outer spacing.
-function OuterFramePreview({ outer }: { outer: AppearanceSettings["appShellOuter"] }) {
-  const [desktop, phone] = { auto: [3, 0], full: [3, 2], compact: [1.5, 1], none: [0, 0] }[outer];
-  const screen = (x: number, width: number, height: number, inset: number) =>
-    <g transform={`translate(${x} ${35 - height})`}>
-      <rect className="appearance-frame-outline" width={width} height={height} rx="2" />
-      <rect className="appearance-frame-main" x={inset} y={inset} width={width - 2 * inset} height={height - 2 * inset} rx={inset ? 1 : 0} stroke={inset ? undefined : "none"} />
-      <path d={`M${inset} ${inset + 5}h${width - 2 * inset}M${inset + 3} ${inset + 9}h${width / 2 - inset}`} />
-    </g>;
-  return <svg className="appearance-frame-sample" viewBox="0 0 48 36" fill="none" stroke="currentColor" strokeWidth="1" focusable="false">
-    {screen(1, 30, 22, desktop)}
-    {screen(35, 12, 22, phone)}
-  </svg>;
-}
-
-// Rarely changed sections start closed, so a long tab stays easy to scan.
 function AppearanceSection({ title, collapsed = false, children }: { title: string; collapsed?: boolean; children: ReactNode }) {
   const id = useId();
   return <section className="appearance-section" aria-labelledby={id}>
@@ -158,9 +113,11 @@ function AppearanceSection({ title, collapsed = false, children }: { title: stri
   </section>;
 }
 
-export type AppearanceSectionId = "colors" | "presets" | "layout" | "charts" | "main" | "scope" | "background" | "phone";
+export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "header" | "page" | "panels" | "marks" | "scope" | "outer" | "background" | "charts" | "phone";
 
-// Renders the named sections in the given order.
+const phoneKeys = ["phoneShadowStyle", "phoneBackgroundStyle", "phoneBorderStyle", "phoneCornerStyle", "phoneCornerMarks", "phonePanelFill"] as const;
+const isExpressive = (border: string) => border === "manga" || border === "brush";
+
 export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [] }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
@@ -170,48 +127,48 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const borderName = useId();
   const cornerName = useId();
   const markName = useId();
-  const styleName = useId();
-  const frameName = useId();
-  const headerVariantName = useId();
-  const outerName = useId();
-  const pageWidthName = useId();
-  const pageAlignName = useId();
   const backgroundName = useId();
+  const [phoneChosen, setPhoneChosen] = useState(false);
+  const phoneOverride = phoneChosen || phoneKeys.some(key => settings[key] !== "inherit");
   const borderOptions = settings.borderStyle === "bevel" ? [...borders, { value: "bevel" as const, label: "Inset edge (legacy)", description: "Saved appearance. Replace to leave the legacy style." }] : borders;
   const markOptions = settings.cornerMarks === "dots" ? [...marks, { value: "dots" as const, label: "Corner dots (legacy)" }] : marks;
   const pixelBorder = (border: string) => ["solid", "none", "manga", "brush"].includes(border);
   const incompatibleMark = (mark: string, border: string, corner: string) =>
-    (mark === "arcs" && (["manga", "brush"].includes(border) || corner === "pixel")) || (mark === "brackets" && border === "brush");
+    (mark === "arcs" && (isExpressive(border) || corner === "pixel")) || (mark === "brackets" && border === "brush");
   const outerBorder = settings.outerBorderStyle === "inherit" ? settings.borderStyle : settings.outerBorderStyle;
   const outerCorner = settings.outerCornerStyle === "inherit" ? settings.cornerStyle : settings.outerCornerStyle;
   const outerMark = settings.outerCornerMarks === "inherit" ? settings.cornerMarks : settings.outerCornerMarks;
   const phoneBorder = settings.phoneBorderStyle === "inherit" ? settings.borderStyle : settings.phoneBorderStyle;
   const phoneCorner = settings.phoneCornerStyle === "inherit" ? settings.cornerStyle : settings.phoneCornerStyle;
-  const expressive = ["manga", "brush"].includes(settings.borderStyle);
-  const detailBorder = expressive ? settings.borderStyle : ["manga", "brush"].includes(outerBorder) ? outerBorder : "solid";
+  const expressive = isExpressive(settings.borderStyle);
+  const detailBorder = expressive ? settings.borderStyle : isExpressive(outerBorder) ? outerBorder : isExpressive(phoneBorder) ? phoneBorder : null;
   const sizedCorner = !expressive && settings.cornerStyle !== "square" ? settings.cornerStyle
-    : !["manga", "brush"].includes(outerBorder) && outerCorner !== "square" ? outerCorner : null;
-  const borderDetail = <ChoiceSelector label="Border detail" options={markSizes} value={settings.frameDetail}
-    onChange={frameDetail => onChange({ frameDetail })}
-    preview={detail => <PanelPreview border={detailBorder} detail={detail} />} />;
+    : !isExpressive(outerBorder) && outerCorner !== "square" ? outerCorner
+    : !isExpressive(phoneBorder) && phoneCorner !== "square" ? phoneCorner : null;
+  const phoneMark = settings.phoneCornerMarks === "inherit" ? settings.cornerMarks : settings.phoneCornerMarks;
+  const phoneBackground = settings.phoneBackgroundStyle === "inherit" ? settings.backgroundStyle : settings.phoneBackgroundStyle;
   const backgrounds = [
     ["solid", "Solid"], ["dots", "Dot grid"], ["grid", "Fine grid"], ["crosses", "Cross grid"],
     ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"], ["enso", "Kiso enso"],
     ["checker", "Checker"], ["glow", "Glow"], ["stripes", "Stripes"], ["rings", "Rings"],
   ] as const;
+  const sameNames = { inherit: "Same" } as const;
+  const chartOptions = <T extends string>(options: readonly { value: T; label: string }[]) => ({
+    values: options.map(option => option.value),
+    names: Object.fromEntries(options.map(option => [option.value, option.label])) as Record<T, string>,
+  });
+  const line = chartOptions(chartLineOptions);
+  const fill = chartOptions(chartFillOptions);
+  const layout = chartOptions(chartLayoutOptions);
+  const legend = chartOptions(chartLegendOptions);
+  function choosePhone(next: string) {
+    const override = next === "override";
+    setPhoneChosen(override);
+    if (!override) onChange(Object.fromEntries(phoneKeys.map(key => [key, "inherit"])));
+  }
   const sections: Record<AppearanceSectionId, ReactNode> = {
-  colors: <AppearanceSection title="Colors">
-    <div className="appearance-colors">
-      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
-      <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
-      <ChoiceSelector label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
-      <ChoiceSelector label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
-      <ChoiceSelector label="Typeface" options={["inter", "dm-sans"] as const} names={{ "dm-sans": "DM Sans" }} value={settings.typeface} onChange={typeface => onChange({ typeface })} />
-    </div>
-  </AppearanceSection>,
   presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
-    <p className="muted t-label">Pixel everywhere adds a hard shadow to the starting appearance. Default uses soft shadows with the previous look. These and SNES follow your system theme; pg-probe is dark; other presets keep your theme. Reset restores SNES.</p>
-    <div className="appearance-options">
+    <div className="appearance-presets">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.presetDefaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
         return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(next).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(next)}>
@@ -235,132 +192,34 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       </Button>
     </div>
   </AppearanceSection>,
-  layout: <AppearanceSection title="Layout" collapsed={collapsed.includes("layout")}>
-
-    <fieldset className="appearance-choices">
-      <legend className="t-label">Visual style</legend>
-      <div className="appearance-options">
-        {visualStyles.map(heading => <label className="appearance-option" key={heading.value} title={heading.description}>
-          <input type="radio" name={styleName} value={heading.value}
-            checked={settings.visualStyle === heading.value}
-            onChange={() => onChange({ visualStyle: heading.value })}
-            aria-labelledby={`${styleName}-${heading.value}-label`}
-            aria-describedby={`${styleName}-${heading.value}-description`} />
-          <span className="appearance-option-body">
-            <span className="appearance-swatch" aria-hidden="true">
-              <span className="appearance-sample appearance-heading-sample" data-heading-style={heading.value}>
-                <span className="appearance-heading-title">Aa</span><i /><i />
-              </span>
-            </span>
-            <span id={`${styleName}-${heading.value}-label`} className="t-label">{heading.label}</span>
-            <span id={`${styleName}-${heading.value}-description`} className="appearance-option-description">{heading.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
-    <fieldset className="appearance-choices">
-      <legend className="t-label">Application frame</legend>
-      <div className="appearance-options">
-        {applicationFrames.map(frame => <label className="appearance-option" key={frame.value} title={frame.description}>
-          <input type="radio" name={frameName} value={frame.value}
-            checked={settings.appShell === frame.value}
-            onChange={() => onChange({ appShell: frame.value })}
-            aria-labelledby={`${frameName}-${frame.value}-label`}
-            aria-describedby={`${frameName}-${frame.value}-description`} />
-          <span className="appearance-option-body">
-            <span className="appearance-swatch" aria-hidden="true">
-              <FramePreview inset={frame.value === "inset"} />
-            </span>
-            <span id={`${frameName}-${frame.value}-label`} className="t-label">{frame.label}</span>
-            <span id={`${frameName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
-    <fieldset className="appearance-choices">
-      <legend className="t-label">Header</legend>
-      <div className="appearance-options">
-        {headerVariants.map(option => <label className="appearance-option" key={option.value} title={option.description}>
-          <input type="radio" name={headerVariantName} value={option.value}
-            checked={settings.headerVariant === option.value}
-            onChange={() => onChange({ headerVariant: option.value })}
-            aria-labelledby={`${headerVariantName}-${option.value}-label`}
-            aria-describedby={`${headerVariantName}-${option.value}-description`} />
-          <span className="appearance-option-body">
-            <span id={`${headerVariantName}-${option.value}-label`} className="t-label">{option.label}</span>
-            <span id={`${headerVariantName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
-    <ChoiceSelector label="Header size" value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} options={["compact", "default", "editorial"]} />
-    <ChoiceSelector label="Header width" value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} options={["page", "outset"]} />
-    <fieldset className="appearance-choices" disabled={settings.appShell !== "inset"}>
-      <legend className="t-label">Outer frame</legend>
-      <div className="appearance-options">
-        {outerFrames.map(frame => <label className="appearance-option" key={frame.value} title={frame.description}>
-          <input type="radio" name={outerName} value={frame.value}
-            checked={settings.appShellOuter === frame.value}
-            onChange={() => onChange({ appShellOuter: frame.value })}
-            aria-labelledby={`${outerName}-${frame.value}-label`}
-            aria-describedby={`${outerName}-${frame.value}-description`} />
-          <span className="appearance-option-body">
-            <span className="appearance-swatch" aria-hidden="true">
-              <OuterFramePreview outer={frame.value} />
-            </span>
-            <span id={`${outerName}-${frame.value}-label`} className="t-label">{frame.label}</span>
-            <span id={`${outerName}-${frame.value}-description`} className="appearance-option-description">{frame.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
-    <ChoiceSelector label="Landing bands" value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} options={["inside", "full"]}
-      names={{ inside: "Inside frame", full: "Full width" }} disabled={settings.appShell !== "inset"} />
-    <fieldset className="appearance-choices">
-      <legend className="t-label">Page width</legend>
-      <div className="appearance-options">
-        {pageWidths.map(option => <label className="appearance-option" key={option.value} title={option.description}>
-          <input type="radio" name={pageWidthName} value={option.value}
-            checked={settings.pageWidth === option.value}
-            onChange={() => onChange({ pageWidth: option.value })}
-            aria-labelledby={`${pageWidthName}-${option.value}-label`}
-            aria-describedby={`${pageWidthName}-${option.value}-description`} />
-          <span className="appearance-option-body">
-            <span id={`${pageWidthName}-${option.value}-label`} className="t-label">{option.label}</span>
-            <span id={`${pageWidthName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
-    <fieldset className="appearance-choices" disabled={settings.pageWidth !== "contained"}>
-      <legend className="t-label">Page alignment</legend>
-      <div className="appearance-options">
-        {pageAligns.map(option => <label className="appearance-option" key={option.value} title={option.description}>
-          <input type="radio" name={pageAlignName} value={option.value}
-            checked={settings.pageAlign === option.value}
-            onChange={() => onChange({ pageAlign: option.value })}
-            aria-labelledby={`${pageAlignName}-${option.value}-label`}
-            aria-describedby={`${pageAlignName}-${option.value}-description`} />
-          <span className="appearance-option-body">
-            <span id={`${pageAlignName}-${option.value}-label`} className="t-label">{option.label}</span>
-            <span id={`${pageAlignName}-${option.value}-description`} className="appearance-option-description">{option.description}</span>
-          </span>
-        </label>)}
-      </div>
-    </fieldset>
+  colors: <AppearanceSection title="Colors and type">
+    <div className="appearance-colors">
+      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
+      <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
+      <Segmented label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
+      <Segmented label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
+      <Segmented label="Typeface" options={["inter", "dm-sans"] as const} names={{ "dm-sans": "DM Sans" }} value={settings.typeface} onChange={typeface => onChange({ typeface })} />
+      <Segmented label="Visual style" options={["default", "editorial"] as const} value={settings.visualStyle} onChange={visualStyle => onChange({ visualStyle })} />
+    </div>
   </AppearanceSection>,
-  charts: <AppearanceSection title="Charts" collapsed={collapsed.includes("charts")}>
-    <DetailSelect label="Chart line" value={settings.chartLine} options={chartLineOptions}
-      onValueChange={chartLine => onChange({ chartLine: chartLine as ChartLine })} />
-    <DetailSelect label="Chart fill" value={settings.chartFill} options={chartFillOptions}
-      onValueChange={chartFill => onChange({ chartFill: chartFill as ChartFill })} />
-    <DetailSelect label="Chart layout" value={settings.chartLayout} options={chartLayoutOptions}
-      onValueChange={chartLayout => onChange({ chartLayout: chartLayout as ChartLayout })} />
-    <DetailSelect label="Chart legend" value={settings.chartLegend} options={chartLegendOptions}
-      onValueChange={chartLegend => onChange({ chartLegend: chartLegend as ChartLegendPlacement })} />
+  sketch: <LayoutSketch settings={settings} />,
+  shell: <AppearanceSection title="Shell">
+    <Segmented label="Application frame" options={["default", "inset"] as const} value={settings.appShell} onChange={appShell => onChange({ appShell })} />
+    {settings.appShell === "inset" && <>
+      <Segmented label="Outer spacing" options={["auto", "full", "compact", "none"] as const} value={settings.appShellOuter} onChange={appShellOuter => onChange({ appShellOuter })} />
+      <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />
+    </>}
   </AppearanceSection>,
-  main: <AppearanceSection title="Main style" collapsed={collapsed.includes("main")}>
-    <p className="muted t-label">Panels and controls use this style. The outer frame follows it unless customized below.</p>
+  header: <AppearanceSection title="Header">
+    <Segmented label="Header" options={["default", "plain", "floating"] as const} value={settings.headerVariant} onChange={headerVariant => onChange({ headerVariant })} />
+    <Segmented label="Header size" options={["compact", "default", "editorial"] as const} value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} />
+    <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} />
+  </AppearanceSection>,
+  page: <AppearanceSection title="Page">
+    <Segmented label="Page width" options={["full", "contained"] as const} value={settings.pageWidth} onChange={pageWidth => onChange({ pageWidth })} />
+    {settings.pageWidth === "contained" && <Segmented label="Page alignment" options={["start", "center", "end"] as const} value={settings.pageAlign} onChange={pageAlign => onChange({ pageAlign })} />}
+  </AppearanceSection>,
+  panels: <AppearanceSection title="Panels">
     <fieldset className="appearance-choices">
       <legend className="t-label">Border style</legend>
       <div className="appearance-options">
@@ -374,16 +233,14 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
         </label>)}
       </div>
     </fieldset>
-    <ChoiceSelector label="Panel shadow" value={settings.shadowStyle} options={["none", "hard", "soft"]} onChange={shadowStyle => onChange({ shadowStyle })}
-      preview={shadow => <PanelPreview border={settings.borderStyle} corner={settings.cornerStyle} shadow={shadow} />} />
+    {detailBorder && <Segmented label="Border detail" options={markSizes} value={settings.frameDetail} onChange={frameDetail => onChange({ frameDetail })} />}
+    <Segmented label="Panel shadow" value={settings.shadowStyle} options={["none", "hard", "soft"] as const} onChange={shadowStyle => onChange({ shadowStyle })} />
     {settings.shadowStyle === "auto" && <p className="muted t-label">This saved look uses legacy elevation. Choose None, Hard or Soft to set panel shadows independently.</p>}
-    <p className="muted t-label">Direction follows each panel's border. Side rail casts left, Weighted base down, other styles down and right. Controls keep their own focus and elevation.</p>
-    {expressive && borderDetail}
-    <fieldset className="appearance-choices">
+    {!expressive && <fieldset className="appearance-choices">
       <legend className="t-label">Corner type</legend>
       <div className="appearance-options">
         {corners.map(corner => <label className="appearance-option" key={corner.value} title={corner.description}>
-          <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} disabled={expressive || (corner.value === "pixel" && !pixelBorder(settings.borderStyle))}
+          <input type="radio" name={cornerName} value={corner.value} checked={settings.cornerStyle === corner.value} disabled={corner.value === "pixel" && !pixelBorder(settings.borderStyle)}
             onChange={() => onChange({ cornerStyle: corner.value, ...(corner.value !== "square" && settings.cornerSize === "off" ? { cornerSize: "medium" } : {}) })} />
           <span className="appearance-option-body">
             <PanelPreview corner={corner.value} />
@@ -392,11 +249,11 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
           </span>
         </label>)}
       </div>
-    </fieldset>
-    <ChoiceSelector options={sizes} label="Corner size" value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })}
-      preview={size => <PanelPreview corner={sizedCorner ?? "rounded"} size={size} />}
-      disabled={!sizedCorner} disabledOptions={["off"]} />
-    <p className="muted t-label">Corner size controls Rounded, Asymmetric and Pixel. Manga and Brush use Border detail and keep their own contour.</p>
+    </fieldset>}
+    {sizedCorner && <Segmented label="Corner size" options={settings.cornerSize === "off" ? sizes : markSizes} disabledOptions={["off"]} value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />}
+    <Segmented label="Panel fill" options={["solid", "translucent", "glass"] as const} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} />
+  </AppearanceSection>,
+  marks: <AppearanceSection title="Corner marks">
     <fieldset className="appearance-choices">
       <legend className="t-label">Corner marks</legend>
       <div className="appearance-options">
@@ -410,39 +267,29 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       </div>
     </fieldset>
     <p className="muted t-label">Curved brackets do not pair with Pixel, Manga or Brush. Brush also excludes outer brackets. Unavailable choices remain saved.</p>
-    <ChoiceSelector options={markSizes} label="Mark size" value={settings.markSize} onChange={markSize => onChange({ markSize })} disabled={settings.cornerMarks === "none" && outerMark === "none"}
-      preview={markSize => <PanelPreview marks={settings.cornerMarks === "none" ? outerMark === "none" ? "ticks" : outerMark : settings.cornerMarks} markSize={markSize} />} />
+    {(settings.cornerMarks !== "none" || outerMark !== "none" || phoneMark !== "none") && <Segmented label="Mark size" options={markSizes} value={settings.markSize} onChange={markSize => onChange({ markSize })} />}
+    <Segmented label="Mark clearance" options={["normal", "sheet"] as const} names={{ sheet: "Drawing sheet" }} value={settings.markClearance} onChange={markClearance => onChange({ markClearance })} />
   </AppearanceSection>,
-  scope: <AppearanceSection title="Where to apply" collapsed={collapsed.includes("scope")}>
-    <VisualSelector label="Apply frames to" value={settings.frameScope} onChange={frameScope => onChange({ frameScope })} layout="scope" preview={scope => <ScopePreview scope={scope} />}
-      options={[["outer", "Outer only"], ["panels", "With panels"], ["all", "With controls"]]} />
-    <VisualSelector label="Apply marks to" value={settings.markScope} onChange={markScope => onChange({ markScope })} layout="scope" preview={scope => <ScopePreview scope={scope} marks />}
-      options={[["outer", "Outer only"], ["panels", "With panels"], ["all", "With controls"]]} />
-    <VisualSelector label="Mark clearance" value={settings.markClearance} onChange={markClearance => onChange({ markClearance })}
-      preview={clearance => <PanelPreview clearance={clearance} marks={outerMark === "none" ? "ticks" : outerMark} />}
-      options={[["normal", "Normal"], ["sheet", "Drawing sheet"]]} />
-    <details className="disclosure appearance-outer-customization">
-      <summary>Customize outer frame</summary>
-      <div className="disclosure-content">
-        <p className="muted t-label">Applies to the Inset application frame. Choose Same as main style to follow the panels again. Corner size, mark size and border detail are shared.</p>
-        <VisualSelector preview={shadow => <PanelPreview shadow={shadow === "inherit" ? settings.shadowStyle : shadow as AppearanceSettings["shadowStyle"]} />} label="Outer shadow" value={settings.outerShadowStyle} onChange={value => onChange({ outerShadowStyle: value as AppearanceSettings["outerShadowStyle"] })}
-          options={[["inherit", "Same as main style"], ["none", "None"], ["hard", "Hard"], ["soft", "Soft"], ...(settings.outerShadowStyle === "auto" ? [["auto", "Legacy elevation"]] : [])] as [string, string][]} />
-        <VisualSelector disabledOptions={outerCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Outer border" value={settings.outerBorderStyle} onChange={outerBorderStyle => onChange({ outerBorderStyle })}
-          preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
-          options={[["inherit", "Same as main style"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string]), ...(settings.outerBorderStyle === "bevel" ? [["bevel", "Inset edge (legacy)"] as [BorderStyle, string]] : [])]} />
-        <VisualSelector disabledOptions={pixelBorder(outerBorder) ? [] : ["pixel"]} label="Outer corners" value={settings.outerCornerStyle} onChange={outerCornerStyle => onChange({ outerCornerStyle })}
-          preview={corner => <PanelPreview corner={corner === "inherit" ? settings.cornerStyle : corner} />}
-          disabled={["manga", "brush"].includes(settings.outerBorderStyle === "inherit" ? settings.borderStyle : settings.outerBorderStyle)}
-          options={[["inherit", "Same as main style"], ...corners.map(c => [c.value, c.label] as [CornerStyle, string])]} />
-        <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, outerBorder, outerCorner)).map(m => m.value)} label="Outer marks" value={settings.outerCornerMarks} onChange={outerCornerMarks => onChange({ outerCornerMarks })}
-          preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
-          options={[["inherit", "Same as main style"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string]), ...(settings.outerCornerMarks === "dots" ? [["dots", "Corner dots (legacy)"] as [CornerMarks, string]] : [])]} />
-        {!expressive && detailBorder !== "solid" && borderDetail}
-      </div>
-    </details>
-    <p className="muted t-label">The outer frame uses the Inset layout. Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
+  scope: <AppearanceSection title="Where it applies">
+    <Segmented label="Apply frames to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.frameScope} onChange={frameScope => onChange({ frameScope })} />
+    <Segmented label="Apply marks to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.markScope} onChange={markScope => onChange({ markScope })} />
+    <p className="muted t-label">Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
   </AppearanceSection>,
-  background: <AppearanceSection title="Background" collapsed={collapsed.includes("background")}>
+  outer: <AppearanceSection title="Outer frame style" collapsed={collapsed.includes("outer")}>
+    <p className="muted t-label">Applies to the Inset application frame. Same follows the panels. Corner size, mark size and border detail are shared.</p>
+    <Segmented label="Outer shadow" value={settings.outerShadowStyle} options={settings.outerShadowStyle === "auto" ? ["inherit", "none", "hard", "soft", "auto"] as const : ["inherit", "none", "hard", "soft"] as const}
+      names={{ ...sameNames, auto: "Legacy elevation" }} onChange={outerShadowStyle => onChange({ outerShadowStyle })} />
+    <VisualSelector disabledOptions={outerCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Outer border" value={settings.outerBorderStyle} onChange={outerBorderStyle => onChange({ outerBorderStyle })}
+      preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
+      options={[["inherit", "Same as panels"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string]), ...(settings.outerBorderStyle === "bevel" ? [["bevel", "Inset edge (legacy)"] as [BorderStyle, string]] : [])]} />
+    {!isExpressive(outerBorder) && <VisualSelector disabledOptions={pixelBorder(outerBorder) ? [] : ["pixel"]} label="Outer corners" value={settings.outerCornerStyle} onChange={outerCornerStyle => onChange({ outerCornerStyle })}
+      preview={corner => <PanelPreview corner={corner === "inherit" ? settings.cornerStyle : corner} />}
+      options={[["inherit", "Same as panels"], ...corners.map(c => [c.value, c.label] as [CornerStyle, string])]} />}
+    <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, outerBorder, outerCorner)).map(m => m.value)} label="Outer marks" value={settings.outerCornerMarks} onChange={outerCornerMarks => onChange({ outerCornerMarks })}
+      preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
+      options={[["inherit", "Same as panels"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string]), ...(settings.outerCornerMarks === "dots" ? [["dots", "Corner dots (legacy)"] as [CornerMarks, string]] : [])]} />
+  </AppearanceSection>,
+  background: <AppearanceSection title="Background">
     <fieldset className="appearance-choices">
       <legend className="t-label">Canvas background</legend>
       <div className="appearance-options">
@@ -455,36 +302,41 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
         </label>)}
       </div>
     </fieldset>
-    <VisualSelector label="Paper tone" options={[["theme", "Theme paper"], ["accent", "Accent paper"]]} value={settings.paperTone} onChange={paperTone => onChange({ paperTone })} layout="wide"
-      preview={tone => <BackgroundPreview background={settings.backgroundStyle} tone={tone} />} />
-    <VisualSelector label="Pattern placement" options={[["outside", "Around frame"], ["inside", "Inside frame"], ["both", "Both"]]} value={settings.backgroundPlacement} onChange={backgroundPlacement => onChange({ backgroundPlacement })} layout="scope" disabled={settings.backgroundStyle === "solid"}
-      preview={placement => <PlacementPreview placement={placement} />} />
-    <VisualSelector label="Background strength" options={[["quiet", "Quiet"], ["visible", "Visible"]]} value={settings.backgroundStrength} onChange={backgroundStrength => onChange({ backgroundStrength })} disabled={settings.backgroundStyle === "solid"} layout="wide"
-      preview={strength => <BackgroundPreview background={settings.backgroundStyle} strength={strength} tone={settings.paperTone} />} />
-    <VisualSelector label="Panel fill" options={[["solid", "Solid"], ["translucent", "Translucent"], ["glass", "Glass"]]} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} layout="wide"
-      preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill} tone={settings.paperTone} />} />
-    <p className="muted t-label">Translucency affects panel fills. Text, fields and data samples stay opaque.</p>
+    <Segmented label="Paper tone" options={["theme", "accent"] as const} names={{ theme: "Theme paper", accent: "Accent paper" }} value={settings.paperTone} onChange={paperTone => onChange({ paperTone })} />
+    {(settings.backgroundStyle !== "solid" || phoneBackground !== "solid") && <>
+      <Segmented label="Pattern placement" options={["outside", "inside", "both"] as const} names={{ outside: "Around frame", inside: "Inside frame" }} value={settings.backgroundPlacement} onChange={backgroundPlacement => onChange({ backgroundPlacement })} />
+      <Segmented label="Background strength" options={["quiet", "visible"] as const} value={settings.backgroundStrength} onChange={backgroundStrength => onChange({ backgroundStrength })} />
+    </>}
   </AppearanceSection>,
-  phone: <AppearanceSection title="Phone" collapsed={collapsed.includes("phone")}>
-    <p className="muted t-label">These replace the main choices below 700px wide. Same as desktop keeps them. Layouts &gt; Phone shows the result.</p>
-    <VisualSelector preview={shadow => <PanelPreview shadow={shadow === "inherit" ? settings.shadowStyle : shadow as AppearanceSettings["shadowStyle"]} />} label="Phone shadow" value={settings.phoneShadowStyle} onChange={value => onChange({ phoneShadowStyle: value as AppearanceSettings["phoneShadowStyle"] })}
-      options={[["inherit", "Same as desktop"], ["none", "None"], ["hard", "Hard"], ["soft", "Soft"], ...(settings.phoneShadowStyle === "auto" ? [["auto", "Legacy elevation"]] : [])] as [string, string][]} />
-    <VisualSelector label="Phone background" value={settings.phoneBackgroundStyle} onChange={phoneBackgroundStyle => onChange({ phoneBackgroundStyle })}
-      preview={background => <BackgroundPreview background={background === "inherit" ? settings.backgroundStyle : background} tone={settings.paperTone} />}
-      options={[["inherit", "Same as desktop"], ...backgrounds]} />
-    <VisualSelector disabledOptions={phoneCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Phone border" value={settings.phoneBorderStyle} onChange={phoneBorderStyle => onChange({ phoneBorderStyle })}
-      preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
-      options={[["inherit", "Same as desktop"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string])]} />
-    <VisualSelector disabledOptions={pixelBorder(phoneBorder) ? [] : ["pixel"]} label="Phone corners" value={settings.phoneCornerStyle} onChange={phoneCornerStyle => onChange({ phoneCornerStyle })}
-      preview={corner => <PanelPreview corner={corner === "inherit" ? settings.cornerStyle : corner} />}
-      disabled={["manga", "brush"].includes(phoneBorder)}
-      options={[["inherit", "Same as desktop"], ...corners.map(c => [c.value, c.label] as [CornerStyle, string])]} />
-    <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, phoneBorder, phoneCorner)).map(m => m.value)} label="Phone marks" value={settings.phoneCornerMarks} onChange={phoneCornerMarks => onChange({ phoneCornerMarks })}
-      preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
-      options={[["inherit", "Same as desktop"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string])]} />
-    <VisualSelector label="Phone panel fill" value={settings.phonePanelFill} onChange={phonePanelFill => onChange({ phonePanelFill })} layout="wide"
-      preview={fill => <BackgroundPreview background={settings.backgroundStyle} strength={settings.backgroundStrength} fill={fill === "inherit" ? settings.panelFill : fill} tone={settings.paperTone} />}
-      options={[["inherit", "Same as desktop"], ["solid", "Solid"], ["translucent", "Translucent"], ["glass", "Glass"]]} />
+  charts: <AppearanceSection title="Charts">
+    <Segmented label="Chart line" options={line.values} names={line.names} value={settings.chartLine} onChange={chartLine => onChange({ chartLine })} />
+    <Segmented label="Chart fill" options={fill.values} names={fill.names} value={settings.chartFill} onChange={chartFill => onChange({ chartFill })} />
+    <Segmented label="Chart layout" options={layout.values} names={layout.names} value={settings.chartLayout} onChange={chartLayout => onChange({ chartLayout })} />
+    <Segmented label="Chart legend" options={legend.values} names={legend.names} value={settings.chartLegend} onChange={chartLegend => onChange({ chartLegend })} />
+  </AppearanceSection>,
+  phone: <AppearanceSection title="Phone">
+    <RadioGroup label="Same as desktop" variant="segmented" value={phoneOverride ? "override" : "same"} onValueChange={choosePhone}>
+      <RadioGroupItem value="same" label="Same" />
+      <RadioGroupItem value="override" label="Override" />
+    </RadioGroup>
+    <p className="muted t-label">Below 700px wide the phone choices replace the desktop ones. Layouts &gt; Phone shows the result.</p>
+    {phoneOverride && <>
+      <Segmented label="Phone shadow" value={settings.phoneShadowStyle} options={settings.phoneShadowStyle === "auto" ? ["inherit", "none", "hard", "soft", "auto"] as const : ["inherit", "none", "hard", "soft"] as const}
+        names={{ ...sameNames, auto: "Legacy elevation" }} onChange={phoneShadowStyle => onChange({ phoneShadowStyle })} />
+      <VisualSelector label="Phone background" value={settings.phoneBackgroundStyle} onChange={phoneBackgroundStyle => onChange({ phoneBackgroundStyle })}
+        preview={background => <BackgroundPreview background={background === "inherit" ? settings.backgroundStyle : background} tone={settings.paperTone} />}
+        options={[["inherit", "Same as desktop"], ...backgrounds]} />
+      <VisualSelector disabledOptions={phoneCorner === "pixel" ? borders.filter(b => !pixelBorder(b.value)).map(b => b.value) : []} label="Phone border" value={settings.phoneBorderStyle} onChange={phoneBorderStyle => onChange({ phoneBorderStyle })}
+        preview={border => <PanelPreview border={border === "inherit" ? settings.borderStyle : border} />}
+        options={[["inherit", "Same as desktop"], ...borders.map(b => [b.value, b.label] as [BorderStyle, string])]} />
+      {!isExpressive(phoneBorder) && <VisualSelector disabledOptions={pixelBorder(phoneBorder) ? [] : ["pixel"]} label="Phone corners" value={settings.phoneCornerStyle} onChange={phoneCornerStyle => onChange({ phoneCornerStyle })}
+        preview={corner => <PanelPreview corner={corner === "inherit" ? settings.cornerStyle : corner} />}
+        options={[["inherit", "Same as desktop"], ...corners.map(c => [c.value, c.label] as [CornerStyle, string])]} />}
+      <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, phoneBorder, phoneCorner)).map(m => m.value)} label="Phone marks" value={settings.phoneCornerMarks} onChange={phoneCornerMarks => onChange({ phoneCornerMarks })}
+        preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
+        options={[["inherit", "Same as desktop"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string])]} />
+      <Segmented label="Phone panel fill" value={settings.phonePanelFill} options={["inherit", "solid", "translucent", "glass"] as const} names={sameNames} onChange={phonePanelFill => onChange({ phonePanelFill })} />
+    </>}
   </AppearanceSection>,
   };
   return <>{shown.map(id => <Fragment key={id}>{sections[id]}</Fragment>)}</>;

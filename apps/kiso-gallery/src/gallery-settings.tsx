@@ -9,13 +9,11 @@ import { AppearanceShare } from "./appearance-share-ui";
 import { AppearanceUsage } from "./appearance-usage";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
-// Each tab is short. Frame puts the most used section first. Below 1024px the
-// tabs become sections, one open at a time, so five labels never need to fit
-// a phone.
 const appearanceTabs: { value: string; label: string; sections?: AppearanceSectionId[] }[] = [
-  { value: "look", label: "Look", sections: ["colors", "presets"] },
+  { value: "look", label: "Look", sections: ["presets", "colors"] },
+  { value: "layout", label: "Layout", sections: ["sketch", "shell", "header", "page"] },
+  { value: "frame", label: "Frame", sections: ["panels", "marks", "scope", "outer"] },
   { value: "canvas", label: "Canvas", sections: ["background", "charts"] },
-  { value: "frame", label: "Frame", sections: ["main", "scope", "layout"] },
   { value: "phone", label: "Phone", sections: ["phone"] },
   { value: "code", label: "Code" },
 ];
@@ -155,7 +153,7 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
           {appearanceTabs.map(item => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}
         </TabsList>
         {appearanceTabs.map(item => <TabsContent key={item.value} value={item.value} forceMount hidden={tab !== item.value}>
-          {item.sections ? <AppearanceControls settings={settings} onChange={onChange} sections={item.sections} collapsed={["scope", "layout"]} />
+          {item.sections ? <AppearanceControls settings={settings} onChange={onChange} sections={item.sections} collapsed={["outer"]} />
             : <AppearanceUsage settings={settings} diagram={demos.diagram} />}
         </TabsContent>)}
       </Tabs>
