@@ -1395,6 +1395,7 @@ table.table {
   .app-shell[data-shell-layout]:has(> .topbar) > .sidebar[data-collapsed="true"] > .sidebar-header { justify-items: center; }
 }
 .app-shell-bar-brand { display: flex; min-width: 0; }
+.app-shell[data-shell-layout] > .topbar { align-self: start; }
 @media (max-width: 1023px) {
   .app-shell[data-shell-layout][data-phone-drawer="true"] .app-shell-phone-brand { display: flex; min-width: 0; }
 }

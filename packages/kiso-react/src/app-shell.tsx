@@ -272,7 +272,6 @@ function ApplicationShellSidebar({
     onCollapsedChange?.(next)
   }
 
-  // A floating Header holds the brand, so the rail has no mark.
   const railMark = collapsible && isCollapsed && brandMark && headerVariant !== "floating" ? (
     <>
       <span className="sidebar-rail-mark" aria-hidden="true">{brandMark}</span>
@@ -296,7 +295,6 @@ function ApplicationShellSidebar({
     </Button>
   ) : null
 
-  // With the toggle in the Header, the rail mark is a second way to expand.
   const railButton = togglePlacement === "header" && railMark ? (
     <Button
       variant="ghost"
@@ -306,20 +304,16 @@ function ApplicationShellSidebar({
       aria-expanded={false}
       aria-label="Expand sidebar"
       title="Expand sidebar"
-      onClick={toggleSidebar}
+      onClick={() => { toggleSidebar(); toggleRef.current?.focus() }}
     >
       {railMark}
     </Button>
   ) : null
 
-  // In the shell layout the sidebar header is the bar: only the brand row
-  // and the toggle. The primary action goes below it.
   const action = shellLayout && primaryAction ? (
     <div className={cn("sidebar-actions", collapsible && "sidebar-expanded-content")}>{primaryAction}</div>
   ) : null
   const headerAction = shellLayout ? null : primaryAction
-  // A floating Header in the shell layout spans the screen above the
-  // sidebar and holds the brand on every width.
   const barOnTop = shellLayout && headerVariant === "floating"
 
   const menu = (
