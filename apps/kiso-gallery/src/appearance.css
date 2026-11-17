@@ -114,7 +114,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
 /* Tabs group the settings. The strip stays in view while a tab scrolls. */
 /* It takes the panel's own fill, which changes with the frame and background. */
 .appearance-controls-scroll, .appearance-tabs { background: inherit; }
-.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; gap: var(--spacing-sm); }
+.appearance-tabs > [role="tablist"] { position: sticky; top: 0; z-index: 1; background: inherit; gap: var(--spacing-xs); }
 .appearance-tabs [role="tabpanel"] > :is(.appearance-section, .appearance-usage):first-child { border-top: 0; }
 
 /* Scale the canvas to the thumbnail instead of cropping a full-size pattern. */
