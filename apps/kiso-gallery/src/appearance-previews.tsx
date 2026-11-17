@@ -1,4 +1,3 @@
-import { useId } from "react";
 import type { AppearanceSettings, BorderStyle, CornerStyle, CornerMarks, MarkSize, Size } from "./appearance-settings";
 
 // Thumbnail geometry stays independent of the gallery's live component scopes.
@@ -39,42 +38,11 @@ export function PanelPreview({ border = "solid", corner = "square", marks = "non
   </svg>;
 }
 
-export function ScopePreview({ scope, marks = false }: { scope: AppearanceSettings["frameScope"]; marks?: boolean }) {
-  const panels = scope !== "outer";
-  const controls = scope === "all";
-  return <svg className="appearance-scope-preview" viewBox="0 0 104 72" fill="none" stroke="currentColor" aria-hidden="true" focusable="false">
-    <rect className="appearance-preview-paper" x="8" y="8" width="88" height="56" rx={marks ? 0 : 6} />
-    <path className="appearance-preview-text" d="M17 18h30" strokeWidth="3" />
-    {[17, 56].map(x => <g key={x}>
-      <rect className="appearance-scope-panel" x={x} y="26" width="31" height="29" rx={!marks && panels ? 4 : 0} stroke={!marks && !panels ? "none" : undefined} />
-      <rect x={x + 5} y="36" width="21" height="10" rx={!marks && controls ? 3 : 0} strokeWidth={!marks && controls ? 2 : 1} />
-      <path className="appearance-preview-text" d={`M${x + 9} 41h10`} />
-      {marks && panels && <path className="appearance-scope-accent" d={`M${x - 3} 30v-7h7m20 35h10v-7`} />}
-      {marks && controls && <path className="appearance-scope-accent" d={`M${x + 7} 41v-3h3m11 3v3h-3`} />}
-    </g>)}
-    {marks ? <path className="appearance-scope-accent" d="M3 14V3h11m76 0h11v11M3 58v11h11m76 0h11V58" />
-      : <rect className="appearance-scope-accent" x="8" y="8" width="88" height="56" rx="6" />}
-  </svg>;
-}
-
-export function BackgroundPreview({ background, strength = "visible", fill, tone = "theme" }: {
+export function BackgroundPreview({ background, strength = "visible", tone = "theme" }: {
   background: AppearanceSettings["backgroundStyle"];
   strength?: AppearanceSettings["backgroundStrength"];
-  fill?: AppearanceSettings["panelFill"];
   tone?: AppearanceSettings["paperTone"];
 }) {
-  return <span className="appearance-background-sample" data-background-style={background} data-background-strength={strength} data-preview-fill={fill} data-preview-tone={tone} aria-hidden="true">
-    {fill && <span className="appearance-fill-panel"><span className="appearance-fill-title" /><span className="appearance-fill-field" /></span>}
+  return <span className="appearance-background-sample" data-background-style={background} data-background-strength={strength} data-preview-tone={tone} aria-hidden="true">
   </span>;
-}
-
-export function PlacementPreview({ placement }: { placement: AppearanceSettings["backgroundPlacement"] }) {
-  const id = useId();
-  return <svg className="appearance-scope-preview" viewBox="0 0 104 72" fill="none" stroke="currentColor" aria-hidden="true" focusable="false">
-    <defs><pattern id={id} width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" opacity=".3" /></pattern></defs>
-    <rect x="1" y="1" width="102" height="70" fill={placement === "inside" ? "var(--color-background)" : `url(#${id})`} stroke="none" />
-    <rect className="appearance-preview-paper" x="14" y="12" width="76" height="48" />
-    {placement !== "outside" && <rect x="14" y="12" width="76" height="48" fill={`url(#${id})`} stroke="none" />}
-    <path d="M26 26h32M26 33h22" strokeWidth="2" />
-  </svg>;
 }

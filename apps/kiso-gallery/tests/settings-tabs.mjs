@@ -2,10 +2,11 @@
 // sections, one open at a time. These helpers open the tab that holds a
 // section or a choice group, so tests can then work on its contents.
 const tabs = {
-  Look: ["Colors", "Presets", "Theme", "Accent"],
-  Canvas: ["Background", "Charts", "Canvas background", "Paper tone", "Pattern placement", "Background strength", "Panel fill"],
-  Frame: ["Main style", "Where to apply", "Layout", "Border style", "Panel shadow", "Border detail", "Corner type", "Corner size", "Corner marks", "Mark size",
-    "Apply frames to", "Apply marks to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks", "Visual style", "Application frame", "Outer frame"],
+  Look: ["Colors and type", "Presets", "Theme", "Accent", "Neutral", "Primary action", "Typeface", "Visual style"],
+  Layout: ["Shell", "Header", "Page", "Application frame", "Outer spacing", "Landing bands", "Header size", "Header width", "Page width", "Page alignment"],
+  Frame: ["Panels", "Corner marks", "Where it applies", "Outer frame style", "Border style", "Panel shadow", "Border detail", "Corner type", "Corner size", "Panel fill", "Mark size",
+    "Apply frames to", "Apply marks to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks"],
+  Canvas: ["Background", "Charts", "Canvas background", "Paper tone", "Pattern placement", "Background strength", "Chart line", "Chart fill", "Chart layout", "Chart legend"],
   Phone: ["Phone", "Phone shadow", "Phone background", "Phone border", "Phone corners", "Phone marks", "Phone panel fill"],
   Code: ["Use in code"],
 };
@@ -26,7 +27,7 @@ export async function tab(panel, name) {
 /** A choice group, with its tab open. */
 export async function field(panel, name) {
   await tab(panel, name);
-  return panel.getByRole("group", { name, exact: true });
+  return panel.getByRole("group", { name, exact: true }).or(panel.getByRole("radiogroup", { name, exact: true }));
 }
 
 /** Clicks the header's settings toggle, "Open settings" or "Close settings".
