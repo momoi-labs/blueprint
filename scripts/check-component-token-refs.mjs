@@ -7,7 +7,12 @@ const tokensPath = process.argv[2] ?? 'tokens/build/tokens.css';
 const docsPath = process.argv[3] ?? 'kiso/docs/components';
 const tokenPattern = /--[a-z][a-z0-9-]*(?:[|*][a-z0-9*|-]*)?/g;
 // Host layout inputs are documented component APIs, not generated design tokens.
-const layoutProperties = new Set(['--app-shell-panel-width', '--shell-bottom-inset']);
+const layoutProperties = new Set([
+  '--app-shell-panel-width',
+  '--app-shell-bar-height',
+  '--app-shell-brand-inset',
+  '--shell-bottom-inset',
+]);
 
 async function main() {
   const css = await readFile(tokensPath, 'utf8');
