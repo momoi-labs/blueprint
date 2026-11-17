@@ -234,6 +234,15 @@ for (const border of ['soft', 'inset']) test(`The Header and the sidebar header 
   } finally { await page.close(); }
 });
 
+test('The rail mark hands focus to the Header toggle when it expands', async () => {
+  const page = await open('brandMark&shellLayout&collapsed&headerToggle');
+  try {
+    await page.locator('.sidebar .sidebar-toggle').focus();
+    await page.keyboard.press('Enter');
+    assert(await page.locator('.topbar .sidebar-toggle').evaluate(el => el === document.activeElement));
+  } finally { await page.close(); }
+});
+
 test('A floating Header holds the brand and the rail has no mark', async () => {
   const page = await open('brandMark&shellLayout&headerVariant=floating');
   try {
@@ -250,5 +259,6 @@ for (const query of ['brandMark&shellLayout', 'brandMark&shellLayout&headerVaria
   try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
     assert(await page.locator('.topbar .brand-mark').first().isVisible(), 'The phone header shows the brand');
+    assert((await box(page, '.topbar')).height < 100, 'The Header keeps its content height');
   } finally { await page.close(); }
 });
