@@ -96,9 +96,6 @@ type ApplicationShellSharedProps = Omit<
   headerVariant?: React.ComponentProps<typeof Header>["variant"]
   headerSize?: React.ComponentProps<typeof Header>["size"]
   panel?: React.ReactNode
-  /** Follow the shell layout pattern from 1024px: the Header and the sidebar
-   *  header share one bar height, the brand starts at the brand inset, and
-   *  the primary action sits below the bar. */
   shellLayout?: boolean
   children: React.ReactNode
 }
@@ -119,8 +116,6 @@ type ApplicationShellSidebarProps = ApplicationShellSharedProps & {
   onDrawerOpenChange?: (open: boolean) => void
   /** Below 700px, "bottom" moves the destinations to a BottomNav. */
   phoneNavigation?: "drawer" | "bottom"
-  /** The brand's mark, such as a BrandMark. A collapsed sidebar keeps it in
-   *  the rail as the control that expands the sidebar. */
   brandMark?: React.ReactNode
   bottomNav?: never
 }
@@ -220,8 +215,6 @@ function ApplicationShell(props: ApplicationShellProps) {
   return <ApplicationShellSidebar {...props} />
 }
 
-/* The shell carries the Header size too, so the sidebar header reads the
-   same bar height as the Header. */
 function shellLayoutAttributes(shellLayout: boolean | undefined, headerSize: ApplicationShellSharedProps["headerSize"]) {
   return shellLayout ? { "data-shell-layout": "true", "data-header-size": headerSize } : {}
 }
