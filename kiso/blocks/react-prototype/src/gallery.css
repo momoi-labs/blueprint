@@ -599,8 +599,6 @@
 /* Kiso's rail keeps the mark: it is the expand control, and shows the expand
    icon on hover or focus. */
 .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { padding: 0; justify-items: center; }
-/* Kiso's .sidebar-rail-mark swaps the mark for the expand icon. The gallery
-   clips its word mark to the mark's width. */
 .catalog-sidebar-toggle > .sidebar-rail-mark { width: var(--size-control-xs); }
 /* Without the mark (the floating pill holds it), the expand icon always shows. */
 .catalog-sidebar-toggle:not(:has(> .sidebar-rail-mark)) > .sidebar-rail-open { display: block; }
@@ -673,8 +671,6 @@
     justify-items: start;
     padding-inline-start: calc(var(--catalog-brand-inset) - (var(--size-control-sm) - var(--size-control-xs)) / 2);
   }
-  /* Kiso's rail mark button starts the mark at its edge, so the mark sits at
-     the inset itself. */
   .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header:has(.sidebar-rail-mark) { padding-inline-start: var(--catalog-brand-inset); }
   .catalog-sidebar-toggle:has(> .sidebar-rail-mark) { border-inline-width: 0; }
 

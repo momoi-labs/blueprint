@@ -1245,9 +1245,6 @@ table.table {
 .pagination .btn[aria-current="page"] { background-color: var(--color-secondary); }
 
 .app-shell {
-  /* Shell layout: one bar height for the Header and the sidebar header, and
-     the inset where the brand starts. It centers a --size-control-xs mark in
-     the collapsed rail, so the brand keeps its place in both states. */
   --app-shell-bar-height: var(--header-min-height, calc(var(--size-control-lg) + var(--spacing-lg) + var(--spacing-xs)));
   --app-shell-brand-inset: calc((var(--size-touch-min) + 2 * var(--spacing-md) - var(--size-control-xs)) / 2);
   --app-shell-frame-top: 0px;
@@ -1329,9 +1326,6 @@ table.table {
   .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) .sidebar-link-label { white-space: normal; overflow-wrap: anywhere; text-align: center; }
 }
 
-/* The rail mark: a collapsed sidebar keeps the brand's mark as the expand
-   control, a Button that holds .sidebar-rail-mark and .sidebar-rail-open.
-   Hover or focus shows the expand icon in the mark's place. */
 @media (min-width: 1024px) {
   .btn:has(> .sidebar-rail-mark) { display: inline-grid; justify-items: start; align-items: center; width: auto; padding: 0; }
 }
@@ -1341,16 +1335,8 @@ table.table {
 .btn:is(:hover, :focus-visible) > .sidebar-rail-mark { visibility: hidden; }
 .btn:is(:hover, :focus-visible) > .sidebar-rail-open { display: block; }
 
-/* Shell layout (data-shell-layout, ApplicationShell `shellLayout`). From
-   1024px the sidebar header is the bar: the Header's height, no block
-   padding, one bottom line with the Header. The brand starts at the brand
-   inset, open or collapsed. Content below the brand row, such as the
-   primary action, sits in .sidebar-actions under the bar. */
 .sidebar-actions { display: grid; gap: var(--spacing-md); min-width: 0; padding: var(--spacing-md) var(--spacing-sm) 0; }
 @media (min-width: 1024px) {
-  /* An inset frame starts the Header below its 1px edge. A patterned
-     background lets the sidebar reach the top edge, so the sidebar header
-     also takes the outer gap. */
   .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: 1px; }
   :where([data-background-style]:not([data-background-style="solid"])) .app-shell[data-shell-layout]:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])),
   .app-shell[data-shell-layout][data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: calc(var(--app-shell-outer) + 1px); }
@@ -1368,8 +1354,6 @@ table.table {
   }
   .app-shell[data-shell-layout] > .sidebar > .sidebar-header > .sidebar-expanded-content { align-items: center; }
   .app-shell[data-shell-layout] > .sidebar > .sidebar-body { padding-block-start: var(--spacing-md); }
-  /* The rail keeps the mark at the brand inset. Without a mark the toggle
-     centers in the rail. */
   .app-shell[data-shell-layout] > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible {
     padding-block: var(--app-shell-frame-top) 0;
     padding-inline: 0;
@@ -1377,7 +1361,6 @@ table.table {
   }
   .app-shell[data-shell-layout] > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) { justify-items: start; padding-inline-start: var(--app-shell-brand-inset); }
   .app-shell[data-shell-layout] > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) > .sidebar-toggle { justify-self: start; }
-  /* The button's side borders would push the mark off the inset. */
   .app-shell[data-shell-layout] .btn:has(> .sidebar-rail-mark) { border-inline-width: 0; }
   .app-shell[data-shell-layout] > :is(main, [data-slot="app-shell-main"]) > .topbar {
     box-sizing: border-box;
@@ -1385,12 +1368,8 @@ table.table {
     min-height: 0;
     padding-block: 0;
   }
-  /* A home bar without a sidebar starts the brand at the same inset. */
   .app-shell[data-shell-layout][data-layout="topbar"] > :is(main, [data-slot="app-shell-main"]) > .topbar { padding-inline-start: var(--app-shell-brand-inset); }
 
-  /* A floating Header spans the screen in its own row and holds the brand.
-     The rails start below it; the sidebar header keeps only the toggle. It
-     pads past its corner radius so content clears the curve. */
   .app-shell[data-shell-layout]:has(> .topbar) { grid-template-rows: auto minmax(0, 1fr); --canvas-row: 2; }
   .app-shell[data-shell-layout] > .topbar {
     grid-column: 1 / -1; grid-row: 1;
@@ -1417,7 +1396,6 @@ table.table {
 }
 .app-shell-bar-brand { display: flex; min-width: 0; }
 @media (max-width: 1023px) {
-  /* Below 1024px the Header shows the brand; the drawer holds the rest. */
   .app-shell[data-shell-layout][data-phone-drawer="true"] .app-shell-phone-brand { display: flex; min-width: 0; }
 }
 
