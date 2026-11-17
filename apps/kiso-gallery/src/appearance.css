@@ -54,8 +54,7 @@ html[data-border-style="offset"] :is(.kiso-react-dialog, .kiso-react-drawer, .ki
   border-color: var(--color-sidebar-border);
 }
 .appearance-options-wide .appearance-background-sample { height: calc(2 * var(--spacing-2xl)); }
-.appearance-presets { display: flex; gap: var(--spacing-xs); overflow-x: auto; padding-bottom: var(--spacing-xs); }
-.appearance-presets > .appearance-composition.btn { flex: none; width: 9rem; }
+.appearance-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: var(--spacing-xs); }
 .appearance-sketch { display: block; margin-top: var(--spacing-lg); width: 100%; height: auto; color: var(--color-muted-foreground); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-background); }
 .appearance-sketch-frame { fill: var(--color-sidebar); stroke: var(--color-border-strong); }
 .appearance-sketch-main { fill: var(--color-card); stroke: var(--color-border-strong); }
