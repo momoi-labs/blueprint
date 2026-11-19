@@ -44,7 +44,31 @@ function findUp(start, name) {
   }
 }
 
+function findDown(start, name, depth) {
+  const found = [];
+  const walk = (current, left) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP_DIRS.has(entry.name)) continue;
+      const full = path.join(current, entry.name);
+      if (existsSync(path.join(full, name))) found.push(full);
+      if (left > 1) walk(full, left - 1);
+    }
+  };
+  walk(path.resolve(start), depth);
+  return found.sort();
+}
+
 export function readVersions(dir) {
+  const result = readVersionsAt(dir);
+  if (Object.values(result).some(Boolean)) return result;
+  for (const below of findDown(dir, "package-lock.json", 2)) {
+    const nested = readVersionsAt(below);
+    if (Object.values(nested).some(Boolean)) return nested;
+  }
+  return result;
+}
+
+function readVersionsAt(dir) {
   const result = {};
   const lockfile = findUp(dir, "package-lock.json");
   const lock = lockfile ? JSON.parse(readFileSync(lockfile, "utf8")) : null;
