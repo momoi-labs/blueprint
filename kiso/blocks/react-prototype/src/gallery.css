@@ -702,6 +702,12 @@
      cell would otherwise push it into a new implicit column, and main and
      the bar would shrink to the first tracks. */
   .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > .app-shell-panel { grid-column: -2; }
+  :root .component-gallery[data-catalog-layout="home"]:has(> .app-shell-panel:not([hidden])) > .catalog-header[data-catalog-bar="page"] { grid-column: 1 / -2; }
+  :root .component-gallery[data-catalog-layout="home"]:has(> .catalog-header[data-catalog-bar="page"]) > .app-shell-panel:not([hidden]) {
+    grid-row: 1 / -1;
+    top: 0;
+    height: 100dvh;
+  }
 
   /* Inset home with a non-floating header: the bar sits on the outer surface
      at the sidebar header's row, so the logo keeps its section place. */
