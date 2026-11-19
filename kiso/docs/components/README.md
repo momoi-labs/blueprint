@@ -84,12 +84,16 @@ behavioral reference where one exists.
 - [PaneGrid / GridPane](pane-grid.md): Summary panes on twelve columns that the reader resizes and moves, saved by the product.
 
 - [AppShell / ApplicationShell](app-shell.md): Provides columns, an optional AppShellPanel with a header or floating toggle, or the complete shared application frame.
+- [ConsoleShell](console-shell.md): A console frame with a collapsible sidebar, a breadcrumb and an account menu around one page.
 - [BrandMark](brand-mark.md): Decorative letter or icon beside a product name.
 - [BottomNav](bottom-nav.md): Puts a phone's main destinations in a bar fixed to the bottom edge.
 - [Breadcrumb](breadcrumb.md): Shows the current location within a hierarchy.
 - [ScopeSwitcher](scope-switcher.md): Shows and switches the current organization, project and resource in Header, keeping the page.
 - [Header](header.md): Composes persistent application navigation and global actions.
+- [DetailPage](detail-page.md): A detail screen body with a title, an optional action and tabs, each with content or an empty state.
+- [FormPage](form-page.md): A create or edit screen body with a form in a card and FormActions that follow the mode.
 - [Lifecycle](lifecycle.md): Groups a detail screen's status, verbs, and destructive action in one row.
+- [ListPage](list-page.md): A list screen body with a title, one action, filters, a table and a count, with loading and empty states.
 - [Navigation](navigation.md): Provides a generic semantic container for destination links.
 - [PageHeader](page-header.md): Composes a page title, optional subtitle, and page-scoped action Buttons.
 - [Pagination](pagination.md): Moves through known pages while exposing the current position.
@@ -114,3 +118,5 @@ behavioral reference where one exists.
 - [Header](header.md) composes [Link](link.md) + [IconButton](icon-button.md) + optional [DropdownMenu](dropdown-menu.md) + optional [ScopeSwitcher](scope-switcher.md).
 - [Table / DataTable](table.md) composes [EmptyState](empty-state.md), [Skeleton](skeleton.md), and [Pagination](pagination.md) for empty, loading, and paged states.
 - [PageHeader](page-header.md) composes a title + optional subtitle + [Buttons](button.md).
+- [ConsoleShell](console-shell.md) composes [ApplicationShell](app-shell.md) + [Breadcrumb](breadcrumb.md) + [Popover](popover.md) + [ThemeSelector](theme-selector.md).
+- [ListPage](list-page.md), [FormPage](form-page.md) and [DetailPage](detail-page.md) compose [PageHeader](page-header.md) with [Table](table.md), [Form](form.md) + [FormActions](form-actions.md), or [Tabs](tabs.md), and [EmptyState](empty-state.md).

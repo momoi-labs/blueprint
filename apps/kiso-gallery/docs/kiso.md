@@ -51,7 +51,7 @@ and a 6px float that pauses on interaction and respects reduced motion.
 | Gallery shell | Application shell |
 | Introduction and landing layout | Compact landing composition: split hero with a component card in perspective, three live examples in the inverse theme and accent CTA. Uses page layout as a width reference. No marketing pattern contract yet. |
 | Components | Interactive component catalog, no catalog pattern |
-| Layout examples | Existing dashboard, CRUD, settings, login and report patterns |
+| Layout examples | Existing dashboard, settings, login and report patterns. CRUD uses ConsoleShell, ListPage, FormPage and DetailPage. |
 
 ## Exceptions
 

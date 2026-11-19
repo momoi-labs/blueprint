@@ -35,6 +35,17 @@ if (!phoneFrame && !standalone) {
   }
 }
 
+// A frame URL can carry a look for itself alone. It applies without saving,
+// so a measured or linked frame does not change the reader's gallery.
+let frameLook: AppearanceSettings | null = null;
+if (phoneFrame || standalone) {
+  const code = new URLSearchParams(window.location.search).get(shareParam);
+  const look = code === null ? null : readShare(code, window.kisoAppearance, demoSchema).settings;
+  if (look) frameLook = window.kisoAppearance.apply(look);
+}
+const readLook = () => frameLook ?? window.kisoAppearance.read();
+const keepLook = (next: AppearanceSettings) => frameLook ? (frameLook = window.kisoAppearance.apply(next)) : window.kisoAppearance.save(next);
+
 function App() {
   const notify = useToast();
   useEffect(() => {
@@ -50,7 +61,7 @@ function App() {
   const update = useCallback((patch: Partial<AppearanceSettings>) => setSettings(current => ({ ...current, ...patch })), []);
   const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
-  const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} />;
+  const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />;
   const intro = <Intro />;
   const tui = useTuiGallery(route === "tui" || route.startsWith("tui/"));
   const terminal = <TuiGallery route={route} data={tui} accent={settings.accent} theme={settings.theme} />;
@@ -100,15 +111,16 @@ const ownShell = (route: string) => ["dashboard", "crud", "charts"].includes(rou
 // appearance as it changes in the parent page.
 function PhoneFrame() {
   const [route, setRoute] = useState(() => window.location.hash.slice(1));
+  const [settings, setSettings] = useState(readLook);
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1));
-    const appearance = () => window.kisoAppearance.save(window.kisoAppearance.read());
+    const appearance = () => { if (!frameLook) setSettings(window.kisoAppearance.save(window.kisoAppearance.read())); };
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
   }, []);
-  const settings = window.kisoAppearance.read();
-  const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} />;
+  const onThemeChange = (theme: string) => setSettings(keepLook({ ...settings, theme } as AppearanceSettings));
+  const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />;
   return ownShell(route)
     ? <div className="layout-phone-document">{example}</div>
     : <AppShell className="layout-phone-document" data-layout="topbar"><AppShellMain>{example}</AppShellMain></AppShell>;
@@ -119,18 +131,19 @@ function PhoneFrame() {
 // window, following the gallery's saved appearance.
 function Standalone() {
   const [route, setRoute] = useState(() => window.location.hash.slice(1));
-  const [settings, setSettings] = useState(window.kisoAppearance.read);
+  const [settings, setSettings] = useState(readLook);
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1));
-    const appearance = () => { const next = window.kisoAppearance.read(); window.kisoAppearance.save(next); setSettings(next); };
+    const appearance = () => { if (!frameLook) setSettings(window.kisoAppearance.save(window.kisoAppearance.read())); };
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
   }, []);
   // Login and the report have no shell of their own; as in the phone frame,
   // a shell lends them the paper colors.
+  const onThemeChange = (theme: string) => setSettings(keepLook({ ...settings, theme } as AppearanceSettings));
   const page = <div className="layout-standalone">
-    <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} />
+    <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />
   </div>;
   return !ownShell(route)
     ? <AppShell className="layout-standalone-shell" data-layout="topbar"><AppShellMain>{page}</AppShellMain></AppShell>

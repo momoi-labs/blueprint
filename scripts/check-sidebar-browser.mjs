@@ -203,7 +203,7 @@ for (const placement of ['sidebar', 'header']) test(`The rail keeps the brand ma
     const after = await mark.boundingBox();
     assert.equal(after.x, before.x, 'The mark keeps its x on collapse');
     assert.equal(after.y, before.y, 'The mark keeps its y on collapse');
-    assert.equal(before.x, 22, 'The mark starts at the brand inset');
+    assert.equal(before.x, 17.5, 'The mark starts at the brand inset');
     const expand = page.locator('.sidebar').getByRole('button', { name: 'Expand sidebar' });
     assert.equal(await expand.getAttribute('aria-expanded'), 'false');
     assert.equal(await expand.locator('.sidebar-rail-mark').count(), 1, 'The mark is the expand control');
@@ -259,6 +259,7 @@ for (const query of ['brandMark&shellLayout', 'brandMark&shellLayout&headerVaria
   try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
     assert(await page.locator('.topbar .brand-mark').first().isVisible(), 'The phone header shows the brand');
+    if (!query.includes('floating')) assert.equal(await page.locator('.topbar .app-shell-phone-brand .t-label').count(), 0, 'The phone header shows the mark only');
     assert((await box(page, '.topbar')).height < 100, 'The Header keeps its content height');
   } finally { await page.close(); }
 });

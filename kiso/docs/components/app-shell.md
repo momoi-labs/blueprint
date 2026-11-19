@@ -139,14 +139,48 @@ from 1024px:
   `--app-shell-bar-height`. Both are border-box with no block padding, so the
   bottom lines meet in every `variant`.
 - The brand starts at `--app-shell-brand-inset` from the sidebar edge: in the
-  open sidebar, in the rail, and in a `layout="topbar"` Header.
+  open sidebar, in the rail, and in a `layout="topbar"` Header. The inset
+  centres a `--size-control-sm` mark in the rail.
+- The sidebar header has a `--color-accent-surface` fill and a
+  `--color-primary` stripe on its bottom edge, `--app-shell-brand-stripe`
+  thick. The stripe is an inset shadow, so the bar keeps its height. The brand
+  centres in the space above the stripe.
+- Navigation icons start under the centre of the mark and keep their place
+  when the sidebar collapses.
 - `primaryAction` moves out of the bar into `.sidebar-actions`, below it. Content
   below the brand row does not grow the bar.
 - With `headerVariant="floating"`, the brand moves into the floating Header,
   which spans the screen. The sidebar starts below it and the rail has no mark.
-- Below 1024px the phone Header shows the brand.
+- Below 1024px the phone Header shows `brandMark`, or the brand when there is
+  no `brandMark`.
 
 Without `shellLayout`, the shell keeps its earlier geometry.
+
+### Console shell
+
+`ConsoleShell` is the console's ApplicationShell with the choices made: a
+`shellLayout`, a collapsible sidebar, the toggle in the Header and
+`headerVariant="default"`.
+
+```tsx
+<ConsoleShell
+  brand={<Lockup />}
+  brandMark={<Mark />}
+  navigation={groups}
+  breadcrumb={[{ label: "Console", href: "/" }, { label: "Clusters" }]}
+  account={{ identity: email, theme, onThemeChange, onSignOut, href: "/account" }}
+>
+  <ListPage …/>
+</ConsoleShell>
+```
+
+- The Header holds `.app-shell-breadcrumb`, then the account button. Below
+  700px the breadcrumb shows its last item only.
+- The account button opens a Popover, `.app-shell-account`: the identity,
+  an Account link when `account.href` is set, a ThemeSelector,
+  `account.language` when set, and Sign out. Escape closes it and returns
+  focus to the button.
+- The children render inside the one `.page`. A screen does not add its own.
 
 The control uses the current appearance tokens. It does not choose a border
 style, corner shape, accent, or theme for the product.

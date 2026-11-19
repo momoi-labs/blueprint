@@ -121,7 +121,7 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
     // main area takes the whole shell.
     if (width < 1024) for (const example of ["crud", "dashboard", "charts"]) {
       await page.goto(`${url}?frame#example/${example}`);
-      const shell = await page.locator(".layout-shell").evaluate(el => {
+      const shell = await page.locator(".app-shell").evaluate(el => {
         const main = el.querySelector(":scope > main");
         const css = getComputedStyle(main);
         return { shell: el.clientWidth, main: main.getBoundingClientRect().width + parseFloat(css.marginLeft) + parseFloat(css.marginRight) };

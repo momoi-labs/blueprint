@@ -26,7 +26,12 @@ holds no rules of its own.
 3. For a new screen, pick the closest pattern in `kiso/docs/patterns/`. Read
    the pattern file in full. For the shell chrome, also read
    `kiso/docs/patterns/shell-layout.md`.
-4. If no pattern fits, say so in one or two sentences, with what the screen
+4. For a list, detail or create screen of a console, also read
+   [references/console-pages.md](references/console-pages.md). It holds the
+   console's rules and the components that ship them: ConsoleShell,
+   ListPage, FormPage and DetailPage. A project's `docs/kiso.md` Exceptions
+   override it.
+5. If no pattern fits, say so in one or two sentences, with what the screen
    needs. Do not force a pattern and do not invent a layout. Ask the user
    before going on.
 
@@ -72,6 +77,11 @@ Answer each question with yes or no. For a no, fix it or name the exception.
 8. Can a keyboard user reach and use every control, with visible focus?
 9. Do the Verify steps in `docs/kiso.md` pass, and did the screen load in the
    real app? A screenshot of a prototype is not evidence.
+
+For a console screen, also run `npx @momoi-labs/kiso-check` on the source
+folder. When the app runs, run its live mode on the screen too. The
+"Check before you say it is done" section of
+[references/console-pages.md](references/console-pages.md) has the commands.
 
 Report automated results apart from manual checks. Do not claim a check you
 did not run.

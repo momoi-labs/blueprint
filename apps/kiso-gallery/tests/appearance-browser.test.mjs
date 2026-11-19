@@ -778,7 +778,7 @@ for (const [width, theme] of fullSweep ? [[320, 'dark'], [390, 'light'], [1200, 
       return { id: section.dataset.paneId, width: box.width, height: box.height, overflow: Math.max(0, paintRight - box.right) };
     }));
     const initial = await inspect();
-    assert.equal(initial.length, 81, 'The sweep covers every current catalog sample');
+    assert.equal(initial.length, 85, 'The sweep covers every current catalog sample');
     const baseline = Object.fromEntries(initial.map(item => [item.id, item.overflow]));
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);
@@ -938,7 +938,7 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
       assert(await nav.isVisible());
       await page.keyboard.press('Escape');
     } else assert.equal(await nav.isVisible(), false, 'Intro has no sidebar on desktop');
-    await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: 'Components', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Preview pages', exact: true }).getByRole('link', { name: /^Components\b/ }).click();
     await page.waitForURL(`${url}#components`);
     await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
     if (!phone) assert(await nav.isVisible(), 'Section pages open the sidebar');

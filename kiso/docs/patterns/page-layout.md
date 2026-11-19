@@ -80,12 +80,20 @@ except content with its own measure:
 | --- | --- |
 | PageHeader, Table, Card, Alert | The page width |
 | [DashboardGrid](../components/dashboard-grid.md), [PaneGrid](../components/pane-grid.md) | Twelve columns of the page width. A pane's `size` is its share |
-| `.form-page` | At most 720px, at the start of the page |
+| `.form-page` | At most 720px. `data-width` places it: `left` (default) at the start, `center`, `right` at the end, `full` the page width |
+| Every direct child of a `.page` that has a child with `data-width` | One box with the PageHeader: at most 880px for `left`, `center` and `right`, 720px when the page holds a `.form-page`. `full` is the page width |
 | `.report` | The printed sheet, 186mm. See [Report](report.md#page-and-width) |
 
 Content with its own measure sits at the start of the page. To center a
 screen, center the page with `data-page-align`; the content moves with it.
-Kiso has no rule to center one block inside a full page.
+Inside a full page, `data-width` on a content block places the whole screen
+as one box: the PageHeader, the list filters and table frame, the empty Card
+or the form Card. Put the same value on every content block. The title starts
+at the box's start edge and the header action ends at its end edge. `left`
+and `full` keep the 24px start margin; `center` and `right` move the header
+with the box. The header top and the first block top do not change. Lists
+default to `full`, forms to `left`. Below 880px of page (720px for a form)
+every value gives the page width.
 
 For side-by-side regions, use a grid component instead of product CSS:
 DashboardGrid for metric panels, PaneGrid for the summary panes of one

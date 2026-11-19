@@ -61,7 +61,9 @@ the heading family, weight, and line height, with display letter spacing.
 Editorial descriptions use the body role. The heading has `--spacing-md`
 between title and description and `--spacing-lg` of vertical padding. Inside
 `.page` the header adds no padding: the page owns the spacing, so the gap from
-the header to the next section equals the section gap.
+the header to the next section equals the section gap. Inside `.page` the
+header is at least `--size-control-sm` tall and centres its title, with or
+without actions, so the title and the next block do not move between pages.
 The actions row uses `--spacing-xl` between regions. Child Buttons retain
 their own sizes. Long titles wrap without pushing actions out of the page.
 
