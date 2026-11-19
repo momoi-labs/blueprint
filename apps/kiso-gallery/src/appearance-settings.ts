@@ -28,6 +28,7 @@ export interface AppearanceSettings {
   headerSize: "compact" | "default" | "editorial";
   headerWidth: "page" | "outset";
   appShellOuter: "auto" | "full" | "compact" | "none";
+  brandBar: "separate" | "full";
   pageWidth: "full" | "contained";
   pageAlign: "start" | "center" | "end";
   outerShadowStyle: "inherit" | ShadowStyle;

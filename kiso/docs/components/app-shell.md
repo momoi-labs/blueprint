@@ -293,6 +293,20 @@ background style, `full` keeps its usual extra `--spacing-lg` canvas margin,
 Panels inside the main area keep their own frames in every mode. The gallery
 saves this choice under Appearance > Layout > Outer frame.
 
+### Brand bar
+
+`data-brand-bar` on `html` sets how the console brand bar meets the main panel
+in an inset frame. It applies from 1024px wide to shells with a
+`data-shell-layout`, such as ConsoleShell. It has no effect on the default
+variant.
+
+| Value | Result |
+| --- | --- |
+| `separate` (or omitted) | The bar stays in the sidebar column, with its own rounded corner. |
+| `full` | The bar fill and its 2px `--color-primary` stripe run across the full row. The top bar sits on top of them, with a soft shadow below it. |
+
+The gallery saves this choice under Appearance > Layout > Brand bar.
+
 An embedded preview can mark its content wrapper with
 `data-slot="app-shell-main"` to receive the frame without nesting main landmarks.
 
