@@ -1,0 +1,3 @@
+/* .sidebar-header { height: 60px } in a comment is not a finding */
+.cluster-name { font-weight: 600; }
+.app-shell-drawer .cluster-name { padding: 0; }

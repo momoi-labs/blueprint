@@ -1,0 +1,14 @@
+.sidebar-header {
+  block-size: 60px;
+}
+.brand {
+  --app-shell-brand-inset: 17.5px;
+  box-shadow: inset 0 -3px 0 var(--color-primary);
+}
+@media (min-width: 1024px) {
+  .nav-item svg { padding-inline: 4px; }
+}
+.page-header { min-height: 32px; }
+.list > [data-width="left"] { max-width: 880px; }
+.card-content > .empty { margin: 0; }
+.form-page { border-radius: 0; }
