@@ -1,7 +1,7 @@
 # ConsoleShell
 
-The frame of a console: a collapsible sidebar, a header with a breadcrumb and
-an account menu, and one page.
+The frame of a console: a collapsible sidebar, a header with a breadcrumb, an
+optional status and an account menu, and one page.
 
 ## Purpose
 
@@ -20,6 +20,7 @@ ConsoleShell
 │   └── navigation groups
 ├── Header
 │   ├── Breadcrumb
+│   ├── status (optional)
 │   └── account menu (Popover)
 │       ├── identity
 │       ├── Account link (optional)
@@ -44,6 +45,7 @@ The shell renders `.page` around its children. Pass a page body such as
 | `navigationLabel` | string | Accessible name of the navigation. Defaults to `Primary`. |
 | `breadcrumb` | `ConsoleCrumb[]` | `{ label, href?, onClick? }`. The last item is the current page. |
 | `account` | `ConsoleAccount` | `identity`, `theme`, `onThemeChange`, `onSignOut`, optional `href` and `language`. |
+| `status` | node | Optional. A short state, such as a dot and a label, shown in the header directly left of the account menu on every width. |
 | `children` | node | The page body. |
 
 ```tsx
@@ -53,6 +55,7 @@ The shell renders `.page` around its children. Pass a page body such as
   navigation={[{ destinations: [{ href: "/clusters", label: "Clusters", active: true }] }]}
   breadcrumb={[{ label: "Console", href: "/" }, { label: "Clusters" }]}
   account={{ identity: "alex@example.com", theme, onThemeChange: setTheme, onSignOut: signOut }}
+  status={<><Dot variant="success" /><span>Healthy</span><span className="muted mono">v0.20.0</span></>}
 >
   <ListPage title="Clusters" action={create} state="ready" empty={empty}>{rows}</ListPage>
 </ConsoleShell>
@@ -64,7 +67,7 @@ The shell renders `.page` around its children. Pass a page body such as
 | --- | --- |
 | expanded | Sidebar shows `brand` and labelled destinations. |
 | collapsed | The header toggle folds the sidebar to a rail with `brandMark` and icons. |
-| phone | Below 1024px the navigation opens in a Drawer and the header shows `brandMark`. |
+| phone | Below 1024px the navigation opens in a Drawer and the header shows `brandMark`. Below 700px a header with `status` truncates the breadcrumb, so keep the status short. |
 | account open | The Popover lists identity, theme and Sign out. Escape closes it and returns focus to the trigger. |
 
 ## Accessibility
@@ -82,8 +85,8 @@ Account. Keep one `<h1>` in the page body; the shell adds none.
 
 - For a top-bar product or a site; use [ApplicationShell](app-shell.md) with
   `layout="topbar"` or a site pattern.
-- When the header needs more than a breadcrumb and an account menu; compose
-  ApplicationShell.
+- When the header needs more than a breadcrumb, a status and an account menu;
+  compose ApplicationShell.
 
 ## Radix/shadcn mapping
 
