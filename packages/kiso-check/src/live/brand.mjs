@@ -33,8 +33,8 @@ const measure = page => page.evaluate(() => {
   const phoneBrand = topbar.querySelector(".app-shell-phone-brand");
   const phoneSymbol = phoneBrand ? [...phoneBrand.querySelectorAll("svg, img")].find(visible) ?? null : null;
   const navIcon = [...sidebar.querySelectorAll(".sidebar-link-icon svg")].find(visible) ?? null;
-  const shadow = sideStyle.boxShadow;
-  const insetMatch = shadow.match(/(rgba?\([^)]*\)|color\([^)]*\)|oklch\([^)]*\)|lab\([^)]*\))\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+inset/);
+  const stripe = shadow => shadow.match(/(rgba?\([^)]*\)|color\([^)]*\)|oklch\([^)]*\)|lab\([^)]*\))\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+inset/);
+  const insetMatch = stripe(sideStyle.boxShadow) ?? stripe(getComputedStyle(sideHeader, "::after").boxShadow);
   const stripeColor = insetMatch ? insetMatch[1] : null;
   const stripeY = insetMatch ? Number(insetMatch[3]) : null;
   const page = document.querySelector(".page");
