@@ -1,0 +1,40 @@
+# kind layout url [action after load]
+# Resolve the urls with --base, the Kiso gallery root. The appearance code pins
+# the default shell, as in a product; the gallery shows an inset shell otherwise.
+# An action that starts with # sets location.hash; any other action is a selector to click.
+list full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list
+list left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list/left
+list center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list/center
+list right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list/right
+list full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list/full
+list full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/empty
+list left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/empty/left
+list center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/empty/center
+list right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/empty/right
+list full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/empty/full
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit/left
+form center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit/center
+form right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit/right
+form full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit/full
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit-dirty
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit-dirty/left
+form center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit-dirty/center
+form right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit-dirty/right
+form full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/edit-dirty/full
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/create
+form left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/create/left
+form center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/create/center
+form right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/create/right
+form full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/create/full
+detail full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail
+detail left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/left
+detail center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/center
+detail right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/right
+detail full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/full
+list left ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list #example/crud/list/left
+list center ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list #example/crud/list/center
+list right ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list #example/crud/list/right
+list full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/list #example/crud/list/full
+detail full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/full/nodes
+detail full ?phone-frame&appearance=eyJ2IjoyLCJzIjp7ImFwcFNoZWxsIjoiZGVmYXVsdCJ9fQ#example/crud/detail/full/events

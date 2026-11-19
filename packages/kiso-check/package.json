@@ -1,0 +1,37 @@
+{
+  "name": "@momoi-labs/kiso-check",
+  "version": "0.0.0",
+  "description": "Check a product built on Kiso against the console page standard",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momoi-labs/blueprint.git",
+    "directory": "packages/kiso-check"
+  },
+  "bin": {
+    "kiso-check": "./bin/kiso-check.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
