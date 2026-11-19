@@ -1,6 +1,6 @@
 {
   "name": "@momoi-labs/kiso-check",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Check a product built on Kiso against the console page standard",
   "type": "module",
   "license": "MIT",
