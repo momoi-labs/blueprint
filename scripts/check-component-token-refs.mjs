@@ -11,6 +11,7 @@ const layoutProperties = new Set([
   '--app-shell-panel-width',
   '--app-shell-bar-height',
   '--app-shell-brand-inset',
+  '--app-shell-brand-stripe',
   '--shell-bottom-inset',
 ]);
 

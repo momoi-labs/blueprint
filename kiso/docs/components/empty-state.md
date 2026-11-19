@@ -56,7 +56,10 @@ error — errors are Alert. Do not color the whole EmptyState with status
 tokens.
 
 Surface tokens: text `--color-foreground` / `--color-muted-foreground` on
-`--color-card` under the hatch that marks the region as not data. Icon uses
+`--color-card` under the hatch that marks the region as not data.
+An EmptyState that is the only child of CardContent fills the Card edge to
+edge: the content drops its padding and both take the Card's radius. The Card
+hugs the EmptyState's height. Icon uses
 `--color-muted-foreground` unless it is purely decorative brand chrome.
 
 ## Sizes

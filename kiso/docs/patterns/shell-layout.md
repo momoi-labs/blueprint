@@ -31,12 +31,24 @@ Choose by `headerVariant`:
 | `default`, `plain` | Section pages: in the sidebar header. Home: at the start of the Header. | The rail keeps the mark. The mark expands the sidebar. |
 
 The brand starts at the brand inset: `(--size-touch-min + 2 *
---spacing-md - --size-control-xs) / 2` from the sidebar edge. The open
-sidebar, the rail and the home Header all use it.
+--spacing-md - 1px - --size-control-sm) / 2` from the sidebar edge. It
+centres a `--size-control-sm` mark in the rail, inside the rail's 1px border.
+The open sidebar, the rail and the home Header all use it.
+
+The sidebar header has a `--color-accent-surface` fill and a 3px
+`--color-primary` stripe (`--app-shell-brand-stripe`) drawn as an inset
+shadow on its bottom edge. A floating Header has neither. Navigation icons
+start under the centre of the mark, open or collapsed. Below 1024px the
+Header shows the mark alone.
 
 ApplicationShell applies this with `shellLayout` and `brandMark`. The CSS
 exposes `--app-shell-brand-inset` and `--app-shell-bar-height` on
 `.app-shell`. See [App shell](../components/app-shell.md#shell-layout).
+
+For a console, `ConsoleShell` in kiso-react sets `shellLayout`, a collapsible
+sidebar with the toggle in the Header, and the default Header. It fills the
+Header with the breadcrumb and the account Popover, and wraps the screen in
+the one `.page`. See [App shell](../components/app-shell.md#console-shell).
 
 ## Home bar on an inset shell
 

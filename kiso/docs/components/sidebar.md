@@ -60,6 +60,9 @@ headings, trailing badges, and footer return when the user expands the sidebar.
 With `brandMark`, the rail keeps the brand's mark as the expand control, at the
 same place as in the open sidebar.
 
+A rule in `--color-sidebar-border` separates navigation groups, in the
+sidebar and in the drawer.
+
 When the current destination changes without a page load, its marker slides
 along the gutter to the new Link, across sections too. Each navigation landmark
 keeps its own marker. The marker moves without the slide in browsers without

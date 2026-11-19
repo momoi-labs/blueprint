@@ -127,6 +127,12 @@ hold, such as a form, a log, or a terminal. Its create screen is in
 
 - The one primary verb goes in PageHeader `actions`, not in the filter row.
   Narrowing a list and adding to it are opposite intentions.
+- In React, `ListPage` renders this screen with `state` set to `loading`,
+  `empty` or `ready`. Empty shows one Card with an EmptyState and no filters
+  or table. The table ends with its last row unless `fill` is set. Its
+  `width` prop (default `full`) sets `data-width` on the filters, the table
+  frame and the empty Card. `left`, `center` and `right` keep them and the
+  PageHeader in one box at most 880px wide. See [Page layout](page-layout.md).
 - `.list-filters`: Search first and growing, a Select sized to its content,
   "Clear filters" only once something is filtered. Below 560px each control
   takes the row.
@@ -175,6 +181,12 @@ hold, such as a form, a log, or a terminal. Its create screen is in
   it. Set `data-fill="false"` on the card to let the document scroll
   instead. Below 1024px the document scrolls and an edge-to-edge panel is
   60vh tall.
+- In React, `DetailPage` renders a console detail screen: the PageHeader
+  with one optional primary `action`, then the `.detail-tabs` card. Each tab
+  takes `content`, or `empty` for the same edge-to-edge EmptyState an empty
+  list shows. A panel whose only child is a `.table-wrap` reaches the card's
+  edges. The card does not fill the viewport unless `fill` is set. `width`
+  works as on `ListPage`, default `full`.
 
 ## When to use
 

@@ -13,7 +13,7 @@ import {
   Button,
 } from "@momoi-labs/kiso-react";
 
-/* The application shell the CRUD, Dashboard and Reports templates share:
+/* The application shell the Dashboard and Charts templates share:
    brand, navigation, account and a breadcrumb header. */
 function LayoutIcon({ name }: { name: string }) {
   const icons: Record<string, LucideIcon> = {

@@ -31,6 +31,8 @@ Use the existing Switch and search patterns for those interactions.
 The `form-body` CSS class provides content padding and field spacing. It can
 be applied to a div or fieldset. Products can instead compose content from
 Cards and existing layout utilities. Form adds no padding around its actions.
+A Form that is a direct child of a Card takes the Card's radius, so the
+footer's corners follow the Card's.
 Do not wrap FormActions in a padded content region or another footer.
 
 ## React API

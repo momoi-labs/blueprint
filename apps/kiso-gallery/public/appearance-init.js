@@ -123,7 +123,7 @@
     }
     return settings;
   }
-  window.kisoAppearance = { defaults, presetDefaults, options, read, save };
+  window.kisoAppearance = { defaults, presetDefaults, options, read, save, apply };
   apply(read());
   phone?.addEventListener?.("change", () => apply(read()));
 })();

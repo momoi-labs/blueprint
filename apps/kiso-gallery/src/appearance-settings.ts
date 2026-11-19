@@ -60,6 +60,7 @@ declare global {
       options: Record<keyof AppearanceSettings, readonly string[]>;
       read: () => AppearanceSettings;
       save: (settings: AppearanceSettings) => AppearanceSettings;
+      apply: (settings: AppearanceSettings) => AppearanceSettings;
     };
   }
 }

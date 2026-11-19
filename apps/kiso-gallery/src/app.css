@@ -132,15 +132,19 @@
 .layout-stats .stat-value {
   margin-top: var(--spacing-sm);
 }
-.layout-project-name {
-  white-space: nowrap;
-  font-weight: var(--type-weight-medium);
+.console-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-accent-base);
+  font-weight: var(--type-weight-semibold);
 }
-.layout-list-detail {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
-  align-items: start;
-  gap: var(--spacing-xl);
+.console-brand-symbol {
+  display: block;
+  flex: none;
+  inline-size: var(--size-control-sm);
+  block-size: var(--size-control-sm);
+  color: var(--color-accent-base);
 }
 /* Login: a context panel takes half the page beside the credential form.
    It is a page of its own, so it draws the chosen background itself. */
@@ -226,9 +230,6 @@
   }
   .layout-stats > .stat:nth-child(n + 3) {
     border-block-start: 1px solid var(--color-border);
-  }
-  .layout-list-detail {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 @container (max-width: 700px) {

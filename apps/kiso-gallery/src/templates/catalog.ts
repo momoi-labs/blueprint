@@ -11,7 +11,6 @@ import charts from "./charts.tsx?raw";
 import report from "./report.tsx?raw";
 import reportData from "./report-data.tsx?raw";
 import workspace from "./workspace.tsx?raw";
-import screensDemo from "../../../../kiso/blocks/react-prototype/src/screens-demo.tsx?raw";
 import screensRs from "../../../../crates/tui-kiso/examples/screens.rs?raw";
 
 export const docsUrl = "https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/";
@@ -25,16 +24,20 @@ const components = {
   Button: ["button.md", "Does something: submit, open, save, delete.", "Does not go to a URL. Use Link for that."],
   Card: ["card.md", "Groups one unit of related content on a surface.", "Not a status label, a warning or the application layout."],
   CodeBlock: ["code-block.md", "Shows read-only code: a command to run, with copy.", "Does not edit code. Use CodeEditor for that."],
+  ConsoleShell: ["console-shell.md", "The console frame: sidebar, breadcrumb, account menu and the one page.", "Does not hold the page content. ListPage, FormPage and DetailPage do."],
   Chart: ["chart.md", "Reads several series across a window of time.", "Not a small trend of one series. Use Sparkline for that."],
   Checkbox: ["checkbox.md", "An independent yes or no, or membership in a list.", "Not an immediate setting. Use Switch for that."],
   DashboardGrid: ["dashboard-grid.md", "Panels on twelve columns that the reader moves and resizes.", "Does not load data. The product stores the layout."],
+  DetailPage: ["detail-page.md", "One record: its title, one action and tabs with content or an empty state.", "Does not edit the record. Use FormPage for that."],
   Diagram: ["diagram.md", "Shows how the parts of a deployment connect.", "Not a list and not a graph editor."],
   Dialog: ["modal-dialog.md", "Blocks the page for a task or a decision, then returns.", "Not for a message that asks for no decision."],
   Disclosure: ["disclosure.md", "Collapses a related section in place.", "Does not switch views. Use Tabs for that."],
+  FormPage: ["form-page.md", "A create or edit form in a card, with its title and save actions.", "Does not validate or save. The product does."],
   FormField: ["form-field.md", "One control with its label, help and error.", "Not the whole form or its submit actions."],
   Input: ["input.md", "Collects a single-line value with native input semantics.", "Does not supply its field label or validation message. Use FormField for those."],
   KV: ["kv.md", "Named facts about one object.", "Not a table of many records."],
   Link: ["link.md", "Goes somewhere: a route, a hash, a document.", "Does not run an action on the page. Use Button for that."],
+  ListPage: ["list-page.md", "A list of records: title, create action, filters, table, count and empty state.", "Does not fetch, filter or page the records. The product does."],
   Meter: ["meter.md", "One measurement against a known limit, or the progress of work.", "Does not mix the two: a task's completion is Progress."],
   PageHeader: ["page-header.md", "The page title and the place for its actions.", "Not the application header or the navigation."],
   Pagination: ["pagination.md", "Position and direct page navigation in a table.", "Does not replace filtering or search."],
@@ -44,6 +47,7 @@ const components = {
   Sparkline: ["sparkline.md", "The shape of one series in a cell or a Stat.", "Does not answer the value at a given moment."],
   Spinner: ["spinner.md", "Work is happening and its length is unknown.", "Not for known progress or a page skeleton."],
   RadioGroup: ["radio-group.md", "Selects one value from visible options.", "Not navigation between pages."],
+  StatusBadge: ["status-badge.md", "The state of a resource, with a tone.", "Not a filter chip and not a count."],
   Stat: ["stat.md", "One named metric with its change and context.", "Draws no frame. Card does that."],
   Steps: ["steps.md", "Shows position in a bounded guided flow.", "Does not validate, complete or navigate. The caller owns that."],
   SiteSection: ["site-section.md", "A full-width band of a site page, with a head, a body and a foot.", "Not a panel inside an application screen. Use Card or Page for that."],
@@ -82,7 +86,6 @@ function terminal(id: string) {
 
 export type SourceFile = { name: string; path: string; language: "tsx" | "rust" | "css"; code: string };
 const react = (name: string, code: string, dir = "apps/kiso-gallery/src/templates/"): SourceFile => ({ name, path: dir + name, language: "tsx", code });
-const blocks = "kiso/blocks/react-prototype/src/";
 const rust = (id: string): SourceFile => ({ name: "screens.rs", path: "crates/tui-kiso/examples/screens.rs", language: "rust", code: terminal(id) });
 
 export const templates = [
@@ -98,11 +101,11 @@ export const templates = [
   {
     id: "crud",
     label: "CRUD",
-    description: "List, open, create and delete records. The everyday work of a product.",
+    description: "List, open, create and edit records in a console. Every screen keeps the title and the first block in the same place.",
     pattern: "crud.md",
-    states: ["Split", "List", "Detail", "Create", "Save error"],
-    components: (["PageHeader", "Search", "Select", "Table", "Pagination", "Badge", "Card", "KV", "Meter", "Checkbox", "Tabs", "Dialog", "Toast"] as const).map(component),
-    files: [react("crud.tsx", crud), react("screens-demo.tsx", screensDemo, blocks), react("workspace.tsx", workspace), rust("crud")],
+    states: ["List", "Empty list", "Edit", "Edit with changes", "Create", "Detail"],
+    components: (["ConsoleShell", "ListPage", "FormPage", "DetailPage", "Search", "Table", "StatusBadge", "FormField", "KV", "Link"] as const).map(component),
+    files: [react("crud.tsx", crud), rust("crud")],
   },
   {
     id: "dashboard",

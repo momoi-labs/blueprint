@@ -23,7 +23,7 @@ import { FormDemo, FormActionsDemo } from "./forms-demo";
 import { MetricsDemo } from "./metrics-demo";
 import { DiagramDemo } from "./diagram-demo";
 import { StepBarDemo, StepListDemo } from "./steps-demo";
-import { LifecycleDemo, StatusBadgeDemo } from "./screens-demo";
+import { ConsoleShellDemo, DetailPageDemo, FormPageDemo, LifecycleDemo, ListPageDemo, StatusBadgeDemo } from "./screens-demo";
 import { FeatureGridDemo, FeatureListDemo, PerspectiveStackDemo, SiteFooterDemo, SiteHeaderDemo, SiteHeadingDemo, SiteSectionDemo, WindowFrameDemo } from "./site-demo";
 import { Fragment, memo, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
@@ -275,6 +275,9 @@ const catalog = [
     "A title, context and page actions.",
   ],
   ["lifecycle", "Lifecycle", "Structure", "A detail screen's status, verbs and destructive action."],
+  ["list-page", "ListPage", "Structure", "A list screen: title, action, filters, table and count."],
+  ["form-page", "FormPage", "Structure", "A create or edit screen with buttons that follow the mode."],
+  ["detail-page", "DetailPage", "Structure", "A detail screen: title, action and tabs."],
   ["header", "Header", "Structure", "Shared navigation and global status."],
   ["brand-mark", "BrandMark", "Structure", "A decorative letter or product icon."],
   [
@@ -289,6 +292,7 @@ const catalog = [
     "Structure",
     "Console with a sidebar rail, or a single-surface top bar.",
   ],
+  ["console-shell", "ConsoleShell", "Structure", "A console frame: sidebar, breadcrumb and account menu."],
   [
     "split",
     "Split / Pane / Splitter",
@@ -394,6 +398,10 @@ const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   "page-header": "wide",
   header: "wide",
   "app-shell": "wide",
+  "console-shell": "wide",
+  "list-page": "wide",
+  "form-page": "wide",
+  "detail-page": "wide",
   split: "wide",
   breadcrumb: "wide",
   "scope-switcher": "wide",
@@ -530,6 +538,10 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
   "status-badge": '<StatusBadge tone="success">Running</StatusBadge>\n<StatusBadge tone="success" pulse>Provisioning</StatusBadge>\n<StatusBadge tone="danger">Failed</StatusBadge>\n<StatusBadge tone="neutral">Stopped</StatusBadge>\n<StatusBadge series={1} icon={Waves} pulse>Streaming</StatusBadge>\n<StatusBadge series="neutral" icon={Archive} pulse>Archiving</StatusBadge>\n<StatusBadge series={4}>Backup scheduled</StatusBadge>',
   "step-bar": '<StepBar label="Create" steps={steps} />\n<span className="mono muted">4 of 11</span>',
   "log-view": "<LogView follow={follow} onFollowChange={setFollow}>\n  <LogViewLine>\n    <LogViewTime>09:41:02.114</LogViewTime>\n    <LogViewLevel level=\"warn\">WARN </LogViewLevel> redis unavailable\n  </LogViewLine>\n</LogView>",
+  "console-shell": '<ConsoleShell\n  brand={brand}\n  brandMark={mark}\n  navigation={groups}\n  breadcrumb={[{ label: "Console", href: "/" }, { label: "Clusters" }]}\n  account={{ identity, theme, onThemeChange: setTheme, onSignOut: signOut }}\n>\n  <ListPage title="Clusters" action={create} state="ready" empty={empty}>{rows}</ListPage>\n</ConsoleShell>',
+  "list-page": '<ListPage\n  title="Clusters"\n  action={{ label: "Create cluster", icon: <Plus />, onClick: create }}\n  state={state}\n  empty={{ title: "No clusters yet", text: "A cluster appears here once you create one." }}\n  count="2 of 2 clusters"\n>\n  {rows}\n</ListPage>',
+  "form-page": '<FormPage title="Edit cluster main" mode="edit" submitLabel="Save" onSubmit={save} onDiscard={reset} dirty={dirty} message={dirty ? "Unsaved changes." : "Saved."}>\n  <FormField label="Name" name="name" value={name} onChange={rename} />\n</FormPage>',
+  "detail-page": '<DetailPage\n  title="main"\n  action={{ label: "Edit cluster", icon: <Pencil />, onClick: edit }}\n  tabs={[\n    { value: "overview", label: "Overview", content: <KV>...</KV> },\n    { value: "events", label: "Events", empty: { title: "No events yet" } },\n  ]}\n/>',
   "app-shell":
     '<ApplicationShell collapsible brand={brand} navigation={groups} header={header}>\n  <div className="page">\n    <PageHeader>\n      <PageHeaderTitle>Your homelab</PageHeaderTitle>\n      <PageHeaderDescription>Applications, machines, and images in one place.</PageHeaderDescription>\n    </PageHeader>\n    {content}\n  </div>\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
 };
@@ -2136,6 +2148,14 @@ const Demo = memo(function Demo({
       return <StepBarDemo />;
     case "lifecycle":
       return <LifecycleDemo />;
+    case "console-shell":
+      return <ConsoleShellDemo />;
+    case "list-page":
+      return <ListPageDemo />;
+    case "form-page":
+      return <FormPageDemo />;
+    case "detail-page":
+      return <DetailPageDemo />;
     case "status-badge":
       return <StatusBadgeDemo />;
     default:
@@ -2459,7 +2479,7 @@ export function ComponentGallery({
                     {accents !== undefined && !showingAccents && (
                       <NavigationItem>
                         <NavigationLink href="#accents">
-                          Accents <Badge variant="info">New</Badge>
+                          Accents
                         </NavigationLink>
                       </NavigationItem>
                     )}
@@ -2516,7 +2536,7 @@ export function ComponentGallery({
             <NavigationList className="nav-row">
               <NavigationItem>
                 <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
-                  Components
+                  Components <Badge variant="info">New</Badge>
                 </NavigationLink>
               </NavigationItem>
               {example !== undefined && (
@@ -2532,7 +2552,7 @@ export function ComponentGallery({
               {accents !== undefined && (
                 <NavigationItem>
                   <NavigationLink href="#accents" active={showingAccents}>
-                    Accents <Badge variant="info">New</Badge>
+                    Accents
                   </NavigationLink>
                 </NavigationItem>
               )}

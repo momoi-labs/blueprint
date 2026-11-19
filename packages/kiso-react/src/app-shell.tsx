@@ -336,7 +336,7 @@ function ApplicationShellSidebar({
       {menu}
       {barOnTop
         ? <div className="app-shell-bar-brand">{brand}</div>
-        : (phoneNavigation === "bottom" || shellLayout) && <div className="app-shell-phone-brand">{brand}</div>}
+        : (phoneNavigation === "bottom" || shellLayout) && <div className="app-shell-phone-brand">{shellLayout && brandMark ? brandMark : brand}</div>}
       {phoneNavigation === "bottom" && primaryAction && <div className="app-shell-phone-action">{primaryAction}</div>}
       {togglePlacement === "header" && toggle}
       {header}

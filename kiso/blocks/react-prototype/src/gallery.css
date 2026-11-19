@@ -317,7 +317,8 @@
 }
 /* The shell is a full screen in production; the preview only needs to show
    the two columns and where each one starts. */
-.gallery-shell-preview {
+.gallery-shell-preview,
+.gallery-console-preview > .app-shell {
   min-height: 0;
   height: 240px;
   grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
@@ -325,14 +326,18 @@
   border-radius: var(--radius-surface);
   overflow: hidden;
 }
-.app-shell.gallery-shell-preview > .sidebar {
+.app-shell.gallery-shell-preview > .sidebar,
+.gallery-console-preview > .app-shell > .sidebar {
   position: static;
   height: auto;
 }
-.app-shell.gallery-shell-preview { min-height: 0; }
+.app-shell.gallery-shell-preview,
+.gallery-console-preview > .app-shell { min-height: 0; }
+.gallery-console-preview > .app-shell { height: 360px; }
 .gallery-shell-preview.gallery-shell-editorial { height: auto; min-height: 360px; }
 @media (max-width: 1023px) {
-  .gallery-shell-preview { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .gallery-shell-preview,
+  .gallery-console-preview > .app-shell { grid-template-columns: minmax(0, 1fr); height: auto; }
 }
 /* The bar is fixed to a phone's bottom edge in production. The preview shows
    it in place at every width. */
