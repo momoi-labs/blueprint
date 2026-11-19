@@ -1441,8 +1441,11 @@ table.table {
   .app-shell[data-shell-layout][data-phone-drawer="true"] .app-shell-phone-brand { display: flex; min-width: 0; }
 }
 .app-shell-breadcrumb { min-width: 0; }
+.app-shell-status { display: flex; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); }
+.app-shell-status, .app-shell-status ~ .btn { flex: none; }
 @media (max-width: 699px) {
   .app-shell-breadcrumb .breadcrumb > :not(:last-child) { display: none; }
+  .app-shell-breadcrumb:has(~ .app-shell-status) .breadcrumb > li { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 .app-shell-account { display: grid; gap: var(--spacing-xs); min-width: 14rem; }
 .app-shell-account-identity { margin: 0; padding: var(--spacing-xs) var(--spacing-sm); color: var(--color-muted-foreground); font-size: var(--type-size-label); }

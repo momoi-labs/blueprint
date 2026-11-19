@@ -37,6 +37,7 @@ type ConsoleShellProps = {
   navigationLabel?: string;
   breadcrumb: readonly ConsoleCrumb[];
   account: ConsoleAccount;
+  status?: ReactNode;
   children: ReactNode;
 };
 
@@ -81,7 +82,7 @@ function ConsoleAccountMenu({ account }: { account: ConsoleAccount }) {
   </Popover>;
 }
 
-function ConsoleShell({ brand, brandMark, navigation, navigationLabel = "Primary", breadcrumb, account, children }: ConsoleShellProps) {
+function ConsoleShell({ brand, brandMark, navigation, navigationLabel = "Primary", breadcrumb, account, status, children }: ConsoleShellProps) {
   return <ApplicationShell
     collapsible
     togglePlacement="header"
@@ -94,6 +95,7 @@ function ConsoleShell({ brand, brandMark, navigation, navigationLabel = "Primary
     header={<>
       <ConsoleBreadcrumb items={breadcrumb} />
       <div className="grow" />
+      {status == null || status === false ? null : <div className="app-shell-status">{status}</div>}
       <ConsoleAccountMenu account={account} />
     </>}
   >
