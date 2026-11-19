@@ -47,7 +47,7 @@ A screen file renders `PageHeader`, `ListPage`, `FormPage`, `DetailPage` or
 
 | Id | Finding |
 | --- | --- |
-| P1 | `@momoi-labs/kiso` 1.10.0 or older, or `@momoi-labs/kiso-react` 0.32.0 or older. Read from the nearest `package-lock.json`, else from `node_modules`. A workspace link is not checked. |
+| P1 | `@momoi-labs/kiso` 1.10.0 or older, or `@momoi-labs/kiso-react` 0.32.0 or older. Read from the nearest `package-lock.json` above the folder, else from `node_modules`, else from a `package-lock.json` up to two folders below, so a repo root finds `web/` or `console/`. A workspace link is not checked. |
 | P2 | A local `ConsoleShell`, a `ConsoleShell` imported from another package, or a shell built from `ApplicationShell`. |
 | P3 | Product CSS on what Kiso ships: `.sidebar-header`, `.topbar`, `.app-shell`, `.app-shell-phone-brand`, `[data-width]`, `.detail-tabs`, `.card-content > .empty`, `--app-shell-brand-inset`, an inset `--color-primary` stripe, nav icon padding, `.page-header` height, `.form-page` radius. |
 | S1 | A local `ListPage`, `FormPage` or `DetailPage`, or one imported from another package. |

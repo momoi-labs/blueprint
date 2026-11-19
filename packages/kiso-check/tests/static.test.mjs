@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { checkStatic } from "../src/static.mjs";
@@ -15,6 +18,18 @@ test("a clean product has no findings", () => {
   assert.deepEqual(report.shellFiles.map(file => file.split("/").pop()), ["App.tsx"]);
   const list = report.files.find(item => item.file.endsWith("ClustersList.tsx"));
   assert.equal(list.uses.ListPage.source, "@momoi-labs/kiso-react");
+});
+
+test("a repo root finds the lockfile of its frontend folder", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "kiso-check-"));
+  try {
+    cpSync(fixture("clean"), path.join(root, "web"), { recursive: true });
+    const report = checkStatic(root);
+    assert.deepEqual(report.findings, []);
+    assert.equal(report.versions.kiso.version, "1.11.0");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("a workspace link is not too old", () => {
