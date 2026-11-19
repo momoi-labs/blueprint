@@ -22,6 +22,7 @@
     headerSize: ["default", "compact", "editorial"],
     headerWidth: ["page", "outset"],
     appShellOuter: ["auto", "full", "compact", "none"],
+    brandBar: ["separate", "full"],
     pageWidth: ["full", "contained"],
     pageAlign: ["start", "center", "end"],
     frameScope: ["all", "panels", "outer"],
