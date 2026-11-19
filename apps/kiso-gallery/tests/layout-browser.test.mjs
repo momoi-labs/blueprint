@@ -505,10 +505,9 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
   } finally { await page.close(); }
 });
 
-// The docked settings panel takes the last column. On a floating home page the
-// canvas covers every cell, and the panel once landed in an extra column that
-// squeezed the bar to the first tracks.
-test("The floating bar keeps one full-width row with the settings panel open", async () => {
+// The docked settings panel takes the last column. On the home page the bar
+// spans only the content column, so it stays centered with the content.
+test("The floating bar keeps one row over the content column with the settings panel open", async () => {
   const page = await open(1440, "inset");
   try {
     await page.goto(url);
@@ -522,9 +521,10 @@ test("The floating bar keeps one full-width row with the settings panel open", a
         const r = child.getBoundingClientRect();
         return r.width && (r.left < box.left || r.right > box.right || r.top < box.top || r.bottom > box.bottom);
       }).length;
-      return { width: box.width, outside, viewport: innerWidth };
+      const main = document.querySelector(".component-gallery > [data-slot='app-shell-main']").getBoundingClientRect();
+      return { left: box.left, right: box.right, mainLeft: main.left, mainRight: main.right, outside };
     });
-    assert(bar.width > bar.viewport - 48, `The bar spans the page, got ${bar.width}px`);
+    assert(Math.abs(bar.left - bar.mainLeft) <= 24 && Math.abs(bar.right - bar.mainRight) <= 24, `The bar spans the content column, got ${bar.left}-${bar.right} for ${bar.mainLeft}-${bar.mainRight}`);
     assert.equal(bar.outside, 0, "Tabs, search and the gear stay inside the bar");
   } finally { await page.close(); }
 });

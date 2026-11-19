@@ -2288,7 +2288,7 @@ export function ComponentGallery({
     const resize = new ResizeObserver(schedule);
     resize.observe(gallery);
     const mutations = new MutationObserver(schedule);
-    mutations.observe(gallery, { childList: true, subtree: true });
+    mutations.observe(gallery, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
     mutations.observe(document.documentElement, { attributes: true, attributeFilter: ["data-page-width", "data-page-align"] });
     measure();
     return () => {
