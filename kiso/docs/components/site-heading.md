@@ -39,7 +39,9 @@ The eyebrow uses `--font-mono`, `--type-size-metadata`,
 `--type-letter-spacing-caps`, uppercase, in `--color-link`. A `section` title
 grows from `--type-size-display` to `--type-size-editorial`; a `display` title
 from `--type-size-editorial` to 1.6 times it, with `--font-heading` and
-`--type-weight-semibold`. The description uses `--type-size-body-large` and
+`--type-weight-semibold`. A `display` title scales with the nearest
+`inline-size` container, or with the viewport when there is none. Under about
+280px it goes below `--type-size-editorial`, so a long word still fits. The description uses `--type-size-body-large` and
 `--color-muted-foreground`, at most 42rem wide. Slots are `--spacing-md`
 apart; actions have `--spacing-md` more above them.
 
