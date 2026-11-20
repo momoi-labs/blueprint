@@ -378,7 +378,8 @@ Below 1024px ApplicationShell's sidebar layout opens its navigation in a
 Drawer, as described under Sizes. `phoneNavigation="bottom"` puts the same
 destinations in a [BottomNav](bottom-nav.md) below 700px instead: each
 destination's `leading` content is its icon, and a string or number in
-`trailing` is its badge. The Header shows the brand, and the menu button
+`trailing` is its badge. Other `trailing` content, such as a
+[Dot](dot.md), sits where the badge would. The Header shows the brand, and the menu button
 is hidden. `primaryAction` moves to the Header, after the brand and at its
 end, so it is visible on every screen whatever the number of destinations;
 the Drawer that held it cannot open. Keep it compact there, as an icon

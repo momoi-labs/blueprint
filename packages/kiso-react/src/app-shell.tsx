@@ -426,7 +426,9 @@ function ApplicationShellBottomNav({ navigation, navigationLabel, footer }: {
     >
       {destination.leading && <span className="bottom-nav-icon" aria-hidden="true">{destination.leading}</span>}
       <span>{destination.label}</span>
-      {(typeof destination.trailing === "string" || typeof destination.trailing === "number") && <BottomNavBadge>{destination.trailing}</BottomNavBadge>}
+      {typeof destination.trailing === "string" || typeof destination.trailing === "number"
+        ? <BottomNavBadge>{destination.trailing}</BottomNavBadge>
+        : destination.trailing && <span className="bottom-nav-trailing">{destination.trailing}</span>}
     </BottomNavLink>
   )
   return <>

@@ -11,6 +11,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Button,
+  Dot,
 } from "@momoi-labs/kiso-react";
 
 /* The application shell the Dashboard and Charts templates share:
@@ -36,11 +37,12 @@ export function WorkspacePreview({
   parent?: { label: string; onClick: () => void };
   children: ReactNode;
 }) {
-  const destination = (label: string, icon: string) => ({
+  const destination = (label: string, icon: string, trailing?: ReactNode) => ({
     href: `#example/${icon}`,
     label,
     active: (parent?.label ?? page) === label,
     leading: <LayoutIcon name={icon} />,
+    trailing,
     // A static preview: the links show where a page would go.
     onClick: () => {},
   });
@@ -63,13 +65,13 @@ export function WorkspacePreview({
       }
       navigation={[
         { label: "Workspace", destinations: [
-          destination("Overview", "dashboard"),
+          destination("Overview", "dashboard", <Dot variant="warning" />),
           destination("Projects", "projects"),
           destination("Team", "team"),
           destination("Reports", "reports"),
         ] },
         { label: "Manage", destinations: [
-          destination("Settings", "settings"),
+          destination("Settings", "settings", <Dot variant="info" />),
           destination("Help & resources", "reports"),
         ] },
       ]}
