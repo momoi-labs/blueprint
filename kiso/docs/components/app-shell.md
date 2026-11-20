@@ -159,8 +159,8 @@ Without `shellLayout`, the shell keeps its earlier geometry.
 ### Console shell
 
 `ConsoleShell` is the console's ApplicationShell with the choices made: a
-`shellLayout`, a collapsible sidebar, the toggle in the Header and
-`headerVariant="default"`.
+`shellLayout`, a collapsible sidebar, the toggle in the Header,
+`phoneNavigation="bottom"` and `headerVariant="default"`.
 
 ```tsx
 <ConsoleShell

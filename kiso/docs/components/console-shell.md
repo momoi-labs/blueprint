@@ -7,8 +7,8 @@ optional status and an account menu, and one page.
 
 ConsoleShell fixes the choices every console page shares, so each screen
 only passes its data. It is an [ApplicationShell](app-shell.md) with
-`collapsible`, `togglePlacement="header"`, `shellLayout` and
-`headerVariant="default"`. Use ApplicationShell directly when a product needs
+`collapsible`, `togglePlacement="header"`, `phoneNavigation="bottom"`,
+`shellLayout` and `headerVariant="default"`. Use ApplicationShell directly when a product needs
 other choices.
 
 ## Anatomy
@@ -67,7 +67,7 @@ The shell renders `.page` around its children. Pass a page body such as
 | --- | --- |
 | expanded | Sidebar shows `brand` and labelled destinations. |
 | collapsed | The header toggle folds the sidebar to a rail with `brandMark` and icons. |
-| phone | Below 1024px the navigation opens in a Drawer and the header shows `brandMark`. Below 700px a header with `status` truncates the breadcrumb, so keep the status short. |
+| phone | Below 1024px the header shows `brandMark`. Below 700px the destinations move to a [BottomNav](bottom-nav.md) and the header has no menu button; with more than five destinations the bar shows four and More. From 700px to 1023px the navigation opens in a Drawer from the menu button. Below 700px a header with `status` truncates the breadcrumb, so keep the status short. |
 | account open | The Popover lists identity, theme and Sign out. Escape closes it and returns focus to the trigger. |
 
 ## Accessibility
