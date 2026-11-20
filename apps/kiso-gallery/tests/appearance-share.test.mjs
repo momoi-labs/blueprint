@@ -260,6 +260,10 @@ test("every preset retains its shadow through actual clipboard and fresh-context
       await panel.getByRole("button", { name: "Share", exact: true }).click();
       await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
       await page.getByText("Appearance applied", { exact: true }).last().waitFor();
+      await page.waitForFunction(expected => {
+        const read = window.kisoAppearance.read();
+        return Object.keys(read).length === Object.keys(expected).length && Object.keys(expected).every(key => read[key] === expected[key]);
+      }, expected).catch(() => {});
       assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), expected, `${name} paste`);
     }
   } finally { await page.context().close(); }

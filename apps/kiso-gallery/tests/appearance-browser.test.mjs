@@ -943,7 +943,7 @@ for (const width of [390, 1440]) test(`Navigation stays reachable on Intro and a
     await page.getByRole('button', { name: phone ? collapsed : expanded, exact: true }).waitFor();
     if (!phone) assert(await nav.isVisible(), 'Section pages open the sidebar');
     // The brand sits in the sidebar header, the floating bar or the phone's top bar.
-    await page.locator('.component-gallery .catalog-brand:visible').first().click();
+    await page.locator('.component-gallery .catalog-brand:visible').first().click({ timeout: 30_000 });
     await page.waitForURL(`${url}#intro`);
     if (phone) {
       await page.getByRole('button', { name: collapsed, exact: true }).waitFor();

@@ -28,13 +28,13 @@ after(async () => {
   if (server) await new Promise(resolve => server.httpServer.close(resolve));
 });
 
-async function open(width, frame = "default", theme = "dark", hasTouch = false) {
+async function open(width, frame = "default", theme = "dark", hasTouch = false, saved = {}) {
   const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: theme, hasTouch });
   page.setDefaultTimeout(5000);
   await page.route("https://fonts.googleapis.com/**", route => route.abort());
   // Only the page sets the appearance; the preview frames inside it share
   // its storage and follow what the test saves later.
-  await page.addInitScript(({ frame, theme }) => { if (window === window.top) localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ appShell: frame, theme })); }, { frame, theme });
+  await page.addInitScript(({ frame, theme, saved }) => { if (window === window.top) localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ appShell: frame, theme, ...saved })); }, { frame, theme, saved });
   return page;
 }
 async function settings(page, open) {
@@ -445,10 +445,9 @@ for (const width of [390, 900]) test(`Navigation overlays the page from the left
 
 // A floating bar spans both columns, so the surface behind it is one color.
 for (const frame of ["inset", "default"]) for (const theme of ["light", "dark"]) test(`The floating bar sits on one surface over both columns in ${frame}/${theme}`, async () => {
-  const page = await open(1440, frame, theme);
+  const page = await open(1440, frame, theme, false, { headerVariant: "floating" });
   try {
     await page.goto(`${url}#components`);
-    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));
     await page.locator(".catalog-header[data-catalog-bar='page'] .catalog-header-brand").waitFor();
     const x = await page.evaluate(() => {
       const sidebar = document.querySelector(".component-gallery > .catalog-sidebar").getBoundingClientRect();
