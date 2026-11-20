@@ -1,5 +1,14 @@
 # @momoi-labs/kiso
 
+## 1.12.1
+
+### Patch Changes
+
+- 3c1d6b1: With `phoneNavigation="bottom"`, a destination's `trailing` content that is not a string or number, such as a Dot, shows in the BottomNav where a badge would. Before, the bar dropped it.
+- 6ab96b9: In the collapsed inset rail of ApplicationShell and ConsoleShell, navigation icons keep the place they have in the open sidebar. They were centred in the rail instead, so they moved by half a pixel, or more with icons smaller than `--size-icon-md`.
+- 5245735: On a patterned background, the collapsed inset rail keeps its full width again, with the rail mark centred in its fill. With `data-brand-bar="full"`, the inset sidebar also meets the main panel, open or collapsed, without a strip of the pattern between them. The separate brand bar keeps the gap. In the collapsed inset rail, the current-item marker and the line between navigation groups keep the place they have in the open sidebar. The inset brand tab corner follows the outer corner style and size, so it matches the main panel's corner.
+- 88f9f26: A `display` SiteHeading title scales with the nearest `inline-size` container instead of the viewport, and goes below the editorial size in containers under about 280px. In a card or a narrow column, a long word in the title no longer runs past the edge. On a page without a container, the size is the same as before.
+
 ## 1.12.0
 
 ### Minor Changes
