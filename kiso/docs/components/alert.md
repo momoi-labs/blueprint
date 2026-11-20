@@ -3,6 +3,28 @@
 An in-page message about a condition the person should see in context.
 Severity is explicit. It stays until dismissed or until the condition ends.
 
+## Alert is now smart
+
+Severity drives the defaults, so a caller sets `variant` and gets the rest:
+
+| Severity | Role | Loud icon | Default tape | Dismiss default | Placement default |
+| --- | --- | --- | --- | --- | --- |
+| `error` | `role="alert"` | filled circle-alert | `top` | persistent | inline; overlay when the whole app is down |
+| `warning` | `role="status"` | filled triangle-alert | `top` | persistent | inline |
+| `info` | `role="status"` | filled info | `none` | dismissible | inline |
+| `success` | `role="status"` | filled circle-check | `none` | dismissible | inline |
+
+- **Role.** Alert sets the live region from the severity. Pass `role` only to
+  override it, for example `role="note"` on static documentation.
+- **Icon.** With `appearance="loud"`, Alert renders the icon itself. With
+  `tinted` or `rail`, the caller still passes the icon as the first child.
+- **Dismiss.** Pass `onDismiss` and Alert renders the Dismiss IconButton.
+  After the click, focus returns to the element that had it when the Alert
+  appeared, or to the main heading. A persistent condition omits `onDismiss`.
+- **Placement.** `placement="inline"` is the default. `placement="overlay"`
+  pins the Alert to the top of the viewport. Only one overlay Alert shows at a
+  time.
+
 ## Purpose
 
 Alert explains something about *this view*: a failed load, a degraded
@@ -32,6 +54,7 @@ Alert
 ├── Description (required for error and warning; optional for info/success
 │   when the title is already a complete sentence)
 ├── Action (optional: recovery Button or Link)
+├── Details (optional: AlertDetails, a disclosure with more context)
 └── Dismiss (optional IconButton; only when dismissible)
 ```
 
@@ -46,8 +69,13 @@ Alert
 - **Action.** A real [Button](button.md) or [Link](link.md) that performs the
   recovery ("Retry", "Open settings"). Do not bury the only recovery in
   Description prose if a control can do it.
+- **Details.** `AlertDetails` holds context that does not fit the
+  description: timestamps, scope, a link to the incident. Alert renders a
+  "Details" button with `aria-expanded` and `aria-controls`. The panel starts
+  closed.
 - **Dismiss.** [IconButton](icon-button.md) `ghost` `sm`, `aria-label`
-  "Dismiss". Only on dismissible Alerts.
+  "Dismiss". Alert renders it when the caller passes `onDismiss`. Only on
+  dismissible Alerts.
 
 ## Variants
 
@@ -71,14 +99,16 @@ uses the five `--type-role-label-font-family`, `--type-role-label-font-size`,
 `--type-role-body-font-weight`, `--type-role-body-letter-spacing`, and
 `--type-role-body-line-height` properties.
 
-Do not fill the Alert with the status color. Status color is border, icon,
-and (optionally) title. A solid `--color-danger` panel fights contrast and
-shouts past the content.
+Only the loud appearance fills the Alert with a status color. Use loud for a
+blocking incident only, such as a primary that refuses connections, and show
+at most one loud Alert per view. Everything else stays tinted or rail, where
+status color is border, icon and (optionally) title.
 
 ### Appearance
 
 Appearance is independent of severity. React accepts
-`appearance="tinted" | "rail"`; tinted preserves the current presentation.
+`appearance="tinted" | "rail" | "loud"`; tinted is the default and preserves
+the current presentation.
 CSS consumers add `alert-rail` alongside the severity class for the rail
 appearance. Both descriptions use the body typography role.
 
@@ -98,6 +128,56 @@ Its class is `alert-content`.
   </AlertContent>
 </Alert>
 ```
+
+### Loud
+
+The loud appearance is a solid fill in the severity color, with hazard tape
+and a filled icon whose mark is cut out. CSS consumers add `alert-loud` and
+set `data-tape`.
+
+| Severity | Fill | Text | Ratio |
+| --- | --- | --- | --- |
+| `error` | `--color-danger-solid` (#ad2f29) | `--color-danger-solid-foreground` (white) | 6.53:1 |
+| `warning` | `--color-warning-solid` (#f2c230) | `--color-warning-solid-foreground` (#151411) | 11.00:1 |
+| `info` | `--color-info-solid` (#2563b5) | `--color-info-solid-foreground` (white) | 5.95:1 |
+| `success` | `--color-success-solid` (#1f7340) | `--color-success-solid-foreground` (white) | 5.86:1 |
+
+Error is red and warning is yellow in both themes. The light theme uses a
+flat fill. The dark theme adds a gradient from a deeper top (#872520 for
+error, #dfb22c for warning) to the fill. Text keeps 4.5:1 or more on the fill
+and on the gradient top.
+
+- **Tape.** `tape="top" | "start" | "top-bottom" | "start-end" | "none"`.
+  Stripes are 8px (`--spacing-sm`) at 45deg in `--color-tape` and the fill.
+  The side tape is the same 8px as the top tape. The default is `top` for
+  error and warning and `none` for info and success.
+- **Animated.** `animated` moves the tape. Use it for an incident in
+  progress. It stops under `prefers-reduced-motion: reduce`.
+- **Pulse.** `pulse` makes the icon pulse. It is off by default, exists on
+  loud only and stops under reduced motion.
+- **Frames.** Pixel, manga and brush frames do not draw on a loud Alert, so
+  the tape stays visible.
+
+```tsx
+<Alert variant="error" appearance="loud" onDismiss={clear}>
+  <AlertContent>
+    <AlertTitle>Database error</AlertTitle>
+    <AlertDescription>storefront-demo.-.primary: connection refused</AlertDescription>
+  </AlertContent>
+  <AlertDetails>
+    <div className="alert-body">Since 10:46 UTC. Affects reads on 3 branches.</div>
+  </AlertDetails>
+</Alert>
+```
+
+### Overlay
+
+`placement="overlay"` fixes the Alert to the top of the viewport, above every
+layer (`z-index` 70), and it stays there while the page scrolls. It works with
+every appearance; a loud overlay is a full-width band. Only one overlay Alert
+shows at a time: a newer one replaces the visible one and shows "+1" for each
+Alert waiting behind it. Dismissing the visible one shows the next. Use
+overlay for a condition that affects the whole app, not one section.
 
 Appearance does not change live-region behavior. Static documentation may use
 `role="note"`; live conditions keep the severity's announcement semantics.
@@ -172,6 +252,7 @@ and an optional action.
 | action | A `Button` of size `sm` after a blank row. It is the only part that takes focus. |
 | tint | 12% of the tone mixed into the card, in truecolor only. In 256 colors the card keeps its fill and the glyph and the title carry the tone. |
 | dismiss | No terminal form. The app clears the alert, for example with `Esc`. |
+| loud | `.loud()`: the card filled with the tone's solid color and text in its solid foreground, one `▚` tape row on top in `tape`, no animation. `danger` uses `✕` and `warning` uses `▲`. |
 
 Each tone has its own glyph, so color is never the only signal. The rail of
 the `Look`, when there is one, stays `primary`: it marks the surface, not
@@ -206,8 +287,9 @@ There is **no** Radix primitive for in-page Alert.
 | Kiso | Reference |
 | --- | --- |
 | Structure, icon + title + description + action | shadcn [Alert](https://ui.shadcn.com/docs/components/alert) (`Alert`, `AlertTitle`, `AlertDescription`, `AlertAction`) |
-| Dismiss | Compose [IconButton](icon-button.md); shadcn has no dedicated dismiss slot |
-| `error` | shadcn `variant="destructive"` restyled to `--color-danger` (border/icon, not a filled danger panel) |
+| Dismiss | Alert renders an [IconButton](icon-button.md) from `onDismiss`; shadcn has no dedicated dismiss slot |
+| Details | Kiso `AlertDetails`, a disclosure; shadcn has no equivalent |
+| `error` | shadcn `variant="destructive"` restyled to `--color-danger` (border/icon). Only `appearance="loud"` fills it with `--color-danger-solid` |
 | `info` / `success` / `warning` | shadcn `default` plus the matching `--color-info`, `--color-success`, or `--color-warning` — **not** the shadcn "Custom Colors" utility-class example (`bg-amber-50`, etc.) |
 
 Do **not** map this component to Radix

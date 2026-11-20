@@ -251,6 +251,15 @@
   --color-warning-on-dark: #efc05b;
   --color-danger-on-dark: #f5807f;
   --color-info-on-dark: #75c4fa;
+  --color-danger-solid: #ad2f29;
+  --color-danger-solid-foreground: var(--color-white);
+  --color-warning-solid: #f2c230;
+  --color-warning-solid-foreground: var(--color-dark-950);
+  --color-info-solid: #2563b5;
+  --color-info-solid-foreground: var(--color-white);
+  --color-success-solid: #1f7340;
+  --color-success-solid-foreground: var(--color-white);
+  --color-tape: var(--color-black);
   --color-code-comment: var(--color-muted-foreground);
   --color-code-keyword: var(--color-info);
   --color-code-string: var(--color-success);

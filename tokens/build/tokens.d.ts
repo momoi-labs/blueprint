@@ -345,6 +345,24 @@ export const semanticWarningOnDark: string;
 export const semanticDangerOnDark: string;
 /** Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text. */
 export const semanticInfoOnDark: string;
+/** Fill of a loud error Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes. */
+export const semanticDangerSolid: string;
+/** Text and icons on danger-solid, in both themes. */
+export const semanticDangerSolidForeground: string;
+/** Fill of a loud warning Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes. */
+export const semanticWarningSolid: string;
+/** Text and icons on warning-solid, in both themes. */
+export const semanticWarningSolidForeground: string;
+/** Fill of a loud info Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes. */
+export const semanticInfoSolid: string;
+/** Text and icons on info-solid, in both themes. */
+export const semanticInfoSolidForeground: string;
+/** Fill of a loud success Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes. */
+export const semanticSuccessSolid: string;
+/** Text and icons on success-solid, in both themes. */
+export const semanticSuccessSolidForeground: string;
+/** Stripes of the hazard tape on a loud Alert or Toast. Black in both themes, so the fill carries the meaning. */
+export const semanticTape: string;
 /** Syntax: comments and diff headers. Alias of muted-foreground, so it stays text-eligible. */
 export const semanticCodeComment: string;
 /** Syntax: keywords and control flow. Alias of info. */

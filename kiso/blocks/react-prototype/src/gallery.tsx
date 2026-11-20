@@ -549,13 +549,22 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
 function ToastDemoButton() {
   const notify = useToast();
   return (
-    <Button
-      onClick={() =>
-        notify("success", "Changes saved", "Your project has been updated.")
-      }
-    >
-      Show notification
-    </Button>
+    <div className="demo-row">
+      <Button
+        onClick={() =>
+          notify("success", "Changes saved", "Your project has been updated.")
+        }
+      >
+        Show notification
+      </Button>
+      <Button
+        onClick={() =>
+          notify("error", "Database error", "storefront-demo.-.primary: connection refused", { appearance: "loud" })
+        }
+      >
+        Show loud error
+      </Button>
+    </div>
   );
 }
 

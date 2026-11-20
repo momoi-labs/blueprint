@@ -127,6 +127,24 @@ Do not add product CSS for `.sidebar-header`, `.topbar`, the stripe, the bar
 fill, the brand inset or the nav icon padding. Kiso sets them. A product rule
 there is drift.
 
+## Incidents
+
+- A blocking incident gets one loud Alert: `appearance="loud"`. Examples: the
+  primary refuses connections, the cluster is read-only. At most one per view.
+  Everything else stays a tinted Alert.
+- Put the loud Alert above the content it blocks. Put timestamps, scope and
+  the incident link in `AlertDetails`, not in the description.
+- Use `placement="overlay"` only when the incident affects the whole console,
+  such as the API being down. Overlay shows one Alert at a time and counts
+  the rest as "+N". A section-level incident stays inline.
+- Keep `animated` for an incident still in progress. Leave `pulse` off unless
+  the page needs a second signal.
+- Pass `onDismiss` only when the person can safely hide the Alert. A current
+  outage stays until it ends.
+- An urgent event on another screen is a loud Toast:
+  `notify("error", title, body, { appearance: "loud" })`. It stays until
+  dismissed. The affected screen still shows its own Alert.
+
 ## Measured values
 
 Measured on the blueprint prototype, Kiso light and dark, 1280 px and

@@ -42,6 +42,10 @@ const fillPairs = [
   ['selected-foreground', 'selected', 4.5],
   ['card-foreground', 'card', 4.5],
   ['popover-foreground', 'popover', 4.5],
+  ['danger-solid-foreground', 'danger-solid', 4.5],
+  ['warning-solid-foreground', 'warning-solid', 4.5],
+  ['info-solid-foreground', 'info-solid', 4.5],
+  ['success-solid-foreground', 'success-solid', 4.5],
 ];
 
 function tokenAt(tokens, path) {
