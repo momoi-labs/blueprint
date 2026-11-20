@@ -4,7 +4,7 @@ use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier};
 use ratatui::widgets::Widget;
 
-use crate::surface::{fill, write};
+use crate::surface::{fill, put, write};
 use crate::text::{take_cells, wrap};
 use crate::theme::xterm_rgb;
 use crate::{blend, Button, Card, Size, Theme, Tone};
@@ -48,11 +48,12 @@ pub struct Alert<'a> {
     title: &'a str,
     text: Option<&'a str>,
     action: Option<Button<'a>>,
+    loud: bool,
 }
 
 impl<'a> Alert<'a> {
     pub fn new(theme: &'a Theme, tone: Tone, title: &'a str) -> Self {
-        Self { theme, tone, title, text: None, action: None }
+        Self { theme, tone, title, text: None, action: None, loud: false }
     }
 
     /// What happened, why, and what the person can do. It wraps.
@@ -69,6 +70,26 @@ impl<'a> Alert<'a> {
         self
     }
 
+    #[must_use]
+    pub fn loud(mut self) -> Self {
+        self.loud = true;
+        self
+    }
+
+    fn solid(&self) -> (Rgb, Rgb) {
+        let r = self.theme.tokens();
+        match self.tone {
+            Tone::Danger => (r.danger_solid, r.danger_solid_foreground),
+            Tone::Warning => (r.warning_solid, r.warning_solid_foreground),
+            Tone::Success => (r.success_solid, r.success_solid_foreground),
+            Tone::Info | Tone::Neutral => (r.info_solid, r.info_solid_foreground),
+        }
+    }
+
+    fn tape_rows(&self) -> u16 {
+        u16::from(self.loud)
+    }
+
     fn card(&self) -> Card<'a> {
         Card::new(self.theme)
     }
@@ -81,7 +102,7 @@ impl<'a> Alert<'a> {
     /// The rows the alert takes at `width` columns.
     pub fn height(&self, width: u16) -> u16 {
         let body = self.text.map_or(0, |text| wrap(text, self.text_width(width)).len() as u16);
-        2 + 1 + body + if self.action.is_some() { 2 } else { 0 }
+        2 + self.tape_rows() + 1 + body + if self.action.is_some() { 2 } else { 0 }
     }
 }
 
@@ -91,25 +112,37 @@ impl Widget for Alert<'_> {
         let card = self.card();
         card.render(area, buf);
         let tone = self.tone.rgb(t);
-        if t.is_truecolor() && area.height >= 3 {
+        let (wash, alpha, head, body) = if self.loud {
+            let (bg, fg) = self.solid();
+            (bg, 1.0, t.fg(fg), t.fg(fg))
+        } else {
+            (tone, TINT, t.fg(tone), t.text())
+        };
+        if (self.loud || t.is_truecolor()) && area.height >= 3 {
             // The half rows hold the card color in their foreground.
             let (top, bottom) = (area.top(), area.bottom() - 1);
             for x in area.left()..area.right() {
                 for y in [top, bottom] {
                     if let Some(cell) = buf.cell_mut((x, y)) {
                         if let Some(rgb) = rgb_of(cell.fg) {
-                            cell.fg = t.color(blend(&[rgb, tone], TINT));
+                            cell.fg = t.color(blend(&[rgb, wash], alpha));
                         }
                     }
                 }
             }
-            fill(t, buf, Rect { y: top + 1, height: area.height - 2, ..area }, tone, TINT);
+            fill(t, buf, Rect { y: top + 1, height: area.height - 2, ..area }, wash, alpha);
         }
-        let inner = card.inner(area);
+        if self.loud && area.height >= 3 {
+            let tape = t.color(t.tokens().tape);
+            for x in area.left()..area.right() {
+                put(buf, x, area.top() + 1, "▚", tape);
+            }
+        }
+        let shift = self.tape_rows().min(area.height);
+        let inner = card.inner(Rect { y: area.y.saturating_add(shift), height: area.height - shift, ..area });
         if inner.is_empty() {
             return;
         }
-        let head = t.fg(tone);
         write(buf, inner.x, inner.y, glyph(self.tone), head);
         let (title, _) = take_cells(self.title, usize::from(inner.width.saturating_sub(2)));
         write(buf, inner.x.saturating_add(2), inner.y, title, head.add_modifier(Modifier::BOLD));
@@ -121,7 +154,7 @@ impl Widget for Alert<'_> {
                     return;
                 }
                 let (line, _) = take_cells(&line, width);
-                write(buf, inner.x.saturating_add(2), y, line, t.text());
+                write(buf, inner.x.saturating_add(2), y, line, body);
                 y = y.saturating_add(1);
             }
         }
@@ -171,6 +204,45 @@ mod tests {
         Card::new(&indexed).render(plain.area, &mut plain);
         Alert::new(&indexed, Tone::Danger, "x").render(tinted.area, &mut tinted);
         assert_eq!(plain[(5, 1)].bg, tinted[(5, 1)].bg);
+    }
+
+    #[test]
+    fn a_loud_alert_fills_the_card_with_the_solid_color_under_a_tape_row() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let r = theme.tokens();
+        let alert = Alert::new(&theme, Tone::Danger, "Database error").text("connection refused").loud();
+        assert_eq!(alert.height(30), 2 + 1 + 1 + 1);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 5));
+        alert.render(buf.area, &mut buf);
+        assert_eq!(row(&buf, 1), "▚".repeat(30));
+        assert_eq!(buf[(5, 1)].fg, theme.color(r.tape));
+        assert_eq!(buf[(5, 1)].bg, theme.color(r.danger_solid));
+        assert_eq!(row(&buf, 2), "  ✕ Database error            ");
+        assert_eq!(row(&buf, 3), "    connection refused        ");
+        assert_eq!(buf[(2, 2)].fg, theme.color(r.danger_solid_foreground));
+        assert_eq!(buf[(4, 3)].fg, theme.color(r.danger_solid_foreground));
+        assert_eq!(buf[(20, 3)].bg, theme.color(r.danger_solid));
+    }
+
+    #[test]
+    fn a_loud_warning_uses_the_triangle_on_the_yellow_fill_in_256_colors_too() {
+        let theme = Theme::xterm_256(kiso_tokens::GOLD_LIGHT);
+        let r = theme.tokens();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 20, 4));
+        Alert::new(&theme, Tone::Warning, "Lag").loud().render(buf.area, &mut buf);
+        assert_eq!(buf[(2, 2)].symbol(), "▲");
+        assert_eq!(buf[(2, 2)].fg, theme.color(r.warning_solid_foreground));
+        assert_eq!(buf[(10, 2)].bg, theme.color(r.warning_solid));
+        assert_eq!(buf[(10, 1)].symbol(), "▚");
+    }
+
+    #[test]
+    fn a_loud_alert_in_a_short_area_does_not_panic() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        for height in 0..4 {
+            let mut buf = Buffer::empty(Rect::new(0, 0, 8, height));
+            Alert::new(&theme, Tone::Danger, "x").text("y").loud().render(buf.area, &mut buf);
+        }
     }
 
     #[test]
