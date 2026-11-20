@@ -1,5 +1,20 @@
 # @momoi-labs/kiso-react
 
+## 0.35.0
+
+### Minor Changes
+
+- 4397ce5: ConsoleShell uses `phoneNavigation="bottom"`. Below 700px its destinations move to a BottomNav and the header loses the menu button; from 700px to 1023px the navigation still opens in a Drawer.
+
+### Patch Changes
+
+- 3c1d6b1: With `phoneNavigation="bottom"`, a destination's `trailing` content that is not a string or number, such as a Dot, shows in the BottomNav where a badge would. Before, the bar dropped it.
+- Updated dependencies [3c1d6b1]
+- Updated dependencies [6ab96b9]
+- Updated dependencies [5245735]
+- Updated dependencies [88f9f26]
+  - @momoi-labs/kiso@1.12.1
+
 ## 0.34.0
 
 ### Minor Changes
