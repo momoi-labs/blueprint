@@ -55,6 +55,7 @@ test('a click pins the timestamp across the group, and a second click clears it'
   await page.mouse.click(x, y);
   await page.mouse.move(0, 0);
   await page.locator('#second .chart-pin-readout').waitFor();
+  await page.waitForFunction(() => !document.querySelector('.chart-inspection:not(.chart-pin-readout)'));
   assert.deepEqual(await state(page), {
     first: { readout: 0, markers: 1, pinned: 1 },
     second: { readout: 0, markers: 1, pinned: 1 },
