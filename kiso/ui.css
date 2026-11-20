@@ -1444,10 +1444,10 @@ table.table {
     --app-shell-rail-reach: var(--app-shell-outer);
   }
   :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar[data-collapsed="true"]) {
-    --app-shell-rail-start: var(--app-shell-rail-inset);
-    --app-shell-rail-end: calc(var(--app-shell-rail-inset) - var(--app-shell-outer));
+    --app-shell-sidebar-width: calc(var(--size-touch-min) + 2 * var(--spacing-md));
     --app-shell-rail-reach: 0px;
   }
+  :where([data-brand-bar="full"]):where([data-background-style]:not([data-background-style="solid"])) .app-shell[data-shell-layout]:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar:not([hidden])) > :is(main, [data-slot="app-shell-main"]) { margin-inline-start: 0; }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] { margin-inline-start: calc(-1 * var(--app-shell-rail-reach)); }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > :is(.sidebar-body, .sidebar-header-collapsible),
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) {

@@ -33,7 +33,11 @@ Choose by `headerVariant`:
 The brand starts at the brand inset: `(--size-touch-min + 2 *
 --spacing-md - 1px - --size-control-sm) / 2` from the sidebar edge. It
 centres a `--size-control-sm` mark in the rail, inside the rail's 1px border.
-The open sidebar, the rail and the home Header all use it.
+The open sidebar, the rail and the home Header all use it. An inset shell has
+no rail border, so its collapsed rail centres the mark. On a patterned
+background, the collapsed rail keeps the full `--size-touch-min + 2 *
+--spacing-md` width, and the sidebar meets the main panel only with
+`data-brand-bar="full"`.
 
 The sidebar header has a `--color-accent-surface` fill and a 3px
 `--color-primary` stripe (`--app-shell-brand-stripe`) drawn as an inset

@@ -303,7 +303,7 @@ variant.
 | Value | Result |
 | --- | --- |
 | `separate` (or omitted) | The bar stays in the sidebar column, with its own rounded corner. |
-| `full` | The bar fill and its 2px `--color-primary` stripe run across the full row. The top bar sits on top of them, with a soft shadow below it. |
+| `full` | The bar fill and its 2px `--color-primary` stripe run across the full row. The top bar sits on top of them, with a soft shadow below it. With a background style, the sidebar meets the main panel, and the canvas margin stays on the other sides. |
 
 The gallery saves this choice under Appearance > Layout > Brand bar.
 
