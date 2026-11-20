@@ -1360,7 +1360,6 @@ table.table {
   .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar > .sidebar-header {
     border-end-end-radius: var(--app-shell-brand-radius, var(--radius-surface));
   }
-  :where([data-app-shell-outer="compact"]) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-brand-radius: calc(var(--radius-surface) / 2); }
   :where([data-app-shell-outer="none"]) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-brand-radius: 0px; }
   :where([data-brand-bar="full"]) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { overflow-x: clip; }
   :where([data-brand-bar="full"]) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar > .sidebar-header {
@@ -2275,25 +2274,31 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 
 /* Corner choices override legacy border radii and survive nested border scopes. */
 [data-corner-style],
-:where([data-outer-corner-style]:not([data-outer-corner-style="inherit"])) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --appearance-pixel: 0;
+:where([data-outer-corner-style]:not([data-outer-corner-style="inherit"])) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style]:not([data-outer-corner-style="inherit"])) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header { --appearance-pixel: 0;
   --corner-ink-clip: initial; --corner-ink-color: initial; --corner-frame-shadow: initial;
   --corner-overlay-content: initial; --corner-overlay-inset: initial;
   --corner-overlay-border: initial; --corner-panel-shadow: initial;
   --corner-border-color: initial;
   --corner-rounded: 1; --corner-panel-opposite: 1; --corner-control-opposite: 1; }
 [data-corner-style="square"],
-:where([data-outer-corner-style="square"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
+:where([data-outer-corner-style="square"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="square"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header { --corner-panel-base: 0px; --corner-control-base: 4px; --corner-rounded: 0; }
 /* When frames include controls, Square squares the controls too, switches included. */
 [data-corner-style="square"][data-frame-scope="all"] { --corner-control-base: 0px; }
 :where([data-corner-style="square"][data-frame-scope="all"]) :is(.switch input, button[data-slot="switch"][data-state], span[data-slot="switch-thumb"]),
 :where([data-corner-style="square"][data-frame-scope="all"]) .switch input::after { border-radius: 0; }
 [data-corner-style="soft"],
-:where([data-outer-corner-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 8px; --corner-control-base: 4px; }
+:where([data-outer-corner-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header { --corner-panel-base: 8px; --corner-control-base: 4px; }
 [data-corner-style="rounded"], [data-corner-style="round"],
 :where([data-outer-corner-style="rounded"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
-:where([data-outer-corner-style="round"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 16px; --corner-control-base: 8px; }
+:where([data-outer-corner-style="rounded"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header,
+:where([data-outer-corner-style="round"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="round"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header { --corner-panel-base: 16px; --corner-control-base: 8px; }
 [data-corner-style="asym"],
-:where([data-outer-corner-style="asym"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-panel-base: 12px; --corner-control-base: 6px; --corner-panel-opposite: .25; --corner-control-opposite: calc(1 / 3); }
+:where([data-outer-corner-style="asym"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="asym"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header { --corner-panel-base: 12px; --corner-control-base: 6px; --corner-panel-opposite: .25; --corner-control-opposite: calc(1 / 3); }
 [data-border-style], [data-corner-style], [data-corner-size] {
   --appearance-rounded: var(--corner-rounded, var(--appearance-base-rounded, 0));
   --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
@@ -2564,7 +2569,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
    kept for consumers that reserve room around marked content. */
 [data-mark-clearance="sheet"] { --appearance-sheet-clearance: calc(var(--presentation-grid-gap) / 2 + 1px); --appearance-sheet: 1; }
 [data-corner-style="pixel"],
-:where([data-outer-corner-style="pixel"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+:where([data-outer-corner-style="pixel"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where([data-outer-corner-style="pixel"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header {
   --corner-panel-base: 0px;
   --corner-control-base: 0px;
   --appearance-pixel: 1;
@@ -2741,7 +2747,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --inner-radius-surface: var(--radius-surface);
   --inner-radius-xs: var(--radius-xs);
 }
-:where(.app-shell > :is(main, [data-slot="app-shell-main"]) > :not(.panel-shadow)) {
+:where(.app-shell > :is(main, [data-slot="app-shell-main"]) > :not(.panel-shadow), .app-shell > .sidebar > .sidebar-header > *) {
   --appearance-base-opposite: var(--inner-appearance-base-opposite);
   --appearance-base-radius: var(--inner-appearance-base-radius);
   --appearance-base-rounded: var(--inner-appearance-base-rounded);
@@ -2829,7 +2835,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --radius-xs: var(--inner-radius-xs);
 }
 
-:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]),
+:where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > .sidebar > .sidebar-header {
   --appearance-rounded: var(--corner-rounded, var(--appearance-base-rounded, 0));
   --radius-surface: calc(var(--corner-panel-base, var(--appearance-base-radius, 0px)) * var(--appearance-scale));
   --appearance-corners: calc(var(--radius-surface) * (1 - var(--appearance-expressive, 0))) calc(var(--radius-surface) * var(--corner-panel-opposite, var(--appearance-base-opposite, 1)) * (1 - var(--appearance-expressive, 0)));
@@ -4778,7 +4785,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 :where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
   --app-shell-outer: var(--spacing-sm);
 }
-:where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
+:where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]),
+:where([data-app-shell-outer="compact"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar > .sidebar-header {
   --appearance-scale: calc(var(--inner-appearance-scale, 1) / 2);
 }
 :where([data-app-shell-outer="none"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
