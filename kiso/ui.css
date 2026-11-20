@@ -5165,7 +5165,7 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   font-size: clamp(var(--type-size-display), 3.5vw, var(--type-size-editorial));
   line-height: 1.1; letter-spacing: -.035em; text-wrap: balance;
 }
-.site-heading[data-size="display"] .site-heading-title { font-size: clamp(var(--type-size-editorial), 5.5vw, calc(var(--type-size-editorial) * 1.6)); line-height: 1.04; letter-spacing: -.035em; }
+.site-heading[data-size="display"] .site-heading-title { font-size: clamp(min(var(--type-size-editorial), 17cqi), 5.5cqi, calc(var(--type-size-editorial) * 1.6)); line-height: 1.04; letter-spacing: -.035em; }
 .site-heading-title em { font-style: normal; color: var(--color-link); }
 .site-heading-description { margin: 0; max-inline-size: 42rem; font-size: var(--type-size-body-large); line-height: 1.65; color: var(--color-muted-foreground); text-wrap: pretty; }
 .site-heading-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-md); margin-block-start: var(--spacing-md); }

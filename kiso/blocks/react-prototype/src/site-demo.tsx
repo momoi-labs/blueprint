@@ -99,7 +99,7 @@ export function SiteHeaderDemo() {
 
 export function SiteHeadingDemo() {
   const [{ size, align }, setOptions] = useDemoOptions<SiteHeadingOptions>("siteHeading", { size: "display", align: "center" });
-  return <div className="stack">
+  return <div className="stack" style={{ containerType: "inline-size" }}>
     <DemoSettings title="SiteHeading">
       <OptionSelect label="Size" value={size} options={siteHeadingShareOptions.size as SiteHeadingOptions["size"][]} onChange={size => setOptions({ size })} />
       <OptionSelect label="Align" value={align} options={siteHeadingShareOptions.align as SiteHeadingOptions["align"][]} onChange={align => setOptions({ align })} />
