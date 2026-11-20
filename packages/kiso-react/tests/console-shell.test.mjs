@@ -30,3 +30,10 @@ test('ConsoleShell renders no status slot without status', () => {
 test('ConsoleShell renders a zero status', () => {
   assert.match(render({ status: 0 }), /class="app-shell-status">0</);
 });
+
+test('ConsoleShell renders its destinations in a bottom navigation', () => {
+  const html = render({});
+  assert.match(html, /data-phone-navigation="bottom"/);
+  assert.match(html, /<nav[^>]*class="bottom-nav"[^>]*aria-label="Primary"/);
+  assert.match(html.slice(html.indexOf('class="bottom-nav"')), /aria-current="page" class="bottom-nav-link"[^>]*><span>Clusters</);
+});

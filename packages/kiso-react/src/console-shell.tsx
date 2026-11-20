@@ -86,6 +86,7 @@ function ConsoleShell({ brand, brandMark, navigation, navigationLabel = "Primary
   return <ApplicationShell
     collapsible
     togglePlacement="header"
+    phoneNavigation="bottom"
     shellLayout
     headerVariant="default"
     brand={brand}
