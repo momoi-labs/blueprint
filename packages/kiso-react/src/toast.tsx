@@ -6,18 +6,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { clsx as cn } from "clsx";
 import { Toast as ToastPrimitive } from "radix-ui";
 import { Button } from "./button.js";
+import { LoudMark } from "./loud-mark.js";
 
 type ToastVariant = "neutral" | "success" | "warning" | "error";
+type ToastAppearance = "default" | "loud";
+type ToastOptions = { appearance?: ToastAppearance; pulse?: boolean };
 type ToastNotice = {
   id: number;
   variant: ToastVariant;
   title: React.ReactNode;
   body?: React.ReactNode;
-};
+} & ToastOptions;
 type ToastNotify = (
   variant: ToastVariant,
   title: React.ReactNode,
   body?: React.ReactNode,
+  options?: ToastOptions,
 ) => void;
 
 const ToastContext = React.createContext<ToastNotify | null>(null);
@@ -57,18 +61,32 @@ function ToastViewport({
 function Toast({
   className,
   variant = "neutral",
+  appearance = "default",
+  pulse = false,
   type,
+  duration,
+  children,
   ...props
 }: React.ComponentProps<typeof ToastPrimitive.Root> &
-  VariantProps<typeof toastVariants>) {
+  VariantProps<typeof toastVariants> &
+  ToastOptions) {
+  const loud = appearance === "loud";
+  const severity = variant ?? "neutral";
   return (
     <ToastPrimitive.Root
       data-slot="toast"
       data-variant={variant}
-      type={type ?? (variant === "error" ? "foreground" : "background")}
-      className={cn(toastVariants({ variant }), className)}
+      data-appearance={appearance}
+      data-tape={loud ? (severity === "error" || severity === "warning" ? "top" : "none") : undefined}
+      data-pulse={loud && pulse ? "true" : undefined}
+      type={type ?? (severity === "error" ? "foreground" : "background")}
+      duration={duration ?? (loud && severity === "error" ? Infinity : undefined)}
+      className={cn(toastVariants({ variant }), loud && "toast-loud", className)}
       {...props}
-    />
+    >
+      {loud && <LoudMark variant={severity === "neutral" ? "info" : severity} />}
+      {children}
+    </ToastPrimitive.Root>
   );
 }
 
@@ -136,9 +154,9 @@ function Toasts({
   const [notices, setNotices] = React.useState<ToastNotice[]>([]);
   const nextId = React.useRef(0);
 
-  const notify = React.useCallback<ToastNotify>((variant, title, body) => {
+  const notify = React.useCallback<ToastNotify>((variant, title, body, options) => {
     const id = nextId.current++;
-    setNotices((current) => [...current, { id, variant, title, body }]);
+    setNotices((current) => [...current, { id, variant, title, body, ...options }]);
   }, []);
 
   const dismiss = React.useCallback((id: number) => {
@@ -153,6 +171,8 @@ function Toasts({
           <Toast
             key={notice.id}
             variant={notice.variant}
+            appearance={notice.appearance}
+            pulse={notice.pulse}
             onOpenChange={(open) => {
               if (!open) dismiss(notice.id);
             }}
@@ -187,4 +207,4 @@ export {
   useToast,
   toastVariants,
 };
-export type { ToastNotify, ToastVariant };
+export type { ToastAppearance, ToastNotify, ToastOptions, ToastVariant };

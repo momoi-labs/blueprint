@@ -250,6 +250,15 @@ $semantic-success-on-dark: #5bd295; // Success on a permanently dark surface (lo
 $semantic-warning-on-dark: #efc05b; // Warning on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-danger-on-dark: #f5807f; // Danger on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
 $semantic-info-on-dark: #75c4fa; // Info on a permanently dark surface (log view, terminal). Theme-invariant on purpose: the surface does not follow color-scheme, so neither can the text.
+$semantic-danger-solid: #ad2f29; // Fill of a loud error Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes.
+$semantic-danger-solid-foreground: #ffffff; // Text and icons on danger-solid, in both themes.
+$semantic-warning-solid: #f2c230; // Fill of a loud warning Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes.
+$semantic-warning-solid-foreground: #151411; // Text and icons on warning-solid, in both themes.
+$semantic-info-solid: #2563b5; // Fill of a loud info Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes.
+$semantic-info-solid-foreground: #ffffff; // Text and icons on info-solid, in both themes.
+$semantic-success-solid: #1f7340; // Fill of a loud success Alert or Toast. Theme-invariant on purpose: a loud Alert or Toast keeps the same safety color in both themes.
+$semantic-success-solid-foreground: #ffffff; // Text and icons on success-solid, in both themes.
+$semantic-tape: #000000; // Stripes of the hazard tape on a loud Alert or Toast. Black in both themes, so the fill carries the meaning.
 $semantic-code-comment: #aba9a5; // Syntax: comments and diff headers. Alias of muted-foreground, so it stays text-eligible.
 $semantic-code-keyword: #75c4fa; // Syntax: keywords and control flow. Alias of info.
 $semantic-code-string: #5bd295; // Syntax: strings. Alias of success.

@@ -31,7 +31,21 @@ Transient chrome, not a panel: no corner marks.
 
 Four semantic variants: `neutral` (default), `success`, `warning`, and `error`.
 Status variants change the announcement urgency and semantic accent only; they
-do not turn the whole Toast into a status-colored surface.
+do not turn the whole Toast into a status-colored surface. Only the loud
+appearance does that.
+
+### Loud
+
+`appearance="loud"` uses the loud Alert fill, text color and filled icon (see
+[Alert](alert.md#loud)). `neutral` takes the info fill. The tape is on top
+only, for `error` and `warning`. `pulse` makes the icon pulse and stops under
+reduced motion. A loud `error` Toast does not close on its own: its duration
+is infinite until the person dismisses it. Other loud Toasts keep the normal
+timer. Default Toasts are unchanged.
+
+Use a loud Toast for an urgent event that happened outside the current view,
+such as a failed deploy. Keep the Alert on the affected page as the lasting
+copy.
 
 ## Sizes
 
@@ -99,9 +113,15 @@ function SaveButton() {
 </Toasts>
 ```
 
-`notify` accepts a variant, title, and optional body. A string body renders as
-ToastDescription. A React node renders as supplied so a product can compose
-details it owns. Variants are `neutral`, `success`, `warning`, and `error`.
+`notify` accepts a variant, title, optional body and optional options.
+`{ appearance: "loud", pulse: true }` makes a loud Toast:
+
+```tsx
+notify("error", "Deploy failed", "storefront-demo: build exited 1", { appearance: "loud" });
+```
+
+A string body renders as ToastDescription. A React node renders as supplied
+so a product can compose details it owns. Variants are `neutral`, `success`, `warning`, and `error`.
 The lower-level ToastProvider, ToastViewport, Toast, and Toast parts remain
 available for a controlled toast.
 

@@ -1008,6 +1008,92 @@ table.table {
 .alert-rail > .icon + .alert-content > .alert-title { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-sm)); }
 .alert-rail .alert-title { color: var(--alert-tone, var(--color-info)); }
 .alert-content { min-width: 0; overflow-wrap: anywhere; }
+.alert:has(> .alert-details) { flex-wrap: wrap; }
+.alert-actions { display: flex; gap: var(--spacing-2xs); align-items: center; margin-block: calc(-1 * var(--spacing-2xs)); }
+.alert-count { font-size: var(--type-size-label); font-weight: var(--type-weight-medium); font-variant-numeric: tabular-nums; }
+.alert-details { order: 1; flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
+.alert:has(> :is(.icon, .alert-mark)) > .alert-details { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-md)); }
+.alert-details[hidden] { display: none; }
+.alert-details-toggle .icon { transition: rotate var(--motion-duration-fast) var(--motion-easing-standard); }
+.alert-details-toggle[aria-expanded="true"] .icon { rotate: 180deg; }
+.alert-rail > .alert-actions { position: absolute; inset-block-start: var(--spacing-md); inset-inline-end: var(--spacing-md); }
+.alert-rail:has(> .alert-actions) > .alert-content { padding-inline-end: calc(var(--size-control-sm) * 3); }
+.alert-rail > .alert-details { padding-inline-start: 0; margin-block-start: var(--spacing-sm); }
+
+.alert-overlay {
+  position: fixed; inset: var(--spacing-sm) var(--spacing-sm) auto; z-index: 70;
+  max-block-size: calc(100dvh - 2 * var(--spacing-sm)); overflow: auto;
+  box-shadow: var(--shadow-lg);
+  animation: alert-drop var(--motion-duration-normal) var(--motion-easing-standard) both;
+}
+.alert-overlay[hidden] { display: none; }
+@keyframes alert-drop { from { transform: translateY(-100%); } }
+
+:is(.alert-loud, .toast-loud) {
+  --loud-bg: var(--color-danger-solid);
+  --loud-fg: var(--color-danger-solid-foreground);
+  --loud-deep-amount: 22%;
+  --loud-stripe: var(--spacing-sm);
+  --loud-tile: calc(var(--loud-stripe) * 2 * 1.41421);
+  --loud-deep: light-dark(var(--loud-bg), color-mix(in srgb, var(--loud-bg) calc(100% - var(--loud-deep-amount)), var(--color-black)));
+  position: relative;
+  color: var(--loud-fg);
+  border-color: transparent;
+}
+:is(.alert-loud.alert-warning, .toast-loud.toast-warning) { --loud-bg: var(--color-warning-solid); --loud-fg: var(--color-warning-solid-foreground); --loud-deep-amount: 8%; }
+:is(.alert-loud.alert-info, .toast-loud:not(.toast-success, .toast-warning, .toast-error)) { --loud-bg: var(--color-info-solid); --loud-fg: var(--color-info-solid-foreground); }
+:is(.alert-loud.alert-success, .toast-loud.toast-success) { --loud-bg: var(--color-success-solid); --loud-fg: var(--color-success-solid-foreground); }
+.alert.alert-loud, .toast.toast-loud {
+  border-width: 0; overflow: hidden;
+  background: radial-gradient(120% 140% at 85% 120%, var(--loud-bg), transparent 70%), linear-gradient(to bottom, var(--loud-deep), var(--loud-bg));
+  background-color: var(--loud-bg);
+}
+:is(.alert-loud, .toast-loud) :is(.alert-title, .alert-body) { color: var(--loud-fg); }
+:is(.alert-loud, .toast-loud) .alert-title { font-weight: var(--type-weight-semibold, 600); }
+:is(.alert-loud, .toast-loud) .btn { --pixel-line: color-mix(in srgb, var(--loud-fg) 45%, transparent); --pixel-fill: transparent; color: var(--loud-fg); border-width: 1px; border-style: solid; background-color: transparent; }
+:where(.alert-loud, .toast-loud) .btn { border-color: var(--pixel-line); }
+:is(.alert-loud, .toast-loud) .btn:hover { --pixel-fill: color-mix(in srgb, var(--loud-fg) 14%, transparent); background-color: var(--pixel-fill); }
+:is(.alert-loud, .toast-loud) .btn-ghost { --pixel-line: transparent; }
+:is(.alert-loud, .toast-loud) :is(.btn, a):focus-visible { outline: 2px solid var(--loud-fg); outline-offset: 2px; }
+:is(.alert-loud, .toast-loud) a { color: var(--loud-fg); text-decoration: underline; }
+.alert.alert-loud > .alert-details { border-block-start: 1px solid color-mix(in srgb, var(--loud-fg) 35%, transparent); padding-block-start: var(--spacing-sm); margin-inline-start: calc(var(--size-control-md) + var(--spacing-md)); padding-inline-start: 0; }
+.alert-mark { flex: none; inline-size: var(--size-control-md); block-size: var(--size-control-md); color: var(--loud-fg); }
+.toast-loud .alert-mark { inline-size: var(--size-control-sm); block-size: var(--size-control-sm); }
+:is(.alert-loud, .toast-loud)[data-pulse="true"] .alert-mark { animation: alert-pulse 1.6s var(--motion-easing-standard) infinite; }
+@keyframes alert-pulse { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.14); } }
+
+:is(.alert-loud, .toast-loud)::before, .alert-loud::after {
+  content: none; position: absolute; pointer-events: none;
+  background: linear-gradient(45deg, var(--color-tape) 25%, transparent 0 50%, var(--color-tape) 0 75%, transparent 0);
+  background-size: var(--loud-tile) var(--loud-tile);
+}
+:is(.alert-loud, .toast-loud):is([data-tape="top"], [data-tape="top-bottom"])::before { content: ""; inset: 0 0 auto 0; block-size: var(--loud-stripe); }
+.alert-loud[data-tape="top-bottom"]::after { content: ""; inset: auto 0 0 0; block-size: var(--loud-stripe); }
+.alert-loud:is([data-tape="start"], [data-tape="start-end"])::before { content: ""; inset-block: 0; inset-inline-start: 0; inline-size: var(--loud-stripe); }
+.alert-loud[data-tape="start-end"]::after { content: ""; inset-block: 0; inset-inline-end: 0; inline-size: var(--loud-stripe); }
+:is(.alert-loud, .toast-loud):is([data-tape="top"], [data-tape="top-bottom"]) { padding-block-start: calc(var(--spacing-md) + var(--loud-stripe)); }
+.alert-loud[data-tape="top-bottom"] { padding-block-end: calc(var(--spacing-md) + var(--loud-stripe)); }
+.alert-loud:is([data-tape="start"], [data-tape="start-end"]) { padding-inline-start: calc(var(--spacing-md) + var(--loud-stripe)); }
+.alert-loud[data-tape="start-end"] { padding-inline-end: calc(var(--spacing-md) + var(--loud-stripe)); }
+.alert-loud[data-animated="true"]:is([data-tape="top"], [data-tape="top-bottom"])::before,
+.alert-loud[data-animated="true"][data-tape="top-bottom"]::after { animation: alert-tape-x 1.6s linear infinite; }
+.alert-loud[data-animated="true"]:is([data-tape="start"], [data-tape="start-end"])::before,
+.alert-loud[data-animated="true"][data-tape="start-end"]::after { animation: alert-tape-y 1.6s linear infinite; }
+@keyframes alert-tape-x { to { background-position: var(--loud-tile) 0; } }
+@keyframes alert-tape-y { to { background-position: 0 var(--loud-tile); } }
+
+.alert-loud.alert-overlay { position: fixed; inset: 0 0 auto; border-radius: 0; max-block-size: 100dvh; padding-inline: max(var(--spacing-md), calc((100% - 72rem) / 2)); }
+.alert-loud.alert-overlay:is([data-tape="start"], [data-tape="start-end"]) { padding-inline-start: max(calc(var(--spacing-md) + var(--loud-stripe)), calc((100% - 72rem) / 2)); }
+.alert-loud.alert-overlay[data-tape="start-end"] { padding-inline-end: max(calc(var(--spacing-md) + var(--loud-stripe)), calc((100% - 72rem) / 2)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-overlay, .alert-details-toggle .icon { animation: none; transition: none; }
+  :is(.alert-loud, .toast-loud)::before, .alert-loud::after, :is(.alert-loud, .toast-loud) .alert-mark { animation: none !important; }
+}
+@media (max-width: 40rem) {
+  .alert-loud { gap: var(--spacing-sm); }
+  .alert.alert-loud > .alert-details { margin-inline-start: 0; }
+}
 
 /* ===========================================================================
    Dialog / drawer / overlay
@@ -4239,7 +4325,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
    diagonal as on Pixel controls. The ring's straight edges fall outside the
    box, so only the steps paint. A borderless surface has no border style to
    inherit. */
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster:not(.lifecycle > .cluster-status) > *)), .cluster, .alert:where(:not(.alert-rail)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .tooltip, .chart-inspection, .toast, [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview)::after {
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(.brand-mark, .badge:where(:not(.badge-pill, .badge-count, .cluster:not(.lifecycle > .cluster-status) > *)), .cluster, .alert:where(:not(.alert-rail, .alert-loud)), .chip, .filter-group, .skeleton:where(:not(.skeleton-circle)), .tooltip, .chart-inspection, .toast:where(:not(.toast-loud)), [data-slot="popover-content"], .segmented, .radio-group:where([data-variant="segmented"]), .theme-buttons, .theme-card, .theme-card-preview, .accent-preview)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -4253,7 +4339,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
    focused segment, drops the contour so the standard ring shows on the full
    box. */
 :where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible)) { clip-path: none; }
-:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:focus, .chip:has(:focus-visible))::after { content: none; }
+:where([data-corner-style="pixel"][data-frame-scope="all"]:not([data-border-style="manga"]):not([data-border-style="brush"])) :is(:is(.badge, .toast, [data-slot="popover-content"], .theme-card):focus-visible, .alert:where(:not(.alert-loud)):focus, .chip:has(:focus-visible))::after { content: none; }
 /* A navigation item has no border, only a fill while hovered. Pixel steps the
    corners of that fill in background layers, so the focus ring and the marker
    of the current item, which sit outside the box, are not clipped. */
