@@ -1452,8 +1452,9 @@ table.table {
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > :is(.sidebar-body, .sidebar-header-collapsible),
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) {
     padding-inline: var(--app-shell-rail-start) var(--app-shell-rail-end);
-    justify-items: center;
   }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible,
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) { justify-items: center; }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) > .sidebar-toggle { justify-self: center; }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] .nav-item { justify-content: center; padding-inline: var(--spacing-sm); }
   .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] .sidebar-rail-mark { max-inline-size: calc(var(--size-touch-min) + 2 * var(--spacing-md) - 2 * var(--app-shell-rail-inset)); }
