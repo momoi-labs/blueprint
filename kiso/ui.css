@@ -4847,7 +4847,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit; font-size: var(--type-size-label); cursor: pointer; }
 .bottom-nav-link[aria-expanded="true"] { color: var(--color-foreground); }
-.bottom-nav-link > :not(.bottom-nav-badge) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.bottom-nav-link > :not(.bottom-nav-badge, .bottom-nav-trailing) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bottom-nav-icon { display: inline-flex; }
 .bottom-nav-link .icon { color: var(--color-subtle-foreground); }
 .bottom-nav-link:hover { background: var(--color-accent-surface-hover); color: var(--color-foreground); text-decoration: none; }
@@ -4877,6 +4877,13 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   font-weight: var(--type-weight-semibold);
   line-height: 18px;
   text-align: center;
+}
+.bottom-nav-trailing {
+  position: absolute;
+  inset-block-start: var(--spacing-2xs);
+  inset-inline-start: calc(50% + var(--spacing-sm));
+  display: inline-flex; align-items: center;
+  height: 18px;
 }
 @media (max-width: 699px) {
   :where(.app-shell, .bottom-nav) {
