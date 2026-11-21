@@ -1103,15 +1103,16 @@ table.table {
   .alert-loud { gap: var(--spacing-sm); }
   .alert.alert-loud > .alert-details { margin-inline-start: 0; }
   .alert-message { font-size: var(--type-size-body); }
-  .alert:where(:not(.alert-rail)):has(> .alert-actions .alert-details-toggle) { flex-wrap: wrap; }
-  .alert:where(:not(.alert-rail)):has(> .alert-actions .alert-details-toggle) > .alert-content { flex-basis: calc(100% - 6rem); }
-  .alert:where(:not(.alert-rail)) > .alert-actions:has(.alert-details-toggle) { display: contents; }
-  .alert:where(:not(.alert-rail)) > .alert-actions:has(.alert-details-toggle) > * { align-self: flex-start; margin-block: calc(-1 * var(--spacing-2xs)); }
-  .alert:where(:not(.alert-rail)) > .alert-actions:has(.alert-details-toggle) > :is(.alert-count, .alert-details-toggle) { order: 1; margin-block: 0; }
-  .alert:where(:not(.alert-rail)) > .alert-actions:has(.alert-details-toggle) > .alert-count { align-self: center; }
+  .alert:has(> .alert-actions .alert-details-toggle) { display: flex; flex-wrap: wrap; }
+  .alert:has(> .alert-actions .alert-details-toggle) > .alert-content { flex-basis: calc(100% - 6rem); }
+  .alert-rail:has(> .alert-actions .alert-details-toggle) > .alert-content { flex-grow: 1; padding-inline-end: 0; }
+  .alert > .alert-actions:has(.alert-details-toggle) { display: contents; }
+  .alert > .alert-actions:has(.alert-details-toggle) > * { align-self: flex-start; margin-block: calc(-1 * var(--spacing-2xs)); }
+  .alert > .alert-actions:has(.alert-details-toggle) > :is(.alert-count, .alert-details-toggle) { order: 1; margin-block: 0; }
+  .alert > .alert-actions:has(.alert-details-toggle) > .alert-count { align-self: center; }
   .alert:where(:not(.alert-rail)):has(> .icon) > .alert-actions > .alert-count:first-child,
   .alert:where(:not(.alert-rail)):has(> .icon) > .alert-actions > .alert-details-toggle:first-child { margin-inline-start: calc(var(--size-icon-md) + var(--spacing-md)); }
-  .alert:where(:not(.alert-rail)):has(> .alert-actions .alert-details-toggle) > .alert-details { order: 2; }
+  .alert:has(> .alert-actions .alert-details-toggle) > .alert-details { order: 2; }
 }
 
 /* ===========================================================================
