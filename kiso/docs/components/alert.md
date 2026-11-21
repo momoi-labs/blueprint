@@ -50,9 +50,10 @@ error in a form.
 ```
 Alert
 ├── severity icon (required)
-├── Title (required)
+├── Title (required), or Label + Message for rich content
 ├── Description (required for error and warning; optional for info/success
 │   when the title is already a complete sentence)
+├── Meta (optional: AlertMeta, time and impact)
 ├── Action (optional: recovery Button or Link)
 ├── Details (optional: AlertDetails, a disclosure with more context)
 └── Dismiss (optional IconButton; only when dismissible)
@@ -76,6 +77,14 @@ Alert
 - **Dismiss.** [IconButton](icon-button.md) `ghost` `sm`, `aria-label`
   "Dismiss". Alert renders it when the caller passes `onDismiss`. Only on
   dismissible Alerts.
+- **Label, Message and Meta.** Optional slots for an incident with a
+  machine message. `AlertLabel` is a caps kicker that names severity and
+  kind ("Critical · Database error"). `AlertMessage` is the message itself,
+  in mono at `--type-size-body-large` (`--type-size-body` below 40rem).
+  `AlertMeta` is a caps mono line with the time and the impact ("10:54:31 ·
+  storefront refusing requests"), in `--color-muted-foreground`, or 85% of
+  the loud foreground on a loud fill. Use Label and Message in place of
+  Title and Description, not next to them.
 
 ## Variants
 
@@ -170,6 +179,40 @@ and on the gradient top.
 </Alert>
 ```
 
+### Rich content
+
+Label, Message and Meta work with every appearance. They match the loud
+incident band best. Put structured context in AlertDetails: a `.kv` list of
+facts, log lines in a `pre`, and the recovery actions in a `.row-wrap`.
+
+```tsx
+<Alert variant="error" appearance="loud" onDismiss={clear}>
+  <AlertContent>
+    <AlertLabel>Critical · Database error</AlertLabel>
+    <AlertMessage>target: storefront-demo.-.primary: connection refused</AlertMessage>
+    <AlertMeta>10:54:31 · storefront refusing requests</AlertMeta>
+  </AlertContent>
+  <AlertDetails>
+    <div className="stack-sm">
+      <dl className="kv">
+        <dt>Request</dt><dd>req_8f2c41d07a</dd>
+        <dt>Branches</dt><dd>main, preview-412, preview-418</dd>
+      </dl>
+      <pre>{`10:54:31.204 ERROR pool: connect storefront-demo.-.primary:5432 refused`}</pre>
+      <div className="row-wrap">
+        <Button size="sm" onClick={retry}>Retry</Button>
+        <a href="/runbooks/database">Open the runbook</a>
+      </div>
+    </div>
+  </AlertDetails>
+</Alert>
+```
+
+Long text wraps inside the Alert, also an unbroken target such as a host
+name. The icon, the Details button and Dismiss stay at the top. Below 40rem,
+the Details button moves to its own row under the text, so the text keeps
+the width.
+
 ### Overlay
 
 `placement="overlay"` fixes the Alert to the top of the viewport, above every
@@ -253,6 +296,7 @@ and an optional action.
 | description | Wrapped under the title in `foreground`, aligned with it. |
 | action | A `Button` of size `sm` after a blank row. It is the only part that takes focus. |
 | tint | 12% of the tone mixed into the card, in truecolor only. In 256 colors the card keeps its fill and the glyph and the title carry the tone. |
+| label, message, meta | No own form. Put the label in the title and the message and meta in the text. |
 | dismiss | No terminal form. The app clears the alert, for example with `Esc`. |
 | loud | `.loud()`: the card filled with the tone's solid color and text in its solid foreground, one `▚` tape row on top in `tape`, no animation. `danger` uses `✕` and `warning` uses `▲`. |
 
@@ -291,6 +335,7 @@ There is **no** Radix primitive for in-page Alert.
 | Structure, icon + title + description + action | shadcn [Alert](https://ui.shadcn.com/docs/components/alert) (`Alert`, `AlertTitle`, `AlertDescription`, `AlertAction`) |
 | Dismiss | Alert renders an [IconButton](icon-button.md) from `onDismiss`; shadcn has no dedicated dismiss slot |
 | Details | Kiso `AlertDetails`, a disclosure; shadcn has no equivalent |
+| Label, Message, Meta | Kiso `AlertLabel`, `AlertMessage`, `AlertMeta`; shadcn has no equivalent |
 | `error` | shadcn `variant="destructive"` restyled to `--color-danger` (border/icon). Only `appearance="loud"` fills it with `--color-danger-solid` |
 | `info` / `success` / `warning` | shadcn `default` plus the matching `--color-info`, `--color-success`, or `--color-warning` — **not** the shadcn "Custom Colors" utility-class example (`bg-amber-50`, etc.) |
 
