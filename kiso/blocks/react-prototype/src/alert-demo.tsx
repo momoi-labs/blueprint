@@ -1,7 +1,8 @@
 import { useId, useState } from "react";
 import { CircleCheck, CircleX, Info, TriangleAlert } from "lucide-react";
-import { Alert, AlertContent, AlertDescription, AlertDetails, AlertTitle, Button, type AlertTape } from "@momoi-labs/kiso-react";
-import { DemoSettings, useDemoOptions } from "./demo-settings";
+import { Alert, AlertContent, AlertDescription, AlertDetails, AlertTitle, Button, CodeBlock, type AlertTape } from "@momoi-labs/kiso-react";
+import { tsx } from "./code-highlight";
+import { useDemoOptions } from "./demo-settings";
 
 type AlertOptions = {
   appearance: "tinted" | "rail" | "loud";
@@ -29,7 +30,36 @@ const copy = {
   error: ["Database error", "target: storefront-demo.-.primary: connection refused"],
 } as const;
 
-export function AlertDemo() {
+const details = "Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches.";
+const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert", error: "CircleX" } as const;
+
+export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, extras }: AlertOptions) {
+  const loud = appearance === "loud";
+  const full = loud || placement === "overlay" || extras === "on";
+  const [title, description] = full ? copy[variant] : [variant[0].toUpperCase() + variant.slice(1), "Review the configuration and its effect on concurrent operations."];
+  const props = [
+    variant !== "info" && `variant="${variant}"`,
+    appearance !== "tinted" && `appearance="${appearance}"`,
+    loud && tape !== "default" && `tape="${tape}"`,
+    loud && animated === "on" && "animated",
+    loud && pulse === "on" && "pulse",
+    placement !== "inline" && `placement="${placement}"`,
+    !full && `role="note"`,
+    full && "onDismiss={dismiss}",
+  ].filter(Boolean);
+  return [
+    `<Alert${props.length ? " " + props.join(" ") : ""}>`,
+    ...(loud ? [] : [`  <${iconName[variant]} className="icon" aria-hidden="true" />`]),
+    "  <AlertContent>",
+    `    <AlertTitle>${title}</AlertTitle>`,
+    `    <AlertDescription>${description}</AlertDescription>`,
+    "  </AlertContent>",
+    ...(full ? ["  <AlertDetails>", `    <div className="alert-body">${details}</div>`, "  </AlertDetails>"] : []),
+    "</Alert>",
+  ].join("\n");
+}
+
+export function AlertDemo({ usage = false }: { usage?: boolean }) {
   const id = useId();
   const [options, setOptions] = useDemoOptions<AlertOptions>("alert", { appearance: "tinted", variant: "info", tape: "default", animated: "off", pulse: "off", placement: "inline", extras: "off" });
   const { appearance, variant: severity, tape, animated, pulse, placement, extras } = options;
@@ -48,7 +78,7 @@ export function AlertDemo() {
   const show = () => { setShown(current => placement === "overlay" ? [...current, next] : [next]); setNext(n => n + 1); };
   const [title, description] = full ? copy[severity] : [severity[0].toUpperCase() + severity.slice(1), "Review the configuration and its effect on concurrent operations."];
   return <div className="stack">
-    <DemoSettings title="Alert">
+    <div className="demo-settings-inline demo-control-bar" role="group" aria-label="Alert options">
       {select("appearance", "Appearance", [["tinted", "Tinted"], ["rail", "Start border"], ["loud", "Loud"]])}
       {select("variant", "Severity", [["info", "Info"], ["success", "Success"], ["warning", "Warning"], ["error", "Error"]])}
       {select("tape", "Tape", [["default", "Default"], ["top", "Top"], ["start", "Start"], ["top-bottom", "Top and bottom"], ["start-end", "Start and end"], ["none", "None"]], !loud)}
@@ -56,7 +86,7 @@ export function AlertDemo() {
       {select("pulse", "Icon pulse", [["off", "Off"], ["on", "On"]], !loud)}
       {select("placement", "Placement", [["inline", "Inline"], ["overlay", "Overlay"]])}
       {select("extras", "Details and dismiss", [["off", "Off"], ["on", "On"]], loud || placement === "overlay")}
-    </DemoSettings>
+    </div>
     {shown.map(key => (
       <Alert
         key={`${key}-${placement}`}
@@ -77,12 +107,16 @@ export function AlertDemo() {
           <AlertDescription id={`${id}-${key}-description`}>{description}</AlertDescription>
         </AlertContent>
         {full && <AlertDetails>
-          <div className="alert-body">Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches. <a href="#components/alert">Open the incident page</a>.</div>
+          <div className="alert-body">{details} <a href="#components/alert">Open the incident page</a>.</div>
         </AlertDetails>}
       </Alert>
     ))}
     {(placement === "overlay" || shown.length === 0) && <div className="demo-row">
       <Button onClick={show}>{placement === "overlay" ? (shown.length ? "Show another overlay alert" : "Show overlay alert") : "Show the alert again"}</Button>
     </div>}
+    {usage && <details className="catalog-code">
+      <summary>Usage example</summary>
+      <CodeBlock code={alertSnippet(options)} highlight={tsx} title="React / TSX" copy="example" />
+    </details>}
   </div>;
 }

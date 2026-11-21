@@ -7,6 +7,7 @@ import { paneGridShareOptions } from "../../../kiso/blocks/react-prototype/src/p
 import { scopeSwitcherShareOptions } from "../../../kiso/blocks/react-prototype/src/scope-switcher-demo";
 import { siteHeaderShareOptions, siteHeadingShareOptions, siteSectionShareOptions } from "../../../kiso/blocks/react-prototype/src/site-demo";
 import { tableShareOptions } from "../../../kiso/blocks/react-prototype/src/table-demo";
+import { toastShareOptions } from "../../../kiso/blocks/react-prototype/src/toast-demo";
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, settingsText, shareLink, type DemoSchema, type ShareResult } from "./appearance-share";
@@ -14,7 +15,7 @@ import { readShare, settingsText, shareLink, type DemoSchema, type ShareResult }
 // The demos whose options a shared look carries.
 export const demoSchema: DemoSchema = {
   alert: alertShareOptions, applicationShell: applicationShellShareOptions, diagram: diagramShareOptions, inlineFields: inlineFieldsShareOptions,
-  paneGrid: paneGridShareOptions, scopeSwitcher: scopeSwitcherShareOptions, table: tableShareOptions,
+  paneGrid: paneGridShareOptions, scopeSwitcher: scopeSwitcherShareOptions, table: tableShareOptions, toast: toastShareOptions,
   siteSection: siteSectionShareOptions, siteHeader: siteHeaderShareOptions, siteHeading: siteHeadingShareOptions,
 };
 

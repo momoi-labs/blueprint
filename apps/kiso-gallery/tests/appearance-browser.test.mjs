@@ -410,7 +410,7 @@ test("Component options replace each other and open on arrival without resetting
     let panel = await settings(page);
     await (await group(panel, "Colors and type")).getByRole("radio", { name: "Light theme", exact: true }).check();
     await group(panel, "Panels");
-    for (const [route, title, control, value] of [["alert", "Alert options", "Appearance", "rail"], ["app-shell", "ApplicationShell options", /^Sidebar toggle placement/, "header"], ["form-field", "Inline fields options", /^Control size/, "lg"]]) {
+    for (const [route, title, control, value] of [["app-shell", "ApplicationShell options", /^Sidebar toggle placement/, "header"], ["form-field", "Inline fields options", /^Control size/, "lg"]]) {
       await close(page);
       await page.goto(`${url}#components/${route}`);
       panel = page.locator("#gallery-settings");
@@ -425,6 +425,9 @@ test("Component options replace each other and open on arrival without resetting
       assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
       assert.equal(await page.locator(".catalog-preview .demo-settings-inline").count(), 0);
     }
+    await page.goto(`${url}#components/alert`);
+    await page.getByRole("group", { name: "Alert options", exact: true }).waitFor();
+    assert.equal(await panel.locator(".gallery-component-settings > section").count(), 0);
     await page.goto(`${url}#intro`);
     assert.equal(await panel.locator(".gallery-component-settings").textContent(), "");
     assert.equal(await page.getByRole("link", { name: "Appearance", exact: true }).count(), 0);
@@ -439,19 +442,23 @@ test("Component options replace each other and open on arrival without resetting
 for (const colorScheme of ["light", "dark"]) test(`Alert has one live preview for every severity and appearance in ${colorScheme}`, async () => {
   const page = await open("components/alert", 1440, colorScheme);
   try {
-    const panel = await settings(page);
+    const controls = page.getByRole("group", { name: "Alert options", exact: true });
+    assert(await controls.isVisible());
     const alert = page.locator(".catalog-preview .alert");
     assert.equal(await alert.count(), 1);
+    await page.locator(".catalog-preview .catalog-code summary").click();
+    const code = page.locator(".catalog-preview .catalog-code pre");
     for (const appearance of ["tinted", "rail"]) for (const severity of ["info", "success", "warning", "error"]) {
-      await panel.getByRole("combobox", { name: "Appearance", exact: true }).selectOption(appearance);
-      await panel.getByRole("combobox", { name: "Severity", exact: true }).selectOption(severity);
+      await controls.getByRole("combobox", { name: "Appearance", exact: true }).selectOption(appearance);
+      await controls.getByRole("combobox", { name: "Severity", exact: true }).selectOption(severity);
       assert.equal(await alert.getAttribute("role"), "note");
+      assert.equal((await code.textContent()).split("\n")[0], `<Alert${severity === "info" ? "" : ` variant="${severity}"`}${appearance === "rail" ? ' appearance="rail"' : ""} role="note">`);
       assert.equal(await alert.locator(".alert-title").textContent(), severity[0].toUpperCase() + severity.slice(1));
       assert.equal(await alert.evaluate(el => el.classList.contains("alert-rail")), appearance === "rail");
       if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-alert-${appearance}-${severity}-${colorScheme}.png` });
     }
-    await close(page); await settings(page);
-    assert.equal(await panel.getByRole("combobox", { name: "Severity", exact: true }).inputValue(), "error");
+    await settings(page); await close(page);
+    assert.equal(await controls.getByRole("combobox", { name: "Severity", exact: true }).inputValue(), "error");
   } finally { await page.close(); }
 });
 
