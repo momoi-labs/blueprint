@@ -349,10 +349,10 @@ test("Share copies the Diagram options and Paste sets them", async () => {
 // Every option a demo puts in the panel must travel with Share and clear on
 // Reset. Changing each control and counting the copied keys catches a demo
 // that keeps an option to itself.
-for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["table", "table"], ["pane-grid", "paneGrid"],
+for (const [route, scope, inline] of [["diagram", "diagram"], ["alert", "alert", true], ["toast", "toast", true], ["table", "table"], ["pane-grid", "paneGrid"],
   ["scope-switcher", "scopeSwitcher"], ["form-field", "inlineFields"], ["app-shell", "applicationShell"],
   ["site-section", "siteSection"], ["site-header", "siteHeader"], ["site-heading", "siteHeading"]]) {
-  test(`every ${route} option in the panel is shared and reset`, async () => {
+  test(`every ${route} option in the ${inline ? "preview" : "panel"} is shared and reset`, async () => {
     const page = await open(`#components/${route}`);
     try {
       const panel = page.locator("#gallery-settings");
@@ -360,12 +360,13 @@ for (const [route, scope] of [["diagram", "diagram"], ["alert", "alert"], ["tabl
       if (!await panel.isVisible()) await toggleSettings(page);
       await panel.waitFor();
       await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
-      const section = panel.locator(".gallery-component-settings");
+      const section = inline ? page.locator(".catalog-preview .demo-control-bar") : panel.locator(".gallery-component-settings");
       await section.locator("select, fieldset").first().waitFor();
       let controls = 0;
       for (const select of await section.locator("select").all()) {
+        if (await select.isDisabled()) continue;
         const values = await select.locator("option").evaluateAll(options => options.map(option => option.value));
-        await select.selectOption(values.find(value => value !== "inherit" && value !== values[0]) ?? values[1]);
+        await select.selectOption(inline ? values.at(-1) : values.find(value => value !== "inherit" && value !== values[0]) ?? values[1]);
         controls++;
       }
       for (const group of await section.getByRole("group").all()) {

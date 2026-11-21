@@ -3,6 +3,7 @@ import { BookOpen, Boxes, ChevronDown, Compass, FileText, Globe, Layers, LayoutD
 import { VisuallyHidden } from "radix-ui";
 import { StepsDemo, RadioGroupDemo, FileDropzoneDemo } from "./guided-input-demo";
 import { AlertDemo } from "./alert-demo";
+import { ToastDemo } from "./toast-demo";
 import { CodeBlockDemo } from "./code-block-demo";
 import { tsx } from "./code-highlight";
 import { CodeEditorDemo } from "./code-editor-demo";
@@ -513,14 +514,10 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
   link: '<Link href="#components/app-shell">Open workspace</Link>\n<Link variant="standalone" href="#components/link" active>Workspace setup</Link>',
   "theme-selector": '<ThemeSelector theme={theme} onChange={setTheme} />\n<ThemeSelector variant="cards" theme={theme} onChange={setTheme} />',
   "accent-selector": "<AccentSelector accent={accent} onChange={setAccent} />",
-  alert:
-    '<Alert variant="error">\n  <AlertContent>\n    <AlertTitle>Could not save</AlertTitle>\n    <AlertDescription>The request failed. Try again.</AlertDescription>\n  </AlertContent>\n</Alert>',
   spinner:
     '<Spinner size="sm" />\n<Spinner label="Saving project" />',
   skeleton:
     '<div aria-busy="true" aria-label="Loading project">\n  <Skeleton variant="text" style={{ width: "45%" }} />\n  <Skeleton variant="block" style={{ height: "6rem" }} />\n</div>',
-  toast:
-    '<Toasts>\n  <Application />\n</Toasts>\n\nconst notify = useToast();\nnotify("success", "Changes saved", "Your project has been updated.");',
   drawer:
     '<Drawer>\n  <DrawerTrigger asChild><Button>Open drawer</Button></DrawerTrigger>\n  <DrawerContent placement="side">\n    <DrawerHeader><DrawerTitle>Edit project</DrawerTitle></DrawerHeader>\n    <DrawerBody>{form}</DrawerBody>\n  </DrawerContent>\n</Drawer>',
   "command-palette":
@@ -545,28 +542,6 @@ const [filters, setFilters] = useState<FilterNode[]>([]);
   "app-shell":
     '<ApplicationShell collapsible brand={brand} navigation={groups} header={header}>\n  <div className="page">\n    <PageHeader>\n      <PageHeaderTitle>Your homelab</PageHeaderTitle>\n      <PageHeaderDescription>Applications, machines, and images in one place.</PageHeaderDescription>\n    </PageHeader>\n    {content}\n  </div>\n</ApplicationShell>\n\n<ApplicationShell layout="topbar" brand={brand} primaryAction={action} header={chrome}>\n  {page}\n</ApplicationShell>',
 };
-
-function ToastDemoButton() {
-  const notify = useToast();
-  return (
-    <div className="demo-row">
-      <Button
-        onClick={() =>
-          notify("success", "Changes saved", "Your project has been updated.")
-        }
-      >
-        Show notification
-      </Button>
-      <Button
-        onClick={() =>
-          notify("error", "Database error", "storefront-demo.-.primary: connection refused", { appearance: "loud" })
-        }
-      >
-        Show loud error
-      </Button>
-    </div>
-  );
-}
 
 function TaskDialog({ onSave }: { onSave: () => void }) {
   const [open, setOpen] = useState(false);
@@ -1250,12 +1225,14 @@ const Demo = memo(function Demo({
   onThemeChange,
   accent,
   onAccentChange,
+  usage,
 }: {
   id: string;
   theme: string;
   onThemeChange: (theme: string) => void;
   accent: string;
   onAccentChange: (accent: Accent) => void;
+  usage: boolean;
 }) {
   const uid = useId();
   const [value, setValue] = useState("");
@@ -1847,7 +1824,7 @@ const Demo = memo(function Demo({
         </div>
       );
     case "alert":
-      return <AlertDemo />;
+      return <AlertDemo usage={usage} />;
     case "spinner":
       return (
         <div className="stack">
@@ -1877,9 +1854,7 @@ const Demo = memo(function Demo({
       );
     case "toast":
       return (
-        <Toasts duration={5000}>
-          <ToastDemoButton />
-        </Toasts>
+        <ToastDemo usage={usage} />
       );
     case "modal-dialog":
       return (
@@ -2735,6 +2710,7 @@ export function ComponentGallery({
                   onThemeChange={onThemeChange}
                   accent={accent}
                   onAccentChange={onAccentChange}
+                  usage={!browsing}
                 />
                 </DeferredPreview>
                 </DemoSettingsContext.Provider>
