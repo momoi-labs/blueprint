@@ -1010,7 +1010,7 @@ table.table {
 .alert-content { min-width: 0; overflow-wrap: anywhere; }
 .alert:has(> .alert-details) { flex-wrap: wrap; }
 .alert-actions { display: flex; gap: var(--spacing-2xs); align-items: center; margin-block: calc(-1 * var(--spacing-2xs)); }
-.alert-count { font-size: var(--type-size-label); font-weight: var(--type-weight-medium); font-variant-numeric: tabular-nums; }
+.alert-count { margin-inline-end: var(--spacing-xs); font-size: var(--type-size-label); font-weight: var(--type-weight-medium); font-variant-numeric: tabular-nums; }
 .alert-details { order: 1; flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
 .alert:has(> :is(.icon, .alert-mark)) > .alert-details { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-md)); }
 .alert-details[hidden] { display: none; }
