@@ -73,7 +73,8 @@ Alert
 - **Details.** `AlertDetails` holds context that does not fit the
   description: timestamps, scope, a link to the incident. Alert renders a
   "Details" button with `aria-expanded` and `aria-controls`. The panel starts
-  closed.
+  closed. A link inside Details uses the foreground color with an underline,
+  because the link color is below 4.5:1 on a dark tint.
 - **Dismiss.** [IconButton](icon-button.md) `ghost` `sm`, `aria-label`
   "Dismiss". Alert renders it when the caller passes `onDismiss`. Only on
   dismissible Alerts.
