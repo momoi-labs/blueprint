@@ -219,7 +219,9 @@ the width.
 layer (`z-index` 70), and it stays there while the page scrolls. React renders
 it in a portal on `document.body`, so an app shell's stacking context cannot
 hide it under the header. It works with
-every appearance; a loud overlay is a full-width band. Only one overlay Alert
+every appearance; a loud overlay is a full-width band. An overlay is always
+opaque: tinted lays its tint over `--color-surface`, and it casts
+`--shadow-lg` so it reads as above the page. Only one overlay Alert
 shows at a time: a newer one replaces the visible one and shows "+1" for each
 Alert waiting behind it. Dismissing the visible one shows the next. Use
 overlay for a condition that affects the whole app, not one section.

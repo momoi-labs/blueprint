@@ -991,13 +991,13 @@ table.table {
   line-height: var(--type-role-body-line-height);
   letter-spacing: var(--type-role-body-letter-spacing);
 }
-.alert-info    { --alert-tone: var(--color-info); background: var(--color-info-surface); border-color: var(--color-info-border); }
+.alert-info    { --alert-tone: var(--color-info); --alert-surface: var(--color-info-surface); background: var(--alert-surface); border-color: var(--color-info-border); }
 .alert-info    > .icon { color: var(--color-info); }
-.alert-success { --alert-tone: var(--color-success); background: var(--color-success-surface); border-color: var(--color-success-border); }
+.alert-success { --alert-tone: var(--color-success); --alert-surface: var(--color-success-surface); background: var(--alert-surface); border-color: var(--color-success-border); }
 .alert-success > .icon { color: var(--color-success); }
-.alert-warning { --alert-tone: var(--color-warning); background: var(--color-warning-surface); border-color: var(--color-warning-border); }
+.alert-warning { --alert-tone: var(--color-warning); --alert-surface: var(--color-warning-surface); background: var(--alert-surface); border-color: var(--color-warning-border); }
 .alert-warning > .icon { color: var(--color-warning); }
-.alert-danger  { --alert-tone: var(--color-danger); background: var(--color-danger-surface); border-color: var(--color-danger-border); }
+.alert-danger  { --alert-tone: var(--color-danger); --alert-surface: var(--color-danger-surface); background: var(--alert-surface); border-color: var(--color-danger-border); }
 .alert-danger  > .icon { color: var(--color-danger); }
 .alert-rail {
   position: relative; display: block;
@@ -1031,6 +1031,8 @@ table.table {
   animation: alert-drop var(--motion-duration-normal) var(--motion-easing-standard) both;
 }
 .alert-overlay[hidden] { display: none; }
+.alert-overlay:where(:not(.alert-loud)) { background-color: var(--color-surface); background-image: linear-gradient(var(--alert-surface, transparent), var(--alert-surface, transparent)); }
+.alert-rail.alert-overlay { background-image: none; }
 @keyframes alert-drop { from { transform: translateY(-100%); } }
 
 :is(.alert-loud, .toast-loud) {
