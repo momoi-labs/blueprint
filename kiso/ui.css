@@ -1005,7 +1005,7 @@ table.table {
   border-radius: 0; background: var(--color-surface);
 }
 .alert-rail > .icon { position: absolute; inset-inline-start: var(--spacing-md); inset-block-start: var(--spacing-md); }
-.alert-rail > .icon + .alert-content > .alert-title { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-sm)); }
+.alert-rail > .icon + .alert-content > :is(.alert-title, .alert-label) { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-sm)); }
 .alert-rail .alert-title { color: var(--alert-tone, var(--color-info)); }
 .alert-content { min-width: 0; overflow-wrap: anywhere; }
 .alert:has(> .alert-details) { flex-wrap: wrap; }
