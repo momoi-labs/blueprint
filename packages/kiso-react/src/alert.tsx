@@ -185,6 +185,24 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"p">) {
   );
 }
 
+function AlertLabel({ className, ...props }: React.ComponentProps<"p">) {
+  return (
+    <p data-slot="alert-label" className={cn("alert-label", className)} {...props} />
+  );
+}
+
+function AlertMessage({ className, ...props }: React.ComponentProps<"p">) {
+  return (
+    <p data-slot="alert-message" className={cn("alert-message", className)} {...props} />
+  );
+}
+
+function AlertMeta({ className, ...props }: React.ComponentProps<"p">) {
+  return (
+    <p data-slot="alert-meta" className={cn("alert-meta", className)} {...props} />
+  );
+}
+
 function AlertDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p data-slot="alert-description" className={cn("alert-body", className)} {...props} />
@@ -204,5 +222,5 @@ function AlertDetails({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-export { Alert, AlertContent, AlertTitle, AlertDescription, AlertDetails, alertVariants };
+export { Alert, AlertContent, AlertLabel, AlertTitle, AlertMessage, AlertDescription, AlertMeta, AlertDetails, alertVariants };
 export type { AlertTape, AlertVariant };
