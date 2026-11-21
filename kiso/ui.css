@@ -1018,6 +1018,7 @@ table.table {
 .alert-details { order: 1; flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
 .alert:has(> :is(.icon, .alert-mark)) > .alert-details { padding-inline-start: calc(var(--size-icon-md) + var(--spacing-md)); }
 .alert-details[hidden] { display: none; }
+.alert-details a { color: var(--color-foreground); text-decoration: underline; }
 .alert-details-toggle .icon { transition: rotate var(--motion-duration-fast) var(--motion-easing-standard); }
 .alert-details-toggle[aria-expanded="true"] .icon { rotate: 180deg; }
 .alert-rail > .alert-actions { position: absolute; inset-block-start: var(--spacing-md); inset-inline-end: var(--spacing-md); }
