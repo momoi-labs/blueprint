@@ -1023,7 +1023,7 @@ table.table {
 .alert-details-toggle[aria-expanded="true"] .icon { rotate: 180deg; }
 .alert-rail > .alert-actions { position: absolute; inset-block-start: var(--spacing-md); inset-inline-end: var(--spacing-md); }
 .alert-rail:has(> .alert-actions) > .alert-content { padding-inline-end: calc(var(--size-control-sm) * 3); }
-.alert-rail > .alert-details { padding-inline-start: 0; margin-block-start: var(--spacing-sm); }
+.alert.alert-rail > .alert-details { padding-inline-start: 0; margin-block-start: var(--spacing-sm); }
 
 .alert-overlay {
   position: fixed; inset: var(--spacing-sm) var(--spacing-sm) auto; z-index: 70;
