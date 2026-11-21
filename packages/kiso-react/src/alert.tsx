@@ -3,6 +3,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { clsx as cn } from "clsx";
 import { ChevronDown, X } from "lucide-react";
+import { Portal as PortalPrimitive } from "radix-ui";
 import { Button } from "./button.js";
 import { LoudMark } from "./loud-mark.js";
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js";
@@ -118,7 +119,7 @@ function Alert({
 
   const resolvedTape = tape ?? (severity === "error" || severity === "warning" ? "top" : "none");
 
-  return (
+  const alert = (
     <div
       ref={setRef}
       data-slot="alert"
@@ -165,6 +166,7 @@ function Alert({
       )}
     </div>
   );
+  return placement === "overlay" ? <PortalPrimitive.Root asChild>{alert}</PortalPrimitive.Root> : alert;
 }
 
 function AlertContent({ className, ...props }: React.ComponentProps<"div">) {

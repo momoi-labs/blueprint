@@ -173,7 +173,9 @@ and on the gradient top.
 ### Overlay
 
 `placement="overlay"` fixes the Alert to the top of the viewport, above every
-layer (`z-index` 70), and it stays there while the page scrolls. It works with
+layer (`z-index` 70), and it stays there while the page scrolls. React renders
+it in a portal on `document.body`, so an app shell's stacking context cannot
+hide it under the header. It works with
 every appearance; a loud overlay is a full-width band. Only one overlay Alert
 shows at a time: a newer one replaces the visible one and shows "+1" for each
 Alert waiting behind it. Dismissing the visible one shows the next. Use
