@@ -7,6 +7,7 @@ import { cloneElement, createElement, isValidElement, useState, type ComponentPr
 import { clsx as cn } from "clsx";
 import { Check, Copy } from "lucide-react";
 import { Button } from "./button.js";
+import { writeClipboard } from "./clipboard.js";
 import { TerminalIcon } from "./terminal-icon.js";
 import { useToast } from "./toast.js";
 import type { CodeEditorHighlight } from "./code-editor.js";
@@ -100,20 +101,6 @@ function paint(code: string, highlight?: CodeEditorHighlight): ReactNode[] {
   const lines = splitNode(painted as ReactNode);
   if (lines.length !== rows.length || lines.some((parts, index) => nodeText(parts) !== rows[index])) return rows;
   return lines.map(parts => createElement("span", null, ...parts));
-}
-
-// The console also runs on plain HTTP, where the Clipboard API is missing.
-async function writeClipboard(text: string) {
-  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
-  const focused = document.activeElement as HTMLElement | null;
-  const area = Object.assign(document.createElement("textarea"), { value: text, readOnly: true });
-  area.style.cssText = "position:fixed;inset-block-start:0;opacity:0";
-  document.body.append(area);
-  area.select();
-  let copied = false;
-  try { copied = document.execCommand("copy"); }
-  finally { area.remove(); focused?.focus(); }
-  if (!copied) throw new Error("Copy failed");
 }
 
 function CopyButton({ code, label, compact = false }: { code: string; label: string; compact?: boolean }) {

@@ -5,6 +5,7 @@ import { clsx as cn } from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import { Portal as PortalPrimitive } from "radix-ui";
 import { Button } from "./button.js";
+import { writeClipboard } from "./clipboard.js";
 import { LoudMark } from "./loud-mark.js";
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect.js";
 
@@ -229,7 +230,7 @@ function AlertCode({ code, className, ...props }: Omit<React.ComponentProps<"spa
   return (
     <span data-slot="alert-code" className={cn("alert-code", className)} {...props}>
       {code}
-      <button type="button" aria-label={`Copy code ${code}`} onClick={() => navigator.clipboard?.writeText(code)}>
+      <button type="button" aria-label={`Copy code ${code}`} onClick={() => writeClipboard(code).catch(() => {})}>
         copy
       </button>
     </span>
