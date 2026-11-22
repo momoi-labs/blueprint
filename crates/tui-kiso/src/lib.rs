@@ -124,7 +124,7 @@ pub use theme::Theme;
 pub use time_range::TimeRangeControl;
 pub use title::{Tabs, Title};
 pub use tone::Tone;
-pub use alert::Alert;
+pub use alert::{Alert, AlertLine};
 pub use empty_state::EmptyState;
 pub use link::{Link, LinkState};
 pub use separator::Separator;
