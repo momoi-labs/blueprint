@@ -1061,6 +1061,7 @@ table.table {
 :is(.alert-loud, .toast-loud) { --loud-meta: color-mix(in srgb, var(--loud-fg) 85%, var(--loud-bg)); }
 :is(.alert-loud, .toast-loud) :is(.alert-meta, .kv dt) { color: var(--loud-meta); }
 .alert-loud .alert-details pre { --frame-fill: transparent; border-color: color-mix(in srgb, var(--loud-fg) 35%, transparent); background: transparent; color: var(--loud-fg); }
+:is(.alert-loud, .toast-loud) :not(pre) > code { border-color: color-mix(in srgb, var(--loud-fg) 35%, transparent); background: transparent; color: var(--loud-fg); }
 :is(.alert-loud, .toast-loud) .btn { --pixel-line: color-mix(in srgb, var(--loud-fg) 45%, transparent); --pixel-fill: transparent; color: var(--loud-fg); border-width: 1px; border-style: solid; background-color: transparent; }
 :where(.alert-loud, .toast-loud) .btn { border-color: var(--pixel-line); }
 :is(.alert-loud, .toast-loud) .btn:hover { --pixel-fill: color-mix(in srgb, var(--loud-fg) 14%, transparent); background-color: var(--pixel-fill); }
