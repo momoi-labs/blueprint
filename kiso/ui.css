@@ -5063,7 +5063,14 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   border-end-start-radius: 0;
   border-end-end-radius: 0;
 }
-:where([data-shell-bottom="fill"][data-shell-bottom-style="edge-line"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) { border-block-end-width: 1px; }
+:where([data-shell-bottom="fill"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) { --pixel-footer-clip: none; }
+:where([data-shell-bottom="fill"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])::before,
+:where([data-shell-bottom="fill"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > .panel-shadow {
+  margin-block-end: calc(-1 * var(--pixel-r, 0px));
+  border-block-end-width: 0;
+}
+:where([data-shell-bottom="fill"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"])::after { margin-block-end: calc(-1 * var(--shell-bottom-inset, 0px) - var(--spacing-2xl)); }
+:where([data-shell-bottom="fill"][data-shell-bottom-style="edge-line"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) { border-block-end: 1px solid var(--color-border); }
 :where([data-shell-bottom="fill"][data-shell-bottom-style="fade"]) .app-shell:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) > :not(.topbar, .panel-shadow) {
   mask-image: linear-gradient(to bottom, #000 calc(100% - var(--spacing-2xl)), transparent);
 }
