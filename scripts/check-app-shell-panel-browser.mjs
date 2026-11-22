@@ -169,12 +169,12 @@ for (const rtl of [false, true]) test(`Patterned inset floating toggle meets the
 for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the viewport bottom at ${width}px`, async () => {
   const page = await open('variant=inset', width);
   try {
-    await page.evaluate(() => Object.assign(document.documentElement.dataset, { appShellOuter: 'full', cornerStyle: 'rounded', shadowStyle: 'hard' }));
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { appShellOuter: 'full', cornerStyle: 'rounded', shadowStyle: 'hard', borderStyle: 'double' }));
     await page.getByRole('complementary', { name: 'Settings' }).evaluate(el => { el.hidden = true; });
     const read = () => page.locator('[data-slot="app-shell-main"]').first().evaluate(el => {
       document.scrollingElement.scrollTop = document.scrollingElement.scrollHeight;
       const style = getComputedStyle(el);
-      return { bottom: el.getBoundingClientRect().bottom, viewport: innerHeight, radius: style.borderBottomLeftRadius, border: style.borderBottomWidth, before: getComputedStyle(el, '::before').borderBottomLeftRadius };
+      return { bottom: el.getBoundingClientRect().bottom, viewport: innerHeight, radius: style.borderBottomLeftRadius, border: `${style.borderBottomWidth} ${style.borderBottomStyle}`, before: getComputedStyle(el, '::before').borderBottomLeftRadius, beforeBorder: getComputedStyle(el, '::before').borderBottomWidth };
     });
     const plain = await read();
     assert(plain.bottom < plain.viewport - 1, 'Without the option the frame keeps its bottom margin');
@@ -187,7 +187,9 @@ for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the view
       assert(Math.abs(fill.bottom - fill.viewport) <= 1, `${style}: main ends at the viewport bottom`);
       assert.equal(fill.radius, '0px', `${style}: square bottom corners`);
       assert.equal(fill.before, '0px', `${style}: the frame overlay follows the square corners`);
-      assert.equal(fill.border, style === 'edge-line' ? '1px' : '0px');
+      assert.equal(fill.border.split(' ')[0], style === 'edge-line' ? '1px' : '0px');
+      if (style === 'edge-line') assert.equal(fill.border, '1px solid', 'edge-line draws one solid line whatever the border style');
+      assert.equal(fill.beforeBorder, '0px', `${style}: the double overlay has no bottom line`);
       const mask = await page.locator('[data-slot="app-shell-main"] > :not(.topbar, .panel-shadow)').first().evaluate(el => getComputedStyle(el).maskImage);
       assert.equal(mask !== 'none', style === 'fade', `${style}: only fade masks the content`);
     }
