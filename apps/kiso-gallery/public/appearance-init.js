@@ -22,6 +22,8 @@
     headerSize: ["default", "compact", "editorial"],
     headerWidth: ["page", "outset"],
     appShellOuter: ["auto", "full", "compact", "none"],
+    shellBottom: ["default", "fill"],
+    shellBottomStyle: ["none", "edge-line", "fade"],
     brandBar: ["separate", "full"],
     pageWidth: ["full", "contained"],
     pageAlign: ["start", "center", "end"],
