@@ -282,12 +282,14 @@ impl<'a> Alert<'a> {
             rows.push(Row::of(segs));
         }
         if let Some(code) = self.code {
-            let chip = format!(" {code} ");
-            let chip_width = cells(&chip);
-            let chip = Seg { chip: true, ..seg(0, chip, body) };
+            let chip = |text: &str, x: usize| Seg { chip: true, ..seg(x, format!(" {text} "), body) };
             match rows.last_mut() {
-                Some(row) if used + 1 + chip_width <= w => row.segs.push(Seg { x: (2 + used + 1) as u16, ..chip }),
-                _ => rows.push(Row::of(vec![Seg { x: 2, ..chip }])),
+                Some(row) if used + 3 + cells(code) <= w => row.segs.push(chip(code, 2 + used + 1)),
+                _ => {
+                    for part in rows_of(code, w.saturating_sub(2)) {
+                        rows.push(Row::of(vec![chip(&part, 2)]));
+                    }
+                }
             }
         }
         if self.label.is_some() {
@@ -590,6 +592,21 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    #[test]
+    fn a_code_wider_than_the_alert_wraps_and_is_not_cut() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let code = "database-primary-replica-02-eu-west-1-unreachable";
+        for loud in [false, true] {
+            let alert = Alert::new(&theme, Tone::Danger, "Checkout is down").label("Error").code(code);
+            let alert = if loud { alert.loud() } else { alert };
+            let height = alert.height(40);
+            let mut buf = Buffer::empty(Rect::new(0, 0, 40, height));
+            alert.render(buf.area, &mut buf);
+            let all: String = (0..height).map(|y| squeeze(&row(&buf, y))).collect();
+            assert!(all.contains(code), "loud {loud}: the code is cut in {all:?}");
         }
     }
 
