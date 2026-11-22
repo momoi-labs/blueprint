@@ -37,6 +37,13 @@ Two behavioral variants: task Dialog (default) and Alert Dialog for a
 confirmation that must prevent outside dismissal. Both keep the same labelled,
 modal focus behavior; an in-page Alert is not a Dialog variant.
 
+## Nesting
+
+A Dialog or Alert Dialog can open from inside another Dialog, for example to
+confirm one step of a form. Render the inner Root inside the outer Content.
+The inner Dialog brings its own scrim, which dims the outer Dialog, and takes
+focus. `Escape` closes only the top Dialog and returns focus to the outer one.
+
 ## Sizes
 
 One responsive size. Content uses a readable bounded width and becomes
