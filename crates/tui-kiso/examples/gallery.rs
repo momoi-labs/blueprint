@@ -28,7 +28,7 @@ const PRODUCT: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Each component, and what its page shows.
-const PAGES: [(&str, &str); 71] = [
+const PAGES: [(&str, &str); 72] = [
     ("Theme", "Token colors at this depth, and the look of titles and rules."),
     ("Grid", "The areas of a page, on tracks of whole columns. It draws nothing."),
     ("AppShell", "The areas of a screen. It draws nothing."),
@@ -92,6 +92,7 @@ const PAGES: [(&str, &str); 71] = [
     ("BarGauge", "Labelled measurements on one scale, values aligned right."),
     ("Dashboard", "Stats, a chart, meters and a gauge on the cards of a grid."),
     ("Alert", "A message about this view: a tint, a glyph and a title per tone."),
+    ("LoudAlert", "A loud alert as a diagnostic: simple, detailed or full."),
     ("Toast", "Notices, spinners and the steps of a run."),
     ("Spinner", "A braille frame with an optional label. The app counts the ticks."),
     ("Skeleton", "Blocks that stand for content on its way. The app owns time."),
@@ -102,7 +103,7 @@ const PAGES: [(&str, &str); 71] = [
     ("Popover", "Details next to what they are about, over a lit page."),
 ];
 /// The sidebar groups: a title and how many pages of `PAGES` it takes, in order.
-const GROUPS: [(&str, usize); 8] = [("Foundations", 7), ("Navigation", 11), ("Actions", 5), ("Forms", 19), ("Data", 15), ("Charts", 5), ("Feedback", 5), ("Overlays", 4)];
+const GROUPS: [(&str, usize); 8] = [("Foundations", 7), ("Navigation", 11), ("Actions", 5), ("Forms", 19), ("Data", 15), ("Charts", 5), ("Feedback", 6), ("Overlays", 4)];
 /// The index of a page, by name, so the order of `PAGES` is free to change.
 const fn page(name: &str) -> usize {
     let (name, mut i) = (name.as_bytes(), 0);
@@ -154,7 +155,7 @@ Usage: gallery [--accent <name>] [--light] [--256] [--snapshot <dir>] [--json <f
                      the Kiso site, then exit.";
 
 /// The states the Kiso site shows under a page, after the page itself.
-const SITE_STATES: [(&str, usize, &str); 15] = [
+const SITE_STATES: [(&str, usize, &str); 17] = [
     ("21-form-select", FORM, "Changed select"),
     ("20-form-typing", FORM, "Typing"),
     ("23-help", page("Modal"), "Help over a page"),
@@ -170,6 +171,8 @@ const SITE_STATES: [(&str, usize, &str); 15] = [
     ("34-filters-80", FILTERS, "Editing at 80 by 24"),
     ("33-menu-80", page("DropdownMenu"), "At 80 by 24"),
     ("35-chart-80", CHART, "At 80 by 24"),
+    ("70-loud-detailed-error", page("LoudAlert"), "Detailed"),
+    ("70-loud-full-error", page("LoudAlert"), "Full"),
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -202,6 +205,8 @@ struct App {
     scroll: Scroll,
     /// The window of time of the range control and the dashboard.
     range: usize,
+    /// The level and the severity of the loud alert page.
+    loud: (usize, usize),
     quit: bool,
 }
 
@@ -224,6 +229,7 @@ impl App {
             detail: 0,
             scroll: Scroll::default(),
             range: 1,
+            loud: (0, 0),
             quit: false,
         }
     }
@@ -299,6 +305,15 @@ impl App {
             match key.code {
                 KeyCode::Enter | KeyCode::Char('o') if wave_08::opens(name) => return self.overlay = Some(wave_08::first(name)),
                 KeyCode::Enter if name == "ThemePicker" => return self.picker = Some(ThemePicker::new(self.accent, self.light)),
+                KeyCode::Left | KeyCode::Right if name == "LoudAlert" => {
+                    let count = wave_04::LEVELS.len();
+                    return self.loud.0 = (self.loud.0 + if key.code == KeyCode::Left { count - 1 } else { 1 }) % count;
+                }
+                KeyCode::Up | KeyCode::Down | KeyCode::Char('j' | 'k') if name == "LoudAlert" => {
+                    let count = wave_04::DIAGNOSTICS.len();
+                    let back = matches!(key.code, KeyCode::Up | KeyCode::Char('k'));
+                    return self.loud.1 = (self.loud.1 + if back { count - 1 } else { 1 }) % count;
+                }
                 KeyCode::Up | KeyCode::Down | KeyCode::Char('j' | 'k') if name == "DetailSelect" => {
                     return self.detail = wave_08::detail_key(&self.theme, self.detail, key.code);
                 }
@@ -483,6 +498,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("e", "export"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
+            (None, true) if name == "LoudAlert" => vec![("←/→", "level"), ("↑/↓", "severity"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
             (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
@@ -579,6 +595,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             "Button" => button_page(t, buf, area),
             "Switch" => switch_page(t, buf, area),
             "Alert" => wave_04::alert_page(t, buf, area),
+            "LoudAlert" => wave_04::loud_alert_page(t, buf, area, self.loud.0, self.loud.1),
             "Spinner" => wave_04::spinner_page(t, buf, area),
             "Skeleton" => wave_04::skeleton_page(t, buf, area),
             "EmptyState" => wave_04::empty_state_page(t, buf, area),
@@ -1395,6 +1412,14 @@ fn states() -> Vec<State> {
     states.push(("64-page-contained".into(), [open(dashboard), contained(0)].concat(), wide));
     states.push(("65-page-center".into(), [at("Skeleton"), contained(1)].concat(), wide));
     states.push(("66-page-end".into(), [at("Grid"), contained(2)].concat(), wide));
+    for (size, suffix) in [(SIZE, ""), (small, "-80")] {
+        for (level, name) in wave_04::LEVELS.iter().enumerate() {
+            for (severity, (tone, _)) in wave_04::DIAGNOSTICS.iter().enumerate() {
+                let moves = [vec![code(KeyCode::Right); level], vec![code(KeyCode::Down); severity]].concat();
+                states.push((format!("70-loud-{}-{tone}{suffix}", name.to_lowercase()), [at("LoudAlert"), moves].concat(), size));
+            }
+        }
+    }
     states
 }
 
