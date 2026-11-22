@@ -3,10 +3,11 @@
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
+use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 use tui_kiso::{
-    Alert, Badge, Button, Card, CardVariant, EmptyState, Link, LinkState, Separator, Size, Skeleton, Spinner, Stat, Theme, Toast,
+    Alert, AlertLine, Badge, Button, Card, CardVariant, EmptyState, Link, LinkState, Separator, Size, Skeleton, Spinner, Stat, Theme, Toast,
     Tone,
 };
 
@@ -50,6 +51,108 @@ pub fn alert_page(t: &Theme, buf: &mut Buffer, area: Rect) {
     let no_action = Alert::new(t, Tone::Warning, "Read only").text("This account cannot change machines.");
     if let Some(rect) = inside(area, SECOND, 21, width, no_action.height(width)) {
         no_action.render(rect, buf);
+    }
+}
+
+/// The levels of the loud alert page, as on the web demo.
+pub const LEVELS: [&str; 3] = ["Simple", "Detailed", "Full"];
+
+/// The copy of one severity of the web demo.
+pub struct Diagnostic {
+    tone: Tone,
+    label: &'static str,
+    code: &'static str,
+    message: &'static str,
+    help: &'static str,
+    action: &'static str,
+    source: &'static str,
+    since: &'static str,
+    /// At, event, label, and whether the line is the primary one.
+    lines: [(&'static str, &'static str, &'static str, bool); 3],
+    note: &'static str,
+}
+
+/// The copy of the web demo, one per severity.
+pub const DIAGNOSTICS: [(&str, Diagnostic); 4] = [
+    ("error", Diagnostic {
+        tone: Tone::Danger,
+        label: "Error · Database unreachable",
+        code: "db-unreachable",
+        message: "Checkout cannot reach the primary database",
+        help: "Fail over to replica-03.",
+        action: "Fail over",
+        source: "primary-replica-02.eu-west-1.internal:5432",
+        since: "4 minutes ago, at 10:54:31",
+        lines: [("10:54:31", "pool connect refused", "first failure", true), ("10:54:31", "retry 3/3 failed", "gave up here", false), ("10:54:32", "products.list 503", "what users see", false)],
+        note: "Checkout returns 503 until the primary accepts connections.",
+    }),
+    ("warning", Diagnostic {
+        tone: Tone::Warning,
+        label: "Warning · Disk almost full",
+        code: "disk-almost-full",
+        message: "The primary disk is 92% full",
+        help: "Grow the volume before it reaches 100%.",
+        action: "Grow to 200 GB",
+        source: "primary-replica-02 · /var/lib/postgresql",
+        since: "1 hour 30 minutes ago, at 09:10",
+        lines: [("09:10", "disk usage 80%", "crossed the warning line", false), ("10:38", "WAL archive 3 GB behind", "why it grows", true), ("10:40", "disk usage 92%", "now", false)],
+        note: "At this rate the disk is full in about 2 hours.",
+    }),
+    ("info", Diagnostic {
+        tone: Tone::Info,
+        label: "Info · Maintenance tonight",
+        code: "maint-window",
+        message: "Writes pause for 5 minutes at 23:00 UTC",
+        help: "Finish long imports before 22:50.",
+        action: "Show schedule",
+        source: "eu-west-1 · all primaries",
+        since: "Planned 2 days ago",
+        lines: [("22:50", "last import start", "last safe start", true), ("23:00", "writes paused", "window opens", false), ("23:05", "writes resume", "window closes", false)],
+        note: "Reads keep working the whole time.",
+    }),
+    ("success", Diagnostic {
+        tone: Tone::Success,
+        label: "Success · Failover complete",
+        code: "failover-done",
+        message: "Checkout writes to replica-03 again",
+        help: "Rebuild primary-02 as a replica.",
+        action: "Rebuild primary-02",
+        source: "replica-03.eu-west-1.internal:5432",
+        since: "1 minute ago, at 10:58:24",
+        lines: [("10:58:02", "failover started", "you clicked Fail over", false), ("10:58:21", "replica-03 promoted", "new primary", true), ("10:58:24", "checkout 200", "users recovered", false)],
+        note: "Checkout was down for 3 minutes 53 seconds.",
+    }),
+];
+
+/// One loud alert of the web demo's copy: `level` 0 is the label and the
+/// message, 1 adds the code and the help with its action, 2 adds the
+/// facts, the evidence and the note.
+pub fn loud_alert_page(t: &Theme, buf: &mut Buffer, area: Rect, level: usize, severity: usize) {
+    let choice = |name: &'static str, on: bool| {
+        let style = if on { t.selected().add_modifier(Modifier::BOLD) } else { t.muted() };
+        Span::styled(format!(" {name} "), style)
+    };
+    let mut levels = vec![Span::styled("Level    ", t.muted())];
+    levels.extend(LEVELS.iter().enumerate().map(|(i, name)| choice(name, i == level)));
+    put(buf, area, 0, Line::from(levels));
+    let mut severities = vec![Span::styled("Severity ", t.muted())];
+    severities.extend(DIAGNOSTICS.iter().enumerate().map(|(i, (name, _))| choice(name, i == severity)));
+    put(buf, area, 1, Line::from(severities));
+    let d = &DIAGNOSTICS[severity].1;
+    let facts = [("source", d.source), ("since", d.since)];
+    let lines = d.lines.map(|(at, event, label, primary)| {
+        let line = AlertLine::new(at, event, label);
+        if primary { line.primary() } else { line }
+    });
+    let mut alert = Alert::new(t, d.tone, d.message).label(d.label).loud();
+    if level >= 1 {
+        alert = alert.code(d.code).help(d.help).action(Button::new(t, d.action));
+    }
+    if level >= 2 {
+        alert = alert.facts(&facts).lines(&lines).note(d.note);
+    }
+    if let Some(rect) = inside(area, 0, 3, area.width, alert.height(area.width)) {
+        alert.render(rect, buf);
     }
 }
 
