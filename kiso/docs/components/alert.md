@@ -209,10 +209,12 @@ facts, log lines in a `pre`, and the recovery actions in a `.row-wrap`.
 </Alert>
 ```
 
-Long text wraps inside the Alert, also an unbroken target such as a host
-name. The icon, the Details button and Dismiss stay at the top. Below 40rem,
-in every appearance, the Details button and "+N" move to their own row under
-the text, so no button covers the text. Dismiss stays at the top right.
+Long text wraps inside the Alert, also an unbroken target such as a host name.
+The description and the message stop at about 70 characters per line, so a
+wide Alert keeps a readable line length. The icon, the Details button and
+Dismiss stay at the top. Below 40rem, in every appearance, the Details button
+and "+N" move to their own row under the text, so no button covers the text.
+Dismiss stays at the top right.
 
 ### Overlay
 
