@@ -12,7 +12,7 @@ type AlertOptions = {
   pulse: "off" | "on";
   placement: "inline" | "overlay";
   extras: "off" | "on";
-  content: "short" | "long" | "rich";
+  content: "simple" | "detailed" | "full";
 };
 export const alertShareOptions: Record<keyof AlertOptions, readonly string[]> = {
   appearance: ["tinted", "rail", "loud"],
@@ -22,7 +22,7 @@ export const alertShareOptions: Record<keyof AlertOptions, readonly string[]> = 
   pulse: ["off", "on"],
   placement: ["inline", "overlay"],
   extras: ["off", "on"],
-  content: ["short", "long", "rich"],
+  content: ["simple", "detailed", "full", "short", "long", "rich"],
 };
 
 const copy = {
@@ -64,12 +64,13 @@ const rich = {
     log: [`10:54:31.204 ERROR pool: connect ${host} refused`, "10:54:31.512 WARN  retry 3/3 in 300 ms", "10:54:32.118 ERROR trpc:products.list 503 (req_8f2c41d07a)"],
   },
 } as const;
+const legacyContent: Record<string, AlertOptions["content"]> = { short: "simple", long: "detailed", rich: "full" };
 const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert", error: "CircleX" } as const;
 
 export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, extras, content }: AlertOptions) {
   const loud = appearance === "loud";
-  const full = loud || placement === "overlay" || extras === "on" || content === "rich";
-  const [title, description] = content === "long" ? long[variant] : copy[variant];
+  const full = loud || placement === "overlay" || extras === "on" || content === "full";
+  const [title, description] = content === "detailed" ? long[variant] : copy[variant];
   const props = [
     variant !== "info" && `variant="${variant}"`,
     appearance !== "tinted" && `appearance="${appearance}"`,
@@ -81,10 +82,10 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
     full && "onDismiss={dismiss}",
   ].filter(Boolean);
   const r = rich[variant];
-  const body = content === "rich"
+  const body = content === "full"
     ? [`    <AlertLabel>${r.label}</AlertLabel>`, `    <AlertMessage>${r.message}</AlertMessage>`, `    <AlertMeta>${r.meta}</AlertMeta>`]
-    : [`    <AlertTitle>${title}</AlertTitle>`, `    <AlertDescription>${description}</AlertDescription>`, ...(content === "long" ? [`    <AlertDescription><code>${host}</code></AlertDescription>`] : [])];
-  const more = content === "rich"
+    : [`    <AlertTitle>${title}</AlertTitle>`, `    <AlertDescription>${description}</AlertDescription>`, ...(content === "detailed" ? [`    <AlertDescription><code>${host}</code></AlertDescription>`] : [])];
+  const more = content === "full"
     ? [
         "  <AlertDetails>",
         "    <div className=\"stack-sm\">",
@@ -113,13 +114,14 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
 
 export function AlertDemo({ usage = false }: { usage?: boolean }) {
   const id = useId();
-  const [options, setOptions] = useDemoOptions<AlertOptions>("alert", { appearance: "tinted", variant: "info", tape: "default", animated: "off", pulse: "off", placement: "inline", extras: "off", content: "short" });
+  const [stored, setOptions] = useDemoOptions<AlertOptions>("alert", { appearance: "tinted", variant: "info", tape: "default", animated: "off", pulse: "off", placement: "inline", extras: "off", content: "simple" });
+  const options = { ...stored, content: legacyContent[stored.content] ?? stored.content };
   const { appearance, variant: severity, tape, animated, pulse, placement, extras, content } = options;
   const [shown, setShown] = useState<number[]>(placement === "inline" ? [0] : []);
   const [next, setNext] = useState(1);
   const SeverityIcon = { info: Info, success: CircleCheck, warning: TriangleAlert, error: CircleX }[severity];
   const loud = appearance === "loud";
-  const full = loud || placement === "overlay" || extras === "on" || content === "rich";
+  const full = loud || placement === "overlay" || extras === "on" || content === "full";
   const select = <K extends keyof AlertOptions>(key: K, label: string, values: readonly (readonly [AlertOptions[K], string])[], disabled = false) => (
     <div className="field"><label htmlFor={`${id}-${key}`}>{label}</label>
       <select id={`${id}-${key}`} className="select" value={options[key]} disabled={disabled} onChange={event => setOptions({ [key]: event.target.value } as Partial<AlertOptions>)}>
@@ -129,7 +131,7 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
   );
   const show = () => { setShown(current => placement === "overlay" ? [...current, next] : [next]); setNext(n => n + 1); };
   const r = rich[severity];
-  const [title, description] = content === "long" ? long[severity] : copy[severity];
+  const [title, description] = content === "detailed" ? long[severity] : copy[severity];
   return <div className="stack">
     <div className="demo-settings-inline demo-control-bar" role="group" aria-label="Alert options">
       {select("appearance", "Appearance", [["tinted", "Tinted"], ["rail", "Start border"], ["loud", "Loud"]])}
@@ -138,8 +140,8 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
       {select("animated", "Animated tape", [["off", "Off"], ["on", "On"]], !loud)}
       {select("pulse", "Icon pulse", [["off", "Off"], ["on", "On"]], !loud)}
       {select("placement", "Placement", [["inline", "Inline"], ["overlay", "Overlay"]])}
-      {select("extras", "Details and dismiss", [["off", "Off"], ["on", "On"]], loud || placement === "overlay" || content === "rich")}
-      {select("content", "Content", [["short", "Short"], ["long", "Long"], ["rich", "Rich"]])}
+      {select("extras", "Details and dismiss", [["off", "Off"], ["on", "On"]], loud || placement === "overlay" || content === "full")}
+      {select("content", "Content", [["simple", "Simple"], ["detailed", "Detailed"], ["full", "Full"]])}
     </div>
     {shown.map(key => (
       <Alert
@@ -156,16 +158,16 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
         onDismiss={full ? () => setShown(current => current.filter(item => item !== key)) : undefined}
       >
         {!loud && <SeverityIcon className="icon" aria-hidden="true" />}
-        {content === "rich" ? <AlertContent>
+        {content === "full" ? <AlertContent>
           <AlertLabel id={`${id}-${key}-title`}>{r.label}</AlertLabel>
           <AlertMessage id={`${id}-${key}-description`}>{r.message}</AlertMessage>
           <AlertMeta>{r.meta}</AlertMeta>
         </AlertContent> : <AlertContent>
           <AlertTitle id={`${id}-${key}-title`}>{title}</AlertTitle>
           <AlertDescription id={`${id}-${key}-description`}>{description}</AlertDescription>
-          {content === "long" && <AlertDescription><code>{host}</code></AlertDescription>}
+          {content === "detailed" && <AlertDescription><code>{host}</code></AlertDescription>}
         </AlertContent>}
-        {content === "rich" ? <AlertDetails>
+        {content === "full" ? <AlertDetails>
           <div className="stack-sm">
             <dl className="kv">{r.facts.map(([term, value]) => [<dt key={`${term}-t`}>{term}</dt>, <dd key={`${term}-d`}>{value}</dd>])}</dl>
             <pre>{r.log.join("\n")}</pre>
