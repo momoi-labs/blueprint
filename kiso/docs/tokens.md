@@ -556,6 +556,8 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-frame-detail` | `small`, `medium`, `large` | `medium` |
 | `data-panel-fill` | `solid`, `translucent`, `glass` | `solid` |
 | `data-app-shell-outer` | `auto`, `full`, `compact`, `none` | `auto`: `full` from 700px, `none` below |
+| `data-shell-bottom` | `default`, `fill` | `default` |
+| `data-shell-bottom-style` | `none`, `edge-line`, `fade` | `none` |
 
 Set these on `html`, alongside theme and accent. The outer choices apply to
 inset AppShell main frames. Their children and portals retain the inner

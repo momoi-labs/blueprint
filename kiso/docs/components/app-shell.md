@@ -293,6 +293,27 @@ background style, `full` keeps its usual extra `--spacing-lg` canvas margin,
 Panels inside the main area keep their own frames in every mode. The gallery
 saves this choice under Appearance > Layout > Outer frame.
 
+### Shell bottom
+
+`data-shell-bottom` on `html` sets how an inset frame meets the bottom of the
+viewport. It has no effect on the default variant or on a nested shell.
+
+| Value | Result |
+| --- | --- |
+| `default` (or omitted) | The outer space, bottom border, bottom corners, shadow and bottom corner marks stay. |
+| `fill` | The main area runs to the bottom edge of the viewport, or to the top of the BottomNav on a phone. Its bottom corners are square and it has no bottom border. The shell clips the shadow and the bottom corner marks. |
+
+`data-shell-bottom-style` marks that edge. It applies only with `fill`.
+
+| Value | Result |
+| --- | --- |
+| `none` (or omitted) | No mark. |
+| `edge-line` | A 1px bottom border. |
+| `fade` | The page content fades out over `--spacing-2xl` at the bottom, to show that more content follows. |
+
+The gallery saves these choices under Appearance > Layout > Shell bottom and
+Bottom style.
+
 ### Brand bar
 
 `data-brand-bar` on `html` sets how the console brand bar meets the main panel

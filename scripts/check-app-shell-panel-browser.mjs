@@ -165,3 +165,31 @@ for (const rtl of [false, true]) test(`Patterned inset floating toggle meets the
     assert(Math.abs(rtl ? closed.x : 1440 - closed.x - closed.width) < 1, 'Closed toggle meets the viewport edge');
   } finally { await page.close(); }
 });
+
+for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the viewport bottom at ${width}px`, async () => {
+  const page = await open('variant=inset', width);
+  try {
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { appShellOuter: 'full', cornerStyle: 'rounded', shadowStyle: 'hard' }));
+    await page.getByRole('complementary', { name: 'Settings' }).evaluate(el => { el.hidden = true; });
+    const read = () => page.locator('[data-slot="app-shell-main"]').first().evaluate(el => {
+      document.scrollingElement.scrollTop = document.scrollingElement.scrollHeight;
+      const style = getComputedStyle(el);
+      return { bottom: el.getBoundingClientRect().bottom, viewport: innerHeight, radius: style.borderBottomLeftRadius, border: style.borderBottomWidth, before: getComputedStyle(el, '::before').borderBottomLeftRadius };
+    });
+    const plain = await read();
+    assert(plain.bottom < plain.viewport - 1, 'Without the option the frame keeps its bottom margin');
+    assert.notEqual(plain.radius, '0px');
+    await page.evaluate(() => { document.documentElement.dataset.shellBottom = 'default'; document.documentElement.dataset.shellBottomStyle = 'fade'; });
+    assert.deepEqual(await read(), plain, 'Default keeps the current look');
+    for (const style of ['none', 'edge-line', 'fade']) {
+      await page.evaluate(style => Object.assign(document.documentElement.dataset, { shellBottom: 'fill', shellBottomStyle: style }), style);
+      const fill = await read();
+      assert(Math.abs(fill.bottom - fill.viewport) <= 1, `${style}: main ends at the viewport bottom`);
+      assert.equal(fill.radius, '0px', `${style}: square bottom corners`);
+      assert.equal(fill.before, '0px', `${style}: the frame overlay follows the square corners`);
+      assert.equal(fill.border, style === 'edge-line' ? '1px' : '0px');
+      const mask = await page.locator('[data-slot="app-shell-main"] > :not(.topbar, .panel-shadow)').first().evaluate(el => getComputedStyle(el).maskImage);
+      assert.equal(mask !== 'none', style === 'fade', `${style}: only fade masks the content`);
+    }
+  } finally { await page.close(); }
+});
