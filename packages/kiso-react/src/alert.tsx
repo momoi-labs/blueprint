@@ -23,6 +23,7 @@ const alertVariants = cva("alert", {
 
 type AlertVariant = "info" | "success" | "warning" | "error";
 type AlertTape = "top" | "start" | "top-bottom" | "start-end" | "none";
+type AlertLabels = { show?: string; hide?: string; dismiss?: string };
 
 const overlayStore = {
   stack: [] as string[],
@@ -65,6 +66,7 @@ function Alert({
   pulse = false,
   placement = "inline",
   onDismiss,
+  labels,
   role,
   ref,
   children,
@@ -76,6 +78,7 @@ function Alert({
     pulse?: boolean;
     placement?: "inline" | "overlay";
     onDismiss?: () => void;
+    labels?: AlertLabels;
   }) {
   const severity: AlertVariant = variant ?? "info";
   const loud = appearance === "loud";
@@ -154,11 +157,11 @@ function Alert({
               onClick={() => setOpen((value) => !value)}
             >
               <ChevronDown className="icon icon-sm" aria-hidden="true" />
-              {open ? "Hide details" : "Details"}
+              {open ? (labels?.hide ?? "Hide details") : (labels?.show ?? "Details")}
             </Button>
           )}
           {onDismiss && (
-            <Button className="btn-icon" size="sm" variant="ghost" aria-label="Dismiss" onClick={dismiss}>
+            <Button className="btn-icon" size="sm" variant="ghost" aria-label={labels?.dismiss ?? "Dismiss"} onClick={dismiss}>
               <X className="icon icon-sm" aria-hidden="true" />
             </Button>
           )}
@@ -222,5 +225,73 @@ function AlertDetails({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-export { Alert, AlertContent, AlertLabel, AlertTitle, AlertMessage, AlertDescription, AlertMeta, AlertDetails, alertVariants };
-export type { AlertTape, AlertVariant };
+function AlertCode({ code, className, ...props }: Omit<React.ComponentProps<"span">, "children"> & { code: string }) {
+  return (
+    <span data-slot="alert-code" className={cn("alert-code", className)} {...props}>
+      {code}
+      <button type="button" aria-label={`Copy code ${code}`} onClick={() => navigator.clipboard?.writeText(code)}>
+        copy
+      </button>
+    </span>
+  );
+}
+
+function AlertHelp({ action, className, children, ...props }: React.ComponentProps<"div"> & { action?: React.ReactNode }) {
+  return (
+    <div data-slot="alert-help" className={cn("alert-help", className)} {...props}>
+      <p>
+        <b>help:</b> {children}
+      </p>
+      {action}
+    </div>
+  );
+}
+
+function AlertEvidence({ origin, className, ...props }: React.ComponentProps<"ol"> & { origin: string }) {
+  return (
+    <ol data-slot="alert-evidence" aria-label={`Evidence from ${origin}`} className={cn("alert-evidence", className)} {...props} />
+  );
+}
+
+function AlertLine({
+  at,
+  role,
+  label,
+  className,
+  children,
+  ...props
+}: Omit<React.ComponentProps<"li">, "role"> & { at: React.ReactNode; role?: "primary"; label?: React.ReactNode }) {
+  return (
+    <li data-slot="alert-line" data-role={role} className={cn("alert-line", className)} {...props}>
+      <span className="alert-line-at">{at}</span>
+      <span className="alert-line-event">{children}</span>
+      <span className="alert-line-label">{label}</span>
+    </li>
+  );
+}
+
+function AlertNote({ className, children, ...props }: React.ComponentProps<"p">) {
+  return (
+    <p data-slot="alert-note" className={cn("alert-note", className)} {...props}>
+      <b>note:</b> <span>{children}</span>
+    </p>
+  );
+}
+
+export {
+  Alert,
+  AlertContent,
+  AlertLabel,
+  AlertTitle,
+  AlertMessage,
+  AlertDescription,
+  AlertMeta,
+  AlertDetails,
+  AlertCode,
+  AlertHelp,
+  AlertEvidence,
+  AlertLine,
+  AlertNote,
+  alertVariants,
+};
+export type { AlertLabels, AlertTape, AlertVariant };

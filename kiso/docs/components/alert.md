@@ -54,8 +54,12 @@ Alert
 ├── Description (required for error and warning; optional for info/success
 │   when the title is already a complete sentence)
 ├── Meta (optional: AlertMeta, time and impact)
+├── Code (optional: AlertCode, a diagnostic code with a copy button)
+├── Help (optional: AlertHelp, the fix, with an optional action)
 ├── Action (optional: recovery Button or Link)
 ├── Details (optional: AlertDetails, a disclosure with more context)
+│   ├── Evidence (optional: AlertEvidence with AlertLine items)
+│   └── Note (optional: AlertNote)
 └── Dismiss (optional IconButton; only when dismissible)
 ```
 
@@ -86,6 +90,28 @@ Alert
   ("10:54:31 · checkout returns 503"), in `--color-muted-foreground`, or 85%
   of the loud foreground on a loud fill. Use Label and Message in place of
   Title and Description, not next to them.
+- **Diagnostic slots.** Borrowed from compiler diagnostics: a code, the
+  evidence, a note and the help.
+  - `AlertCode` shows `code` in a mono chip with a "copy" button. The button
+    copies the code and has the name "Copy code <code>". Put it next to the
+    Label in a `.alert-head` row.
+  - `AlertHelp` starts with a visible "help:" and says the fix. Its `action`
+    prop takes the Button that applies the fix. The button sits after the
+    text and wraps under it on a narrow Alert. Help stays outside
+    AlertDetails, so the fix is always visible.
+  - `AlertEvidence` is an ordered list. `origin` names the source in the list
+    label ("Evidence from <origin>"). Each `AlertLine` has a time (`at`), the
+    event as children, and a `label` that says why the line matters. On a
+    wide Alert the three sit in columns. Below 40rem the label moves under
+    the event. `role="primary"` marks the line that explains the problem: it
+    is bold and its label starts with "◂", so the mark is not color only.
+  - `AlertNote` starts with a visible "note:" and gives the consequence.
+  - A `dl.alert-facts` lists short facts such as the source and the time, with
+    lowercase mono terms. Wrap a machine value in `samp` to set it in mono.
+- **Labels.** `labels` overrides the text of the Details button and the
+  Dismiss name: `{ show, hide, dismiss }`. The defaults are "Details", "Hide
+  details" and "Dismiss". When Details hold only proof, name it: `{ show:
+  "Show evidence", hide: "Hide evidence" }`.
 
 ## Variants
 
@@ -182,28 +208,34 @@ and on the gradient top.
 
 ### Rich content
 
-Label, Message and Meta work with every appearance. They match the loud
-incident band best. Put structured context in AlertDetails: a `.kv` list of
-facts, log lines in a `pre`, and the recovery actions in a `.row-wrap`.
+Label, Message and the diagnostic slots work with every appearance. They
+match the loud incident band best. Keep the help and its action in
+AlertContent. Put the proof in AlertDetails: the facts, the evidence and the
+note. On a loud fill the help action is filled with the loud foreground, so
+the fix stands out from the other buttons.
 
 ```tsx
-<Alert variant="error" appearance="loud" onDismiss={clear}>
+<Alert variant="error" appearance="loud" onDismiss={clear} labels={{ show: "Show evidence", hide: "Hide evidence" }}>
   <AlertContent>
-    <AlertLabel>Critical · Database unreachable</AlertLabel>
-    <AlertMessage>The primary refuses connections</AlertMessage>
-    <AlertMeta>10:54:31 · checkout returns 503</AlertMeta>
+    <div className="alert-head">
+      <AlertLabel>Error · Database unreachable</AlertLabel>
+      <AlertCode code="db-unreachable" />
+    </div>
+    <AlertMessage>Checkout cannot reach the primary database</AlertMessage>
+    <AlertHelp action={<Button size="sm" onClick={failOver}>Fail over</Button>}>Fail over to replica-03.</AlertHelp>
   </AlertContent>
   <AlertDetails>
     <div className="stack-sm">
-      <dl className="kv">
-        <dt>Request</dt><dd>req_8f2c41d07a</dd>
-        <dt>Branches</dt><dd>main, preview-412, preview-418</dd>
+      <dl className="alert-facts">
+        <dt>source</dt><dd><samp>primary-replica-02.eu-west-1.internal:5432</samp></dd>
+        <dt>since</dt><dd>4 minutes ago, at 10:54:31</dd>
       </dl>
-      <pre>{`10:54:31.204 ERROR pool: connect primary-replica-02.eu-west-1.internal:5432 refused`}</pre>
-      <div className="row-wrap">
-        <Button size="sm" onClick={retry}>Retry</Button>
-        <a href="/runbooks/database">Open the runbook</a>
-      </div>
+      <AlertEvidence origin="primary-replica-02.eu-west-1.internal:5432">
+        <AlertLine at="10:54:31" role="primary" label="first failure">pool connect refused</AlertLine>
+        <AlertLine at="10:54:31" label="gave up here">retry 3/3 failed</AlertLine>
+        <AlertLine at="10:54:32" label="what users see">products.list 503</AlertLine>
+      </AlertEvidence>
+      <AlertNote>Checkout returns 503 until the primary accepts connections.</AlertNote>
     </div>
   </AlertDetails>
 </Alert>
@@ -273,7 +305,8 @@ does not shrink to `sm`.
 - Dismiss is an IconButton with `aria-label="Dismiss"`. After dismiss, move
   focus to a sensible place (the control that caused the Alert, or the main
   heading) — do not dump focus to `body`.
-- Do not nest interactive content other than Action and Dismiss.
+- Do not nest interactive content other than Action, the code copy button,
+  Details and Dismiss.
 - Do not use Radix Alert Dialog here. Alert Dialog is a modal. This
   component never blocks the page.
 
@@ -281,7 +314,7 @@ does not shrink to `sm`.
 
 | Key | Action |
 | --- | --- |
-| `Tab` / `Shift+Tab` | Move between Action and Dismiss (and the rest of the page). |
+| `Tab` / `Shift+Tab` | Move between the code copy button, Action, Details and Dismiss (and the rest of the page). |
 | `Enter` / `Space` | Activate the focused Button / IconButton (including Dismiss). |
 
 ## Terminal
@@ -341,6 +374,7 @@ There is **no** Radix primitive for in-page Alert.
 | Dismiss | Alert renders an [IconButton](icon-button.md) from `onDismiss`; shadcn has no dedicated dismiss slot |
 | Details | Kiso `AlertDetails`, a disclosure; shadcn has no equivalent |
 | Label, Message, Meta | Kiso `AlertLabel`, `AlertMessage`, `AlertMeta`; shadcn has no equivalent |
+| Code, Help, Evidence, Note | Kiso `AlertCode`, `AlertHelp`, `AlertEvidence` with `AlertLine`, `AlertNote`; shadcn has no equivalent |
 | `error` | shadcn `variant="destructive"` restyled to `--color-danger` (border/icon). Only `appearance="loud"` fills it with `--color-danger-solid` |
 | `info` / `success` / `warning` | shadcn `default` plus the matching `--color-info`, `--color-success`, or `--color-warning` — **not** the shadcn "Custom Colors" utility-class example (`bg-amber-50`, etc.) |
 
