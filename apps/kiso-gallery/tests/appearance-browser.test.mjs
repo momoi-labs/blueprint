@@ -453,7 +453,7 @@ for (const colorScheme of ["light", "dark"]) test(`Alert has one live preview fo
       await controls.getByRole("combobox", { name: "Severity", exact: true }).selectOption(severity);
       assert.equal(await alert.getAttribute("role"), "note");
       assert.equal((await code.textContent()).split("\n")[0], `<Alert${severity === "info" ? "" : ` variant="${severity}"`}${appearance === "rail" ? ' appearance="rail"' : ""} role="note">`);
-      assert.equal(await alert.locator(".alert-title").textContent(), { info: "Maintenance tonight", success: "Failover complete", warning: "Replication lag", error: "Database unreachable" }[severity]);
+      assert.equal(await alert.locator(".alert-label").textContent(), { info: "Info · Maintenance tonight", success: "Success · Failover complete", warning: "Warning · Disk almost full", error: "Error · Database unreachable" }[severity]);
       assert.equal(await alert.evaluate(el => el.classList.contains("alert-rail")), appearance === "rail");
       if (screenshots) await page.screenshot({ path: `${screenshots}/gallery-alert-${appearance}-${severity}-${colorScheme}.png` });
     }

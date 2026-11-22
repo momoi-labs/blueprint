@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { CircleCheck, CircleX, Info, TriangleAlert } from "lucide-react";
-import { Alert, AlertContent, AlertDescription, AlertDetails, AlertLabel, AlertMessage, AlertMeta, AlertTitle, Button, CodeBlock, type AlertTape } from "@momoi-labs/kiso-react";
+import { Alert, AlertCode, AlertContent, AlertDetails, AlertEvidence, AlertHelp, AlertLabel, AlertLine, AlertMessage, AlertNote, Button, CodeBlock, type AlertTape } from "@momoi-labs/kiso-react";
 import { tsx } from "./code-highlight";
 import { useDemoOptions } from "./demo-settings";
 
@@ -25,52 +25,40 @@ export const alertShareOptions: Record<keyof AlertOptions, readonly string[]> = 
   content: ["simple", "detailed", "full", "short", "long", "rich"],
 };
 
-const copy = {
-  info: ["Maintenance tonight", "storefront-demo restarts at 23:00 UTC for a minor upgrade."],
-  success: ["Failover complete", "replica-2 is now the primary."],
-  warning: ["Replication lag", "replica-2 is 48 seconds behind the primary."],
-  error: ["Database unreachable", "The primary refuses connections from the app servers."],
-} as const;
-
-const details = "Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches.";
-
-const long = {
-  info: ["Maintenance tonight at 23:00 UTC", "The primary and every replica in eu-west-1 restart for the upgrade to Postgres 17.4. Connections drop for about 2 minutes. Clients that retry reconnect on their own."],
-  success: ["Failover complete", "replica-2 is now the primary for every branch in eu-west-1. Writes came back after 3 retries, within 30 seconds. The old primary is fenced. Rebuild it as a replica when you are ready."],
-  warning: ["Replication lag above the limit", "replica-2 is 48 seconds behind the primary, and the limit is 30. Reads on 3 branches may return stale rows until it catches up. Writes are not affected."],
-  error: ["Database unreachable", "The primary in eu-west-1 refuses connections from every app server after 3 retries. Checkout and account pages return 503. Reads fall back to replica-1 and may be stale."],
-} as const;
-const host = "primary-replica-02.eu-west-1.internal:5432";
-
-const rich = {
-  info: {
-    label: "Notice · Maintenance", message: "storefront-demo restarts at 23:00 UTC", meta: "21:30:00 · minor upgrade · about 2 minutes down",
-    facts: [["Version", "Postgres 17.3 to 17.4"], ["Window", "23:00 to 23:05 UTC"], ["Branches", "main, preview-412, preview-418"]],
-    log: ["21:30:00.000 INFO  upgrade scheduled for 23:00 UTC", "21:30:00.112 INFO  replicas restart first, primary last"],
-  },
-  success: {
-    label: "Resolved · Failover", message: "replica-2 is now the primary", meta: "10:58:12 · writes restored · 4 minutes down",
-    facts: [["Primary", "replica-2"], ["Fenced", "the old primary"], ["Branches", "main, preview-412, preview-418"]],
-    log: ["10:58:11.904 INFO  promote replica-2: done", "10:58:12.010 INFO  fence old primary: done", "10:58:12.233 INFO  writes accepted on replica-2"],
+const diagnostics = {
+  error: {
+    label: "Error · Database unreachable", code: "db-unreachable", message: "Checkout cannot reach the primary database",
+    help: "Fail over to replica-03.", action: "Fail over", source: "primary-replica-02.eu-west-1.internal:5432", since: "4 minutes ago, at 10:54:31",
+    lines: [["10:54:31", "pool connect refused", "first failure", true], ["10:54:31", "retry 3/3 failed", "gave up here", false], ["10:54:32", "products.list 503", "what users see", false]],
+    note: "Checkout returns 503 until the primary accepts connections.",
   },
   warning: {
-    label: "Warning · Replication lag", message: "replica-2 is 48 seconds behind", meta: "10:52:07 · reads may be stale · clears on its own",
-    facts: [["Replica", "replica-2"], ["Lag", "48 seconds, limit 30"], ["Since", "10:46:12, 6 minutes ago"], ["Branches", "main, preview-412, preview-418"]],
-    log: ["10:46:12.481 WARN  replica-2 lag 31s", "10:49:08.007 WARN  replica-2 lag 39s", "10:52:07.315 WARN  replica-2 lag 48s"],
+    label: "Warning · Disk almost full", code: "disk-almost-full", message: "The primary disk is 92% full",
+    help: "Grow the volume before it reaches 100%.", action: "Grow to 200 GB", source: "primary-replica-02 · /var/lib/postgresql", since: "1 hour 30 minutes ago, at 09:10",
+    lines: [["09:10", "disk usage 80%", "crossed the warning line", false], ["10:38", "WAL archive 3 GB behind", "why it grows", true], ["10:40", "disk usage 92%", "now", false]],
+    note: "At this rate the disk is full in about 2 hours.",
   },
-  error: {
-    label: "Critical · Database unreachable", message: "The primary refuses connections", meta: "10:54:31 · checkout returns 503",
-    facts: [["Host", host], ["Error", "connection refused after 3 retries"], ["Since", "10:54:31, 3 minutes ago"], ["Request", "req_8f2c41d07a"]],
-    log: [`10:54:31.204 ERROR pool: connect ${host} refused`, "10:54:31.512 WARN  retry 3/3 in 300 ms", "10:54:32.118 ERROR trpc:products.list 503 (req_8f2c41d07a)"],
+  info: {
+    label: "Info · Maintenance tonight", code: "maint-window", message: "Writes pause for 5 minutes at 23:00 UTC",
+    help: "Finish long imports before 22:50.", action: "Show schedule", source: "eu-west-1 · all primaries", since: "Planned 2 days ago",
+    lines: [["22:50", "last import start", "last safe start", true], ["23:00", "writes paused", "window opens", false], ["23:05", "writes resume", "window closes", false]],
+    note: "Reads keep working the whole time.",
+  },
+  success: {
+    label: "Success · Failover complete", code: "failover-done", message: "Checkout writes to replica-03 again",
+    help: "Rebuild primary-02 as a replica.", action: "Rebuild primary-02", source: "replica-03.eu-west-1.internal:5432", since: "1 minute ago, at 10:58:24",
+    lines: [["10:58:02", "failover started", "you clicked Fail over", false], ["10:58:21", "replica-03 promoted", "new primary", true], ["10:58:24", "checkout 200", "users recovered", false]],
+    note: "Checkout was down for 3 minutes 53 seconds.",
   },
 } as const;
+const details = "Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches.";
 const legacyContent: Record<string, AlertOptions["content"]> = { short: "simple", long: "detailed", rich: "full" };
 const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert", error: "CircleX" } as const;
 
 export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, extras, content }: AlertOptions) {
   const loud = appearance === "loud";
   const full = loud || placement === "overlay" || extras === "on" || content === "full";
-  const [title, description] = content === "detailed" ? long[variant] : copy[variant];
+  const d = diagnostics[variant];
   const props = [
     variant !== "info" && `variant="${variant}"`,
     appearance !== "tinted" && `appearance="${appearance}"`,
@@ -80,23 +68,26 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
     placement !== "inline" && `placement="${placement}"`,
     !full && `role="note"`,
     full && "onDismiss={dismiss}",
+    content === "full" && `labels={{ show: "Show evidence", hide: "Hide evidence" }}`,
   ].filter(Boolean);
-  const r = rich[variant];
-  const body = content === "full"
-    ? [`    <AlertLabel>${r.label}</AlertLabel>`, `    <AlertMessage>${r.message}</AlertMessage>`, `    <AlertMeta>${r.meta}</AlertMeta>`]
-    : [`    <AlertTitle>${title}</AlertTitle>`, `    <AlertDescription>${description}</AlertDescription>`, ...(content === "detailed" ? [`    <AlertDescription><code>${host}</code></AlertDescription>`] : [])];
+  const head = content === "simple"
+    ? [`    <AlertLabel>${d.label}</AlertLabel>`]
+    : ["    <div className=\"alert-head\">", `      <AlertLabel>${d.label}</AlertLabel>`, `      <AlertCode code="${d.code}" />`, "    </div>"];
+  const help = content === "full"
+    ? [`    <AlertHelp action={<Button size="sm" onClick={fix}>${d.action}</Button>}>${d.help}</AlertHelp>`]
+    : content === "detailed" ? [`    <AlertHelp>${d.help}</AlertHelp>`] : [];
   const more = content === "full"
     ? [
         "  <AlertDetails>",
         "    <div className=\"stack-sm\">",
-        "      <dl className=\"kv\">",
-        ...r.facts.flatMap(([term, value]) => [`        <dt>${term}</dt><dd>${value}</dd>`]),
+        "      <dl className=\"alert-facts\">",
+        `        <dt>source</dt><dd><samp>${d.source}</samp></dd>`,
+        `        <dt>since</dt><dd>${d.since}</dd>`,
         "      </dl>",
-        `      <pre>{\`${r.log.join("\n")}\`}</pre>`,
-        "      <div className=\"row-wrap\">",
-        "        <Button size=\"sm\" onClick={retry}>Retry</Button>",
-        "        <a href=\"/runbooks/database\">Open the runbook</a>",
-        "      </div>",
+        `      <AlertEvidence origin="${d.source}">`,
+        ...d.lines.map(([at, event, label, primary]) => `        <AlertLine at="${at}"${primary ? " role=\"primary\"" : ""} label="${label}">${event}</AlertLine>`),
+        "      </AlertEvidence>",
+        `      <AlertNote>${d.note}</AlertNote>`,
         "    </div>",
         "  </AlertDetails>",
       ]
@@ -105,7 +96,9 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
     `<Alert${props.length ? " " + props.join(" ") : ""}>`,
     ...(loud ? [] : [`  <${iconName[variant]} className="icon" aria-hidden="true" />`]),
     "  <AlertContent>",
-    ...body,
+    ...head,
+    `    <AlertMessage>${d.message}</AlertMessage>`,
+    ...help,
     "  </AlertContent>",
     ...more,
     "</Alert>",
@@ -130,8 +123,7 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
     </div>
   );
   const show = () => { setShown(current => placement === "overlay" ? [...current, next] : [next]); setNext(n => n + 1); };
-  const r = rich[severity];
-  const [title, description] = content === "detailed" ? long[severity] : copy[severity];
+  const d = diagnostics[severity];
   return <div className="stack">
     <div className="demo-settings-inline demo-control-bar" role="group" aria-label="Alert options">
       {select("appearance", "Appearance", [["tinted", "Tinted"], ["rail", "Start border"], ["loud", "Loud"]])}
@@ -156,25 +148,27 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
         aria-labelledby={`${id}-${key}-title`}
         aria-describedby={`${id}-${key}-description`}
         onDismiss={full ? () => setShown(current => current.filter(item => item !== key)) : undefined}
+        labels={content === "full" ? { show: "Show evidence", hide: "Hide evidence" } : undefined}
       >
         {!loud && <SeverityIcon className="icon" aria-hidden="true" />}
-        {content === "full" ? <AlertContent>
-          <AlertLabel id={`${id}-${key}-title`}>{r.label}</AlertLabel>
-          <AlertMessage id={`${id}-${key}-description`}>{r.message}</AlertMessage>
-          <AlertMeta>{r.meta}</AlertMeta>
-        </AlertContent> : <AlertContent>
-          <AlertTitle id={`${id}-${key}-title`}>{title}</AlertTitle>
-          <AlertDescription id={`${id}-${key}-description`}>{description}</AlertDescription>
-          {content === "detailed" && <AlertDescription><code>{host}</code></AlertDescription>}
-        </AlertContent>}
+        <AlertContent>
+          {content === "simple" ? <AlertLabel id={`${id}-${key}-title`}>{d.label}</AlertLabel> : <div className="alert-head">
+            <AlertLabel id={`${id}-${key}-title`}>{d.label}</AlertLabel>
+            <AlertCode code={d.code} />
+          </div>}
+          <AlertMessage id={`${id}-${key}-description`}>{d.message}</AlertMessage>
+          {content !== "simple" && <AlertHelp action={content === "full" ? <Button size="sm">{d.action}</Button> : undefined}>{d.help}</AlertHelp>}
+        </AlertContent>
         {content === "full" ? <AlertDetails>
           <div className="stack-sm">
-            <dl className="kv">{r.facts.map(([term, value]) => [<dt key={`${term}-t`}>{term}</dt>, <dd key={`${term}-d`}>{value}</dd>])}</dl>
-            <pre>{r.log.join("\n")}</pre>
-            <div className="row-wrap">
-              <Button size="sm">Retry</Button>
-              <a href="#components/alert">Open the runbook</a>
-            </div>
+            <dl className="alert-facts">
+              <dt>source</dt><dd><samp>{d.source}</samp></dd>
+              <dt>since</dt><dd>{d.since}</dd>
+            </dl>
+            <AlertEvidence origin={d.source}>
+              {d.lines.map(([at, event, label, primary]) => <AlertLine key={`${at}-${event}`} at={at} role={primary ? "primary" : undefined} label={label}>{event}</AlertLine>)}
+            </AlertEvidence>
+            <AlertNote>{d.note}</AlertNote>
           </div>
         </AlertDetails> : full && <AlertDetails>
           <div className="alert-body">{details} <a href="#components/alert">Open the incident page</a>.</div>
