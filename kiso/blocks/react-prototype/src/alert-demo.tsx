@@ -26,41 +26,42 @@ export const alertShareOptions: Record<keyof AlertOptions, readonly string[]> = 
 };
 
 const copy = {
-  info: ["Maintenance tonight", "storefront-demo will restart at 23:00 UTC for a minor upgrade."],
-  success: ["Failover complete", "storefront-demo.-.replica-2 is now the primary."],
-  warning: ["Replication lag", "storefront-demo.-.replica-2 is 48s behind the primary (limit 30s)."],
-  error: ["Database error", "target: storefront-demo.-.primary: connection refused"],
+  info: ["Maintenance tonight", "storefront-demo restarts at 23:00 UTC for a minor upgrade."],
+  success: ["Failover complete", "replica-2 is now the primary."],
+  warning: ["Replication lag", "replica-2 is 48 seconds behind the primary."],
+  error: ["Database unreachable", "The primary refuses connections from the app servers."],
 } as const;
 
 const details = "Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches.";
 
 const long = {
-  info: ["Maintenance tonight on storefront-demo.-.primary and every replica in the eu-west-1 region", "target: storefront-demo-eu-west-1.-.primary-replica-02.internal:5432 will restart at 23:00 UTC for a minor upgrade to 17.4. Connections drop for about two minutes. Clients that retry reconnect on their own."],
-  success: ["Failover complete: storefront-demo.-.replica-2 is now the primary for every branch in eu-west-1", "target: storefront-demo-eu-west-1.-.primary-replica-02.internal:5432 accepted writes after 3 retries (timeout 30000ms). The old primary is fenced. Rebuild it as a replica when you are ready."],
-  warning: ["Replication lag on storefront-demo.-.replica-2 is above the limit for reads on 3 branches", "target: storefront-demo-eu-west-1.-.primary-replica-02.internal:5432: lag 48s after 3 checks (limit 30000ms). Reads may return stale rows until the replica catches up. Writes are not affected."],
-  error: ["Database error: storefront-demo.-.primary refuses connections from every app server in eu-west-1", "target: storefront-demo-eu-west-1.-.primary-replica-02.internal:5432: connection refused after 3 retries (timeout 30000ms). The app returns 503 for checkout and account pages. Reads fall back to replica-1 and may be stale."],
+  info: ["Maintenance tonight at 23:00 UTC", "The primary and every replica in eu-west-1 restart for the upgrade to Postgres 17.4. Connections drop for about 2 minutes. Clients that retry reconnect on their own."],
+  success: ["Failover complete", "replica-2 is now the primary for every branch in eu-west-1. Writes came back after 3 retries, within 30 seconds. The old primary is fenced. Rebuild it as a replica when you are ready."],
+  warning: ["Replication lag above the limit", "replica-2 is 48 seconds behind the primary, and the limit is 30. Reads on 3 branches may return stale rows until it catches up. Writes are not affected."],
+  error: ["Database unreachable", "The primary in eu-west-1 refuses connections from every app server after 3 retries. Checkout and account pages return 503. Reads fall back to replica-1 and may be stale."],
 } as const;
+const host = "primary-replica-02.eu-west-1.internal:5432";
 
 const rich = {
   info: {
-    label: "Notice · Maintenance", message: "storefront-demo restarts at 23:00 UTC", meta: "21:30:00 · minor upgrade · about 2 min downtime",
-    facts: [["Version", "17.3 → 17.4"], ["Window", "23:00 to 23:05 UTC"], ["Branches", "main, preview-412, preview-418"]],
+    label: "Notice · Maintenance", message: "storefront-demo restarts at 23:00 UTC", meta: "21:30:00 · minor upgrade · about 2 minutes down",
+    facts: [["Version", "Postgres 17.3 to 17.4"], ["Window", "23:00 to 23:05 UTC"], ["Branches", "main, preview-412, preview-418"]],
     log: ["21:30:00.000 INFO  upgrade scheduled for 23:00 UTC", "21:30:00.112 INFO  replicas restart first, primary last"],
   },
   success: {
-    label: "Resolved · Failover", message: "replica-2 is now the primary", meta: "10:58:12 · writes restored · 4 min outage",
-    facts: [["Primary", "storefront-demo.-.replica-2"], ["Fenced", "storefront-demo.-.primary"], ["Branches", "main, preview-412, preview-418"]],
+    label: "Resolved · Failover", message: "replica-2 is now the primary", meta: "10:58:12 · writes restored · 4 minutes down",
+    facts: [["Primary", "replica-2"], ["Fenced", "the old primary"], ["Branches", "main, preview-412, preview-418"]],
     log: ["10:58:11.904 INFO  promote replica-2: done", "10:58:12.010 INFO  fence old primary: done", "10:58:12.233 INFO  writes accepted on replica-2"],
   },
   warning: {
-    label: "Warning · Replication lag", message: "replica-2 lag 48s exceeds 30s threshold", meta: "10:52:07 · reads may be stale · auto-resolves",
-    facts: [["Replica", "storefront-demo.-.replica-2"], ["Lag", "48s (limit 30s)"], ["Since", "10:46:12 (6 min)"], ["Branches", "main, preview-412, preview-418"]],
+    label: "Warning · Replication lag", message: "replica-2 is 48 seconds behind", meta: "10:52:07 · reads may be stale · clears on its own",
+    facts: [["Replica", "replica-2"], ["Lag", "48 seconds, limit 30"], ["Since", "10:46:12, 6 minutes ago"], ["Branches", "main, preview-412, preview-418"]],
     log: ["10:46:12.481 WARN  replica-2 lag 31s", "10:49:08.007 WARN  replica-2 lag 39s", "10:52:07.315 WARN  replica-2 lag 48s"],
   },
   error: {
-    label: "Critical · Database error", message: "target: storefront-demo.-.primary: connection refused", meta: "10:54:31 · storefront refusing requests",
-    facts: [["Code", "errno 1054 · sqlstate 42S22"], ["Request", "req_8f2c41d07a"], ["Since", "10:54:31 (3 min)"], ["Branches", "main, preview-412, preview-418"]],
-    log: ["10:54:31.204 ERROR pool: connect storefront-demo.-.primary:5432 refused", "10:54:31.512 WARN  retry 3/3 in 300ms", "10:54:32.118 ERROR trpc:products.list 503 (req_8f2c41d07a)"],
+    label: "Critical · Database unreachable", message: "The primary refuses connections", meta: "10:54:31 · checkout returns 503",
+    facts: [["Host", host], ["Error", "connection refused after 3 retries"], ["Since", "10:54:31, 3 minutes ago"], ["Request", "req_8f2c41d07a"]],
+    log: [`10:54:31.204 ERROR pool: connect ${host} refused`, "10:54:31.512 WARN  retry 3/3 in 300 ms", "10:54:32.118 ERROR trpc:products.list 503 (req_8f2c41d07a)"],
   },
 } as const;
 const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert", error: "CircleX" } as const;
@@ -68,7 +69,7 @@ const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert
 export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, extras, content }: AlertOptions) {
   const loud = appearance === "loud";
   const full = loud || placement === "overlay" || extras === "on" || content === "rich";
-  const [title, description] = content === "long" ? long[variant] : full ? copy[variant] : [variant[0].toUpperCase() + variant.slice(1), "Review the configuration and its effect on concurrent operations."];
+  const [title, description] = content === "long" ? long[variant] : copy[variant];
   const props = [
     variant !== "info" && `variant="${variant}"`,
     appearance !== "tinted" && `appearance="${appearance}"`,
@@ -82,7 +83,7 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
   const r = rich[variant];
   const body = content === "rich"
     ? [`    <AlertLabel>${r.label}</AlertLabel>`, `    <AlertMessage>${r.message}</AlertMessage>`, `    <AlertMeta>${r.meta}</AlertMeta>`]
-    : [`    <AlertTitle>${title}</AlertTitle>`, `    <AlertDescription>${description}</AlertDescription>`];
+    : [`    <AlertTitle>${title}</AlertTitle>`, `    <AlertDescription>${description}</AlertDescription>`, ...(content === "long" ? [`    <AlertDescription><code>${host}</code></AlertDescription>`] : [])];
   const more = content === "rich"
     ? [
         "  <AlertDetails>",
@@ -128,7 +129,7 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
   );
   const show = () => { setShown(current => placement === "overlay" ? [...current, next] : [next]); setNext(n => n + 1); };
   const r = rich[severity];
-  const [title, description] = content === "long" ? long[severity] : full ? copy[severity] : [severity[0].toUpperCase() + severity.slice(1), "Review the configuration and its effect on concurrent operations."];
+  const [title, description] = content === "long" ? long[severity] : copy[severity];
   return <div className="stack">
     <div className="demo-settings-inline demo-control-bar" role="group" aria-label="Alert options">
       {select("appearance", "Appearance", [["tinted", "Tinted"], ["rail", "Start border"], ["loud", "Loud"]])}
@@ -162,6 +163,7 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
         </AlertContent> : <AlertContent>
           <AlertTitle id={`${id}-${key}-title`}>{title}</AlertTitle>
           <AlertDescription id={`${id}-${key}-description`}>{description}</AlertDescription>
+          {content === "long" && <AlertDescription><code>{host}</code></AlertDescription>}
         </AlertContent>}
         {content === "rich" ? <AlertDetails>
           <div className="stack-sm">

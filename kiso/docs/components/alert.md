@@ -80,11 +80,11 @@ Alert
   dismissible Alerts.
 - **Label, Message and Meta.** Optional slots for an incident with a
   machine message. `AlertLabel` is a caps kicker that names severity and
-  kind ("Critical · Database error"). `AlertMessage` is the message itself,
-  in mono at `--type-size-body-large` (`--type-size-body` below 40rem).
-  `AlertMeta` is a caps mono line with the time and the impact ("10:54:31 ·
-  storefront refusing requests"), in `--color-muted-foreground`, or 85% of
-  the loud foreground on a loud fill. Use Label and Message in place of
+  kind ("Critical · Database unreachable"). `AlertMessage` is the message
+  itself, in mono at `--type-size-body-large` (`--type-size-body` below
+  40rem). `AlertMeta` is a caps mono line with the time and the impact
+  ("10:54:31 · checkout returns 503"), in `--color-muted-foreground`, or 85%
+  of the loud foreground on a loud fill. Use Label and Message in place of
   Title and Description, not next to them.
 
 ## Variants
@@ -171,8 +171,8 @@ and on the gradient top.
 ```tsx
 <Alert variant="error" appearance="loud" onDismiss={clear}>
   <AlertContent>
-    <AlertTitle>Database error</AlertTitle>
-    <AlertDescription>storefront-demo.-.primary: connection refused</AlertDescription>
+    <AlertTitle>Database unreachable</AlertTitle>
+    <AlertDescription>The primary refuses connections from the app servers.</AlertDescription>
   </AlertContent>
   <AlertDetails>
     <div className="alert-body">Since 10:46 UTC. Affects reads on 3 branches.</div>
@@ -189,9 +189,9 @@ facts, log lines in a `pre`, and the recovery actions in a `.row-wrap`.
 ```tsx
 <Alert variant="error" appearance="loud" onDismiss={clear}>
   <AlertContent>
-    <AlertLabel>Critical · Database error</AlertLabel>
-    <AlertMessage>target: storefront-demo.-.primary: connection refused</AlertMessage>
-    <AlertMeta>10:54:31 · storefront refusing requests</AlertMeta>
+    <AlertLabel>Critical · Database unreachable</AlertLabel>
+    <AlertMessage>The primary refuses connections</AlertMessage>
+    <AlertMeta>10:54:31 · checkout returns 503</AlertMeta>
   </AlertContent>
   <AlertDetails>
     <div className="stack-sm">
@@ -199,7 +199,7 @@ facts, log lines in a `pre`, and the recovery actions in a `.row-wrap`.
         <dt>Request</dt><dd>req_8f2c41d07a</dd>
         <dt>Branches</dt><dd>main, preview-412, preview-418</dd>
       </dl>
-      <pre>{`10:54:31.204 ERROR pool: connect storefront-demo.-.primary:5432 refused`}</pre>
+      <pre>{`10:54:31.204 ERROR pool: connect primary-replica-02.eu-west-1.internal:5432 refused`}</pre>
       <div className="row-wrap">
         <Button size="sm" onClick={retry}>Retry</Button>
         <a href="/runbooks/database">Open the runbook</a>
