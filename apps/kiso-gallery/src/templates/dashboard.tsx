@@ -37,11 +37,11 @@ const attention = [
 /* The overview follows the dashboard pattern: the month in the page header,
    a cluster of metrics, panels the reader can move and resize, and a short
    "needs attention" table that links into the projects list. */
-export function DashboardLayout() {
+export function DashboardLayout({ theme, onThemeChange }: { theme: string; onThemeChange: (theme: string) => void }) {
   const paneLayout = usePaneLayout("kiso-overview-pane-layout");
   const range = useReportRange();
   return (
-    <WorkspacePreview page="Overview">
+    <WorkspacePreview page="Overview" theme={theme} onThemeChange={onThemeChange}>
       <PageHeader actions={<>
         {range.control}
         <Button size="sm"><RefreshCw className="icon icon-sm" aria-hidden="true" /> Refresh</Button>

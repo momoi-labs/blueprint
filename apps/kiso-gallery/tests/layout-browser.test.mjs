@@ -290,7 +290,7 @@ for (const background of ["momoi", "momoi-repeat", "grid", "fibers", "solid"]) t
     return { drawn: style.content !== "none", mask: style.maskImage, image: style.backgroundImage, repeat: style.maskRepeat, color: style.backgroundColor, opacity: style.opacity,
       paper: getComputedStyle(element).backgroundColor };
   };
-  for (const [example, selector] of [["login", ".layout-login"], ["dashboard", ".layout-shell"]]) {
+  for (const [example, selector] of [["login", ".layout-login"], ["dashboard", ".app-shell"]]) {
     const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
     try {
@@ -393,7 +393,7 @@ for (const width of [1440, 390]) for (const theme of ["light", "dark"]) test(`La
     await page.waitForFunction(() => document.documentElement.dataset.backgroundStyle === "momoi");
     // The dialog draws the example in a frame of its own.
     const frame = page.frameLocator(".layout-dialog iframe");
-    await frame.locator('html[data-background-style="momoi"] .layout-shell').waitFor();
+    await frame.locator('html[data-background-style="momoi"] .app-shell').waitFor();
     const shells = root => [...root.ownerDocument.querySelectorAll(".app-shell")].map(el => [el.className, getComputedStyle(el, "::before").content]);
     const layers = [...await page.locator("html").evaluate(shells), ...await frame.locator("html").evaluate(shells)];
     assert(layers.length >= 2, "The preview shell is drawn beside the page shell");
