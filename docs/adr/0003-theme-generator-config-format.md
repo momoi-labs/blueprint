@@ -27,7 +27,7 @@ The gallery needs a format a person can import from a project, edit, and export 
 ```
 
 - `v`: 3. Version 1 and 2 stay readable (`readShare` already handles both, `appearance-share.ts:82-91`).
-- `kiso`: the pinned `@momoi-labs/kiso` and `@momoi-labs/kiso-react` versions of the project, so the generator can warn about fields the pinned release does not support. Optional.
+- `kiso`: the pinned `@momoi-labs/kiso` and `@momoi-labs/kiso-react` versions of the project, so the generator can warn about fields the pinned release does not support. Required for a project config. A gallery share has no project, so it may omit it.
 - `appearance` and `structure`: flat maps of field name to value. The split follows the inventory (section 2). A field that is not present is **unset**. It is not the gallery default.
 - `appearance.phone`: the six phone overrides, with the `phone` prefix dropped, as `appearanceCode` already does (`appearance-settings.ts:72-74`). Absence means "inherit". They are exported.
 - `theme` is not part of the format. Projects take it from the reader at runtime.
@@ -50,9 +50,9 @@ The field split:
 The way back is two functions, both pure.
 
 - **Export to HTML.** Write `data-<kebab-case-key>="<value>"` for each present field, as `appearanceCode` does (`appearance-settings.ts:75-77`). Never write `theme`. Write no attribute for an unset field. Phone overrides are written in the JavaScript form (`appearance-settings.ts:84-87`).
-- **Import from HTML.** Read every `data-*` on `<html>` whose name is a gallery field. Put it in `appearance` or `structure`. Keep other attributes in a `rest` list and write them back unchanged. Do not fill missing fields from defaults. An absent attribute means the project uses Kiso's CSS fallback, which differs from the gallery default (for example `kiso/ui.css:2483` for the shadow).
+- **Import from HTML.** Read every `data-*` on `<html>` whose name is an exported gallery field. Put it in `appearance` or `structure`. Keep all other attributes, including `data-theme`, `data-header-width`, `data-landing-bands` and unknown ones, in a `rest` list and write them back unchanged. Do not fill missing fields from defaults. An absent attribute means the project uses Kiso's CSS fallback, which differs from the gallery default (for example `kiso/ui.css:2483` for the shadow).
 - **interview-kit's object form** (`interview-kit/web/src/routes/__root.tsx:19-50`) keeps its look in a JS object, not in `index.html`. How to import and export it is not decided here. See Decisions.
-- **Check against the 11 projects.** All 38 attributes of every project map without loss (inventory section 6). The test is: import each project's file, export, and compare attribute sets. That is the "100% of configs" gate for attributes. It does not cover CSS variable overrides (interview-kit fonts and muted text, self-host chart colors, inventory section 6), which the format does not carry. The generator must leave project CSS alone. The 11 gallery presets are the second gate: share, read, compare.
+- **Check against the 11 projects.** Every exported attribute of every project maps without loss (inventory section 6). The test is: import each project's file, export, and compare attribute sets, with `rest` attributes compared as passed through. That is the "100% of configs" gate for attributes. It does not cover CSS variable overrides (interview-kit fonts and muted text, self-host chart colors, inventory section 6), which the format does not carry. The generator must leave project CSS alone. The 11 gallery presets are the second gate: share, read, compare.
 
 ## Rust and the TUI preset
 
