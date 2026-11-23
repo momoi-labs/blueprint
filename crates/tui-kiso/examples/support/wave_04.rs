@@ -7,7 +7,7 @@ use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 use tui_kiso::{
-    Alert, AlertLine, Badge, Button, Card, CardVariant, EmptyState, Link, LinkState, Separator, Size, Skeleton, Spinner, Stat, Theme, Toast,
+    Alert, AlertLine, AlertSide, Badge, Button, Card, CardVariant, EmptyState, Link, LinkState, Separator, Size, Skeleton, Spinner, Stat, Theme, Toast,
     Tone,
 };
 
@@ -124,20 +124,15 @@ pub const DIAGNOSTICS: [(&str, Diagnostic); 4] = [
     }),
 ];
 
-/// One loud alert of the web demo's copy: `level` 0 is the label and the
-/// message, 1 adds the code and the help with its action, 2 adds the
-/// facts, the evidence and the note.
-pub fn loud_alert_page(t: &Theme, buf: &mut Buffer, area: Rect, level: usize, severity: usize) {
-    let choice = |name: &'static str, on: bool| {
-        let style = if on { t.selected().add_modifier(Modifier::BOLD) } else { t.muted() };
-        Span::styled(format!(" {name} "), style)
-    };
-    let mut levels = vec![Span::styled("Level    ", t.muted())];
-    levels.extend(LEVELS.iter().enumerate().map(|(i, name)| choice(name, i == level)));
-    put(buf, area, 0, Line::from(levels));
-    let mut severities = vec![Span::styled("Severity ", t.muted())];
-    severities.extend(DIAGNOSTICS.iter().enumerate().map(|(i, (name, _))| choice(name, i == severity)));
-    put(buf, area, 1, Line::from(severities));
+/// Where the loud alert page draws the alert: in the page, or as a bar over
+/// the whole screen.
+pub const POSITIONS: [(&str, Option<AlertSide>); 4] =
+    [("Inline", None), ("Top", Some(AlertSide::Top)), ("Middle", Some(AlertSide::Middle)), ("Bottom", Some(AlertSide::Bottom))];
+
+/// One loud alert of the web demo's copy, given to `draw`: `level` 0 is the
+/// label and the message, 1 adds the code and the help with its action, 2
+/// adds the facts, the evidence and the note.
+pub fn loud_alert(t: &Theme, level: usize, severity: usize, draw: impl FnOnce(Alert)) {
     let d = &DIAGNOSTICS[severity].1;
     let facts = [("source", d.source), ("since", d.since)];
     let lines = d.lines.map(|(at, event, label, primary)| {
@@ -151,8 +146,32 @@ pub fn loud_alert_page(t: &Theme, buf: &mut Buffer, area: Rect, level: usize, se
     if level >= 2 {
         alert = alert.facts(&facts).lines(&lines).note(d.note);
     }
-    if let Some(rect) = inside(area, 0, 3, area.width, alert.height(area.width)) {
-        alert.render(rect, buf);
+    draw(alert);
+}
+
+/// The choices of the page, and the alert when it is inline. The gallery
+/// draws it over the screen at the other positions.
+pub fn loud_alert_page(t: &Theme, buf: &mut Buffer, area: Rect, (level, severity, position): (usize, usize, usize)) {
+    let choice = |name: &'static str, on: bool| {
+        let style = if on { t.selected().add_modifier(Modifier::BOLD) } else { t.muted() };
+        Span::styled(format!(" {name} "), style)
+    };
+    let names = [
+        ("Level    ", LEVELS.to_vec(), level),
+        ("Severity ", DIAGNOSTICS.iter().map(|(name, _)| *name).collect(), severity),
+        ("Position ", POSITIONS.iter().map(|(name, _)| *name).collect(), position),
+    ];
+    for (dy, (title, items, chosen)) in names.into_iter().enumerate() {
+        let mut row = vec![Span::styled(title, t.muted())];
+        row.extend(items.into_iter().enumerate().map(|(i, name)| choice(name, i == chosen)));
+        put(buf, area, dy as u16, Line::from(row));
+    }
+    if POSITIONS[position].1.is_none() {
+        loud_alert(t, level, severity, |alert| {
+            if let Some(rect) = inside(area, 0, 4, area.width, alert.height(area.width)) {
+                alert.render(rect, buf);
+            }
+        });
     }
 }
 
