@@ -592,7 +592,7 @@ test("The examples dialog follows the app and shows the code of the page in view
     await page.waitForFunction(() => window.location.hash === "#example/reports");
     await dialog.getByRole("tab", { name: "Code", exact: true }).click();
     assert(await dialog.getByRole("radio", { name: "reports.tsx", exact: true }).isChecked());
-    assert.equal(await dialog.getByRole("radio", { name: /^Terminal/ }).count(), 0, "Reports has no terminal screen");
+    assert(await dialog.getByRole("radio", { name: /^Terminal/ }).isVisible(), "Reports has its terminal code");
     await dialog.getByRole("combobox", { name: /^Page/ }).click();
     await page.getByRole("option", { name: "Products", exact: true }).click();
     await dialog.getByRole("radio", { name: "crud.tsx", exact: true }).waitFor();
@@ -605,5 +605,43 @@ test("The examples dialog follows the app and shows the code of the page in view
     assert(await frame.getByRole("heading", { level: 1, name: "Kunai, classic", exact: true }).isVisible(), "The preview keeps its state behind the Code tab");
     await dialog.getByRole("radio", { name: "TUI", exact: true }).check();
     await dialog.locator(".tui-screen, .layout-stage pre").first().waitFor();
+  } finally { await page.close(); }
+});
+
+test("An app page opens with the preview in place and no scroller moved", async () => {
+  const page = await open(1440, "default", "light");
+  try {
+    await page.goto(`${url}#example/charts`);
+    const frame = page.frameLocator(".layout-dialog iframe");
+    const place = async heading => {
+      await frame.getByRole("heading", { level: 1, name: heading, exact: true }).waitFor();
+      await page.waitForTimeout(300);
+      return page.evaluate(() => {
+        const preview = document.querySelector(".layout-dialog iframe");
+        const scrolled = root => [...root.querySelectorAll("*")].filter(element => element.scrollTop > 0).length;
+        return { top: Math.round(preview.getBoundingClientRect().top), scrolled: scrolled(document) + scrolled(preview.contentDocument) };
+      });
+    };
+    const first = await place("Charts");
+    assert.equal(first.scrolled, 0, "Charts opens at the top");
+    for (const name of ["Products", "Reports", "Overview", "Charts"]) {
+      await frame.locator(".app-shell .sidebar").getByRole("link", { name, exact: true }).click();
+      assert.deepEqual(await place(name), first, `${name} keeps the preview where Charts had it`);
+    }
+    await page.getByRole("dialog").getByRole("radio", { name: "TUI", exact: true }).check();
+    await page.locator(".layout-dialog .tui-screen").first().waitFor();
+  } finally { await page.close(); }
+});
+
+test("The terminal switch shows Reports and each monthly report", async () => {
+  const page = await open(1440, "default", "light");
+  try {
+    for (const [route, text] of [["reports", "Monthly reports"], ["report/2026-08", "Tabi & Smoke, August 2026"]]) {
+      await page.goto(`${url}#example/${route}`);
+      await page.reload();
+      const dialog = page.getByRole("dialog");
+      await dialog.getByRole("radio", { name: "TUI", exact: true }).check();
+      await dialog.locator(".tui-screen").filter({ hasText: text }).waitFor();
+    }
   } finally { await page.close(); }
 });

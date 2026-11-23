@@ -129,7 +129,7 @@
 .hero-panel[data-front="true"] { z-index: 4; }
 /* The lifted hero shadow is the automatic look. A selected shadow style replaces it. */
 .hero-panel .card { background-color: color-mix(in srgb, var(--color-elevated-surface) calc((1 - var(--pixel-enabled, 0)) * (1 - var(--appearance-expressive, 0)) * 100%), transparent); box-shadow: var(--panel-shadow-legacy, var(--appearance-frame-shadow, var(--corner-frame-shadow, var(--shadow-sm), var(--shadow-lg)))) var(--panel-shadow-projection, var(--panel-shadow-paint)); }
-.studio-landing .hero-panel h2 { font-size: var(--type-size-h3); letter-spacing: -.02em; }
+.studio-landing .hero-panel h2, .studio-landing .studio-scene > .card h2 { font-size: var(--type-size-h3); letter-spacing: -.02em; }
 .hero-panel .card-header, .hero-panel .card-body, .hero-panel .card-footer { padding: var(--spacing-lg); }
 .hero-panel .card-header + .card-body { padding-block-start: var(--spacing-sm); }
 .hero-panel-row { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-sm); font-size: var(--type-size-label); }

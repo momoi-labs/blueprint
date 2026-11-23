@@ -2,11 +2,11 @@ import { useState, type ReactNode } from "react";
 import { ChartLine, FileText, LayoutDashboard, Package, type LucideIcon } from "lucide-react";
 import {
   Badge,
-  BrandMark,
   ConsoleShell,
   Dot,
   type ConsoleCrumb,
 } from "@momoi-labs/kiso-react";
+import { ShopMark } from "./shop-mark";
 import { ChartsLayout } from "./charts";
 import { ProductScreens, consoleLayouts, consoleScreens, crudPath, defaultLayout, readTab, type ConsoleScreen, type DetailTab } from "./crud";
 import { DashboardLayout } from "./dashboard";
@@ -89,10 +89,10 @@ export function ShopApp({ path, onNavigate, theme, onThemeChange }: {
   return (
     <ConsoleShell
       navigationLabel={`${shopName} back office`}
-      brandMark={<BrandMark>✦</BrandMark>}
+      brandMark={<ShopMark />}
       brand={
         <div className="brand">
-          <BrandMark>✦</BrandMark>
+          <ShopMark />
           <div>
             <p className="t-label">{shopName}</p>
             <p className="muted t-label">Ninja supply, back office</p>

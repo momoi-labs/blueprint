@@ -1,9 +1,4 @@
-import componentOrbit from "../component-orbit.tsx?raw";
-import foundationLab from "../foundation-lab.tsx?raw";
 import landingCss from "../landing.css?raw";
-import heroPanels from "../hero-panels.tsx?raw";
-import shellAssembly from "../shell-assembly.tsx?raw";
-import landing from "../intro.tsx?raw";
 import login from "./login.tsx?raw";
 import crud from "./crud.tsx?raw";
 import dashboard from "./dashboard.tsx?raw";
@@ -12,6 +7,8 @@ import report from "./report.tsx?raw";
 import reports from "./reports.tsx?raw";
 import shop from "./shop.tsx?raw";
 import shopData from "./shop-data.tsx?raw";
+import shopMark from "./shop-mark.tsx?raw";
+import storefront from "./storefront.tsx?raw";
 import screensRs from "../../../../crates/tui-kiso/examples/screens.rs?raw";
 
 export const docsUrl = "https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/";
@@ -89,7 +86,7 @@ export type SourceFile = { name: string; path: string; language: "tsx" | "rust" 
 const react = (name: string, code: string, dir = "apps/kiso-gallery/src/templates/"): SourceFile => ({ name, path: dir + name, language: "tsx", code });
 const rust = (id: string): SourceFile => ({ name: "screens.rs", path: "crates/tui-kiso/examples/screens.rs", language: "rust", code: terminal(id) });
 
-const app = [react("shop.tsx", shop), react("shop-data.tsx", shopData)];
+const app = [react("shop.tsx", shop), react("shop-data.tsx", shopData), react("shop-mark.tsx", shopMark)];
 
 export const templates = [
   {
@@ -135,7 +132,7 @@ export const templates = [
     pattern: "report.md",
     states: [],
     components: (["ConsoleShell", "PageHeader", "Table", "Link"] as const).map(component),
-    files: [react("reports.tsx", reports), ...app],
+    files: [react("reports.tsx", reports), ...app, rust("reports")],
   },
   {
     id: "report",
@@ -144,17 +141,17 @@ export const templates = [
     pattern: "report.md",
     states: [],
     components: (["ConsoleShell", "PageHeader", "Button", "Card", "Stat", "Disclosure", "DashboardGrid", "Chart", "Meter", "Table", "Badge"] as const).map(component),
-    files: [react("report.tsx", report), ...app],
+    files: [react("report.tsx", report), ...app, rust("report")],
   },
   {
     id: "landing",
     label: "Landing page",
-    description: "The Kiso introduction: a compact hero with an interface in perspective, live component examples in the opposite theme and a closing call to action.",
+    description: "The public page of Tabi & Smoke: a hero with the shelf of the week, three products in the opposite theme and a closing call to action with the staff sign in.",
     pattern: "page-layout.md",
     webOnly: true,
     states: [],
-    components: (["Card", "Badge", "Button", "FormField", "Input", "Table", "Meter", "Switch", "Steps"] as const).map(component),
-    files: [react("intro.tsx", landing, "apps/kiso-gallery/src/"), react("hero-panels.tsx", heroPanels, "apps/kiso-gallery/src/"), react("foundation-lab.tsx", foundationLab, "apps/kiso-gallery/src/"), react("component-orbit.tsx", componentOrbit, "apps/kiso-gallery/src/"), react("shell-assembly.tsx", shellAssembly, "apps/kiso-gallery/src/"), { name: "landing.css", path: "apps/kiso-gallery/src/landing.css", language: "css", code: landingCss }],
+    components: (["Button", "Card", "Table", "StatusBadge"] as const).map(component),
+    files: [react("storefront.tsx", storefront), react("shop-data.tsx", shopData), react("shop-mark.tsx", shopMark), { name: "landing.css", path: "apps/kiso-gallery/src/landing.css", language: "css", code: landingCss }],
   },
 ] as const;
 

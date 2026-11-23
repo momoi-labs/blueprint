@@ -22,6 +22,7 @@
 - `FoundationLab` compares light and dark tokens with a draggable light boundary.
 - `HeroPanels` composes three interactive examples, with the project summary in front.
 - `ShellAssembly` builds a header, sidebar and content from switches. Steps shows which pieces are on. It assembles once, on the first visit.
+- `ShopMark` is the Tabi & Smoke seal, traced from the approved raster as one path in `currentColor` with cutouts, so it follows the theme. `small` drops the frame and the cloud for 16 px.
 
 ## Product rules
 
@@ -43,6 +44,11 @@ where section backgrounds stop: Inside frame (default) keeps them within the
 outer frame, so its border, ink and shadow stay whole; Full width reaches the
 shell edges over the frame. Full, Contained and alignment apply to inner content. The closing links use a light violet section. The hero uses the approved A + E + B stack, with E in front, click to reveal
 and a 6px float that pauses on interaction and respects reduced motion.
+The layout examples use the full page width on every page of the application,
+so the content starts at the same place beside the sidebar.
+In a list, `.cell-secondary` marks a column that the detail view repeats. At
+640 px and below these columns are removed, and the identifier and the status
+stay, as the table contract asks.
 
 ## Pattern choices
 
@@ -51,7 +57,7 @@ and a 6px float that pauses on interaction and respects reduced motion.
 | Gallery shell | Application shell |
 | Introduction and landing layout | Compact landing composition: split hero with a component card in perspective, three live examples in the inverse theme and accent CTA. Uses page layout as a width reference. No marketing pattern contract yet. |
 | Components | Interactive component catalog, no catalog pattern |
-| Layout examples | One application, Tabi & Smoke, on ConsoleShell: login, dashboard, report and CRUD patterns with ListPage, FormPage and DetailPage. The landing page stays apart. |
+| Layout examples | One application, Tabi & Smoke, on ConsoleShell: login, dashboard, report and CRUD patterns with ListPage, FormPage and DetailPage. The landing page stays apart: the public page of the same shop, on the landing composition of the Introduction, and its sign in opens the login. |
 
 ## Exceptions
 

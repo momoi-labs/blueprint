@@ -60,14 +60,14 @@ function ProductsScreen({ products, width, go, open }: { products: Product[]; wi
     filters={<div className="list-filters"><Search aria-label="Search products" placeholder="Search by name or SKU" value={query} onChange={event => setQuery(event.target.value)} /></div>}
     count={`${rows.length} of ${products.length} products`}
   >
-    <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>SKU</TableHead><TableHead>Price</TableHead><TableHead>Stock</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+    <TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="cell-secondary">SKU</TableHead><TableHead className="cell-secondary">Price</TableHead><TableHead>Stock</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
     <TableBody>
       {rows.map(product => <TableRow key={product.sku}>
         <TableCell>
           <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
         </TableCell>
-        <TableCell className="mono">{product.sku}</TableCell>
-        <TableCell className="mono">{money(product.price)}</TableCell>
+        <TableCell className="mono cell-secondary">{product.sku}</TableCell>
+        <TableCell className="mono cell-secondary">{money(product.price)}</TableCell>
         <TableCell className="mono">{product.stock}</TableCell>
         <TableCell><StatusBadge tone={tone(product)}>{stockState(product)}</StatusBadge></TableCell>
       </TableRow>)}
