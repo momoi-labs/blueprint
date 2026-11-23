@@ -64,9 +64,9 @@
 /* At a desktop size the template's panels cover the corner and leave a
    fragment of the signature, so the shell skips it. The phone preview keeps
    it. */
-[data-background-style="momoi"] .layout-preview:not(.layout-phone-document *) > .app-shell.layout-shell::before { content: none; }
+[data-background-style="momoi"] .layout-preview:not(.layout-phone-document *) > .app-shell:has(.dashboard-grid)::before { content: none; }
 @media (min-width: 700px) {
-  [data-background-style="momoi"] .layout-phone-document .layout-preview > .app-shell.layout-shell::before { content: none; }
+  [data-background-style="momoi"] .layout-phone-document .layout-preview > .app-shell:has(.dashboard-grid)::before { content: none; }
 }
 
 /* The inset main owns the frame between the canvas and both rails. */

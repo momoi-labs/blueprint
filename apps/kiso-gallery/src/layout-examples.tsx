@@ -292,6 +292,11 @@ function LayoutExample({ route }: { route: string }) {
       <LayoutPreview route="example/report" paper><ReportLayout /></LayoutPreview>
     </section>
   );
+  return <WorkspaceExample template={selected} />;
+}
+
+function WorkspaceExample({ template: selected }: { template: Template }) {
+  const { theme, setTheme } = useContext(DeviceContext);
   return (
     <section aria-label={selected.label}>
       <div className="layout-preview-caption">
@@ -301,7 +306,7 @@ function LayoutExample({ route }: { route: string }) {
         </div>
       </div>
       <LayoutPreview route={`example/${selected.id}`} tui={{ page: selected.id, state: "default" }}>
-        {selected.id === "dashboard" ? <DashboardLayout /> : <ChartsLayout />}
+        {selected.id === "dashboard" ? <DashboardLayout theme={theme} onThemeChange={setTheme} /> : <ChartsLayout theme={theme} onThemeChange={setTheme} />}
       </LayoutPreview>
     </section>
   );

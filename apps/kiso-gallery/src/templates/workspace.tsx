@@ -1,16 +1,10 @@
 import type { ReactNode } from "react";
 import { FileText, Folder, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 import {
-  ApplicationShell,
   Badge,
   BrandMark,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   Button,
+  ConsoleShell,
   Dot,
 } from "@momoi-labs/kiso-react";
 
@@ -30,30 +24,28 @@ function LayoutIcon({ name }: { name: string }) {
 
 export function WorkspacePreview({
   page,
-  parent,
+  theme,
+  onThemeChange,
   children,
 }: {
   page: string;
-  parent?: { label: string; onClick: () => void };
+  theme: string;
+  onThemeChange: (theme: string) => void;
   children: ReactNode;
 }) {
   const destination = (label: string, icon: string, trailing?: ReactNode) => ({
     href: `#example/${icon}`,
     label,
-    active: (parent?.label ?? page) === label,
+    active: page === label,
     leading: <LayoutIcon name={icon} />,
     trailing,
     // A static preview: the links show where a page would go.
     onClick: () => {},
   });
   return (
-    <ApplicationShell
-      className="layout-shell"
-      // A preview of a whole application: it draws the chosen background
-      // itself, as it does when it is the page in the phone preview.
-      data-background-canvas=""
-      phoneNavigation="bottom"
+    <ConsoleShell
       navigationLabel="Example workspace"
+      brandMark={<BrandMark>N</BrandMark>}
       brand={
         <div className="brand">
           <BrandMark>N</BrandMark>
@@ -75,45 +67,26 @@ export function WorkspacePreview({
           destination("Help & resources", "reports"),
         ] },
       ]}
-      footer={
-        <div className="layout-account">
-          <BrandMark>A</BrandMark>
-          <div>
-            <p className="t-label">Alex Morgan</p>
-            <p className="muted t-label">Personal account</p>
-          </div>
-        </div>
-      }
-      header={<>
-        <Breadcrumb aria-label="Example location">
-          <BreadcrumbList>
-            <BreadcrumbItem>Workspace</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            {parent && <>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`#${parent.label}`} onClick={event => { event.preventDefault(); parent.onClick(); }}>{parent.label}</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-            </>}
-            <BreadcrumbItem>
-              <BreadcrumbPage>{page}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="row">
-          <Badge variant="neutral">Pro plan</Badge>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="btn-icon"
-            aria-label="Example notifications"
-          >
-            <span aria-hidden="true">◇</span>
-          </Button>
-        </div>
+      breadcrumb={[{ label: "Workspace" }, { label: page }]}
+      status={<>
+        <Badge variant="neutral">Pro plan</Badge>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="btn-icon"
+          aria-label="Example notifications"
+        >
+          <span aria-hidden="true">◇</span>
+        </Button>
       </>}
+      account={{
+        identity: "Alex Morgan",
+        theme,
+        onThemeChange,
+        onSignOut: () => {},
+      }}
     >
-      <div className="layout-content">{children}</div>
-    </ApplicationShell>
+      {children}
+    </ConsoleShell>
   );
 }

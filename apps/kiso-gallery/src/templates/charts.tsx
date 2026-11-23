@@ -21,12 +21,12 @@ import { WorkspacePreview } from "./workspace";
 /* Charts and diagrams on one page: the time range the charts share, a line
    chart, a stacked area, gauges and a sparkline, and a diagram of the systems
    the team ships to. Drag across a chart to narrow the range. */
-export function ChartsLayout() {
+export function ChartsLayout({ theme, onThemeChange }: { theme: string; onThemeChange: (theme: string) => void }) {
   const paneLayout = usePaneLayout("kiso-reports-pane-layout");
   const { control, within, formatDay, select } = useReportRange();
   const shown = within(activity);
   return (
-    <WorkspacePreview page="Reports">
+    <WorkspacePreview page="Reports" theme={theme} onThemeChange={onThemeChange}>
       <PageHeader actions={control}>
         <PageHeaderTitle asChild><h2>Reports</h2></PageHeaderTitle>
         <PageHeaderDescription>Throughput and delivery in the range, and the systems the team ships to.</PageHeaderDescription>
