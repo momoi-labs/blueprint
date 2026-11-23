@@ -65,6 +65,7 @@
   container-type: inline-size;
   background: var(--color-background);
 }
+.layout-preview > .app-shell > main > .page { padding-block-end: 0; }
 .layout-between {
   display: flex;
   align-items: center;
