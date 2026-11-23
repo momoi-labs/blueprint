@@ -11,6 +11,7 @@ type AlertOptions = {
   animated: "off" | "on";
   pulse: "off" | "on";
   placement: "inline" | "overlay";
+  side: "top" | "middle" | "bottom";
   extras: "off" | "on";
   content: "simple" | "detailed" | "full";
 };
@@ -21,6 +22,7 @@ export const alertShareOptions: Record<keyof AlertOptions, readonly string[]> = 
   animated: ["off", "on"],
   pulse: ["off", "on"],
   placement: ["inline", "overlay"],
+  side: ["top", "middle", "bottom"],
   extras: ["off", "on"],
   content: ["simple", "detailed", "full", "short", "long", "rich"],
 };
@@ -55,7 +57,7 @@ const details = "Since 10:46:12 UTC, 6 minutes. Affects reads on 3 branches.";
 const legacyContent: Record<string, AlertOptions["content"]> = { short: "simple", long: "detailed", rich: "full" };
 const iconName = { info: "Info", success: "CircleCheck", warning: "TriangleAlert", error: "CircleX" } as const;
 
-export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, extras, content }: AlertOptions) {
+export function alertSnippet({ appearance, variant, tape, animated, pulse, placement, side, extras, content }: AlertOptions) {
   const loud = appearance === "loud";
   const full = loud || placement === "overlay" || extras === "on" || content === "full";
   const d = diagnostics[variant];
@@ -66,6 +68,7 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
     loud && animated === "on" && "animated",
     loud && pulse === "on" && "pulse",
     placement !== "inline" && `placement="${placement}"`,
+    placement === "overlay" && side !== "top" && `side="${side}"`,
     !full && `role="note"`,
     full && "onDismiss={dismiss}",
     content === "full" && `labels={{ show: "Show evidence", hide: "Hide evidence" }}`,
@@ -107,9 +110,9 @@ export function alertSnippet({ appearance, variant, tape, animated, pulse, place
 
 export function AlertDemo({ usage = false }: { usage?: boolean }) {
   const id = useId();
-  const [stored, setOptions] = useDemoOptions<AlertOptions>("alert", { appearance: "tinted", variant: "info", tape: "default", animated: "off", pulse: "off", placement: "inline", extras: "off", content: "simple" });
+  const [stored, setOptions] = useDemoOptions<AlertOptions>("alert", { appearance: "tinted", variant: "info", tape: "default", animated: "off", pulse: "off", placement: "inline", side: "top", extras: "off", content: "simple" });
   const options = { ...stored, content: legacyContent[stored.content] ?? stored.content };
-  const { appearance, variant: severity, tape, animated, pulse, placement, extras, content } = options;
+  const { appearance, variant: severity, tape, animated, pulse, placement, side, extras, content } = options;
   const [shown, setShown] = useState<number[]>(placement === "inline" ? [0] : []);
   const [next, setNext] = useState(1);
   const SeverityIcon = { info: Info, success: CircleCheck, warning: TriangleAlert, error: CircleX }[severity];
@@ -132,18 +135,20 @@ export function AlertDemo({ usage = false }: { usage?: boolean }) {
       {select("animated", "Animated tape", [["off", "Off"], ["on", "On"]], !loud)}
       {select("pulse", "Icon pulse", [["off", "Off"], ["on", "On"]], !loud)}
       {select("placement", "Placement", [["inline", "Inline"], ["overlay", "Overlay"]])}
+      {select("side", "Position", [["top", "Top"], ["middle", "Middle"], ["bottom", "Bottom"]], placement !== "overlay")}
       {select("extras", "Details and dismiss", [["off", "Off"], ["on", "On"]], loud || placement === "overlay" || content === "full")}
       {select("content", "Content", [["simple", "Simple"], ["detailed", "Detailed"], ["full", "Full"]])}
     </div>
     {shown.map(key => (
       <Alert
-        key={`${key}-${placement}`}
+        key={`${key}-${placement}-${side}`}
         variant={severity}
         appearance={appearance}
         tape={tape === "default" ? undefined : tape}
         animated={animated === "on"}
         pulse={pulse === "on"}
         placement={placement}
+        side={side}
         role={full ? undefined : "note"}
         aria-labelledby={`${id}-${key}-title`}
         aria-describedby={`${id}-${key}-description`}
