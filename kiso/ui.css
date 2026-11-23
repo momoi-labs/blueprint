@@ -1059,6 +1059,10 @@ table.table {
 .alert-overlay:where(:not(.alert-loud)) { background-color: var(--color-surface); background-image: linear-gradient(var(--alert-surface, transparent), var(--alert-surface, transparent)); }
 .alert-rail.alert-overlay { background-image: none; }
 @keyframes alert-drop { from { transform: translateY(-100%); } }
+.alert-overlay[data-side="middle"] { inset-block: 50% auto; translate: 0 -50%; animation-name: alert-fade; }
+.alert-overlay[data-side="bottom"] { inset-block: auto var(--spacing-sm); animation-name: alert-rise; }
+@keyframes alert-fade { from { opacity: 0; } }
+@keyframes alert-rise { from { transform: translateY(100%); } }
 
 :is(.alert-loud, .toast-loud) {
   --loud-bg: var(--color-danger-solid);
@@ -1123,6 +1127,8 @@ table.table {
 @keyframes alert-tape-y { to { background-position: 0 var(--loud-tile); } }
 
 .alert-loud.alert-overlay { position: fixed; inset: 0 0 auto; border-radius: 0; max-block-size: 100dvh; overflow-y: auto; padding-inline: max(var(--spacing-md), calc((100% - 72rem) / 2)); }
+.alert-loud.alert-overlay[data-side="middle"] { inset-block: 50% auto; }
+.alert-loud.alert-overlay[data-side="bottom"] { inset-block: auto 0; }
 .alert-loud.alert-overlay:is([data-tape="start"], [data-tape="start-end"]) { padding-inline-start: max(calc(var(--spacing-md) + var(--loud-stripe)), calc((100% - 72rem) / 2)); }
 .alert-loud.alert-overlay[data-tape="start-end"] { padding-inline-end: max(calc(var(--spacing-md) + var(--loud-stripe)), calc((100% - 72rem) / 2)); }
 

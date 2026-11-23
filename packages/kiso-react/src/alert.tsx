@@ -66,6 +66,7 @@ function Alert({
   animated = false,
   pulse = false,
   placement = "inline",
+  side = "top",
   onDismiss,
   labels,
   role,
@@ -78,6 +79,7 @@ function Alert({
     animated?: boolean;
     pulse?: boolean;
     placement?: "inline" | "overlay";
+    side?: "top" | "middle" | "bottom";
     onDismiss?: () => void;
     labels?: AlertLabels;
   }) {
@@ -130,6 +132,7 @@ function Alert({
       data-variant={variant}
       data-appearance={appearance}
       data-placement={placement}
+      data-side={placement === "overlay" ? side : undefined}
       data-tape={loud ? resolvedTape : undefined}
       data-animated={loud && animated ? "true" : undefined}
       data-pulse={loud && pulse ? "true" : undefined}
