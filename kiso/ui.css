@@ -1453,7 +1453,7 @@ table.table {
 .sidebar-footer .settings-row { padding-inline: var(--spacing-sm); } /* match .nav-item's inset */
 .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr) auto; gap: var(--spacing-sm); align-items: start; }
 .sidebar-expanded-content { min-width: 0; display: grid; gap: var(--spacing-md); }
-.sidebar-link-icon { display: inline-flex; flex: none; }
+.sidebar-link-icon, .sidebar-link-trailing { display: inline-flex; flex: none; }
 .sidebar-toggle { justify-self: end; }
 /* Collapse belongs to the desktop rail. Narrow layouts keep navigation visible. */
 @media (min-width: 1024px) {
