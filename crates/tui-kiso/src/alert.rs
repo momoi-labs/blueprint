@@ -280,7 +280,7 @@ impl<'a> Alert<'a> {
         let (head, body, meta) = self.styles();
         let bold = head.add_modifier(Modifier::BOLD);
         let mut rows = Vec::new();
-        if self.taped() {
+        if self.loud {
             rows.push(Row::default());
         }
         let first = self.label.map_or_else(|| self.title.to_owned(), str::to_uppercase);
@@ -453,6 +453,24 @@ impl Widget for Alert<'_> {
                 put(buf, x, area.top(), "▄", fg);
             }
         }
+        if self.loud && area.height >= 3 && area.left() == buf.area.left() && area.right() == buf.area.right() {
+            let solid = t.color(self.solid().0);
+            let tape = t.color(t.tokens().tape);
+            for x in area.left()..area.right() {
+                let edge = x == area.left() || x + 1 == area.right();
+                for y in [area.top(), area.bottom() - 1] {
+                    if let Some(cell) = buf.cell_mut((x, y)) {
+                        if y == area.top() && self.taped() {
+                            cell.bg = if edge { tape } else { cell.fg };
+                            cell.set_symbol(" ");
+                        } else {
+                            cell.set_symbol(" ");
+                            cell.bg = solid;
+                        }
+                    }
+                }
+            }
+        }
         let inner = card.inner(area);
         if inner.is_empty() {
             return;
@@ -546,27 +564,45 @@ mod tests {
         let r = theme.tokens();
         let alert = Alert::new(&theme, Tone::Danger, "Database error").text("connection refused").loud();
         assert_eq!(alert.height(30), 2 + 1 + 1 + 1 + 1);
-        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 6));
-        alert.render(buf.area, &mut buf);
-        assert_eq!(row(&buf, 0), "▄".repeat(30));
+        let mut buf = Buffer::empty(Rect::new(0, 0, 31, 6));
+        alert.render(Rect::new(0, 0, 30, 6), &mut buf);
+        assert_eq!(row(&buf, 0), format!("{} ", "▄".repeat(30)));
         assert_eq!(buf[(1, 0)].fg, theme.color(r.tape));
         assert_eq!(buf[(2, 0)].fg, theme.color(r.danger_solid));
-        assert_eq!(row(&buf, 1), " ".repeat(30));
-        assert_eq!(row(&buf, 2), "  ! Database error            ");
+        assert_eq!(row(&buf, 1), " ".repeat(31));
+        assert_eq!(row(&buf, 2), "  ! Database error             ");
         assert_eq!(buf[(2, 2)].fg, theme.color(r.danger_solid));
         assert_eq!(buf[(2, 2)].bg, theme.color(r.danger_solid_foreground));
-        assert_eq!(row(&buf, 3), " ".repeat(30));
-        assert_eq!(row(&buf, 4), "    connection refused        ");
+        assert_eq!(row(&buf, 3), " ".repeat(31));
+        assert_eq!(row(&buf, 4), "    connection refused         ");
         assert_eq!(buf[(4, 4)].fg, theme.color(r.danger_solid_foreground));
         assert_eq!(buf[(20, 4)].bg, theme.color(r.danger_solid));
+    }
+
+    #[test]
+    fn a_loud_alert_across_the_whole_screen_closes_with_a_solid_row() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let r = theme.tokens();
+        let alert = Alert::new(&theme, Tone::Danger, "Database error").text("connection refused").loud();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 6));
+        alert.render(alert.area(buf.area, AlertSide::Top), &mut buf);
+        let solid = theme.color(r.danger_solid);
+        let height = alert.height(30);
+        assert_eq!(row(&buf, 0), " ".repeat(30));
+        for x in [0, 1, 29] {
+            assert_eq!(buf[(x, 0)].bg, theme.color(r.tape));
+            assert_eq!(buf[(x, height - 1)].bg, solid);
+        }
+        assert_eq!(buf[(2, 0)].bg, solid);
+        assert_eq!(row(&buf, height - 1), " ".repeat(30));
     }
 
     #[test]
     fn a_loud_warning_uses_the_triangle_on_the_yellow_fill_in_256_colors_too() {
         let theme = Theme::xterm_256(kiso_tokens::GOLD_LIGHT);
         let r = theme.tokens();
-        let mut buf = Buffer::empty(Rect::new(0, 0, 20, 4));
-        Alert::new(&theme, Tone::Warning, "Lag").loud().render(buf.area, &mut buf);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 21, 4));
+        Alert::new(&theme, Tone::Warning, "Lag").loud().render(Rect::new(0, 0, 20, 4), &mut buf);
         assert_eq!(buf[(2, 2)].symbol(), "▲");
         assert_eq!(buf[(2, 2)].fg, theme.color(r.warning_solid_foreground));
         assert_eq!(buf[(10, 2)].bg, theme.color(r.warning_solid));
@@ -577,11 +613,11 @@ mod tests {
     fn a_loud_info_has_no_tape() {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
         let alert = Alert::new(&theme, Tone::Info, "Maintenance tonight").loud();
-        assert_eq!(alert.height(30), 3);
-        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 3));
+        assert_eq!(alert.height(30), 4);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 4));
         alert.render(buf.area, &mut buf);
         assert!((0..30).all(|x| buf[(x, 0)].fg != theme.color(theme.tokens().tape)));
-        assert!(row(&buf, 1).contains("Maintenance tonight"));
+        assert!(row(&buf, 2).contains("Maintenance tonight"));
     }
 
     #[test]
