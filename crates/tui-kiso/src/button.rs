@@ -139,6 +139,10 @@ impl<'a> Button<'a> {
         }
     }
 
+    pub(crate) fn disabled(&self) -> bool {
+        self.state == ButtonState::Disabled
+    }
+
     /// The hotkey: the first letter or digit of the label, in lowercase.
     /// An icon before the label is not the hotkey.
     pub fn hotkey(&self) -> Option<char> {
