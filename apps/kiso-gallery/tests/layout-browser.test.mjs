@@ -527,3 +527,83 @@ test("The floating bar keeps one row over the content column with the settings p
     assert.equal(bar.outside, 0, "Tabs, search and the gear stay inside the bar");
   } finally { await page.close(); }
 });
+
+test("The shop app runs from sign in to sign out in one shell", async () => {
+  const page = await open(1440, "default", "light");
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  const shell = page.locator(".app-shell[data-shell-layout]");
+  const at = async (hash, heading) => {
+    await page.getByRole("heading", { level: 1, name: heading, exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => window.location.hash), hash);
+  };
+  try {
+    await page.goto(`${url}?phone-frame#example/login`);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await at("#example/dashboard", "Overview");
+    for (const [link, hash, heading] of [["Charts", "#example/charts", "Charts"], ["Reports", "#example/reports", "Reports"], ["Products", "#example/crud/list", "Products"]]) {
+      await shell.locator(".sidebar").getByRole("link", { name: link, exact: true }).click();
+      await at(hash, heading);
+      assert.equal((await shell.locator(".topbar [aria-current=page]").innerText()).trim(), heading, "The breadcrumb follows the page");
+    }
+    await page.getByRole("button", { name: "Create product", exact: true }).click();
+    await at("#example/crud/create", "New product");
+    await page.getByLabel("Name", { exact: true }).fill("Caltrops, pocket tin");
+    await page.getByLabel("SKU", { exact: true }).fill("CAL-0050");
+    await page.getByLabel("Price (USD)", { exact: true }).fill("9.50");
+    await page.getByRole("button", { name: "Create product", exact: true }).click();
+    await at("#example/crud/detail", "Caltrops, pocket tin");
+    await page.getByRole("tab", { name: "Orders", exact: true }).click();
+    await page.getByText("No orders yet").first().waitFor();
+    assert.equal(await page.evaluate(() => window.location.hash), "#example/crud/detail/full/orders");
+    await page.getByRole("button", { name: "Edit product", exact: true }).click();
+    await at("#example/crud/edit", "Edit Caltrops, pocket tin");
+    await shell.locator(".topbar").getByRole("link", { name: "Products", exact: true }).click();
+    await at("#example/crud/list", "Products");
+    await page.getByRole("link", { name: "Caltrops, pocket tin", exact: true }).waitFor();
+    await shell.locator(".sidebar").getByRole("link", { name: "Reports", exact: true }).click();
+    await page.getByRole("link", { name: "September 2026", exact: true }).click();
+    await at("#example/report/2026-09", "Tabi & Smoke, September 2026");
+    await page.emulateMedia({ media: "print" });
+    assert.equal(await shell.locator(".sidebar, .topbar").evaluateAll(parts => parts.filter(part => part.getClientRects().length).length), 0, "The printed report drops the shell");
+    await page.emulateMedia({ media: "screen" });
+    await shell.getByRole("button", { name: "Account", exact: true }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await page.locator(".layout-login").waitFor();
+    assert.equal(await page.evaluate(() => window.location.hash), "#example/login");
+    for (const [route, heading] of [["dashboard", "Overview"], ["crud", "Products"], ["crud/detail/full/nodes", "Shuriken, four point"], ["charts", "Charts"], ["report", "Tabi & Smoke, September 2026"]]) {
+      await page.goto(`${url}?phone-frame#example/${route}`);
+      await page.getByRole("heading", { level: 1, name: heading, exact: true }).waitFor();
+    }
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test("The examples dialog follows the app and shows the code of the page in view", async () => {
+  const page = await open(1440, "default", "light");
+  try {
+    await page.goto(`${url}#example`);
+    await page.locator(".layout-row").first().getByRole("link", { name: "Open app", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Tabi & Smoke", exact: true });
+    const frame = page.frameLocator(".layout-dialog iframe");
+    await frame.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForFunction(() => window.location.hash === "#example/dashboard");
+    await frame.locator(".app-shell .sidebar").getByRole("link", { name: "Reports", exact: true }).click();
+    await page.waitForFunction(() => window.location.hash === "#example/reports");
+    await dialog.getByRole("tab", { name: "Code", exact: true }).click();
+    assert(await dialog.getByRole("radio", { name: "reports.tsx", exact: true }).isChecked());
+    assert.equal(await dialog.getByRole("radio", { name: /^Terminal/ }).count(), 0, "Reports has no terminal screen");
+    await dialog.getByRole("combobox", { name: /^Page/ }).click();
+    await page.getByRole("option", { name: "Products", exact: true }).click();
+    await dialog.getByRole("radio", { name: "crud.tsx", exact: true }).waitFor();
+    assert(await dialog.getByRole("radio", { name: /^Terminal/ }).isVisible(), "Products keeps its terminal code");
+    await dialog.getByRole("tab", { name: "Preview", exact: true }).click();
+    await frame.getByRole("heading", { level: 1, name: "Products", exact: true }).waitFor();
+    await frame.getByRole("link", { name: "Kunai, classic", exact: true }).click();
+    await dialog.getByRole("tab", { name: "Code", exact: true }).click();
+    await dialog.getByRole("tab", { name: "Preview", exact: true }).click();
+    assert(await frame.getByRole("heading", { level: 1, name: "Kunai, classic", exact: true }).isVisible(), "The preview keeps its state behind the Code tab");
+    await dialog.getByRole("radio", { name: "TUI", exact: true }).check();
+    await dialog.locator(".tui-screen, .layout-stage pre").first().waitFor();
+  } finally { await page.close(); }
+});

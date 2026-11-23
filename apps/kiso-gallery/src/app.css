@@ -88,20 +88,6 @@
 .layout-stats .stat-value {
   margin-top: var(--spacing-sm);
 }
-.console-brand {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--color-accent-base);
-  font-weight: var(--type-weight-semibold);
-}
-.console-brand-symbol {
-  display: block;
-  flex: none;
-  inline-size: var(--size-control-sm);
-  block-size: var(--size-control-sm);
-  color: var(--color-accent-base);
-}
 /* Login: a context panel takes half the page beside the credential form.
    It is a page of its own, so it draws the chosen background itself. */
 .layout-login {

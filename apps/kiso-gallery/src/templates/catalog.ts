@@ -9,8 +9,9 @@ import crud from "./crud.tsx?raw";
 import dashboard from "./dashboard.tsx?raw";
 import charts from "./charts.tsx?raw";
 import report from "./report.tsx?raw";
-import reportData from "./report-data.tsx?raw";
-import workspace from "./workspace.tsx?raw";
+import reports from "./reports.tsx?raw";
+import shop from "./shop.tsx?raw";
+import shopData from "./shop-data.tsx?raw";
 import screensRs from "../../../../crates/tui-kiso/examples/screens.rs?raw";
 
 export const docsUrl = "https://github.com/momoi-labs/blueprint/blob/main/kiso/docs/";
@@ -88,53 +89,62 @@ export type SourceFile = { name: string; path: string; language: "tsx" | "rust" 
 const react = (name: string, code: string, dir = "apps/kiso-gallery/src/templates/"): SourceFile => ({ name, path: dir + name, language: "tsx", code });
 const rust = (id: string): SourceFile => ({ name: "screens.rs", path: "crates/tui-kiso/examples/screens.rs", language: "rust", code: terminal(id) });
 
+const app = [react("shop.tsx", shop), react("shop-data.tsx", shopData)];
+
 export const templates = [
   {
     id: "login",
     label: "Login",
-    description: "Sign in to the product. A gate before the application, with access help and recoverable errors.",
+    description: "Staff sign in to the back office, with access help and recoverable errors.",
     pattern: "login-authentication.md",
     states: ["Success", "Credentials refused", "Service failure", "Connection failure"],
     components: (["Card", "FormField", "PasswordInput", "Alert", "Button", "Spinner", "Disclosure", "Link"] as const).map(component),
-    files: [react("login.tsx", login), rust("login")],
-  },
-  {
-    id: "crud",
-    label: "CRUD",
-    description: "List, open, create and edit records in a console. Every screen keeps the title and the first block in the same place.",
-    pattern: "crud.md",
-    states: ["List", "Empty list", "Edit", "Edit with changes", "Create", "Detail"],
-    components: (["ConsoleShell", "ListPage", "FormPage", "DetailPage", "Search", "Table", "StatusBadge", "FormField", "KV", "Link"] as const).map(component),
-    files: [react("crud.tsx", crud), rust("crud")],
+    files: [react("login.tsx", login), ...app, rust("login")],
   },
   {
     id: "dashboard",
-    label: "Dashboard",
-    description: "A workspace overview: what needs attention, what is healthy and where to go next.",
+    label: "Overview",
+    description: "Sales and orders this month, and the products that need a restock.",
     pattern: "dashboard.md",
     states: [],
-    components: (["PageHeader", "TimeRangeControl", "Stat", "DashboardGrid", "Chart", "Meter", "BarGauge", "Table", "Badge", "Link"] as const).map(component),
-    files: [react("dashboard.tsx", dashboard), react("report-data.tsx", reportData), react("workspace.tsx", workspace), rust("dashboard")],
+    components: (["ConsoleShell", "PageHeader", "TimeRangeControl", "Stat", "DashboardGrid", "Chart", "Meter", "BarGauge", "Table", "Badge", "Link"] as const).map(component),
+    files: [react("dashboard.tsx", dashboard), ...app, rust("dashboard")],
+  },
+  {
+    id: "crud",
+    label: "Products",
+    description: "List, open, create and edit products. Every screen keeps its title in place.",
+    pattern: "crud.md",
+    states: ["List", "Empty list", "Edit", "Edit with changes", "Create", "Detail"],
+    components: (["ConsoleShell", "ListPage", "FormPage", "DetailPage", "Search", "Table", "StatusBadge", "FormField", "KV", "Link"] as const).map(component),
+    files: [react("crud.tsx", crud), ...app, rust("crud")],
   },
   {
     id: "charts",
-    label: "Charts & diagrams",
-    description: "Reports for a time range, and a map of the systems the team ships to.",
+    label: "Charts",
+    description: "Sales and stock trends for a time range, and a map of the shop systems.",
     pattern: "report.md",
     states: [],
-    components: (["PageHeader", "TimeRangeControl", "DashboardGrid", "Chart", "BarGauge", "Meter", "Sparkline", "Diagram"] as const).map(component),
-    files: [react("charts.tsx", charts), react("report-data.tsx", reportData), react("workspace.tsx", workspace), rust("charts")],
+    components: (["ConsoleShell", "PageHeader", "TimeRangeControl", "DashboardGrid", "Chart", "BarGauge", "Meter", "Sparkline", "Diagram"] as const).map(component),
+    files: [react("charts.tsx", charts), ...app, rust("charts")],
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    description: "The monthly reports of the shop. Each row opens one to read or print.",
+    pattern: "report.md",
+    states: [],
+    components: (["ConsoleShell", "PageHeader", "Table", "Link"] as const).map(component),
+    files: [react("reports.tsx", reports), ...app],
   },
   {
     id: "report",
-    label: "Report",
-    description: "A monthly report read in order and printed: a cover, then sections that each start a page. Print it to see the paper layout.",
+    label: "Monthly report",
+    description: "A report read in order and printed. Print it to see the paper layout.",
     pattern: "report.md",
-    // A document for paper: no phone or terminal view.
-    paper: true,
     states: [],
-    components: (["PageHeader", "Button", "Card", "Stat", "Disclosure", "DashboardGrid", "Chart", "Meter", "Table", "Badge"] as const).map(component),
-    files: [react("report.tsx", report)],
+    components: (["ConsoleShell", "PageHeader", "Button", "Card", "Stat", "Disclosure", "DashboardGrid", "Chart", "Meter", "Table", "Badge"] as const).map(component),
+    files: [react("report.tsx", report), ...app],
   },
   {
     id: "landing",

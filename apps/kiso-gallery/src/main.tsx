@@ -102,10 +102,10 @@ function App() {
   );
 }
 
-// Login and the report have no shell of their own. On a desktop they sit in
-// the gallery's shell, which carries the paper tone and background; alone, a
-// shell of their own gives them the same canvas.
-const ownShell = (route: string) => ["dashboard", "crud", "charts"].includes(route.split("/")[1] ?? "dashboard");
+// Login and the landing page have no shell of their own. On a desktop they
+// sit in the gallery's shell, which carries the paper tone and background;
+// alone, a shell of their own gives them the same canvas.
+const ownShell = (route: string) => ["dashboard", "crud", "charts", "reports", "report"].includes(route.split("/")[1] ?? "login");
 
 // The phone preview frame: the layout alone, following the gallery's saved
 // appearance as it changes in the parent page.
@@ -113,7 +113,16 @@ function PhoneFrame() {
   const [route, setRoute] = useState(() => window.location.hash.slice(1));
   const [settings, setSettings] = useState(readLook);
   useEffect(() => {
-    const navigate = () => setRoute(window.location.hash.slice(1));
+    const navigate = () => {
+      const next = window.location.hash.slice(1);
+      setRoute(next);
+      try {
+        const outer = window.parent.location;
+        if (window.parent !== window && next.startsWith("example/") && outer.hash.startsWith("#example/") && outer.hash !== `#${next}`) outer.hash = next;
+      } catch {
+        return;
+      }
+    };
     const appearance = () => { if (!frameLook) setSettings(window.kisoAppearance.save(window.kisoAppearance.read())); };
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
@@ -139,8 +148,8 @@ function Standalone() {
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
   }, []);
-  // Login and the report have no shell of their own; as in the phone frame,
-  // a shell lends them the paper colors.
+  // Login and the landing page have no shell of their own; as in the phone
+  // frame, a shell lends them the paper colors.
   const onThemeChange = (theme: string) => setSettings(keepLook({ ...settings, theme } as AppearanceSettings));
   const page = <div className="layout-standalone">
     <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />

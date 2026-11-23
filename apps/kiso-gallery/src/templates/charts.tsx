@@ -15,60 +15,59 @@ import {
   Sparkline,
 } from "@momoi-labs/kiso-react";
 import { usePaneLayout } from "../../../../kiso/blocks/react-prototype/src/use-pane-layout";
-import { activity, activitySeries, backlog, backlogSeries, openByOwner, useReportRange, whole } from "./report-data";
-import { WorkspacePreview } from "./workspace";
+import { sales, salesSeries, soldByCategory, stock, stockSeries, useReportRange, whole } from "./shop-data";
 
 /* Charts and diagrams on one page: the time range the charts share, a line
    chart, a stacked area, gauges and a sparkline, and a diagram of the systems
-   the team ships to. Drag across a chart to narrow the range. */
-export function ChartsLayout({ theme, onThemeChange }: { theme: string; onThemeChange: (theme: string) => void }) {
-  const paneLayout = usePaneLayout("kiso-reports-pane-layout");
+   behind the shop. Drag across a chart to narrow the range. */
+export function ChartsLayout() {
+  const paneLayout = usePaneLayout("kiso-charts-pane-layout");
   const { control, within, formatDay, select } = useReportRange();
-  const shown = within(activity);
+  const shown = within(sales);
   return (
-    <WorkspacePreview page="Reports" theme={theme} onThemeChange={onThemeChange}>
+    <>
       <PageHeader actions={control}>
-        <PageHeaderTitle asChild><h2>Reports</h2></PageHeaderTitle>
-        <PageHeaderDescription>Throughput and delivery in the range, and the systems the team ships to.</PageHeaderDescription>
+        <PageHeaderTitle>Charts</PageHeaderTitle>
+        <PageHeaderDescription>Sales and stock in the range, and the systems behind the shop.</PageHeaderDescription>
       </PageHeader>
-      <DashboardGrid aria-label="Reports" {...paneLayout}>
-        <DashboardPanel id="tasks" title="Tasks per day" size={8} min={4} expandable>
-          <Chart label="Tasks per day" data={shown} series={activitySeries} min={0} syncId="reports"
+      <DashboardGrid aria-label="Charts" {...paneLayout}>
+        <DashboardPanel id="orders" title="Orders per day" size={8} min={4} expandable>
+          <Chart label="Orders per day" data={shown} series={salesSeries} min={0} syncId="reports"
             formatTime={formatDay} formatValue={whole} onRangeSelect={select} />
         </DashboardPanel>
-        <DashboardPanel id="owners" title="Open tasks by owner" size={4} min={3}>
-          <BarGauge label="Open tasks by owner" rows={openByOwner} max={16} />
+        <DashboardPanel id="categories" title="Units sold by category" size={4} min={3}>
+          <BarGauge label="Units sold by category" rows={soldByCategory} max={120} />
         </DashboardPanel>
-        <DashboardPanel id="backlog" title="Backlog by status" size={8} min={4} newRow expandable>
-          <Chart label="Backlog by status" variant="stacked-area" data={within(backlog)} series={backlogSeries} min={0} syncId="reports"
+        <DashboardPanel id="stock" title="Stock by category" size={8} min={4} newRow expandable>
+          <Chart label="Units in stock by category" variant="stacked-area" data={within(stock)} series={stockSeries} min={0} syncId="reports"
             formatTime={formatDay} formatValue={whole} onRangeSelect={select} />
         </DashboardPanel>
-        <DashboardPanel id="delivery" title="On-time delivery" size={4} min={3}>
+        <DashboardPanel id="shipping" title="Shipping" size={4} min={3}>
           <div className="stack">
-            <Meter label="Delivered on time" value={94} max={100} valueText="94%" />
-            <Sparkline values={shown.map(sample => sample.values.completed)} height={48} min={0} tone="primary" fill
-              label="Tasks completed per day in the range" />
+            <Meter label="Orders shipped on time" value={96} max={100} valueText="96%" />
+            <Sparkline values={shown.map(sample => sample.values.orders)} height={48} min={0} tone="primary" fill
+              label="Orders per day in the range" />
           </div>
         </DashboardPanel>
-        <DashboardPanel id="pipeline" title="Delivery pipeline" size={12} newRow>
+        <DashboardPanel id="systems" title="Shop systems" size={12} newRow>
           {/* Top to bottom: four stages of two nodes fit the panel beside a
               sidebar and, on a phone, scroll inside the diagram. */}
           <Diagram direction="down"
-            label="Delivery pipeline: the website repository builds an image that runs as the web and worker services behind northstar.example, with a database and a failed cache">
+            label="Shop systems: the storefront repository builds an image that runs as the web and orders services behind tabiandsmoke.example, with a database and a failed cache">
             <DiagramRow>
-              <DiagramNode id="route" kind="route" title="northstar.example">https://northstar.example</DiagramNode>
-              <DiagramNode id="repo" kind="repository" title="northstar/website">{"github.com/northstar/website\nbranch: main"}</DiagramNode>
+              <DiagramNode id="route" kind="route" title="tabiandsmoke.example">https://tabiandsmoke.example</DiagramNode>
+              <DiagramNode id="repo" kind="repository" title="tabiandsmoke/storefront">{"git.tabiandsmoke.example/storefront\nbranch: main"}</DiagramNode>
             </DiagramRow>
             <DiagramRow>
-              <DiagramNode id="image" kind="image" title="website:2026.09.18">built 18 Sep, 142 MB</DiagramNode>
+              <DiagramNode id="image" kind="image" title="storefront:2026.09.18">built 18 Sep, 142 MB</DiagramNode>
             </DiagramRow>
             <DiagramRow>
-              <DiagramNode id="web" kind="service" title="northstar-web" accent>{"3 replicas\nport: 8000"}</DiagramNode>
-              <DiagramNode id="worker" kind="service" title="northstar-worker">1 replica</DiagramNode>
+              <DiagramNode id="web" kind="service" title="shop-web" accent>{"3 replicas\nport: 8000"}</DiagramNode>
+              <DiagramNode id="worker" kind="service" title="shop-orders">1 replica</DiagramNode>
             </DiagramRow>
             <DiagramRow>
-              <DiagramNode id="db" kind="database" title="northstar-db">{"postgres:17\nvolume: northstar-data"}</DiagramNode>
-              <DiagramNode id="cache" icon={Zap} label="Cache" title="northstar-cache" status="failed" borderStyle="dash">redis:7</DiagramNode>
+              <DiagramNode id="db" kind="database" title="shop-db">{"postgres:17\nvolume: shop-data"}</DiagramNode>
+              <DiagramNode id="cache" icon={Zap} label="Cache" title="shop-cache" status="failed" borderStyle="dash">redis:7</DiagramNode>
             </DiagramRow>
             <DiagramEdge from="repo" to="image" label="build" />
             <DiagramEdge from="route" to="web" label=":8000" />
@@ -79,6 +78,6 @@ export function ChartsLayout({ theme, onThemeChange }: { theme: string; onThemeC
           </Diagram>
         </DashboardPanel>
       </DashboardGrid>
-    </WorkspacePreview>
+    </>
   );
 }

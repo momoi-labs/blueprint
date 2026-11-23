@@ -26,35 +26,31 @@ import {
   TableRow,
 } from "@momoi-labs/kiso-react";
 import { usePaneLayout } from "../../../../kiso/blocks/react-prototype/src/use-pane-layout";
-import { activity, activitySeries, openByOwner, useReportRange, whole } from "./report-data";
-import { WorkspacePreview } from "./workspace";
+import { crudPath } from "./crud";
+import { sales, salesSeries, shopHref, soldByCategory, stockState, useReportRange, whole, type Product } from "./shop-data";
 
-const attention = [
-  ["Brand guidelines", "Blocked", "Waiting on the legal review", "3 days"],
-  ["Customer interviews", "Overdue", "Due Sep 12, 4 of 10 tasks open", "6 days"],
-];
-
-/* The overview follows the dashboard pattern: the month in the page header,
+/* The overview follows the dashboard pattern: the range in the page header,
    a cluster of metrics, panels the reader can move and resize, and a short
-   "needs attention" table that links into the projects list. */
-export function DashboardLayout({ theme, onThemeChange }: { theme: string; onThemeChange: (theme: string) => void }) {
+   "needs attention" table that links into the products list. */
+export function DashboardLayout({ products, go, open }: { products: Product[]; go: (path: string) => void; open: (sku: string) => void }) {
   const paneLayout = usePaneLayout("kiso-overview-pane-layout");
   const range = useReportRange();
+  const attention = products.filter(product => stockState(product) !== "In stock");
   return (
-    <WorkspacePreview page="Overview" theme={theme} onThemeChange={onThemeChange}>
+    <>
       <PageHeader actions={<>
         {range.control}
         <Button size="sm"><RefreshCw className="icon icon-sm" aria-hidden="true" /> Refresh</Button>
       </>}>
-        <PageHeaderTitle asChild><h2>Overview</h2></PageHeaderTitle>
-        <PageHeaderDescription>What needs attention, what is healthy and where to go next.</PageHeaderDescription>
+        <PageHeaderTitle>Overview</PageHeaderTitle>
+        <PageHeaderDescription>Sales and orders this month, and the products to restock.</PageHeaderDescription>
       </PageHeader>
       <Card className="layout-stats">
         {[
-          ["Active projects", "24", "+4", "4 projects started this month"],
-          ["Tasks completed", "186", "+18.6%", "32 more than last month"],
-          ["Team members", "12", "+2", "Across 3 working groups"],
-          ["On-time delivery", "94.2%", "+2.1%", "Above the 90% target"],
+          ["Revenue", "$18,420", "+12.4%", "$2,030 more than August"],
+          ["Orders", "312", "+9.1%", "26 more than August"],
+          ["Average order", "$59.04", "+3.0%", "$1.73 more than August"],
+          ["Shipped on time", "96%", "+2%", "Above the 95% target"],
         ].map(([label, value, delta, detail]) => (
           <Stat key={label}>
             <StatHeader>
@@ -66,41 +62,44 @@ export function DashboardLayout({ theme, onThemeChange }: { theme: string; onThe
           </Stat>
         ))}
       </Card>
-      <DashboardGrid aria-label="Workspace activity" {...paneLayout}>
-        <DashboardPanel id="activity" title="Tasks per day" size={8} min={4} expandable>
-          <Chart label="Tasks per day" data={range.within(activity)} series={activitySeries} min={0} summary={["avg", "current"]}
+      <DashboardGrid aria-label="Shop activity" {...paneLayout}>
+        <DashboardPanel id="activity" title="Orders per day" size={8} min={4} expandable>
+          <Chart label="Orders per day" data={range.within(sales)} series={salesSeries} min={0} summary={["avg", "current"]}
             formatTime={range.formatDay} formatValue={whole} onRangeSelect={range.select} />
         </DashboardPanel>
-        <DashboardPanel id="delivery" title="Delivery" size={4} min={3}>
+        <DashboardPanel id="delivery" title="Shipping" size={4} min={3}>
           <div className="stack">
-            <Meter label="Tasks delivered on time" value={94} max={100} valueText="94%" />
-            <BarGauge label="Open tasks by owner" rows={openByOwner} max={16} />
+            <Meter label="Orders shipped on time" value={96} max={100} valueText="96%" />
+            <BarGauge label="Units sold by category" rows={soldByCategory} max={120} />
           </div>
         </DashboardPanel>
         <DashboardPanel id="attention" title="Needs attention" size={12} newRow
-          actions={<Link className="t-label" href="#example/crud/list/success">View all projects</Link>}>
-          <Table aria-label="Projects that need attention">
+          actions={<Link className="t-label" href={shopHref(crudPath("list"))} onClick={event => { event.preventDefault(); go(crudPath("list")); }}>View all products</Link>}>
+          <Table aria-label="Products that need attention">
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
+                <TableHead>Product</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Issue</TableHead>
-                <TableHead>Since</TableHead>
+                <TableHead>In stock</TableHead>
+                <TableHead>Reorder at</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attention.map(([name, status, issue, since]) => (
-                <TableRow key={name}>
-                  <TableCell><Link href="#example/crud/detail/success">{name}</Link></TableCell>
-                  <TableCell><Badge variant={status === "Blocked" ? "danger" : "warning"}>{status}</Badge></TableCell>
-                  <TableCell>{issue}</TableCell>
-                  <TableCell className="mono">{since}</TableCell>
+              {attention.map(product => (
+                <TableRow key={product.sku}>
+                  <TableCell>
+                    <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
+                  </TableCell>
+                  <TableCell><Badge variant={product.stock === 0 ? "danger" : "warning"}>{stockState(product)}</Badge></TableCell>
+                  <TableCell className="mono">{product.stock}</TableCell>
+                  <TableCell className="mono">{product.reorder}</TableCell>
                 </TableRow>
               ))}
+              {attention.length === 0 && <TableRow><TableCell colSpan={4} className="muted">Every product is above its reorder point.</TableCell></TableRow>}
             </TableBody>
           </Table>
         </DashboardPanel>
       </DashboardGrid>
-    </WorkspacePreview>
+    </>
   );
 }
