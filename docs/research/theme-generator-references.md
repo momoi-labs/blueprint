@@ -15,9 +15,11 @@ session. Claims marked "(docs)" come from the tool's own docs or repository.
 - Four patterns repeat in 11 tools: a control panel on the left with a live
   preview on the right, presets as the first control, light and dark as one
   toggle, and export as a copy-paste dialog.
-- Only three tools have a real way back. tweakcn pastes CSS variables in. Ant
-  Design pastes its JSON config in. shadcn `create` reopens a short preset
-  code and can apply it to an existing project. Most tools export only.
+- Few tools have a way back, and only for their own format. tweakcn pastes
+  CSS variables in. Ant Design pastes its JSON config in. shadcn `create`
+  reopens a short preset code and can apply it to an existing project.
+  Material Theme Builder imports its own JSON export (docs). terminal.sexy
+  imports the same formats it exports. The other six tools have no import.
 - Two tools encode "only what you changed". Radix "Copy Theme" writes only the
   props that differ from the defaults. Ant Design shows a change counter. This
   is the closest match to ADR 0003's "unset" state. No tool shows unset as a
@@ -182,6 +184,7 @@ session. Claims marked "(docs)" come from the tool's own docs or repository.
 - Layout: a left drawer over the landing page.
 - Preview: the landing page blocks behind the drawer.
 - Import and export: only Reset in the drawer. No export seen.
+- Presets: none.
 - Light and dark: the site toggle.
 - Good for us: the drawer over a real page is the cheapest form.
 - Weak for us: no export, so no round trip.
@@ -199,6 +202,8 @@ session. Claims marked "(docs)" come from the tool's own docs or repository.
 - Export: code from the Export button. The dialog did not open in the
   headless run, so its content is not recorded here.
 - Good for us: the export step names the theme.
+- Presets: none seen.
+- Light and dark: no control in the designer. Not verified.
 - Weak for us: color only. No import.
 - Screenshot: `10-fluent-theme-designer.png`.
 
@@ -213,6 +218,7 @@ session. Claims marked "(docs)" come from the tool's own docs or repository.
 - Import: a format select (Xresources and others) and a paste box.
 - Export: the same formats.
 - Presets: a scheme browser.
+- Light and dark: no mode. A scheme is one palette, light or dark.
 - Good for us: import and export as two tabs of one panel, with a format
   select. A preview of real terminal screens.
 - Weak for us: palette only. Kiso's TUI uses accent names and a `Look`, not
@@ -268,7 +274,8 @@ preview on the right, and a top bar for import, changes and export.
 - Import and export: "Import" opens a dialog that takes a pasted `<html ...>`
   tag or share JSON. Fields the project does not set show as "unset" in the
   rail. "N changes" lists what differs from the import. "Export" has tabs:
-  HTML attributes, share JSON v3, Rust.
+  HTML attributes with the phone override script (ADR 0003, decision 5),
+  share JSON v3, Rust.
 - Preview: tabs for Dashboard, Form, Landing and TUI. Web and phone width.
 - Risk: the most UI to build. The rail must fit 44 fields, so it reuses the
   current tabs (Look, Layout, Frame, Canvas, Phone).
@@ -297,8 +304,9 @@ diff between the project and the edit, with the preview as a secondary pane.
 - Inspired by: shadcn "Existing Project" with scopes, Ant Design counter,
   Radix "only what changed".
 - Import and export: import is the first screen. The center column lists
-  every field as before, after, or unset. Export writes only the changed
-  attributes and keeps `rest` attributes as they were.
+  every field as before, after, or unset. Export writes every present field,
+  as ADR 0003 requires, and keeps `rest` attributes as they were. The diff is
+  for review only.
 - Preview: a smaller pane with before and after side by side.
 - Risk: weak for a new project with no file. Less visual. The user looks at
   a list more than at a page.
