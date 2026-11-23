@@ -195,11 +195,11 @@ for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the view
   } finally { await page.close(); }
 });
 
-test('Inset shell bottom fill reaches the bottom of a nested shell', async () => {
-  const page = await open('variant=inset');
+for (const width of [1440, 390]) test(`Inset shell bottom fill reaches the bottom of a nested shell at ${width}px`, async () => {
+  const page = await open('variant=inset', width);
   try {
     await page.evaluate(() => Object.assign(document.documentElement.dataset, { cornerStyle: 'rounded' }));
-    await page.locator('[data-slot="app-shell-main"]').first().evaluate(main => main.insertAdjacentHTML('afterbegin', '<div class="app-shell" id="nested" data-variant="inset" data-layout="topbar" style="min-height:0;height:300px"><main data-slot="app-shell-main"><div>Preview</div></main></div>'));
+    await page.locator('[data-slot="app-shell-main"]').first().evaluate(main => main.insertAdjacentHTML('afterbegin', '<div class="app-shell" id="nested" data-variant="inset" data-layout="topbar" style="min-height:0;height:300px"><main data-slot="app-shell-main"><div>Preview</div></main><nav class="bottom-nav" aria-label="Preview"></nav></div>'));
     const read = () => page.locator('#nested').evaluate(shell => {
       const main = shell.querySelector(':scope > main');
       const style = getComputedStyle(main);
@@ -207,7 +207,7 @@ test('Inset shell bottom fill reaches the bottom of a nested shell', async () =>
     });
     const plain = await read();
     assert(plain.gap > 1, 'Without the option the nested frame keeps its bottom margin');
-    assert.notEqual(plain.radius, '0px');
+    if (width > 700) assert.notEqual(plain.radius, '0px');
     for (const style of ['none', 'fade']) {
       await page.evaluate(style => Object.assign(document.documentElement.dataset, { shellBottom: 'fill', shellBottomStyle: style }), style);
       const fill = await read();
