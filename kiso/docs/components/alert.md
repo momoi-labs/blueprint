@@ -22,8 +22,9 @@ Severity drives the defaults, so a caller sets `variant` and gets the rest:
   After the click, focus returns to the element that had it when the Alert
   appeared, or to the main heading. A persistent condition omits `onDismiss`.
 - **Placement.** `placement="inline"` is the default. `placement="overlay"`
-  pins the Alert to the top of the viewport. Only one overlay Alert shows at a
-  time.
+  pins the Alert to the top of the viewport. `side="middle"` or
+  `side="bottom"` moves it to the middle or the bottom. Only one overlay Alert
+  shows at a time.
 
 ## Purpose
 
@@ -260,6 +261,11 @@ opaque: tinted lays its tint over `--color-surface`, and it casts
 shows at a time: a newer one replaces the visible one and shows "+1" for each
 Alert waiting behind it. Dismissing the visible one shows the next. Use
 overlay for a condition that affects the whole app, not one section.
+
+`side` sets the edge: `top` (the default), `middle` or `bottom`. A middle
+overlay is a bar centered over the content, with no scrim, so the page stays
+usable around it. A bottom overlay keeps the same inset as the top one. The
+top overlay drops in, the bottom one rises, and the middle one fades in.
 
 Appearance does not change live-region behavior. Static documentation may use
 `role="note"`; live conditions keep the severity's announcement semantics.
