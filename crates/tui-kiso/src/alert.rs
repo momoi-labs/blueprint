@@ -478,12 +478,21 @@ impl Widget for Alert<'_> {
             if let (Some(dx), Some(action)) = (row.action, self.action) {
                 let at = Rect::new(inner.x.saturating_add(dx), y, action.width(), 1);
                 action.render(at, buf);
-                if self.loud {
+                let fill = buf.cell((at.x + at.width / 2, y)).map(|cell| cell.bg);
+                if self.loud && !action.disabled() {
                     let (bg, fg) = self.solid();
+                    let ring = t.color(t.tokens().focus);
                     for x in at.left()..at.right().min(inner.right()) {
                         if let Some(cell) = buf.cell_mut((x, y)) {
-                            cell.fg = t.color(bg);
-                            cell.bg = t.color(fg);
+                            if cell.fg == ring || cell.bg == ring {
+                                continue;
+                            }
+                            if Some(cell.bg) == fill {
+                                cell.fg = t.color(bg);
+                                cell.bg = t.color(fg);
+                            } else if Some(cell.fg) == fill {
+                                cell.fg = t.color(fg);
+                            }
                         }
                     }
                 }
@@ -684,6 +693,31 @@ mod tests {
         alert.render(alert.area(buf.area, AlertSide::Top), &mut buf);
         let text = row(&buf, 4).find("Writes").expect("the text") as u16;
         assert!(buf[(text, 4)].modifier.is_empty());
+    }
+
+    #[test]
+    fn a_loud_action_keeps_its_focus_ring_and_its_disabled_fill() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let r = theme.tokens();
+        let draw = |variant, state| {
+            let button = Button::new(&theme, "Retry").variant(variant).state(state);
+            let alert = Alert::new(&theme, Tone::Danger, "Replica down").help("Retry later.").action(button).loud();
+            let mut buf = Buffer::empty(Rect::new(0, 0, 60, alert.height(60)));
+            alert.render(buf.area, &mut buf);
+            let y = (0..buf.area.height).find(|&y| row(&buf, y).contains("Retry ")).expect("the action row");
+            let x = row(&buf, y).rfind("Retry").expect("the label") as u16;
+            (buf, x, y)
+        };
+        let ring = theme.color(r.focus);
+        for variant in [crate::ButtonVariant::Default, crate::ButtonVariant::Ghost] {
+            let (buf, x, y) = draw(variant, crate::ButtonState::Rest);
+            assert_eq!(buf[(x, y)].bg, theme.color(r.danger_solid_foreground), "{variant:?}");
+            assert!(!buf.content.iter().any(|cell| cell.bg == ring || cell.fg == ring), "{variant:?}");
+            let (buf, _, y) = draw(variant, crate::ButtonState::Focus);
+            assert!((0..buf.area.width).any(|x| buf[(x, y)].bg == ring || buf[(x, y)].fg == ring), "{variant:?}");
+            let (buf, x, y) = draw(variant, crate::ButtonState::Disabled);
+            assert_eq!(buf[(x, y)].fg, theme.color(r.disabled), "{variant:?}");
+        }
     }
 
     #[test]
