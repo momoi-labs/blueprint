@@ -295,13 +295,14 @@ saves this choice under Appearance > Layout > Outer frame.
 
 ### Shell bottom
 
-`data-shell-bottom` on `html` sets how an inset frame meets the bottom of the
-viewport. It has no effect on the default variant or on a nested shell.
+`data-shell-bottom` on `html` sets how an inset frame meets the bottom of its
+shell. A top-level shell ends at the viewport, and a nested shell, such as a
+preview, ends at its own bottom edge. It has no effect on the default variant.
 
 | Value | Result |
 | --- | --- |
 | `default` (or omitted) | The outer space, bottom border, bottom corners, shadow and bottom corner marks stay. |
-| `fill` | The main area runs to the bottom edge of the viewport, or to the top of the BottomNav on a phone. Its bottom corners are square and it has no bottom border. The shell clips the shadow and the bottom corner marks. |
+| `fill` | The main area runs to the bottom edge of its shell, or to the top of the BottomNav on a phone. Its bottom corners are square and it has no bottom border. The shell clips the shadow and the bottom corner marks. |
 
 `data-shell-bottom-style` marks that edge. It applies only with `fill`.
 
