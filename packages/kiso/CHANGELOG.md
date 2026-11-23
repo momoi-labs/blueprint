@@ -1,5 +1,15 @@
 # @momoi-labs/kiso
 
+## 1.14.0
+
+### Minor Changes
+
+- 3efed35: Add `data-shell-bottom` and `data-shell-bottom-style` to the inset app shell. `fill` runs the main panel to the bottom of its shell, nested shells included, with no mark or a fade at that edge.
+
+### Patch Changes
+
+- 474e702: A trailing item in a collapsible sidebar link, such as a `Dot`, now shows. The trailing slot lays out its content as the icon slot does, so an element with no display of its own keeps its size.
+
 ## 1.13.0
 
 ### Minor Changes
