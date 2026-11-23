@@ -76,7 +76,10 @@ adds Hard to the starting look. Explicit component variants can override the
 global choices.
 
 Preferences are local to this browser and origin. `public/appearance-init.js`
-validates stored values before first paint. Theme and accent keep their
+validates stored values before first paint. It is generated from
+`src/appearance-settings.ts` and `src/appearance-init.template.js` by
+`node scripts/generate-appearance-init.mjs`; `npm run check:generated` fails
+when it is out of date. Theme and accent keep their
 `kiso-theme` and `kiso-accent` keys; the complete selection uses
 `kiso-gallery-appearance`. Unavailable storage falls back to defaults on reload.
 Legacy border presets migrate to Solid plus a corner type. Subtle and Wide

@@ -55,6 +55,64 @@ export interface AppearanceSettings {
   phonePanelFill: "inherit" | AppearanceSettings["panelFill"];
 }
 
+const mainOptions = {
+  theme: ["system", "light", "dark"],
+  accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine"],
+  neutral: ["warm", "zinc"],
+  primary: ["accent", "contrast"],
+  typeface: ["inter", "dm-sans"],
+  chartLine: ["straight", "stepped", "curved"],
+  chartFill: ["none", "dots", "tint", "squares", "scanlines"],
+  chartLayout: ["standard", "compact", "split"],
+  chartLegend: ["table", "inline", "sidebar"],
+  shadowStyle: ["none", "hard", "soft", "auto"],
+  borderStyle: ["solid", "none", "rail", "dash", "bevel", "double", "base", "offset", "manga", "brush"],
+  cornerStyle: ["square", "rounded", "asym", "pixel"],
+  cornerMarks: ["ticks", "none", "brackets", "arcs", "dots", "diagonal"],
+  cornerSize: ["medium", "small", "large", "off"],
+  markSize: ["medium", "small", "large"],
+  visualStyle: ["default", "editorial"],
+  appShell: ["default", "inset"],
+  headerVariant: ["default", "plain", "floating"],
+  headerSize: ["default", "compact", "editorial"],
+  headerWidth: ["page", "outset"],
+  appShellOuter: ["auto", "full", "compact", "none"],
+  shellBottom: ["default", "fill"],
+  shellBottomStyle: ["none", "fade"],
+  brandBar: ["separate", "full"],
+  pageWidth: ["full", "contained"],
+  pageAlign: ["start", "center", "end"],
+  frameScope: ["all", "panels", "outer"],
+  markScope: ["panels", "all", "outer"],
+  markClearance: ["normal", "sheet"],
+  backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"],
+  backgroundStrength: ["quiet", "visible"],
+  backgroundPlacement: ["both", "inside", "outside"],
+  frameDetail: ["medium", "small", "large"],
+  paperTone: ["theme", "accent"],
+  panelFill: ["solid", "translucent", "glass"],
+  landingBands: ["inside", "full"],
+};
+const outerKeys = ["borderStyle", "cornerStyle", "cornerMarks", "shadowStyle"] as const;
+export const phoneKeys = ["backgroundStyle", "borderStyle", "cornerStyle", "cornerMarks", "panelFill", "shadowStyle"] as const;
+const capital = (key: string) => key[0].toUpperCase() + key.slice(1);
+
+export const appearanceOptions = {
+  ...mainOptions,
+  ...Object.fromEntries(outerKeys.map(key => [`outer${capital(key)}`, ["inherit", ...mainOptions[key]]])),
+  ...Object.fromEntries(phoneKeys.map(key => [`phone${capital(key)}`, ["inherit", ...mainOptions[key]]])),
+} as Record<keyof AppearanceSettings, string[]>;
+
+export const presetDefaults = {
+  ...Object.fromEntries(Object.entries(appearanceOptions).map(([key, values]) => [key, values[0]])),
+  cornerStyle: "pixel", cornerSize: "small", appShell: "inset", backgroundStyle: "fibers", visualStyle: "editorial",
+} as unknown as AppearanceSettings;
+
+export const appearanceDefaults = {
+  ...presetDefaults,
+  theme: "system", accent: "snes", chartLine: "straight", chartFill: "none", chartLayout: "standard", chartLegend: "table", shadowStyle: "soft", borderStyle: "solid", cornerStyle: "rounded", cornerMarks: "none", cornerSize: "large", markSize: "medium", visualStyle: "default", appShell: "inset", headerVariant: "floating", headerSize: "default", headerWidth: "page", appShellOuter: "full", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", markClearance: "normal", backgroundStyle: "glow", backgroundStrength: "quiet", backgroundPlacement: "both", frameDetail: "medium", paperTone: "theme", panelFill: "glass", outerBorderStyle: "none", outerCornerStyle: "square", outerCornerMarks: "none", outerShadowStyle: "none", phoneBackgroundStyle: "inherit", phoneBorderStyle: "inherit", phoneCornerStyle: "inherit", phoneCornerMarks: "inherit", phonePanelFill: "inherit", phoneShadowStyle: "inherit", landingBands: "full",
+} as unknown as AppearanceSettings;
+
 declare global {
   interface Window {
     kisoAppearance: {
