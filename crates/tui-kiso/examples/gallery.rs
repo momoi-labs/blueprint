@@ -205,8 +205,8 @@ struct App {
     scroll: Scroll,
     /// The window of time of the range control and the dashboard.
     range: usize,
-    /// The level and the severity of the loud alert page.
-    loud: (usize, usize),
+    /// The level, the severity and the position of the loud alert page.
+    loud: (usize, usize, usize),
     quit: bool,
 }
 
@@ -229,7 +229,7 @@ impl App {
             detail: 0,
             scroll: Scroll::default(),
             range: 1,
-            loud: (0, 0),
+            loud: (0, 0, 0),
             quit: false,
         }
     }
@@ -314,6 +314,7 @@ impl App {
                     let back = matches!(key.code, KeyCode::Up | KeyCode::Char('k'));
                     return self.loud.1 = (self.loud.1 + if back { count - 1 } else { 1 }) % count;
                 }
+                KeyCode::Char('p') if name == "LoudAlert" => return self.loud.2 = (self.loud.2 + 1) % wave_04::POSITIONS.len(),
                 KeyCode::Up | KeyCode::Down | KeyCode::Char('j' | 'k') if name == "DetailSelect" => {
                     return self.detail = wave_08::detail_key(&self.theme, self.detail, key.code);
                 }
@@ -498,7 +499,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             _ if self.panel.is_some() => vec![("↑/↓", "option"), ("←/→", "value"), ("e", "export"), ("s", "close")],
             _ if self.filters.is_open() => vec![("↑/↓", "facet"), ("←/→", "choose"), ("enter", "keep"), ("esc", "cancel")],
             (None, true) if self.page == FILTERS => vec![("f", "filters"), ("tab", "components"), ("?", "help"), ("esc", "back")],
-            (None, true) if name == "LoudAlert" => vec![("←/→", "level"), ("↑/↓", "severity"), ("tab", "components"), ("?", "help"), ("esc", "back")],
+            (None, true) if name == "LoudAlert" => vec![("←/→", "level"), ("↑/↓", "severity"), ("p", "position"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.ranged() => vec![("←/→", "range"), ("tab", "components"), ("t", "theme"), ("?", "help"), ("esc", "back")],
             (None, true) => vec![("j/k", "scroll"), ("tab", "components"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("esc", "back")],
             // Without the sidebar, ←→ go through the components.
@@ -520,6 +521,11 @@ Backdrop::new(&theme, Canvas::{canvas})
         }
         if let Some(pick) = self.overlay {
             wave_08::overlay(t, buf, screen, area, name, pick, &self.query);
+        }
+        if name == "LoudAlert" {
+            if let (_, Some(side)) = wave_04::POSITIONS[self.loud.2] {
+                wave_04::loud_alert(t, self.loud.0, self.loud.1, |alert| alert.render(alert.area(screen, side), buf));
+            }
         }
         // Help goes over every other layer.
         match self.layer {
@@ -595,7 +601,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             "Button" => button_page(t, buf, area),
             "Switch" => switch_page(t, buf, area),
             "Alert" => wave_04::alert_page(t, buf, area),
-            "LoudAlert" => wave_04::loud_alert_page(t, buf, area, self.loud.0, self.loud.1),
+            "LoudAlert" => wave_04::loud_alert_page(t, buf, area, self.loud),
             "Spinner" => wave_04::spinner_page(t, buf, area),
             "Skeleton" => wave_04::skeleton_page(t, buf, area),
             "EmptyState" => wave_04::empty_state_page(t, buf, area),
@@ -1418,6 +1424,10 @@ fn states() -> Vec<State> {
                 let moves = [vec![code(KeyCode::Right); level], vec![code(KeyCode::Down); severity]].concat();
                 states.push((format!("70-loud-{}-{tone}{suffix}", name.to_lowercase()), [at("LoudAlert"), moves].concat(), size));
             }
+        }
+        for (position, (name, _)) in wave_04::POSITIONS.iter().enumerate().skip(1) {
+            let moves = [vec![code(KeyCode::Right)], keys(&"p".repeat(position))].concat();
+            states.push((format!("71-place-{}{suffix}", name.to_lowercase()), [at("LoudAlert"), moves].concat(), size));
         }
     }
     states

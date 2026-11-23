@@ -33,6 +33,16 @@ fn rgb_of(color: Color) -> Option<Rgb> {
     }
 }
 
+/// Where [`Alert::area`] puts the alert on the screen, as a bar of the
+/// full width.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum AlertSide {
+    #[default]
+    Top,
+    Middle,
+    Bottom,
+}
+
 /// One line of evidence: when, what happened, and what it means, such as
 /// `10:54:31  pool connect refused  first failure`. A primary line is the
 /// cause: bold, with `◂` before its label, so it does not depend on color.
@@ -396,12 +406,28 @@ impl<'a> Alert<'a> {
     pub fn height(&self, width: u16) -> u16 {
         2 + self.rows(width).len() as u16
     }
+
+    /// The bar the alert takes on `screen` at `side`: the full width and
+    /// [`Alert::height`] rows, at most the screen. Draw it after the
+    /// content, so it covers it.
+    pub fn area(&self, screen: Rect, side: AlertSide) -> Rect {
+        let height = self.height(screen.width).min(screen.height);
+        let y = match side {
+            AlertSide::Top => screen.y,
+            AlertSide::Middle => screen.y + (screen.height - height) / 2,
+            AlertSide::Bottom => screen.bottom() - height,
+        };
+        Rect { y, height, ..screen }
+    }
 }
 
 impl Widget for Alert<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let t = self.theme;
         let card = self.card();
+        for at in area.intersection(buf.area).positions() {
+            buf[at].modifier = Modifier::empty();
+        }
         card.render(area, buf);
         let tone = self.tone.rgb(t);
         let (wash, alpha) = if self.loud { (self.solid().0, 1.0) } else { (tone, TINT) };
@@ -635,6 +661,29 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn the_area_is_a_bar_of_the_full_width_at_each_side() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let alert = Alert::new(&theme, Tone::Danger, "Checkout is down").text("Writes fail.").loud();
+        let screen = Rect::new(0, 0, 80, 24);
+        let height = alert.height(80);
+        assert_eq!(alert.area(screen, AlertSide::Top), Rect::new(0, 0, 80, height));
+        assert_eq!(alert.area(screen, AlertSide::Middle), Rect::new(0, (24 - height) / 2, 80, height));
+        assert_eq!(alert.area(screen, AlertSide::Bottom), Rect::new(0, 24 - height, 80, height));
+        assert_eq!(alert.area(Rect::new(0, 0, 80, 3), AlertSide::Bottom), Rect::new(0, 0, 80, 3));
+    }
+
+    #[test]
+    fn an_alert_over_bold_content_takes_none_of_its_style() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 40, 6));
+        buf.set_style(buf.area, Style::new().add_modifier(Modifier::BOLD | Modifier::UNDERLINED));
+        let alert = Alert::new(&theme, Tone::Danger, "Replica down").text("Writes are safe.").loud();
+        alert.render(alert.area(buf.area, AlertSide::Top), &mut buf);
+        let text = row(&buf, 4).find("Writes").expect("the text") as u16;
+        assert!(buf[(text, 4)].modifier.is_empty());
     }
 
     #[test]
