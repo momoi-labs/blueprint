@@ -181,14 +181,13 @@ for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the view
     assert.notEqual(plain.radius, '0px');
     await page.evaluate(() => { document.documentElement.dataset.shellBottom = 'default'; document.documentElement.dataset.shellBottomStyle = 'fade'; });
     assert.deepEqual(await read(), plain, 'Default keeps the current look');
-    for (const style of ['none', 'edge-line', 'fade']) {
+    for (const style of ['none', 'fade']) {
       await page.evaluate(style => Object.assign(document.documentElement.dataset, { shellBottom: 'fill', shellBottomStyle: style }), style);
       const fill = await read();
       assert(Math.abs(fill.bottom - fill.viewport) <= 1, `${style}: main ends at the viewport bottom`);
       assert.equal(fill.radius, '0px', `${style}: square bottom corners`);
       assert.equal(fill.before, '0px', `${style}: the frame overlay follows the square corners`);
-      assert.equal(fill.border.split(' ')[0], style === 'edge-line' ? '1px' : '0px');
-      if (style === 'edge-line') assert.equal(fill.border, '1px solid', 'edge-line draws one solid line whatever the border style');
+      assert.equal(fill.border.split(' ')[0], '0px', `${style}: no bottom border`);
       assert.equal(fill.beforeBorder, '0px', `${style}: the double overlay has no bottom line`);
       const mask = await page.locator('[data-slot="app-shell-main"] > :not(.topbar, .panel-shadow)').first().evaluate(el => getComputedStyle(el).maskImage);
       assert.equal(mask !== 'none', style === 'fade', `${style}: only fade masks the content`);
@@ -209,12 +208,12 @@ test('Inset shell bottom fill reaches the bottom of a nested shell', async () =>
     const plain = await read();
     assert(plain.gap > 1, 'Without the option the nested frame keeps its bottom margin');
     assert.notEqual(plain.radius, '0px');
-    for (const style of ['none', 'edge-line', 'fade']) {
+    for (const style of ['none', 'fade']) {
       await page.evaluate(style => Object.assign(document.documentElement.dataset, { shellBottom: 'fill', shellBottomStyle: style }), style);
       const fill = await read();
       assert(Math.abs(fill.gap) <= 1, `${style}: nested main ends at its shell bottom`);
       assert.equal(fill.radius, '0px', `${style}: square bottom corners`);
-      assert.equal(fill.border.split(' ')[0], style === 'edge-line' ? '1px' : '0px');
+      assert.equal(fill.border.split(' ')[0], '0px', `${style}: no bottom border`);
       assert.equal(fill.mask !== 'none', style === 'fade', `${style}: only fade masks the content`);
     }
   } finally { await page.close(); }
