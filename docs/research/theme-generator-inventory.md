@@ -164,8 +164,8 @@ Consequences:
   and `data-landing-bands` only in `apps/kiso-gallery/src/landing.css`. A
   project never gets those rules. `self-host` sets both attributes anyway
   (`self-host/console/index.html`), so they are dead values there.
-- Exporting these two fields is harmless. The generator should show that they
-  have no effect outside the gallery, or leave them out of export.
+- The generator does not export these two fields and marks them gallery-only
+  (ADR 0003, Decisions).
 
 ## 4. Presets
 
