@@ -23,7 +23,7 @@
     headerWidth: ["page", "outset"],
     appShellOuter: ["auto", "full", "compact", "none"],
     shellBottom: ["default", "fill"],
-    shellBottomStyle: ["none", "edge-line", "fade"],
+    shellBottomStyle: ["none", "fade"],
     brandBar: ["separate", "full"],
     pageWidth: ["full", "contained"],
     pageAlign: ["start", "center", "end"],

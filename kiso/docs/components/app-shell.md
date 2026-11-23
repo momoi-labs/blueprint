@@ -309,7 +309,6 @@ preview, ends at its own bottom edge. It has no effect on the default variant.
 | Value | Result |
 | --- | --- |
 | `none` (or omitted) | No mark. |
-| `edge-line` | A 1px bottom border. |
 | `fade` | The page content fades out over `--spacing-2xl` at the bottom, to show that more content follows. |
 
 The gallery saves these choices under Appearance > Layout > Shell bottom and

@@ -208,7 +208,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     {settings.appShell === "inset" && <>
       <Segmented label="Outer spacing" options={["auto", "full", "compact", "none"] as const} value={settings.appShellOuter} onChange={appShellOuter => onChange({ appShellOuter })} />
       <Segmented label="Shell bottom" options={["default", "fill"] as const} value={settings.shellBottom} onChange={shellBottom => onChange({ shellBottom })} />
-      <Segmented label="Bottom style" options={["none", "edge-line", "fade"] as const} names={{ "edge-line": "Edge line" }} value={settings.shellBottomStyle} disabledOptions={settings.shellBottom === "fill" ? [] : ["none", "edge-line", "fade"]} onChange={shellBottomStyle => onChange({ shellBottomStyle })} />
+      <Segmented label="Bottom style" options={["none", "fade"] as const} value={settings.shellBottomStyle} disabledOptions={settings.shellBottom === "fill" ? [] : ["none", "fade"]} onChange={shellBottomStyle => onChange({ shellBottomStyle })} />
       <Segmented label="Brand bar" options={["separate", "full"] as const} names={{ full: "Full row" }} value={settings.brandBar} onChange={brandBar => onChange({ brandBar })} />
       <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />
     </>}

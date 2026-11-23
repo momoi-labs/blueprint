@@ -29,7 +29,7 @@ export interface AppearanceSettings {
   headerWidth: "page" | "outset";
   appShellOuter: "auto" | "full" | "compact" | "none";
   shellBottom: "default" | "fill";
-  shellBottomStyle: "none" | "edge-line" | "fade";
+  shellBottomStyle: "none" | "fade";
   brandBar: "separate" | "full";
   pageWidth: "full" | "contained";
   pageAlign: "start" | "center" | "end";
@@ -118,7 +118,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"]),
     backgroundStrength: pick(["quiet", "visible"]), backgroundPlacement: pick(["inside", "outside", "both"]),
     frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent", "glass"]),
-    shellBottom: pick(["default", "fill"]), shellBottomStyle: pick(["none", "edge-line", "fade"]),
+    shellBottom: pick(["default", "fill"]), shellBottomStyle: pick(["none", "fade"]),
     outerShadowStyle: "inherit", outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",
   };
 }
