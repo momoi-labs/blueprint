@@ -195,3 +195,27 @@ for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the view
     }
   } finally { await page.close(); }
 });
+
+test('Inset shell bottom fill reaches the bottom of a nested shell', async () => {
+  const page = await open('variant=inset');
+  try {
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { cornerStyle: 'rounded' }));
+    await page.locator('[data-slot="app-shell-main"]').first().evaluate(main => main.insertAdjacentHTML('afterbegin', '<div class="app-shell" id="nested" data-variant="inset" data-layout="topbar" style="min-height:0;height:300px"><main data-slot="app-shell-main"><div>Preview</div></main></div>'));
+    const read = () => page.locator('#nested').evaluate(shell => {
+      const main = shell.querySelector(':scope > main');
+      const style = getComputedStyle(main);
+      return { gap: shell.getBoundingClientRect().bottom - parseFloat(getComputedStyle(shell).borderBottomWidth) - main.getBoundingClientRect().bottom, radius: style.borderBottomLeftRadius, border: `${style.borderBottomWidth} ${style.borderBottomStyle}`, mask: getComputedStyle(main.firstElementChild).maskImage };
+    });
+    const plain = await read();
+    assert(plain.gap > 1, 'Without the option the nested frame keeps its bottom margin');
+    assert.notEqual(plain.radius, '0px');
+    for (const style of ['none', 'edge-line', 'fade']) {
+      await page.evaluate(style => Object.assign(document.documentElement.dataset, { shellBottom: 'fill', shellBottomStyle: style }), style);
+      const fill = await read();
+      assert(Math.abs(fill.gap) <= 1, `${style}: nested main ends at its shell bottom`);
+      assert.equal(fill.radius, '0px', `${style}: square bottom corners`);
+      assert.equal(fill.border.split(' ')[0], style === 'edge-line' ? '1px' : '0px');
+      assert.equal(fill.mask !== 'none', style === 'fade', `${style}: only fade masks the content`);
+    }
+  } finally { await page.close(); }
+});
