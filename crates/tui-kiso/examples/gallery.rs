@@ -17,7 +17,7 @@ use ratatui::widgets::Widget;
 use ratatui::{Frame, Terminal};
 use tui_kiso::{
     braille, fact, scramble, set_background, set_foreground, step, Act, Backdrop, Badge, BarGauge, Border, Button, ButtonState,
-    ButtonVariant, Canvas, Card, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
+    ButtonVariant, Canvas, Card, CommandPalette, CardVariant, Chart, ChartLegend, Columns, Dot, Field, FilterEdit, Filters, Form, Grid,
     AppShell, Ink, KeyHints, Look, Mark, Meter, Modal, Page, PageAlign, PageWidth, PanelFill, Pattern, Scroll, Search,
     Series, SideItem, Side, Sidebar, Size,
     Sparkline, Stat, StatusBadge, StepState, Stroke, Switch, SwitchState, Table, Tabs, Theme, ThemePicker, TimeRangeControl, Title,
@@ -200,6 +200,8 @@ struct App {
     /// what was typed into it.
     overlay: Option<usize>,
     query: String,
+    /// The open component finder and its selected row; it types into `query`.
+    find: Option<usize>,
     /// The choice of the DetailSelect page.
     detail: usize,
     scroll: Scroll,
@@ -226,6 +228,7 @@ impl App {
             filters: demo_filters(),
             overlay: None,
             query: String::new(),
+            find: None,
             detail: 0,
             scroll: Scroll::default(),
             range: 1,
@@ -282,6 +285,36 @@ impl App {
                 self.scroll.top();
             }
             return;
+        }
+        if let Some(pick) = self.find {
+            let pages = found(&self.query);
+            match key.code {
+                KeyCode::Esc => {
+                    self.find = None;
+                    self.query.clear();
+                }
+                KeyCode::Enter => {
+                    if let Some(&(_, page)) = pages.get(pick) {
+                        self.open(page);
+                    }
+                    self.find = None;
+                    self.query.clear();
+                }
+                KeyCode::Up => self.find = Some(pick.saturating_sub(1)),
+                KeyCode::Down => self.find = Some((pick + 1).min(pages.len().saturating_sub(1))),
+                KeyCode::Backspace => _ = self.query.pop(),
+                KeyCode::Char(c) if !ctrl => {
+                    self.query.push(c);
+                    self.find = Some(0);
+                }
+                _ => {}
+            }
+            return;
+        }
+        if (ctrl && key.code == KeyCode::Char('p')) || (key.code == KeyCode::Char('/') && !typing && self.overlay.is_none()) {
+            self.overlay = None;
+            self.query.clear();
+            return self.find = Some(0);
         }
         if let Some(pick) = self.overlay {
             let rows = wave_08::rows(&self.theme, name, &self.query);
@@ -491,7 +524,7 @@ Backdrop::new(&theme, Canvas::{canvas})
 
         let keys: Vec<(&str, &str)> = match (self.layer, self.main) {
             (Some(_), _) => vec![("any key", "close")],
-            _ if self.overlay.is_some() => vec![("↑/↓", "choose"), ("enter", "pick"), ("esc", "close")],
+            _ if self.overlay.is_some() || self.find.is_some() => vec![("↑/↓", "choose"), ("enter", "pick"), ("esc", "close")],
             (None, true) if wave_08::opens(name) => vec![("enter", "open"), ("tab", "components"), ("?", "help"), ("esc", "back")],
             (None, true) if self.page == FORM => {
                 vec![("tab", "next"), ("shift+tab", "back"), ("←/→", "choose"), ("ctrl+s", "send"), ("esc", "back")]
@@ -505,7 +538,7 @@ Backdrop::new(&theme, Canvas::{canvas})
             // Without the sidebar, ←→ go through the components.
             (None, false) => {
                 let browse = if side.is_some() { "j/k" } else { "←/→" };
-                vec![(browse, "component"), ("enter", "open"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("q", "quit")]
+                vec![(browse, "component"), ("enter", "open"), ("/", "find"), ("t", "theme"), ("s", "appearance"), ("e", "export"), ("?", "help"), ("q", "quit")]
             }
         };
         KeyHints::new(t, keys).render(foot, buf);
@@ -526,6 +559,13 @@ Backdrop::new(&theme, Canvas::{canvas})
             if let (_, Some(side)) = wave_04::POSITIONS[self.loud.2] {
                 wave_04::loud_alert(t, self.loud.0, self.loud.1, |alert| alert.render(alert.area(screen, side), buf));
             }
+        }
+        if let Some(pick) = self.find {
+            let mut palette = CommandPalette::new(t, []).title("Find a component").filter(&self.query).selected(pick);
+            for (group, pages) in found_groups(&self.query) {
+                palette = palette.group(group, pages.into_iter().map(|name| (name, "")));
+            }
+            palette.render(screen, buf);
         }
         // Help goes over every other layer.
         match self.layer {
@@ -1208,12 +1248,42 @@ fn bar_gauge_page(t: &Theme, width: usize) -> Page {
     page
 }
 
+/// The components whose name holds `query`, ignoring case, in the sidebar
+/// order, as their group and their index in `PAGES`.
+fn found(query: &str) -> Vec<(&'static str, usize)> {
+    let query = query.to_lowercase();
+    let mut from = 0;
+    let mut pages = Vec::new();
+    for (group, count) in GROUPS {
+        for (page, (name, _)) in PAGES.iter().enumerate().skip(from).take(count) {
+            if name.to_lowercase().contains(&query) {
+                pages.push((group, page));
+            }
+        }
+        from += count;
+    }
+    pages
+}
+
+/// The names `found` lists, under their group.
+fn found_groups(query: &str) -> Vec<(&'static str, Vec<&'static str>)> {
+    let mut groups: Vec<(&'static str, Vec<&'static str>)> = Vec::new();
+    for (group, page) in found(query) {
+        match groups.last_mut() {
+            Some((last, names)) if *last == group => names.push(PAGES[page].0),
+            _ => groups.push((group, vec![PAGES[page].0])),
+        }
+    }
+    groups
+}
+
 fn help(t: &Theme) -> Modal<'_> {
     let keys = [
         ("j k ↑ ↓", "Move in the list, or scroll the page"),
         ("enter tab", "Focus the page"),
         ("esc tab", "Back to the components"),
         ("← →", "Previous or next component"),
+        ("/ ctrl+p", "Find a component by name"),
         ("t", "Theme: accent, dark or light"),
         ("s", "Appearance: background, cards, page"),
         ("e", "Export the code for the look"),
