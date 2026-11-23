@@ -101,7 +101,7 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
     </div>
     <section className="gen-preview" aria-label="Live preview">
       <div className="gen-preview-head">
-        <RadioGroup label="Preview page" variant="segmented" value={page} onValueChange={setPage}>
+        <RadioGroup label="Preview page" variant="segmented" value={page.split("/")[0]} onValueChange={setPage}>
           {shopPages.map(([value, label]) => <RadioGroupItem key={value} value={value} label={label} />)}
         </RadioGroup>
         <RadioGroup label="Preview device" variant="segmented" value={device} onValueChange={value => setDevice(value as Device)}>
@@ -111,7 +111,7 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
         </RadioGroup>
       </div>
       <div className="gen-frame">
-        <ThemePreview page={page} device={device} accent={settings.accent} theme={settings.theme} />
+        <ThemePreview page={page} device={device} accent={settings.accent} theme={settings.theme} onPage={setPage} />
       </div>
     </section>
   </div>;

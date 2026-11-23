@@ -194,7 +194,7 @@ function Scaled({ size, fill = false, className, children }: { size?: readonly [
   </div>;
 }
 
-function ExampleFrame({ route, title }: { route: string; title: string }) {
+function ExampleFrame({ route, title, onNavigate }: { route: string; title: string; onNavigate?: (route: string) => void }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [first] = useState(route);
   const shown = useRef(route);
@@ -208,7 +208,12 @@ function ExampleFrame({ route, title }: { route: string; title: string }) {
       return;
     }
   }, [route]);
-  return <iframe ref={frame} title={title} src={frameUrl(first)} />;
+  const watch = () => {
+    const inner = frame.current?.contentWindow;
+    if (!inner || !onNavigate) return;
+    inner.addEventListener("hashchange", () => onNavigate(inner.location.hash.slice(1)));
+  };
+  return <iframe ref={frame} title={title} src={frameUrl(first)} onLoad={watch} />;
 }
 
 function LayoutPreview({ route, tui, children }: { route: string; tui?: { page: string; state: string }; children: ReactNode }) {
@@ -478,17 +483,18 @@ function TemplateComponents({ template }: { template: Template }) {
   </>;
 }
 
-export function ThemePreview({ page, device, accent, theme }: { page: string; device: Device; accent: string; theme: string }) {
+export function ThemePreview({ page, device, accent, theme, onPage }: { page: string; device: Device; accent: string; theme: string; onPage: (page: string) => void }) {
   const data = useTuiGallery(device === "tui", screensUrl);
   const route = `example/${page}`;
   const at = readShopPath(page);
-  const label = shopPages.find(([value]) => value === page)?.[1] ?? shopName;
+  const label = shopPages.find(([value]) => value === at.page)?.[1] ?? shopName;
   if (device === "tui") {
     const state = at.page === "login" ? "default" : at.page === "crud" ? "list" : at.page === "report" ? at.report.id : "default";
     return <Scaled className="hatch"><TuiScreen data={data} page={at.page} state={state} accent={accent} theme={theme} /></Scaled>;
   }
   const phone = device === "phone";
   return <Scaled size={phone ? phoneSize : desktopSize} fill={!phone} className={phone ? "hatch layout-stage-phone" : undefined}>
-    <ExampleFrame route={route} title={`${label} at ${phone ? "phone" : "desktop"} size`} />
+    <ExampleFrame route={route} title={`${label} at ${phone ? "phone" : "desktop"} size`}
+      onNavigate={path => { if (path.startsWith("example/")) onPage(path.slice(8)); }} />
   </Scaled>;
 }
