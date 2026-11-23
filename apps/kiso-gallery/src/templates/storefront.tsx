@@ -20,9 +20,9 @@ const tone = (product: Product): StatusTone =>
   product.stock === 0 ? "danger" : product.stock <= product.reorder ? "neutral" : "success";
 const shelf = products.slice(0, 5);
 const picks = [
-  { product: products[0], heading: "Thrown, not lost", text: "Six in a pack, because the first throw is practice." },
-  { product: products[4], heading: "Heard by nobody", text: "Soft soles and a split toe. The floor keeps your secret." },
-  { product: products[3], heading: "Up and over", text: "A wall is a short delay when the hook fits in your bag." },
+  { product: products[0], image: "/shop/shuriken.webp", alt: "A four point steel shuriken beside a drawstring pouch", heading: "Thrown, not lost", text: "Six in a pack, because the first throw is practice." },
+  { product: products[4], image: "/shop/tabi-boots.webp", alt: "A pair of cream split toe tabi boots with brown soles", heading: "Heard by nobody", text: "Soft soles and a split toe. The floor keeps your secret." },
+  { product: products[3], image: "/shop/grappling-hook.webp", alt: "A steel grappling hook with four prongs and a coiled rope", heading: "Up and over", text: "A wall is a short delay when the hook fits in your bag." },
 ];
 
 export function Storefront() {
@@ -76,11 +76,12 @@ export function Storefront() {
       <section id="storefront-shelves" className="intro-contrast studio-demo" aria-labelledby="storefront-shelves-title">
         <div className="studio-wrap studio-section">
           <div className="studio-showcase-heading"><p className="t-caps">Three shelves to start with</p><h2 id="storefront-shelves-title">Everything a careful visitor needs.</h2></div>
-          <div className="studio-showcase-grid">
-            {picks.map(({ product, heading, text }, index) => (
+          <div className="studio-showcase-grid studio-product-grid">
+            {picks.map(({ product, image, alt, heading, text }, index) => (
               <section key={product.sku} aria-labelledby={`storefront-pick-${product.sku}`}>
                 <Card className="studio-live-example">
                   <CardContent>
+                    <img className="studio-product-media" src={image} alt={alt} width={764} height={764} />
                     <p className="t-caps">{product.sku}</p>
                     <strong>{product.name}</strong>
                     <p className="muted">{product.note}</p>

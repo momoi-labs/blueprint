@@ -112,10 +112,14 @@
 .studio-live-example { min-height: calc(5 * var(--size-control-md)); min-width: 0; margin-block-end: var(--spacing-lg); display: grid; align-content: center; }
 .studio-live-example .card-content { padding: var(--spacing-lg); }
 .studio-foundation-example { justify-items: center; gap: var(--spacing-lg); }
+.studio-product-grid { row-gap: var(--spacing-md); }
+.studio-product-grid > section { grid-row: span 4; grid-template-rows: subgrid; }
+.studio-product-grid .studio-live-example { align-content: start; }
+.studio-product-media { display: block; inline-size: 100%; block-size: auto; border-radius: var(--radius-md); }
 .studio-example-form { display: grid; gap: var(--spacing-md); }
 .studio-showcase-grid > section > .btn { justify-self: start; }
-@container catalog (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } }
+@container catalog (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } .studio-product-grid { row-gap: var(--spacing-2xl); max-inline-size: 26rem; } .studio-product-grid > section { grid-row: auto; grid-template-rows: none; } }
+@media (max-width: 900px) { .studio-showcase-grid { grid-template-columns: minmax(0, 1fr); } .studio-product-grid { row-gap: var(--spacing-2xl); max-inline-size: 26rem; } .studio-product-grid > section { grid-row: auto; grid-template-rows: none; } }
 /* Side by side, the examples render at 80% so the three read as separate pieces. */
 @media (min-width: 901px) { .studio-showcase-grid .studio-live-example { zoom: .8; } }
 
