@@ -17,7 +17,7 @@ import {
 } from "@momoi-labs/kiso-react";
 
 /* A sign-in gate with no application shell. `result` stands in for the
-   server's answer, so every failure can be shown. */
+   server's answer, so every failure can be shown; a success opens the shop. */
 export type LoginResult = "success" | "refused" | "service" | "network";
 type LoginErrors = { email?: string; password?: string };
 
@@ -30,17 +30,17 @@ export const loginResults: [LoginResult, string][] = [
 
 const loginFailures = {
   refused: ["Email or password not accepted", "Check both and try again, or reset your password."],
-  service: ["Northstar could not sign you in", "This is a problem on our side. Your details are kept; try again in a moment."],
-  network: ["Could not reach Northstar", "Check your connection, then try again. Your details are kept."],
+  service: ["Tabi & Smoke could not sign you in", "This is a problem on our side. Your details are kept; try again in a moment."],
+  network: ["Could not reach Tabi & Smoke", "Check your connection, then try again. Your details are kept."],
 } as const;
 
 function LoginBrand() {
   return (
     <div className="brand">
-      <BrandMark>N</BrandMark>
+      <BrandMark>✦</BrandMark>
       <div className="layout-login-brand">
-        <span className="t-label">Northstar</span>
-        <span className="t-metadata muted">app.northstar.example</span>
+        <span className="t-label">Tabi & Smoke</span>
+        <span className="t-metadata muted">staff.tabiandsmoke.example</span>
       </div>
     </div>
   );
@@ -50,20 +50,19 @@ function LoginHelp() {
   return (
     <ul className="layout-login-help stack-sm">
       <li><strong>Forgot your password?</strong> Use Reset password below the form.</li>
-      <li><strong>No account yet?</strong> Ask a workspace admin to invite your email address.</li>
-      <li><strong>Locked out?</strong> Wait 15 minutes after repeated attempts, or contact your admin.</li>
+      <li><strong>No account yet?</strong> Ask the shop owner to invite your email address.</li>
+      <li><strong>Locked out?</strong> Wait 15 minutes after repeated attempts, or ask the shop owner.</li>
     </ul>
   );
 }
 
-export function LoginLayout({ result }: { result: LoginResult }) {
+export function LoginLayout({ result, onSignedIn }: { result: LoginResult; onSignedIn: () => void }) {
   const id = useId();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("aki@tabiandsmoke.example");
+  const [password, setPassword] = useState("quiet-steps");
   const [errors, setErrors] = useState<LoginErrors>({});
   const [failure, setFailure] = useState<Exclude<LoginResult, "success"> | null>(null);
   const [pending, setPending] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,7 +80,7 @@ export function LoginLayout({ result }: { result: LoginResult }) {
     setPending(true);
     window.setTimeout(() => {
       setPending(false);
-      if (result === "success") return setSignedIn(true);
+      if (result === "success") return onSignedIn();
       setFailure(result);
       if (result === "refused") {
         setPassword("");
@@ -95,8 +94,8 @@ export function LoginLayout({ result }: { result: LoginResult }) {
       <aside className="layout-login-context" aria-labelledby={`${id}-context`}>
         <LoginBrand />
         <div className="stack-sm">
-          <h2 className="t-h1" id={`${id}-context`}>Sign in to your workspace</h2>
-          <p className="muted">Use the email address your workspace invited.</p>
+          <h2 className="t-h1" id={`${id}-context`}>Sign in to the back office</h2>
+          <p className="muted">Use the email address the shop invited.</p>
         </div>
         <div className="layout-login-context-help stack-sm">
           <h3 className="t-h3">Trouble signing in?</h3>
@@ -111,45 +110,33 @@ export function LoginLayout({ result }: { result: LoginResult }) {
               <h3 className="t-h3" id={`${id}-title`}>Sign in</h3>
             </CardHeader>
             <CardContent>
-              {signedIn ? (
-                <div className="stack">
-                  <Alert variant="success">
+              <form className="stack" noValidate aria-busy={pending} onSubmit={submit}>
+                {failure ? (
+                  <Alert variant="error">
                     <AlertContent>
-                      <AlertTitle>Signed in</AlertTitle>
-                      <AlertDescription>A product would now open the application shell.</AlertDescription>
+                      <AlertTitle>{loginFailures[failure][0]}</AlertTitle>
+                      <AlertDescription>{loginFailures[failure][1]}</AlertDescription>
                     </AlertContent>
                   </Alert>
-                  <Button onClick={() => { setSignedIn(false); setPassword(""); }}>Sign out</Button>
-                </div>
-              ) : (
-                <form className="stack" noValidate aria-busy={pending} onSubmit={submit}>
-                  {failure ? (
-                    <Alert variant="error">
-                      <AlertContent>
-                        <AlertTitle>{loginFailures[failure][0]}</AlertTitle>
-                        <AlertDescription>{loginFailures[failure][1]}</AlertDescription>
-                      </AlertContent>
-                    </Alert>
-                  ) : null}
-                  <FormField id={`${id}-email`} label="Email address" type="email" name="email"
-                    autoComplete="username" autoCapitalize="none" spellCheck={false} required
-                    readOnly={pending} value={email} error={errors.email}
-                    onChange={event => { setEmail(event.target.value); setErrors(e => ({ ...e, email: undefined })); }} />
-                  <FormField label="Password" error={errors.password}>
-                    <PasswordInput id={`${id}-password`} name="password" required readOnly={pending}
-                      value={password}
-                      onChange={event => { setPassword(event.target.value); setErrors(e => ({ ...e, password: undefined })); }} />
-                  </FormField>
-                  <Button type="submit" variant="primary" aria-busy={pending}>
-                    {pending ? <Spinner size="sm" /> : null}
-                    {pending ? "Signing in..." : "Sign in"}
-                  </Button>
-                  <Link href="#example/login">Reset password</Link>
-                  <Disclosure className="layout-login-mobile" summary="Trouble signing in?">
-                    <LoginHelp />
-                  </Disclosure>
-                </form>
-              )}
+                ) : null}
+                <FormField id={`${id}-email`} label="Email address" type="email" name="email"
+                  autoComplete="username" autoCapitalize="none" spellCheck={false} required
+                  readOnly={pending} value={email} error={errors.email}
+                  onChange={event => { setEmail(event.target.value); setErrors(e => ({ ...e, email: undefined })); }} />
+                <FormField label="Password" error={errors.password}>
+                  <PasswordInput id={`${id}-password`} name="password" required readOnly={pending}
+                    value={password}
+                    onChange={event => { setPassword(event.target.value); setErrors(e => ({ ...e, password: undefined })); }} />
+                </FormField>
+                <Button type="submit" variant="primary" aria-busy={pending}>
+                  {pending ? <Spinner size="sm" /> : null}
+                  {pending ? "Signing in..." : "Sign in"}
+                </Button>
+                <Link href="#example/login">Reset password</Link>
+                <Disclosure className="layout-login-mobile" summary="Trouble signing in?">
+                  <LoginHelp />
+                </Disclosure>
+              </form>
             </CardContent>
           </Card>
         </div>
