@@ -227,8 +227,8 @@ impl<'a> Alert<'a> {
         }
     }
 
-    fn tape_rows(&self) -> u16 {
-        u16::from(self.loud)
+    fn taped(&self) -> bool {
+        self.loud && matches!(self.tone, Tone::Danger | Tone::Warning)
     }
 
     fn card(&self) -> Card<'a> {
@@ -270,12 +270,20 @@ impl<'a> Alert<'a> {
         let (head, body, meta) = self.styles();
         let bold = head.add_modifier(Modifier::BOLD);
         let mut rows = Vec::new();
+        if self.taped() {
+            rows.push(Row::default());
+        }
         let first = self.label.map_or_else(|| self.title.to_owned(), str::to_uppercase);
         let mut used = 0;
         for (i, line) in rows_of(&first, w).into_iter().enumerate() {
             let mut segs = Vec::new();
             if i == 0 {
-                segs.push(seg(0, glyph(self.tone), head));
+                if self.loud && matches!(self.tone, Tone::Danger) {
+                    let (bg, fg) = self.solid();
+                    segs.push(seg(0, "!", self.theme.fg(bg).bg(self.theme.color(fg)).add_modifier(Modifier::BOLD)));
+                } else {
+                    segs.push(seg(0, glyph(self.tone), head));
+                }
             }
             used = cells(&line);
             segs.push(seg(2, line, bold));
@@ -296,6 +304,9 @@ impl<'a> Alert<'a> {
             for line in rows_of(self.title, w) {
                 rows.push(Row::of(vec![seg(2, line, bold)]));
             }
+        }
+        if self.loud && (self.text.is_some() || self.help.is_some() || self.action.is_some() || !self.facts.is_empty() || !self.lines.is_empty() || self.note.is_some()) {
+            rows.push(Row::default());
         }
         if let Some(text) = self.text {
             for line in rows_of(text, w) {
@@ -319,7 +330,13 @@ impl<'a> Alert<'a> {
             }
         }
         if !self.facts.is_empty() || !self.lines.is_empty() || self.note.is_some() {
-            rows.push(Row::of(vec![seg(2, "─".repeat(w), meta)]));
+            let rule = if self.loud {
+                let (bg, fg) = self.solid();
+                self.theme.fg(blend(&[bg, fg], 0.35))
+            } else {
+                meta
+            };
+            rows.push(Row::of(vec![seg(2, "─".repeat(w), rule)]));
         }
         let name = self.facts.iter().map(|(name, _)| cells(name) + 2).max().unwrap_or(0);
         for (key, value) in self.facts {
@@ -377,7 +394,7 @@ impl<'a> Alert<'a> {
 
     /// The rows the alert takes at `width` columns.
     pub fn height(&self, width: u16) -> u16 {
-        2 + self.tape_rows() + self.rows(width).len() as u16
+        2 + self.rows(width).len() as u16
     }
 }
 
@@ -402,14 +419,15 @@ impl Widget for Alert<'_> {
             }
             fill(t, buf, Rect { y: top + 1, height: area.height - 2, ..area }, wash, alpha);
         }
-        if self.loud && area.height >= 3 {
+        if self.taped() && area.height >= 3 {
             let tape = t.color(t.tokens().tape);
+            let solid = t.color(self.solid().0);
             for x in area.left()..area.right() {
-                put(buf, x, area.top() + 1, "▚", tape);
+                let fg = if ((x - area.left()) / 2).is_multiple_of(2) { tape } else { solid };
+                put(buf, x, area.top(), "▄", fg);
             }
         }
-        let shift = self.tape_rows().min(area.height);
-        let inner = card.inner(Rect { y: area.y.saturating_add(shift), height: area.height - shift, ..area });
+        let inner = card.inner(area);
         if inner.is_empty() {
             return;
         }
@@ -432,7 +450,17 @@ impl Widget for Alert<'_> {
                 write(buf, x, y, text, style);
             }
             if let (Some(dx), Some(action)) = (row.action, self.action) {
-                action.render(Rect::new(inner.x.saturating_add(dx), y, action.width(), 1), buf);
+                let at = Rect::new(inner.x.saturating_add(dx), y, action.width(), 1);
+                action.render(at, buf);
+                if self.loud {
+                    let (bg, fg) = self.solid();
+                    for x in at.left()..at.right().min(inner.right()) {
+                        if let Some(cell) = buf.cell_mut((x, y)) {
+                            cell.fg = t.color(bg);
+                            cell.bg = t.color(fg);
+                        }
+                    }
+                }
             }
         }
     }
@@ -478,21 +506,24 @@ mod tests {
     }
 
     #[test]
-    fn a_loud_alert_fills_the_card_with_the_solid_color_under_a_tape_row() {
+    fn a_loud_alert_fills_the_card_with_the_solid_color_under_a_tape_edge() {
         let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
         let r = theme.tokens();
         let alert = Alert::new(&theme, Tone::Danger, "Database error").text("connection refused").loud();
-        assert_eq!(alert.height(30), 2 + 1 + 1 + 1);
-        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 5));
+        assert_eq!(alert.height(30), 2 + 1 + 1 + 1 + 1);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 6));
         alert.render(buf.area, &mut buf);
-        assert_eq!(row(&buf, 1), "▚".repeat(30));
-        assert_eq!(buf[(5, 1)].fg, theme.color(r.tape));
-        assert_eq!(buf[(5, 1)].bg, theme.color(r.danger_solid));
-        assert_eq!(row(&buf, 2), "  ✕ Database error            ");
-        assert_eq!(row(&buf, 3), "    connection refused        ");
-        assert_eq!(buf[(2, 2)].fg, theme.color(r.danger_solid_foreground));
-        assert_eq!(buf[(4, 3)].fg, theme.color(r.danger_solid_foreground));
-        assert_eq!(buf[(20, 3)].bg, theme.color(r.danger_solid));
+        assert_eq!(row(&buf, 0), "▄".repeat(30));
+        assert_eq!(buf[(1, 0)].fg, theme.color(r.tape));
+        assert_eq!(buf[(2, 0)].fg, theme.color(r.danger_solid));
+        assert_eq!(row(&buf, 1), " ".repeat(30));
+        assert_eq!(row(&buf, 2), "  ! Database error            ");
+        assert_eq!(buf[(2, 2)].fg, theme.color(r.danger_solid));
+        assert_eq!(buf[(2, 2)].bg, theme.color(r.danger_solid_foreground));
+        assert_eq!(row(&buf, 3), " ".repeat(30));
+        assert_eq!(row(&buf, 4), "    connection refused        ");
+        assert_eq!(buf[(4, 4)].fg, theme.color(r.danger_solid_foreground));
+        assert_eq!(buf[(20, 4)].bg, theme.color(r.danger_solid));
     }
 
     #[test]
@@ -504,7 +535,18 @@ mod tests {
         assert_eq!(buf[(2, 2)].symbol(), "▲");
         assert_eq!(buf[(2, 2)].fg, theme.color(r.warning_solid_foreground));
         assert_eq!(buf[(10, 2)].bg, theme.color(r.warning_solid));
-        assert_eq!(buf[(10, 1)].symbol(), "▚");
+        assert_eq!(buf[(10, 0)].symbol(), "▄");
+    }
+
+    #[test]
+    fn a_loud_info_has_no_tape() {
+        let theme = Theme::truecolor(kiso_tokens::GOLD_DARK);
+        let alert = Alert::new(&theme, Tone::Info, "Maintenance tonight").loud();
+        assert_eq!(alert.height(30), 3);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 30, 3));
+        alert.render(buf.area, &mut buf);
+        assert!((0..30).all(|x| buf[(x, 0)].fg != theme.color(theme.tokens().tape)));
+        assert!(row(&buf, 1).contains("Maintenance tonight"));
     }
 
     #[test]

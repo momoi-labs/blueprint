@@ -151,6 +151,9 @@ impl Gallery {
         if let Some(underline) = flag(Modifier::UNDERLINED) {
             style += &format!(",\"underline\":{underline}");
         }
+        if let Some(italic) = flag(Modifier::ITALIC) {
+            style += &format!(",\"italic\":{italic}");
+        }
         style += "}";
         if let Some(&i) = self.style_index.get(&style) {
             return i;
