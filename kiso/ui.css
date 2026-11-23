@@ -5052,6 +5052,7 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   padding-block-end: var(--shell-bottom-inset, 0px);
   overflow-y: clip;
 }
+:where([data-shell-bottom="fill"]) .app-shell .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --shell-bottom-inset: 0px; }
 :where([data-shell-bottom="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > :is(main, [data-slot="app-shell-main"]) {
   margin-block-end: 0;
   border-block-end-width: 0;

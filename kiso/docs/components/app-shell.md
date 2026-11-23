@@ -302,7 +302,7 @@ preview, ends at its own bottom edge. It has no effect on the default variant.
 | Value | Result |
 | --- | --- |
 | `default` (or omitted) | The outer space, bottom border, bottom corners, shadow and bottom corner marks stay. |
-| `fill` | The main area runs to the bottom edge of its shell, or to the top of the BottomNav on a phone. Its bottom corners are square and it has no bottom border. The shell clips the shadow and the bottom corner marks. |
+| `fill` | The main area runs to the bottom edge of its shell. On a phone, a top-level shell stops at the top of the BottomNav, and a nested shell still runs to its own bottom edge. Its bottom corners are square and it has no bottom border. The shell clips the shadow and the bottom corner marks. |
 
 `data-shell-bottom-style` marks that edge. It applies only with `fill`.
 
