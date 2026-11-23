@@ -1,5 +1,17 @@
 # @momoi-labs/kiso
 
+## 1.13.0
+
+### Minor Changes
+
+- ccc56dc: Alert has diagnostic slots for an incident. `AlertCode` shows a code with a copy button. `AlertHelp` says the fix and takes an optional action button that stays visible. `AlertEvidence` with `AlertLine` lists timed events with a label each, and marks the main line in bold with "◂". `AlertNote` gives the consequence. A new `labels` prop renames the Details button and Dismiss, for example "Show evidence". The `.alert-head` and `.alert-facts` classes lay out the label row and short facts.
+- c39aee6: Alert gets `appearance="loud"`: a solid status fill with hazard tape and a filled icon, for blocking incidents. Alert also gets `tape`, `animated`, `pulse`, `placement="overlay"` (rendered in a portal on `document.body`, one at a time, "+N" for the rest), `onDismiss` with a rendered Dismiss button, `AlertDetails`, a disclosure, and `AlertLabel`, `AlertMessage` and `AlertMeta` for a caps label, a mono message and a caps mono meta line. An overlay Alert is opaque in every appearance. Inline code in a loud Alert or Toast keeps the loud foreground, with a faint border instead of the muted chip. Toast gets `appearance="loud"`, and `notify` takes `{ appearance, pulse }` as a fourth argument; a loud error Toast stays until dismissed. New tokens: `danger-solid`, `warning-solid`, `info-solid`, `success-solid` with their `-foreground` pairs, and `tape`.
+
+### Patch Changes
+
+- 21f540c: An Alert description and an Alert message stop at about 70 characters per line. In a wide Alert, long text keeps a readable line length instead of running across the whole box. The box itself keeps its width.
+- c514d98: A Dialog or AlertDialog opened from inside another Dialog now paints its scrim over the outer Dialog, so the outer one is dimmed and no part of it shows above the inner one. Dialog, Drawer and CommandPalette content now share the overlay's z-index, and the later portal paints on top. The Modal/Dialog docs describe how to nest.
+
 ## 1.12.1
 
 ### Patch Changes
