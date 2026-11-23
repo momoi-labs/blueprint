@@ -11,9 +11,9 @@ import galleryUrl from "./generated/tui-gallery.json?url";
 /** A token name, a share of the primary to chart-1 gradient, a color for
  *  each theme, a fixed color, or the terminal's own (null). */
 type Paint = null | string | { mix: number } | (string | null)[];
-/** Bold or underline, or one value for each theme. */
+/** Bold, italic or underline, or one value for each theme. */
 type Flag = boolean | boolean[];
-type Style = { fg: Paint; bg: Paint; bold?: Flag; underline?: Flag };
+type Style = { fg: Paint; bg: Paint; bold?: Flag; italic?: Flag; underline?: Flag };
 /** Text, its style, and the cells it takes. */
 type Run = [text: string, style: number, cells: number];
 type State = {
@@ -114,6 +114,7 @@ function useTuiStyles(data: TuiData | "failed" | null, accent: string, theme: st
               color: color(style.fg, themeIndex, tokens),
               backgroundColor: color(style.bg, themeIndex, tokens),
               fontWeight: on(style.bold, themeIndex) ? 700 : undefined,
+              fontStyle: on(style.italic, themeIndex) ? "italic" : undefined,
               textDecoration: on(style.underline, themeIndex) ? "underline" : undefined,
             }),
           )

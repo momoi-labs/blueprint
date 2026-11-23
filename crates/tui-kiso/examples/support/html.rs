@@ -56,6 +56,9 @@ pub fn buffer(buffer: &Buffer) -> String {
             if cell.modifier.contains(Modifier::UNDERLINED) {
                 style += "text-decoration:underline;";
             }
+            if cell.modifier.contains(Modifier::ITALIC) {
+                style += "font-style:italic;";
+            }
             match &mut run {
                 Some((s, text, cells)) if *s == style => {
                     text.push_str(cell.symbol());
