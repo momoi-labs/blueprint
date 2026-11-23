@@ -7,6 +7,7 @@ import { KisoBrand } from "./kiso-brand";
 import { Intro } from "./intro";
 import { TuiGallery, useTuiGallery } from "./tui-gallery";
 import { Accents } from "./accents";
+import { ThemeGenerator } from "./theme-generator";
 import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, shareParam, type ShareResult } from "./appearance-share";
@@ -18,6 +19,7 @@ import "./app.css";
 import "./appearance.css";
 import "./gallery-settings.css";
 import "./accents.css";
+import "./theme-generator.css";
 
 // A share link applies and saves its look, then drops the code from the URL.
 // The hash keeps the route, so the code lives in the query string.
@@ -76,10 +78,11 @@ function App() {
   useLayoutEffect(() => {
     window.kisoAppearance.save(settings);
   }, [settings]);
+  const reset = () => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); };
 
   return (
     <GallerySettings route={route} settings={settings} onChange={update} demos={demos} onDemosChange={setDemos}
-      onReset={() => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); }}>
+      onReset={reset}>
       {(panel, toggle) => <ComponentGallery
         panel={panel}
         settingsToggle={toggle}
@@ -96,6 +99,7 @@ function App() {
         terminalPages={terminalPages}
         intro={intro}
         accents={<Accents />}
+        generator={<ThemeGenerator settings={settings} onChange={update} onReset={reset} />}
         settingsEnabled
       />}
     </GallerySettings>
