@@ -136,7 +136,7 @@ export const standalone = frameParams.has("frame");
 
 /* How the example is shown: at desktop width, in a phone, or in a
    terminal, drawn by tui-kiso. */
-type Device = "desktop" | "phone" | "tui";
+export type Device = "desktop" | "phone" | "tui";
 const devices: Device[] = ["desktop", "phone", "tui"];
 type DeviceView = { device: Device; choose: (device: Device) => void; tui: TuiData | "failed" | null; accent: string; theme: string; setTheme: (theme: string) => void };
 const DeviceContext = createContext<DeviceView>({ device: "desktop", choose: () => {}, tui: null, accent: "", theme: "", setTheme: () => {} });
@@ -476,4 +476,19 @@ function TemplateComponents({ template }: { template: Template }) {
       Pattern: <Link href={`${docsUrl}patterns/${template.pattern}`} target="_blank" rel="noopener noreferrer">patterns/{template.pattern}</Link>
     </p>
   </>;
+}
+
+export function ThemePreview({ page, device, accent, theme }: { page: string; device: Device; accent: string; theme: string }) {
+  const data = useTuiGallery(device === "tui", screensUrl);
+  const route = `example/${page}`;
+  const at = readShopPath(page);
+  const label = shopPages.find(([value]) => value === page)?.[1] ?? shopName;
+  if (device === "tui") {
+    const state = at.page === "login" ? "default" : at.page === "crud" ? "list" : at.page === "report" ? at.report.id : "default";
+    return <Scaled className="hatch"><TuiScreen data={data} page={at.page} state={state} accent={accent} theme={theme} /></Scaled>;
+  }
+  const phone = device === "phone";
+  return <Scaled size={phone ? phoneSize : desktopSize} fill={!phone} className={phone ? "hatch layout-stage-phone" : undefined}>
+    <ExampleFrame route={route} title={`${label} at ${phone ? "phone" : "desktop"} size`} />
+  </Scaled>;
 }

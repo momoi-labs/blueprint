@@ -2191,6 +2191,7 @@ export function ComponentGallery({
   terminalPages = [],
   intro,
   accents,
+  generator,
   settingsEnabled = false,
   panel,
   settingsToggle,
@@ -2210,6 +2211,7 @@ export function ComponentGallery({
   intro?: ReactNode;
   /** The accents page, at #accents. */
   accents?: ReactNode;
+  generator?: ReactNode;
   settingsEnabled?: boolean;
   panel?: ReactNode;
   settingsToggle?: ReactNode;
@@ -2240,7 +2242,8 @@ export function ComponentGallery({
   const showingExample = (route === "examples" || route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
   const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
-  const showingAccents = route === "accents" && accents !== undefined;
+  const showingAccents = (route === "accents" && accents !== undefined) || (route === "theme" && generator !== undefined);
+  const showingGenerator = route === "theme" && generator !== undefined;
   // The logo follows the header variant. A floating header is a full-width
   // pill that holds the logo on every page; any other header leaves it to the
   // sidebar header. On an inset home with a non-floating header, the bar
@@ -2359,7 +2362,7 @@ export function ComponentGallery({
         </NavigationList>
       </NavigationGroup>
     </Navigation>
-  ) : showingAccents ? (
+  ) : showingAccents && !showingGenerator ? (
     <Navigation aria-label="Accents">
       <NavigationGroup label="Accents">
         <NavigationList>
@@ -2441,7 +2444,7 @@ export function ComponentGallery({
   const navigationDrawer = (
     <DrawerContent id="component-navigation-drawer" placement="side" className="app-shell-drawer catalog-sheet" aria-describedby={undefined}>
             <DrawerHeader>
-              <VisuallyHidden.Root asChild><DrawerTitle>{showingTerminal ? "TUI" : showingAccents ? "Accents" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></VisuallyHidden.Root>
+              <VisuallyHidden.Root asChild><DrawerTitle>{showingTerminal ? "TUI" : showingGenerator ? "Theme generator" : showingAccents ? "Accents" : showingExample && examples.length > 0 ? "Layouts" : "Categories"}</DrawerTitle></VisuallyHidden.Root>
               {brandLink}
               <DrawerClose asChild><Button className="btn-icon catalog-quiet-icon" size="sm" variant="ghost" aria-label="Close navigation" title="Close navigation"><X className="icon" aria-hidden="true" /></Button></DrawerClose>
             </DrawerHeader>
@@ -2452,7 +2455,7 @@ export function ComponentGallery({
             >
               {destinations}
               {/* The bottom bar has no room for a fifth page. */}
-              {((terminal !== undefined && !showingTerminal) || (accents !== undefined && !showingAccents)) && (
+              {((terminal !== undefined && !showingTerminal) || (accents !== undefined && !showingAccents) || (generator !== undefined && !showingGenerator)) && (
                 <Navigation aria-label="More pages">
                   <NavigationList>
                     {terminal !== undefined && !showingTerminal && (
@@ -2460,11 +2463,16 @@ export function ComponentGallery({
                         <NavigationLink href="#tui">TUI gallery</NavigationLink>
                       </NavigationItem>
                     )}
-                    {accents !== undefined && !showingAccents && (
+                    {accents !== undefined && (showingGenerator || !showingAccents) && (
                       <NavigationItem>
                         <NavigationLink href="#accents">
                           Accents
                         </NavigationLink>
+                      </NavigationItem>
+                    )}
+                    {generator !== undefined && !showingGenerator && (
+                      <NavigationItem>
+                        <NavigationLink href="#theme">Theme generator</NavigationLink>
                       </NavigationItem>
                     )}
                   </NavigationList>
@@ -2535,9 +2543,14 @@ export function ComponentGallery({
               )}
               {accents !== undefined && (
                 <NavigationItem>
-                  <NavigationLink href="#accents" active={showingAccents}>
+                  <NavigationLink href="#accents" active={showingAccents && !showingGenerator}>
                     Accents
                   </NavigationLink>
+                </NavigationItem>
+              )}
+              {generator !== undefined && (
+                <NavigationItem>
+                  <NavigationLink href="#theme" active={showingGenerator}>Theme</NavigationLink>
                 </NavigationItem>
               )}
             </NavigationList>
@@ -2581,7 +2594,7 @@ export function ComponentGallery({
         id="component-navigation"
         // Narrow navigation lives in the drawer instead of taking a grid row.
         // Home has no sidebar.
-        hidden={!desktop || showingIntro}
+        hidden={!desktop || showingIntro || showingGenerator}
         // Closed, the sidebar is Kiso's icon rail.
         collapsed={navigationCollapsed}
         className="catalog-sidebar"
@@ -2612,7 +2625,7 @@ export function ComponentGallery({
       </Sidebar>}
       <AppShellMain>
         {!pageBar && topBar}
-        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
+        <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingGenerator ? "catalog-generator" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
           {!browsing && !showingExample && !showingTerminal && !showingAccents && (
             <Breadcrumb aria-label="Component location">
@@ -2659,6 +2672,8 @@ export function ComponentGallery({
                 ? "Layouts"
                 : showingTerminal
                 ? "TUI gallery"
+                : showingGenerator
+                ? "Theme generator"
                 : showingAccents
                 ? "Accents"
                 : browsing
@@ -2670,6 +2685,8 @@ export function ComponentGallery({
                 ? "Templates by use case, built from Kiso components. Open one to see its states, copy its code and read about its components."
                 : showingTerminal
                 ? "Kiso in a terminal, drawn by tui-kiso with ratatui."
+                : showingGenerator
+                ? "Build a look for your project on the Tabi & Smoke shop app, then copy the attributes for its index.html."
                 : showingAccents
                 ? "Every accent in light and dark, on the shipped tokens. Contrast is read from the rendered colors."
                 : browsing
@@ -2682,7 +2699,7 @@ export function ComponentGallery({
         {intro !== undefined && <div hidden={!showingIntro}>{intro}</div>}
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
         {terminal !== undefined && <div hidden={!showingTerminal}>{terminal}</div>}
-        {showingAccents && accents}
+        {showingGenerator ? generator : showingAccents && accents}
         <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal || showingAccents}>
           {visible.map(([id, name, category, description]) => (
             <CatalogPane
@@ -2741,7 +2758,7 @@ export function ComponentGallery({
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
           </EmptyState>
         )}
-        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingTerminal}>
+        <p className="muted t-label catalog-footnote" hidden={showingIntro || showingTerminal || showingGenerator}>
           {showingExample
             ? "Visual examples only. Actions do not save or send data."
             : showingAccents

@@ -78,7 +78,8 @@ function Segmented<T extends string>({ label, value, onChange, options, names, d
   </RadioGroup>;
 }
 
-function LayoutSketch({ settings }: { settings: AppearanceSettings }) {
+type SketchPart = "shell" | "header" | "page";
+function LayoutSketch({ settings, onJump }: { settings: AppearanceSettings; onJump?: (part: SketchPart) => void }) {
   const inset = settings.appShell === "inset";
   const margin = inset ? { auto: 4, full: 4, compact: 2, none: 0 }[settings.appShellOuter] : 0;
   const x = 4 + margin;
@@ -95,34 +96,52 @@ function LayoutSketch({ settings }: { settings: AppearanceSettings }) {
   const plain = settings.headerVariant === "plain";
   const barY = floating ? y + 3 : y;
   const barRadius = floating ? 2 : 0;
-  return <svg className="appearance-sketch" viewBox="0 0 120 80" role="img" aria-label="Layout sketch" focusable="false">
-    <rect className="appearance-sketch-frame" x="0.5" y="0.5" width="119" height="79" rx="2" />
-    <rect className="appearance-sketch-main" x={x} y={y} width={width} height={height} rx={inset ? 2 : 0} />
-    {floating && <rect x={barX + 1} y={barY + 1.5} width={barWidth - 2} height={bar} rx="2" fill="currentColor" opacity=".18" />}
-    <rect className={plain ? "appearance-sketch-line" : "appearance-sketch-bar"} x={barX + (floating ? 1 : 0)} y={barY} width={barWidth - (floating ? 2 : 0)} height={bar} rx={barRadius} strokeDasharray={plain ? "2 2" : undefined} />
-    <rect className="appearance-sketch-line" x={pageX} y={y + bar + 8} width={pageWidth} height={height - bar - 14} rx="1" />
-    <path className="appearance-sketch-line" d={`M${pageX + 4} ${y + bar + 14}h${pageWidth * 0.5}M${pageX + 4} ${y + bar + 20}h${pageWidth * 0.7}`} />
+  const part = (id: SketchPart, label: string, children: ReactNode) => onJump
+    ? <g className="appearance-sketch-part" role="button" tabIndex={0} aria-label={`${label} settings`} data-part={id}
+      onClick={() => onJump(id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onJump(id); } }}>
+      <title>{label}</title>{children}
+    </g>
+    : <>{children}</>;
+  return <svg className="appearance-sketch" viewBox="0 0 120 80" role={onJump ? "group" : "img"} aria-label={onJump ? "Layout sketch. Choose a part to go to its settings." : "Layout sketch"} focusable="false">
+    {part("shell", "Shell", <>
+      <rect className="appearance-sketch-frame" x="0.5" y="0.5" width="119" height="79" rx="2" />
+      <rect className="appearance-sketch-main" x={x} y={y} width={width} height={height} rx={inset ? 2 : 0} />
+    </>)}
+    {part("header", "Header", <>
+      {floating && <rect x={barX + 1} y={barY + 1.5} width={barWidth - 2} height={bar} rx="2" fill="currentColor" opacity=".18" />}
+      <rect className={plain ? "appearance-sketch-line" : "appearance-sketch-bar"} x={barX + (floating ? 1 : 0)} y={barY} width={barWidth - (floating ? 2 : 0)} height={bar} rx={barRadius} strokeDasharray={plain ? "2 2" : undefined} />
+    </>)}
+    {part("page", "Page", <>
+      <rect className="appearance-sketch-line" x={pageX} y={y + bar + 8} width={pageWidth} height={height - bar - 14} rx="1" />
+      <path className="appearance-sketch-line" d={`M${pageX + 4} ${y + bar + 14}h${pageWidth * 0.5}M${pageX + 4} ${y + bar + 20}h${pageWidth * 0.7}`} />
+    </>)}
   </svg>;
 }
 
-function AppearanceSection({ title, collapsed = false, children }: { title: string; collapsed?: boolean; children: ReactNode }) {
+function AppearanceSection({ title, icon, collapsed = false, children, id: sectionId }: { title: string; icon?: ReactNode; collapsed?: boolean; children: ReactNode; id?: string }) {
   const id = useId();
-  return <section className="appearance-section" aria-labelledby={id}>
-    {collapsed ? <Disclosure summary={<span id={id} className="t-caps">{title}</span>}>{children}</Disclosure>
-      : <><h3 id={id} className="t-caps">{title}</h3>{children}</>}
+  const heading = <>{icon}{title}</>;
+  return <section className="appearance-section" aria-labelledby={id} id={sectionId}>
+    {collapsed ? <Disclosure summary={<span id={id} className="t-caps">{heading}</span>}>{children}</Disclosure>
+      : <><h3 id={id} className="t-caps">{heading}</h3>{children}</>}
   </section>;
 }
 
-export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "header" | "page" | "panels" | "marks" | "scope" | "outer" | "background" | "charts" | "phone";
+export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "header" | "page" | "gallery" | "panels" | "marks" | "scope" | "outer" | "background" | "charts" | "phone";
 
 const phoneKeys = ["phoneShadowStyle", "phoneBackgroundStyle", "phoneBorderStyle", "phoneCornerStyle", "phoneCornerMarks", "phonePanelFill"] as const;
 const isExpressive = (border: string) => border === "manga" || border === "brush";
 
-export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [] }: {
+export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, presetFields = "all", galleryOnly = false }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   sections: readonly AppearanceSectionId[];
   collapsed?: readonly AppearanceSectionId[];
+  icons?: Partial<Record<AppearanceSectionId, ReactNode>>;
+  idPrefix?: string;
+  onJump?: (part: SketchPart) => void;
+  presetFields?: "all" | "defined";
+  galleryOnly?: boolean;
 }) {
   const borderName = useId();
   const cornerName = useId();
@@ -161,17 +180,22 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const fill = chartOptions(chartFillOptions);
   const layout = chartOptions(chartLayoutOptions);
   const legend = chartOptions(chartLegendOptions);
+  const head = (key: AppearanceSectionId) => ({ icon: icons?.[key], id: idPrefix && `${idPrefix}-${key}` });
+  const definedOnly = presetFields === "defined";
   function choosePhone(next: string) {
     const override = next === "override";
     setPhoneChosen(override);
     if (!override) onChange(Object.fromEntries(phoneKeys.map(key => [key, "inherit"])));
   }
+  const landingBands = <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />;
+  const headerWidth = <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} />;
   const sections: Record<AppearanceSectionId, ReactNode> = {
-  presets: <AppearanceSection title="Presets" collapsed={collapsed.includes("presets")}>
+  presets: <AppearanceSection {...head("presets")} title="Presets" collapsed={collapsed.includes("presets")}>
     <div className="appearance-presets">
       {compositions.map(composition => {
         const next = { ...window.kisoAppearance.presetDefaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
-        return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(next).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(next)}>
+        const applied = definedOnly ? Object.fromEntries(Object.entries(composition.settings).filter(([key]) => key !== "theme")) as Partial<AppearanceSettings> : next;
+        return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(applied).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(applied)}>
           <span className="appearance-composition-preview" data-accent={next.accent} data-preview-tone={next.paperTone} aria-hidden="true">
             <BackgroundPreview background={next.backgroundStyle} tone={next.paperTone} />
             <PanelPreview shadow={next.outerShadowStyle === "inherit" ? next.shadowStyle : next.outerShadowStyle} border={next.outerBorderStyle === "inherit" ? next.borderStyle : next.outerBorderStyle} corner={next.outerCornerStyle === "inherit" ? next.cornerStyle : next.outerCornerStyle} marks={next.outerCornerMarks === "inherit" ? next.cornerMarks : next.outerCornerMarks} size={next.cornerSize} markSize={next.markSize} detail={next.frameDetail} />
@@ -192,9 +216,9 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       </Button>
     </div>
   </AppearanceSection>,
-  colors: <AppearanceSection title="Colors and type">
+  colors: <AppearanceSection {...head("colors")} title="Colors and type">
     <div className="appearance-colors">
-      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
+      {!galleryOnly && <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />}
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
       <Segmented label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
       <Segmented label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
@@ -202,27 +226,33 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Visual style" options={["default", "editorial"] as const} value={settings.visualStyle} onChange={visualStyle => onChange({ visualStyle })} />
     </div>
   </AppearanceSection>,
-  sketch: <LayoutSketch settings={settings} />,
-  shell: <AppearanceSection title="Shell">
+  sketch: <LayoutSketch settings={settings} onJump={onJump} />,
+  shell: <AppearanceSection {...head("shell")} title="Shell">
     <Segmented label="Application frame" options={["default", "inset"] as const} value={settings.appShell} onChange={appShell => onChange({ appShell })} />
     {settings.appShell === "inset" && <>
       <Segmented label="Outer spacing" options={["auto", "full", "compact", "none"] as const} value={settings.appShellOuter} onChange={appShellOuter => onChange({ appShellOuter })} />
       <Segmented label="Shell bottom" options={["default", "fill"] as const} value={settings.shellBottom} onChange={shellBottom => onChange({ shellBottom })} />
       <Segmented label="Bottom style" options={["none", "fade"] as const} value={settings.shellBottomStyle} disabledOptions={settings.shellBottom === "fill" ? [] : ["none", "fade"]} onChange={shellBottomStyle => onChange({ shellBottomStyle })} />
       <Segmented label="Brand bar" options={["separate", "full"] as const} names={{ full: "Full row" }} value={settings.brandBar} onChange={brandBar => onChange({ brandBar })} />
-      <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />
+      {!galleryOnly && landingBands}
     </>}
   </AppearanceSection>,
-  header: <AppearanceSection title="Header">
+  header: <AppearanceSection {...head("header")} title="Header">
     <Segmented label="Header" options={["default", "plain", "floating"] as const} value={settings.headerVariant} onChange={headerVariant => onChange({ headerVariant })} />
     <Segmented label="Header size" options={["compact", "default", "editorial"] as const} value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} />
-    <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} />
+    {!galleryOnly && headerWidth}
   </AppearanceSection>,
-  page: <AppearanceSection title="Page">
+  gallery: <AppearanceSection {...head("gallery")} title="Gallery only">
+    <p className="muted t-label">These choices change the gallery preview. The exported code leaves them out.</p>
+    <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
+    {headerWidth}
+    {landingBands}
+  </AppearanceSection>,
+  page: <AppearanceSection {...head("page")} title="Page">
     <Segmented label="Page width" options={["full", "contained"] as const} value={settings.pageWidth} onChange={pageWidth => onChange({ pageWidth })} />
     {settings.pageWidth === "contained" && <Segmented label="Page alignment" options={["start", "center", "end"] as const} value={settings.pageAlign} onChange={pageAlign => onChange({ pageAlign })} />}
   </AppearanceSection>,
-  panels: <AppearanceSection title="Panels">
+  panels: <AppearanceSection {...head("panels")} title="Panels">
     <fieldset className="appearance-choices">
       <legend className="t-label">Border style</legend>
       <div className="appearance-options">
@@ -256,7 +286,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     {sizedCorner && <Segmented label="Corner size" options={settings.cornerSize === "off" ? sizes : markSizes} disabledOptions={["off"]} value={settings.cornerSize} onChange={cornerSize => onChange({ cornerSize })} />}
     <Segmented label="Panel fill" options={["solid", "translucent", "glass"] as const} value={settings.panelFill} onChange={panelFill => onChange({ panelFill })} />
   </AppearanceSection>,
-  marks: <AppearanceSection title="Corner marks">
+  marks: <AppearanceSection {...head("marks")} title="Corner marks">
     <fieldset className="appearance-choices">
       <legend className="t-label">Corner marks</legend>
       <div className="appearance-options">
@@ -273,12 +303,12 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     {(settings.cornerMarks !== "none" || outerMark !== "none" || phoneMark !== "none") && <Segmented label="Mark size" options={markSizes} value={settings.markSize} onChange={markSize => onChange({ markSize })} />}
     <Segmented label="Mark clearance" options={["normal", "sheet"] as const} names={{ sheet: "Drawing sheet" }} value={settings.markClearance} onChange={markClearance => onChange({ markClearance })} />
   </AppearanceSection>,
-  scope: <AppearanceSection title="Where it applies">
+  scope: <AppearanceSection {...head("scope")} title="Where it applies">
     <Segmented label="Apply frames to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.frameScope} onChange={frameScope => onChange({ frameScope })} />
     <Segmented label="Apply marks to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.markScope} onChange={markScope => onChange({ markScope })} />
     <p className="muted t-label">Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
   </AppearanceSection>,
-  outer: <AppearanceSection title="Outer frame style" collapsed={collapsed.includes("outer")}>
+  outer: <AppearanceSection {...head("outer")} title="Outer frame style" collapsed={collapsed.includes("outer")}>
     <p className="muted t-label">Applies to the Inset application frame. Same follows the panels. Corner size, mark size and border detail are shared.</p>
     <Segmented label="Outer shadow" value={settings.outerShadowStyle} options={settings.outerShadowStyle === "auto" ? ["inherit", "none", "hard", "soft", "auto"] as const : ["inherit", "none", "hard", "soft"] as const}
       names={{ ...sameNames, auto: "Legacy elevation" }} onChange={outerShadowStyle => onChange({ outerShadowStyle })} />
@@ -292,7 +322,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
       options={[["inherit", "Same as panels"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string]), ...(settings.outerCornerMarks === "dots" ? [["dots", "Corner dots (legacy)"] as [CornerMarks, string]] : [])]} />
   </AppearanceSection>,
-  background: <AppearanceSection title="Background">
+  background: <AppearanceSection {...head("background")} title="Background">
     <fieldset className="appearance-choices">
       <legend className="t-label">Canvas background</legend>
       <div className="appearance-options">
@@ -311,13 +341,13 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Background strength" options={["quiet", "visible"] as const} value={settings.backgroundStrength} onChange={backgroundStrength => onChange({ backgroundStrength })} />
     </>}
   </AppearanceSection>,
-  charts: <AppearanceSection title="Charts">
+  charts: <AppearanceSection {...head("charts")} title="Charts">
     <Segmented label="Chart line" options={line.values} names={line.names} value={settings.chartLine} onChange={chartLine => onChange({ chartLine })} />
     <Segmented label="Chart fill" options={fill.values} names={fill.names} value={settings.chartFill} onChange={chartFill => onChange({ chartFill })} />
     <Segmented label="Chart layout" options={layout.values} names={layout.names} value={settings.chartLayout} onChange={chartLayout => onChange({ chartLayout })} />
     <Segmented label="Chart legend" options={legend.values} names={legend.names} value={settings.chartLegend} onChange={chartLegend => onChange({ chartLegend })} />
   </AppearanceSection>,
-  phone: <AppearanceSection title="Phone">
+  phone: <AppearanceSection {...head("phone")} title="Phone">
     <RadioGroup label="Same as desktop" variant="segmented" value={phoneOverride ? "override" : "same"} onValueChange={choosePhone}>
       <RadioGroupItem value="same" label="Same" />
       <RadioGroupItem value="override" label="Override" />
