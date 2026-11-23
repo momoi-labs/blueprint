@@ -15,8 +15,8 @@
 /* The examples need the height; the page heading and the controls stay tight. */
 .catalog-layouts .catalog-heading { gap: var(--spacing-xs); margin-bottom: var(--spacing-md); }
 @media (pointer: fine) {
-  .radio-group:is(.layout-device, .layout-files) { gap: var(--spacing-2xs); padding: var(--spacing-2xs); }
-  .radio-group:is(.layout-device, .layout-files) > .radio-item { min-height: var(--size-control-sm); padding-block: 0; }
+  .radio-group:is(.layout-device, .layout-files, .layout-scene) { gap: var(--spacing-2xs); padding: var(--spacing-2xs); }
+  .radio-group:is(.layout-device, .layout-files, .layout-scene) > .radio-item { min-height: var(--size-control-sm); padding-block: 0; }
 }
 /* The icons show the choice; the checked segment shows which one. */
 .radio-group:is(.layout-device, .layout-files) .radio-indicator { display: none; }
@@ -133,6 +133,7 @@
   padding-block-start: var(--spacing-xl);
   border-block-start: 1px solid var(--color-border);
 }
+.shop-mark { width: var(--size-control-sm); height: var(--size-control-sm); flex: none; }
 .layout-login-brand {
   display: grid;
   min-width: 0;
@@ -468,6 +469,7 @@
 .layout-dialog .code-block { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .layout-dialog .code-block > pre { flex: 1; min-height: 0; overflow: auto; }
 .layout-dialog-tabs p { margin: 0; }
+@media (max-width: 640px) { .table .cell-secondary { display: none; } }
 
 .intro-sequence { padding-block: var(--spacing-2xl); }
 .intro-sequence > h2 { margin-block-start: var(--spacing-sm); }

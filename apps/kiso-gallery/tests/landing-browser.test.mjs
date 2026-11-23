@@ -34,14 +34,32 @@ for (const width of [390, 1440]) for (const theme of ["light", "dark"]) {
         assert(await page.locator(".studio-hero h1").innerText().then(text => text.includes("Small pieces.")));
       };
       await check();
-      await page.goto(`${url}?phone-frame#example/landing`);
-      await page.locator(".intro-contrast").waitFor();
-      await check();
       await page.locator('.component-orbit').getByRole('switch', { name: 'Auto-save', exact: true }).click();
       assert.equal(await page.locator('.component-orbit-center strong').innerText(), '1');
       await page.getByRole("button", { name: "Apply changes", exact: true }).click();
       await page.getByRole("status").filter({ hasText: "Preferences applied." }).waitFor();
       assert.equal(await page.locator(".intro-page h1").count(), 1);
+    } finally { await page.close(); }
+  });
+
+  test(`landing example is the Tabi & Smoke storefront at ${width}px, ${theme}`, async () => {
+    const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: theme });
+    try {
+      await page.addInitScript(theme => localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ theme })), theme);
+      await page.goto(`${url}?phone-frame#example/landing`);
+      await page.locator(".intro-contrast").waitFor();
+      assert.equal(await page.locator(".intro-contrast").evaluate(el => getComputedStyle(el).colorScheme), theme === "light" ? "dark" : "light");
+      assert(await page.locator(".intro-cta").isVisible());
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      assert.equal(await page.locator(".intro-page h1").count(), 1);
+      assert(await page.locator(".studio-hero h1").innerText().then(text => text.includes("Tools for a quiet job.")));
+      assert.equal(await page.locator(".hero-panel").count(), 0, "The Kiso introduction stays on the gallery home");
+      assert.equal(await page.locator('table[aria-label="Products on the shelf this week"]').count(), 1);
+      assert.equal(await page.locator(".studio-showcase-grid > section").count(), 3);
+      const routes = await page.locator(".intro-page a").evaluateAll(links => [...new Set(links.map(link => link.getAttribute("href")))]);
+      assert.deepEqual(routes, ["#example/login"]);
+      await page.getByRole("link", { name: "Sign in", exact: true }).click();
+      await page.locator(".layout-login").waitFor();
     } finally { await page.close(); }
   });
 }
@@ -54,6 +72,7 @@ test("landing catalog exposes source and only web devices", async () => {
     await row.getByRole("link", { name: "Open", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("tab", { name: "Code", exact: true }).click();
+    assert(await dialog.getByRole("radio", { name: "storefront.tsx", exact: true }).isVisible());
     assert(await dialog.getByRole("radio", { name: "landing.css", exact: true }).isVisible());
     await dialog.getByRole("tab", { name: "Preview", exact: true }).click();
     assert.equal(await dialog.getByRole("radio", { name: "TUI", exact: true }).count(), 0);

@@ -8,7 +8,7 @@ import { docsUrl, templates, type SourceFile, type Template } from "./templates/
 import { loginResults } from "./templates/login";
 import { consoleLayouts, consoleScreens, crudPath, type ConsoleScreen } from "./templates/crud";
 import { ShopApp, readShopPath, shopName, shopPages } from "./templates/shop";
-import { Intro } from "./intro";
+import { Storefront } from "./templates/storefront";
 import {
   Badge,
   Button,
@@ -68,11 +68,11 @@ function AppExample({ route }: { route: string }) {
   const tab = at.screen === "detail" && at.tab !== "overview" ? at.tab : undefined;
   const tui = at.page === "login" ? { page: "login", state: at.result === "success" ? "default" : at.result }
     : at.page === "crud" ? { page: "crud", state: at.screen === "detail" ? "detail" : at.screen === "list" || at.screen === "empty" ? "list" : "create" }
-    : at.page === "dashboard" || at.page === "charts" ? { page: at.page, state: "default" }
-    : undefined;
+    : at.page === "report" ? { page: "report", state: at.report.id }
+    : { page: at.page, state: "default" };
   const id = useId();
   return (
-    <section aria-label={shopPages.find(([value]) => value === at.page)![1]}>
+    <section data-page-width="full" aria-label={shopPages.find(([value]) => value === at.page)![1]}>
       <div className="layout-preview-caption">
         <div className="row-wrap layout-scene-controls">
           <PageSelect page={at.page} />
@@ -290,7 +290,7 @@ function LayoutExample({ route }: { route: string }) {
   return (
     <section aria-label={landing.label}>
       <div className="layout-preview-caption"><DeviceSwitch /><OpenAlone route="example/landing" /></div>
-      <LayoutPreview route="example/landing"><Intro /></LayoutPreview>
+      <LayoutPreview route="example/landing"><Storefront /></LayoutPreview>
     </section>
   );
 }

@@ -53,10 +53,10 @@ export function ChartsLayout() {
           {/* Top to bottom: four stages of two nodes fit the panel beside a
               sidebar and, on a phone, scroll inside the diagram. */}
           <Diagram direction="down"
-            label="Shop systems: the storefront repository builds an image that runs as the web and orders services behind tabiandsmoke.example, with a database and a failed cache">
+            label="Shop systems: the storefront repository builds an image that runs as the web and orders services behind best-gear.ninja, with a database and a failed cache">
             <DiagramRow>
-              <DiagramNode id="route" kind="route" title="tabiandsmoke.example">https://tabiandsmoke.example</DiagramNode>
-              <DiagramNode id="repo" kind="repository" title="tabiandsmoke/storefront">{"git.tabiandsmoke.example/storefront\nbranch: main"}</DiagramNode>
+              <DiagramNode id="route" kind="route" title="best-gear.ninja">https://best-gear.ninja</DiagramNode>
+              <DiagramNode id="repo" kind="repository" title="tabiandsmoke/storefront">{"git.best-gear.ninja/storefront\nbranch: main"}</DiagramNode>
             </DiagramRow>
             <DiagramRow>
               <DiagramNode id="image" kind="image" title="storefront:2026.09.18">built 18 Sep, 142 MB</DiagramNode>

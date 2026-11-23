@@ -4,7 +4,6 @@ import {
   AlertContent,
   AlertDescription,
   AlertTitle,
-  BrandMark,
   Button,
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import {
   PasswordInput,
   Spinner,
 } from "@momoi-labs/kiso-react";
+import { ShopMark } from "./shop-mark";
 
 /* A sign-in gate with no application shell. `result` stands in for the
    server's answer, so every failure can be shown; a success opens the shop. */
@@ -37,10 +37,10 @@ const loginFailures = {
 function LoginBrand() {
   return (
     <div className="brand">
-      <BrandMark>✦</BrandMark>
+      <ShopMark />
       <div className="layout-login-brand">
         <span className="t-label">Tabi & Smoke</span>
-        <span className="t-metadata muted">staff.tabiandsmoke.example</span>
+        <span className="t-metadata muted">admin.best-gear.ninja</span>
       </div>
     </div>
   );
@@ -58,7 +58,7 @@ function LoginHelp() {
 
 export function LoginLayout({ result, onSignedIn }: { result: LoginResult; onSignedIn: () => void }) {
   const id = useId();
-  const [email, setEmail] = useState("aki@tabiandsmoke.example");
+  const [email, setEmail] = useState("aki@best-gear.ninja");
   const [password, setPassword] = useState("quiet-steps");
   const [errors, setErrors] = useState<LoginErrors>({});
   const [failure, setFailure] = useState<Exclude<LoginResult, "success"> | null>(null);
