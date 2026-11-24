@@ -181,9 +181,9 @@ dark because `dark.500` misses the 3:1 non-text and large-text gates on
 ## Accents
 
 The accent is a second axis over the same custom properties, orthogonal to the
-theme. Fourteen accents ship: `violet` (the default), `terracotta`, `teal`,
+theme. Fifteen accents ship: `violet` (the default), `terracotta`, `teal`,
 `cobalt`, `nocturne`, `tangerine`, `red`, `gold`, `lime`, `plum`, `stone`,
-`steel`, `snes`, and `pine`. Violet, terracotta, teal, cobalt, plum and pine are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
+`steel`, `snes`, `pine`, and `blueprint`. Violet, terracotta, teal, cobalt, plum and pine are hue turns: each is a primitive ramp (`color.violet.*`, `color.terracotta.*`,
 and so on) with the same lightness per step, so every role keeps the contrast
 it was gated at.
 `color.accent.*` is the *active* ramp: an alias layer that points at violet by
@@ -232,7 +232,7 @@ the hue was tried and rejected; at any visible strength it reads as a filter
 over the screen rather than as a colour choice.
 
 Values inside the block still use `light-dark()`, so accent and theme compose
-without a cross product. Fourteen accents and two themes need fourteen blocks.
+without a cross product. Fifteen accents and two themes need fifteen blocks.
 Nesting resets cleanly: a `data-accent="violet"` container inside a teal page
 is violet again.
 
@@ -259,6 +259,14 @@ links (`a` without a class, and `.link`) carry an underline at rest.
 `pine` is the sewa brand green: a deep green ink and fill, with a sage step. In dark the
 fill is sage (`#a7c97a`) with dark text, and the ink is a lighter sage (`#c2dca0`). Its hue is warmer and greener than `teal`, so the two read as
 different accents side by side. Neutrals stay unchanged.
+
+`blueprint` is a technical drawing sheet. Light is blue ink (`#243b53`) on a
+warm off-white sheet (`#e9e9e1`). Dark is pale ink (`#d8e4f0`) on saturated navy
+(`#192a41`). Like `nocturne` and `snes` it restates the neutral roles, and it is
+the one accent that also restates the status roles, so that success, warning and
+danger sit in the same ink family. Borders and the grid role (`hatch`) are blue,
+never neutral grey. The accent ramp points at cobalt; `accent.base` is its own
+ink.
 
 Applications own the choice and its persistence, exactly as with the theme.
 Use [AccentSelector](components/accent-selector.md) for the control.
@@ -401,6 +409,11 @@ No gallery CSS or JavaScript is required.
 | `data-chart-fill` | `none`, `dots`, `tint`, `squares`, `scanlines` | The chart style's fill, otherwise `none` |
 | `data-chart-layout` | `standard`, `compact`, `split` | `standard` |
 | `data-chart-legend` | `table`, `inline`, `sidebar` | `table` |
+| `data-chart-palette` | `series`, `mono` | `series`, the five categorical colors. `mono` is the Blueprint exception; see [Categorical chart colors](#categorical-chart-colors) |
+| `data-technical-text` | `sans`, `mono` | `sans`. `mono` sets caps labels, metadata, numbers, badges, table heads and chart text in the mono typeface |
+| `data-control-style` | `flat`, `tactile` | `flat`. `tactile` gives buttons a 1px ink border, an inverse pressed state, a hard focus outline and a dashed disabled border |
+| `data-progress-style` | `continuous`, `segmented` | `continuous`. `segmented` draws Progress and meter tracks as whole 6px blocks with 2px gaps; the fill rounds down to a whole block |
+| `data-panel-labels` | `none`, `numbered` | `none`. `numbered` puts a running number before each card, pane and stat title, and a letter before each sidebar group |
 | `data-corner-style` | `square`, `rounded`, `asym`, `pixel` | Square panels and existing control radii, or the legacy border style's radii |
 | `data-corner-size` | `off`, `small`, `medium`, `large` | `medium` |
 | `data-corner-marks` | `none`, `ticks`, `brackets`, `arcs`, `diagonal`, `dots` | `ticks` |
@@ -829,6 +842,15 @@ The calculation uses [Oklab](https://bottosson.github.io/posts/oklab/) and
 [Machado's simulation model](https://pubmed.ncbi.nlm.nih.gov/19834201/).
 Run `node scripts/check-chart-palette.mjs` for both themes and every accent. Numbered labels,
 highlighting, and tables remain required even when these checks pass.
+
+There is one exception, and only one: the Blueprint look. It sets
+`data-chart-palette="mono"`, which maps all five slots to `foreground`, so a
+chart reads as ink on the sheet. Identity then comes from pattern, not hue:
+each slot has its own line dash and square marker, and each band of a stacked
+chart has its own hatch, repeated in the legend swatch. The numbered labels,
+highlighting, and tables stay. The palette gate checks that `kiso/ui.css` remaps
+the chart slots in that one rule only, and that Blueprint is the only gallery
+preset that sets it. No other look, accent, or product may use the mono palette.
 
 ## Guided input additions
 

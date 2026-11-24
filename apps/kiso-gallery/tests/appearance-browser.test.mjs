@@ -184,14 +184,14 @@ for (const theme of ['light', 'dark']) test(`Fresh visits and reset use SNES; a 
     assert.equal((await read()).appShell, 'default', 'Saved appearance is not overwritten by the new default');
     await settings(page);
     await panel.getByRole('button', { name: 'Reset', exact: true }).click();
-    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+    await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).click();
     await classic.click();
     assert.deepEqual(await read(), direct, 'Click order does not change the result');
     await (await field(panel, 'Accent')).getByRole('button', { name: 'Teal', exact: true }).click();
     assert.equal(await classic.getAttribute('aria-pressed'), 'false', 'A changed look is no longer the preset');
     assert.equal(await panel.locator('.appearance-presets [aria-pressed="true"]').count(), 0);
     assert.equal((await panel.getByRole('status').filter({ hasText: 'Current look' }).innerText()).trim(), 'Current look: Custom');
-    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+    await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).click();
     await preset.click();
     const look = await read();
     assert.equal(look.accent, direct.accent, 'Pixel everywhere drops the accent of the earlier preset');
@@ -510,7 +510,7 @@ for (const theme of ['light', 'dark']) test(`Switching the application frame kee
     });
     for (const preset of ['Manga board', 'Blueprint', 'Pixel everywhere']) {
       await tab(panel, 'Presets');
-      await panel.getByRole('button', { name: preset, exact: true }).click();
+      await panel.getByLabel('Presets').getByRole('button', { name: preset, exact: true }).click();
       await tab(panel, 'Application frame');
       await frames.getByRole('radio', { name: 'Default', exact: true }).check();
       const expected = await paper();
@@ -571,11 +571,11 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
     await plain(page);
     let panel = await settings(page);
     await pickTheme(panel, theme === 'dark' ? 'Dark' : 'Light');
-    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+    await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).click();
     const saved = await page.evaluate(() => window.kisoAppearance.read());
-    for (const [key, value] of Object.entries({ theme, accent: 'cobalt', paperTone: 'accent', backgroundStyle: 'guides', backgroundPlacement: 'inside', backgroundStrength: 'quiet', outerBorderStyle: 'double', borderStyle: 'solid', cornerStyle: 'square', cornerMarks: 'ticks', frameScope: 'panels', markScope: 'panels' })) assert.equal(saved[key], value, key);
+    for (const [key, value] of Object.entries({ theme, accent: 'blueprint', paperTone: 'theme', backgroundStyle: 'construction', backgroundPlacement: 'both', backgroundStrength: 'quiet', outerBorderStyle: 'solid', borderStyle: 'solid', cornerStyle: 'square', cornerMarks: 'ticks', frameScope: 'all', markScope: 'panels', markClearance: 'sheet', shadowStyle: 'none', technicalText: 'mono', controlStyle: 'tactile', progressStyle: 'segmented', panelLabels: 'numbered', chartPalette: 'mono' })) assert.equal(saved[key], value, key);
     await tab(panel, 'Presets');
-    assert(await panel.getByRole('button', { name: 'Blueprint', exact: true }).getAttribute('aria-pressed') === 'true');
+    assert(await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).getAttribute('aria-pressed') === 'true');
     assert(await (await field(panel, 'Canvas background')).getByRole('radio', { name: 'Construction lines', exact: true }).isEnabled(), 'The module grid remains available');
     await tab(panel, 'Where it applies');
     for (const label of ['Outer border', 'Outer corners', 'Outer marks']) {
@@ -597,9 +597,9 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light'], [1440, 'dark']]) te
     await (await field(panel, 'Apply frames to')).getByRole('radio', { name: 'Outer only', exact: true }).check();
     assert.equal(await thumbnail.innerHTML(), before, 'Outer-only styling cannot erase option drawings');
     await tab(panel, 'Presets');
-    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+    await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).click();
     await page.reload(); panel = await settings(page);
-    assert(await panel.getByRole('button', { name: 'Blueprint', exact: true }).getAttribute('aria-pressed') === 'true');
+    assert(await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).getAttribute('aria-pressed') === 'true');
     await close(page);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     if (screenshots) await page.screenshot({ path: `${screenshots}/blueprint-study-${width}-${theme}.png`, fullPage: true });
@@ -665,7 +665,7 @@ for (const [width, theme] of fullSweep ? [[320, 'dark'], [390, 'light'], [1200, 
     for (const preset of ['Blueprint', 'Pixel workshop', 'Manga board', 'Brush study', 'Momoi signature', 'Pixel everywhere', 'Manga panels', 'Brush panels']) {
       const panel = await settings(page);
       await tab(panel, 'Presets');
-      await panel.getByRole('button', { name: preset.endsWith('panels') ? 'Blueprint' : preset, exact: true }).click();
+      await panel.getByLabel('Presets').getByRole('button', { name: preset.endsWith('panels') ? 'Blueprint' : preset, exact: true }).click();
       if (preset.endsWith('panels')) await (await field(panel, 'Border style')).locator(`input[value="${preset.startsWith('Manga') ? 'manga' : 'brush'}"]`).check();
       // Exercise changes after applying a preset, not only static snapshots.
       for (const scope of ['all', 'panels', 'outer']) {
@@ -708,7 +708,7 @@ for (const [width, theme] of [[390, 'light'], [1200, 'dark']]) test(`New frames 
       await plain(page);
       panel = await settings(page);
       await tab(panel, 'Presets');
-      await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+      await panel.getByLabel('Presets').getByRole('button', { name: 'Blueprint', exact: true }).click();
       if (frame === 'pixel') await (await field(panel, 'Corner type')).locator('input[value="pixel"]').check();
       else await (await field(panel, 'Border style')).locator(`input[value="${frame}"]`).check();
       for (const scope of ['all', 'panels', 'outer']) {
@@ -736,7 +736,7 @@ for (const [width, theme] of [[390, 'light'], [1200, 'dark']]) test(`New frames 
       await plain(page);
       panel = await settings(page);
       await tab(panel, 'Presets');
-      await panel.getByRole('button', { name: frame === 'pixel' ? 'Pixel everywhere' : 'Blueprint', exact: true }).click();
+      await panel.getByLabel('Presets').getByRole('button', { name: frame === 'pixel' ? 'Pixel everywhere' : 'Blueprint', exact: true }).click();
       if (frame !== 'pixel') await (await field(panel, 'Border style')).locator(`input[value="${frame}"]`).check();
       await (await field(panel, frame === 'pixel' ? 'Corner size' : 'Border detail')).getByRole('radio', { name: 'Large', exact: true }).check();
       await close(page);

@@ -4,11 +4,11 @@
 
 AccentSelector chooses which accent the interface uses: violet, terracotta,
 teal, cobalt, nocturne, tangerine, red, gold, lime, plum, stone, steel,
-snes, or pine. It is the only
+snes, pine, or blueprint. It is the only
 sanctioned control for that choice. The theme (light, dark, system) has its
 own control, [ThemeSelector](theme-selector.md); the two compose.
 
-## The fourteen values
+## The fifteen values
 
 | Value | Meaning | `data-accent` on `<html>` |
 | --- | --- | --- |
@@ -26,19 +26,20 @@ own control, [ThemeSelector](theme-selector.md); the two compose.
 | `steel` | Blue-gray ink and fill. Neutrals unchanged. | `data-accent="steel"` |
 | `snes` | The Super Nintendo theme: purple ink over warm beige in light, plum in dark. | `data-accent="snes"` |
 | `pine` | Deep green ink and fill with a sage step. Warmer and greener than teal. Neutrals unchanged. | `data-accent="pine"` |
+| `blueprint` | A technical drawing sheet: blue ink on warm off-white in light, pale ink on navy in dark. Restates neutrals and status. | `data-accent="blueprint"` |
 
 The attribute may also sit on a container, in which case only that subtree
 takes the accent. A nested `data-accent="violet"` resets to the default. See
 [Accents](../tokens.md#accents) for what the accent does and does not change.
 
 An application that offers fewer accents passes the subset it supports; the
-control does not have to show all fourteen.
+control does not have to show all fifteen.
 
 ## Persistence
 
 - An explicit choice persists under the key `kiso-accent`, with the value
   `violet`, `terracotta`, `teal`, `cobalt`, `nocturne`, `tangerine`, `red`, `gold`,
-  `lime`, `plum`, `stone`, `steel`, `snes`, or `pine`.
+  `lime`, `plum`, `stone`, `steel`, `snes`, `pine`, or `blueprint`.
 - Read the stored value in a blocking inline script in `<head>`, before first
   paint, and apply it as `data-accent`. Anything later flashes.
 - Storage may be unavailable. Wrap reads and writes so a failure degrades to
@@ -71,6 +72,7 @@ control does not have to show all fourteen.
 | `steel` | steel dot, "Steel" | "Steel" |
 | `snes` | snes dot, "SNES" | "SNES" |
 | `pine` | pine dot, "Pine" | "Pine" |
+| `blueprint` | blueprint dot, "Blueprint" | "Blueprint" |
 
 The pill names the accent, so no hover is needed to tell which is which. The
 preview answers the choice: it is decorative and hidden from assistive
@@ -162,7 +164,7 @@ See [terminal interfaces](../terminal-interfaces.md).
 
 ## When NOT to use
 
-- A free colour picker. Kiso has fourteen accents; a product colour that is not
+- A free colour picker. Kiso has fifteen accents; a product colour that is not
   one of them is a token proposal, not an option.
 - A way to mark status or severity. Status colors keep their own semantic
   roles. Under `red`, primary and destructive actions need explicit labels.

@@ -221,7 +221,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
 }
 
 test("every preset retains its shadow through actual clipboard and fresh-context URLs", async () => {
-  const presets = [["Kiso classic", "soft"], ["Blueprint", "hard"], ["Drawing plate", "hard"],
+  const presets = [["Kiso classic", "soft"], ["Blueprint", "none"], ["Drawing plate", "hard"],
     ["Drafting sheet", "none"], ["Pixel workshop", "hard"], ["Manga board", "hard"],
     ["Brush study", "soft"], ["Momoi signature", "soft"], ["Pixel everywhere", "hard"]];
   const page = await open("#components/card");
@@ -237,8 +237,8 @@ test("every preset retains its shadow through actual clipboard and fresh-context
     for (const [name, shadow] of presets) {
       // Repeated export notifications can cover lower presets. Activate them
       // through the keyboard rather than bypassing pointer hit testing.
-      await panel.getByRole("button", { name, exact: true }).focus();
-      await panel.getByRole("button", { name, exact: true }).press("Enter");
+      await panel.getByLabel("Presets").getByRole("button", { name, exact: true }).focus();
+      await panel.getByLabel("Presets").getByRole("button", { name, exact: true }).press("Enter");
       const expected = await page.evaluate(() => window.kisoAppearance.read());
       assert.equal(expected.shadowStyle, shadow, name);
       const copied = await copy("Copy settings");

@@ -12,6 +12,11 @@ export interface AppearanceSettings {
   neutral: "warm" | "zinc";
   primary: "accent" | "contrast";
   typeface: "inter" | "dm-sans";
+  technicalText: "sans" | "mono";
+  controlStyle: "flat" | "tactile";
+  progressStyle: "continuous" | "segmented";
+  panelLabels: "none" | "numbered";
+  chartPalette: "series" | "mono";
   chartLine: ChartLine;
   chartFill: ChartFill;
   chartLayout: ChartLayout;
@@ -61,10 +66,15 @@ export interface AppearanceSettings {
 
 const mainOptions = {
   theme: ["system", "light", "dark"],
-  accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine"],
+  accent: ["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine", "blueprint"],
   neutral: ["warm", "zinc"],
   primary: ["accent", "contrast"],
   typeface: ["inter", "dm-sans"],
+  technicalText: ["sans", "mono"],
+  controlStyle: ["flat", "tactile"],
+  progressStyle: ["continuous", "segmented"],
+  panelLabels: ["none", "numbered"],
+  chartPalette: ["series", "mono"],
   chartLine: ["straight", "stepped", "curved"],
   chartFill: ["none", "dots", "tint", "squares", "scanlines"],
   chartLayout: ["standard", "compact", "split"],
@@ -171,7 +181,7 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
   const outer = random() < .5 ? null : frame();
   return {
     ...current,
-    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine"]),
+    accent: pick(["violet", "terracotta", "teal", "cobalt", "nocturne", "tangerine", "red", "gold", "lime", "plum", "stone", "steel", "snes", "pine", "blueprint"]),
     chartLine: pick(["straight", "stepped", "curved"]),
     chartFill: pick(["none", "dots", "tint", "squares", "scanlines"]),
     chartLayout: pick(["standard", "compact", "split"]),

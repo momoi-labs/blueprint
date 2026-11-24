@@ -40,6 +40,15 @@ function lab(rgb) {
     [0.0259040371, 0.7827717662, -0.808675766],
   ], lms);
 }
+const css = await readFile('kiso/ui.css', 'utf8');
+const remaps = [...css.matchAll(/([^{}]*)\{([^{}]*--color-chart-\d\s*:[^{}]*)\}/g)];
+assert.equal(remaps.length, 1, 'kiso/ui.css remaps chart slots outside the Blueprint mono exception');
+assert.equal(remaps[0][1].trim(), ':root[data-chart-palette="mono"]', 'the mono chart palette has one selector');
+assert.deepEqual([...remaps[0][2].matchAll(/--color-chart-(\d)\s*:\s*([^;]+);/g)].map(match => `${match[1]}=${match[2].trim()}`),
+  [1, 2, 3, 4, 5].map(slot => `${slot}=var(--color-foreground)`), 'the mono chart palette maps every slot to foreground');
+const presets = (await readFile('apps/kiso-gallery/src/appearance.tsx', 'utf8')).split('\n').filter(line => line.includes('chartPalette: "mono"'));
+assert(presets.length === 1 && presets[0].includes('label: "Blueprint"'), 'only the Blueprint preset may set the mono chart palette');
+console.log('mono chart palette: Blueprint only');
 const accents = [undefined, ...Object.keys(tokens.accent ?? {}).filter(key => !key.startsWith('$'))];
 for (const accent of accents) for (const theme of ['light', 'dark']) {
   const label = accent ? `${theme} accent=${accent}` : theme;

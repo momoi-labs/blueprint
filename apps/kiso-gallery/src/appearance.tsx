@@ -38,7 +38,7 @@ const markSizes: MarkSize[] = ["small", "medium", "large"];
 
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
   { label: "Kiso classic", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
-  { label: "Blueprint", settings: { shadowStyle: "hard", accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
+  { label: "Blueprint", settings: { shadowStyle: "none", accent: "blueprint", backgroundStyle: "construction", backgroundPlacement: "both", outerBorderStyle: "solid", technicalText: "mono", controlStyle: "tactile", progressStyle: "segmented", panelLabels: "numbered", chartPalette: "mono", markClearance: "sheet", frameScope: "all" } },
   { label: "Drawing plate", settings: { shadowStyle: "hard", accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Drafting sheet", settings: { shadowStyle: "none", backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Pixel workshop", settings: { shadowStyle: "hard", backgroundStyle: "dots", outerCornerStyle: "pixel", cornerMarks: "none", outerCornerMarks: "brackets", markScope: "outer" } },
@@ -234,6 +234,10 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
       <Segmented label="Typeface" options={["inter", "dm-sans"] as const} names={{ "dm-sans": "DM Sans" }} value={settings.typeface} onChange={typeface => onChange({ typeface })} />
       <Segmented label="Visual style" options={["default", "editorial"] as const} value={settings.visualStyle} onChange={visualStyle => onChange({ visualStyle })} />
+      <Segmented label="Technical text" options={["sans", "mono"] as const} value={settings.technicalText} onChange={technicalText => onChange({ technicalText })} />
+      <Segmented label="Buttons" options={["flat", "tactile"] as const} value={settings.controlStyle} onChange={controlStyle => onChange({ controlStyle })} />
+      <Segmented label="Progress" options={["continuous", "segmented"] as const} value={settings.progressStyle} onChange={progressStyle => onChange({ progressStyle })} />
+      <Segmented label="Panel labels" options={["none", "numbered"] as const} value={settings.panelLabels} onChange={panelLabels => onChange({ panelLabels })} />
     </div>
   </AppearanceSection>,
   sketch: <LayoutSketch settings={settings} onJump={onJump} />,

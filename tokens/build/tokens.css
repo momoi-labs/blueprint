@@ -802,6 +802,73 @@
   --color-code-name: var(--color-accent);
 }
 
+[data-accent="blueprint"] {
+  --color-accent-50: var(--color-cobalt-50);
+  --color-accent-200: var(--color-cobalt-200);
+  --color-accent-300: var(--color-cobalt-300);
+  --color-accent-400: var(--color-cobalt-400);
+  --color-accent-500: var(--color-cobalt-500);
+  --color-accent-600: var(--color-cobalt-600);
+  --color-accent-700: var(--color-cobalt-700);
+  --color-accent-800: var(--color-cobalt-800);
+  --color-accent-900: var(--color-cobalt-900);
+  --color-accent-950: var(--color-cobalt-950);
+  --color-accent-base: light-dark(#295e9c, #79aeec);
+  --color-primary: var(--color-accent-base);
+  --color-primary-hover: light-dark(#244f86, #93bff2);
+  --color-primary-foreground: light-dark(#f8f8f3, #142338);
+  --color-accent-surface: light-dark(#dce4ea, #233b58);
+  --color-accent-surface-hover: light-dark(#cfd9e2, #2b4668);
+  --color-selected: light-dark(#bfcdda, #34527a);
+  --color-focus: var(--color-accent-base);
+  --color-background: light-dark(#e9e9e1, #192a41);
+  --color-surface: light-dark(#f1f1eb, #1d2e46);
+  --color-elevated-surface: light-dark(#f8f8f3, #263a53);
+  --color-muted: light-dark(#dddfd8, #142338);
+  --color-sidebar: var(--color-surface);
+  --color-card: var(--color-surface);
+  --color-popover: var(--color-elevated-surface);
+  --color-foreground: light-dark(#243b53, #d8e4f0);
+  --color-muted-foreground: light-dark(#4a6076, #91a9c1);
+  --color-subtle-foreground: light-dark(#53697e, #7f97b1);
+  --color-border: light-dark(#9fb0c2, #4a6282);
+  --color-border-strong: light-dark(#70829a, #7088a4);
+  --color-input: var(--color-border-strong);
+  --color-secondary: light-dark(#dddfd8, #263a53);
+  --color-secondary-hover: light-dark(#c8d2dd, #344962);
+  --color-disabled: light-dark(#9fb0c2, #4a6282);
+  --color-disabled-surface: light-dark(#e9e9e1, #1d2e46);
+  --color-skeleton: light-dark(#c8d2dd, #344962);
+  --color-hatch: light-dark(#c8d2dd, #344962);
+  --color-success: light-dark(#2a6b52, #81c5ae);
+  --color-warning: light-dark(#7f5412, #e5c078);
+  --color-danger: light-dark(#a03a3a, #e59494);
+  --color-info: var(--color-accent-base);
+  --color-success-surface: light-dark(rgba(42, 107, 82, 0.12), rgba(129, 197, 174, 0.12));
+  --color-success-border: light-dark(rgba(42, 107, 82, 0.35), rgba(129, 197, 174, 0.35));
+  --color-warning-surface: light-dark(rgba(127, 84, 18, 0.12), rgba(229, 192, 120, 0.12));
+  --color-warning-border: light-dark(rgba(127, 84, 18, 0.35), rgba(229, 192, 120, 0.35));
+  --color-danger-surface: light-dark(rgba(160, 58, 58, 0.12), rgba(229, 148, 148, 0.12));
+  --color-danger-border: light-dark(rgba(160, 58, 58, 0.35), rgba(229, 148, 148, 0.35));
+  --color-info-surface: light-dark(rgba(41, 94, 156, 0.12), rgba(121, 174, 236, 0.12));
+  --color-info-border: light-dark(rgba(41, 94, 156, 0.35), rgba(121, 174, 236, 0.35));
+  --color-overlay: light-dark(rgba(36, 59, 83, 0.4), rgba(10, 18, 30, 0.6));
+  --color-accent: light-dark(var(--color-accent-800), var(--color-accent-300));
+  --color-card-foreground: var(--color-foreground);
+  --color-popover-foreground: var(--color-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-link: var(--color-accent-base);
+  --color-selected-foreground: var(--color-foreground);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-ring: var(--color-focus);
+  --color-corner-mark: var(--color-border-strong);
+  --color-code-comment: var(--color-muted-foreground);
+  --color-code-keyword: var(--color-info);
+  --color-code-string: var(--color-success);
+  --color-code-constant: var(--color-warning);
+  --color-code-name: var(--color-accent);
+}
+
 [data-neutral="zinc"] {
   --color-background: light-dark(#f4f4f5, #09090b);
   --color-surface: light-dark(#fafafa, #111113);
