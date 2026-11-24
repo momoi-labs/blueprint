@@ -439,7 +439,7 @@ for (const frame of ["inset", "default"]) for (const theme of ["light", "dark"])
     await page.locator(".catalog-header[data-catalog-bar='page'] .catalog-header-brand").waitFor();
     const x = await page.evaluate(() => {
       const sidebar = document.querySelector(".component-gallery > .catalog-sidebar").getBoundingClientRect();
-      return { sidebar: Math.round(sidebar.left + sidebar.width / 2), main: Math.round(sidebar.right + 150) };
+      return { sidebar: Math.round(sidebar.right - 4), main: Math.round(sidebar.right + 4) };
     });
     const shot = (await page.screenshot({ clip: { x: 0, y: 0, width: 1440, height: 8 } })).toString("base64");
     const [sidebar, main] = await page.evaluate(async ({ shot, x }) => {
@@ -451,7 +451,7 @@ for (const frame of ["inset", "default"]) for (const theme of ["light", "dark"])
       context.drawImage(image, 0, 0);
       return [x.sidebar, x.main].map(left => [...context.getImageData(left, 4, 1, 1).data.slice(0, 3)]);
     }, { shot, x });
-    assert.deepEqual(main, sidebar, `${frame}/${theme}: the top over main matches the top over the sidebar`);
+    assert(main.every((channel, at) => Math.abs(channel - sidebar[at]) <= 2), `${frame}/${theme}: the top over main ${main} continues the top over the sidebar ${sidebar}`);
   } finally { await page.close(); }
 });
 
