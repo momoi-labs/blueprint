@@ -44,7 +44,7 @@ export const crudPath = (screen: ConsoleScreen, layout?: string, tab?: DetailTab
 
 type Go = (screen: ConsoleScreen, tab?: DetailTab) => void;
 
-const tone = (product: Product): StatusTone =>
+export const tone = (product: Product): StatusTone =>
   product.stock === 0 ? "danger" : product.stock <= product.reorder ? "neutral" : "success";
 
 function ProductsScreen({ products, width, go, open }: { products: Product[]; width: PageWidth; go: Go; open: (sku: string) => void }) {
