@@ -3906,32 +3906,43 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 }
 
 /* Canvas backgrounds belong to one shell, never to its cards or overlays. */
-[data-background-style] { --canvas-mask: none; --canvas-mask-color: transparent; --canvas-pattern: none; --canvas-size: auto; --canvas-repeat: repeat; --canvas-position: left top; }
-[data-background-strength="quiet"] { --canvas-opacity: .14; }
-[data-background-strength="visible"] { --canvas-opacity: .22; }
+:where([data-background-style="momoi"], [data-background-style="momoi-repeat"], [data-background-style="enso"], [data-background-style="rings"]) :where(.diagram:not([data-background-style])) .diagram-canvas { --canvas-mask: initial; --canvas-mask-color: initial; --canvas-pattern: initial; --canvas-size: initial; --canvas-repeat: initial; --canvas-position: initial; }
+:where([data-background-style="rings"], [data-diagram-background-style]:not([data-diagram-background-style="inherit"])) :where(.diagram:not([data-background-strength])) .diagram-canvas { --canvas-opacity: .14; }
+:where(:is([data-background-style="rings"], [data-diagram-background-style]:not([data-diagram-background-style="inherit"]))[data-background-strength="visible"]) :where(.diagram:not([data-background-strength])) .diagram-canvas { --canvas-opacity: .22; }
+[data-background-style],
+:where([data-diagram-background-style]:not([data-diagram-background-style="inherit"])) :where(.diagram:not([data-background-style])) .diagram-canvas { --canvas-mask: none; --canvas-mask-color: transparent; --canvas-pattern: none; --canvas-size: auto; --canvas-repeat: repeat; --canvas-position: left top; }
+[data-background-strength="quiet"],
+:where([data-diagram-background-strength="quiet"]) :where(.diagram:not([data-background-strength])) .diagram-canvas { --canvas-opacity: .14; }
+[data-background-strength="visible"],
+:where([data-diagram-background-strength="visible"]) :where(.diagram:not([data-background-strength])) .diagram-canvas { --canvas-opacity: .22; }
 /* Neutral patterns draw in the border ink, not the text color. A pattern in
    the text color reads as loose text and fights body copy on the canvas. */
-[data-background-style="dots"] {
+[data-background-style="dots"],
+:where([data-diagram-background-style="dots"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-pattern: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1px);
   --canvas-size: var(--spacing-xl) var(--spacing-xl);
 }
-[data-background-style="grid"] {
+[data-background-style="grid"],
+:where([data-diagram-background-style="grid"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-pattern: linear-gradient(var(--color-border-strong) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-strong) 1px, transparent 1px);
   --canvas-size: var(--spacing-xl) var(--spacing-xl);
   /* Start with half a cell so the first row cannot imitate a top border. */
   --canvas-position: center calc(-1 * var(--spacing-xl) / 2);
 }
-[data-background-style="crosses"] {
+[data-background-style="crosses"],
+:where([data-diagram-background-style="crosses"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M13 16h6m-3-3v6' stroke='black'/%3E%3C/svg%3E");
   --canvas-size: var(--spacing-2xl) var(--spacing-2xl);
   --canvas-mask-color: var(--color-border-strong);
 }
-[data-background-style="construction"] {
+[data-background-style="construction"],
+:where([data-diagram-background-style="construction"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-pattern: linear-gradient(var(--color-border-strong) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-strong) 1px, transparent 1px), repeating-linear-gradient(var(--color-border) 0 1px, transparent 1px 25%), repeating-linear-gradient(90deg, var(--color-border) 0 1px, transparent 1px 25%);
   --canvas-size: calc(4 * var(--spacing-xl)) calc(4 * var(--spacing-xl));
   --canvas-position: center;
 }
-[data-background-style="guides"] {
+[data-background-style="guides"],
+:where([data-diagram-background-style="guides"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='.7'%3E%3Cpath d='M24 0V600M776 0V600M0 24H800M0 576H800' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M400 0V600M0 300H800' stroke-dasharray='12 5 2 5' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E");
   --canvas-size: 100% 100%;
   --canvas-repeat: no-repeat;
@@ -3951,7 +3962,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   --color-muted-foreground: var(--color-foreground);
   --color-subtle-foreground: var(--color-foreground);
 }
-[data-background-style="fibers"] {
+[data-background-style="fibers"],
+:where([data-diagram-background-style="fibers"]) :where(.diagram:not([data-background-style])) .diagram-canvas {
   --canvas-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='80'%3E%3Cpath d='m8 12 5 1m54 8 4-2M30 64l6 1m48-17 3 2' stroke='black' stroke-width='.7'/%3E%3C/svg%3E");
   --canvas-size: 100px 80px;
   --canvas-mask-color: var(--color-border-strong);
@@ -5160,7 +5172,8 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
   :root, [data-theme] { color-scheme: light; }
   :root { print-color-adjust: exact; }
   :root:has(.report) { page: report; }
-  [data-background-style] { --canvas-pattern: none; --canvas-mask: none; }
+  [data-background-style],
+  :where([data-background-style], [data-diagram-background-style]:not([data-diagram-background-style="inherit"])) .diagram-canvas { --canvas-pattern: none; --canvas-mask: none; }
   html, body { min-height: 0; background: none; }
   /* Paper has no shell: no frame, no surround, no canvas. The shell rules
      are specific, so these win with !important. */
