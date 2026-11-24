@@ -229,7 +229,6 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   </AppearanceSection>,
   colors: <AppearanceSection {...head("colors")} title="Colors and type">
     <div className="appearance-colors">
-      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
       <Segmented label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
       <Segmented label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
@@ -257,6 +256,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   </AppearanceSection>,
   gallery: <AppearanceSection {...head("gallery")} title="Gallery only">
     <p className="muted t-label">These choices change the gallery preview. The exported code leaves them out.</p>
+    <div className="appearance-colors"><ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} /></div>
     {landingBands}
     <p className="muted t-label">Landing bands change the gallery home page.</p>
   </AppearanceSection>,
