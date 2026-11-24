@@ -78,6 +78,11 @@ function App() {
   useLayoutEffect(() => {
     window.kisoAppearance.save(settings);
   }, [settings]);
+  useEffect(() => {
+    const follow = (event: StorageEvent) => { if (event.key === null || event.key === "kiso-gallery-appearance") setSettings(window.kisoAppearance.read()); };
+    window.addEventListener("storage", follow);
+    return () => window.removeEventListener("storage", follow);
+  }, []);
   const reset = () => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); };
   const applyShare = (next: AppearanceSettings, nextDemos: DemoOptions) => { update(next); setDemos(nextDemos); };
   useEffect(() => {
@@ -130,7 +135,7 @@ function PhoneFrame() {
         return;
       }
     };
-    const appearance = () => { if (!frameLook) setSettings(window.kisoAppearance.save(window.kisoAppearance.read())); };
+    const appearance = (event: StorageEvent) => { if (!frameLook && (event.key === null || event.key === "kiso-gallery-appearance")) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read())); };
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
@@ -150,7 +155,7 @@ function Standalone() {
   const [settings, setSettings] = useState(readLook);
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1));
-    const appearance = () => { if (!frameLook) setSettings(window.kisoAppearance.save(window.kisoAppearance.read())); };
+    const appearance = (event: StorageEvent) => { if (!frameLook && (event.key === null || event.key === "kiso-gallery-appearance")) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read())); };
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };

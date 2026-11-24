@@ -102,6 +102,12 @@ test("phone overrides replace main choices only below 700px", () => {
   assert.equal(dataset.backgroundStyle, "fibers");
 });
 
+test("saves the look after its theme and accent copies", () => {
+  const { api, storage } = boot();
+  api.save({ ...api.defaults, accent: "red" });
+  assert.deepEqual([...storage.keys()], ["kiso-theme", "kiso-accent", "kiso-gallery-appearance"]);
+});
+
 test("retains the existing theme and accent storage keys", () => {
   const { dataset } = boot({ "kiso-theme": "light", "kiso-accent": "nocturne" });
   assert.equal(dataset.theme, "light");
