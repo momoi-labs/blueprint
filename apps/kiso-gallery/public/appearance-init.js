@@ -220,10 +220,10 @@
   }
   function save(value) {
     const settings = apply(value);
-    try { localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ ...settings, version: 3 })); } catch {}
     for (const key of ["theme", "accent"]) {
       try { localStorage.setItem(`kiso-${key}`, settings[key]); } catch {}
     }
+    try { localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ ...settings, version: 3 })); } catch {}
     return settings;
   }
   window.kisoAppearance = { defaults, presetDefaults, options, read, save, apply };
