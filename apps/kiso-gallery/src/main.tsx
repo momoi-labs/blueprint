@@ -90,7 +90,8 @@ function App() {
   }, [route]);
 
   return (
-    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}>
+    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}
+      lookNote={route === "tui" || route.startsWith("tui/") ? "The terminal follows the accent and light or dark. Other settings change the page around it." : undefined}>
       {(panel, chip) => <ComponentGallery
         panel={panel}
         tools={route === "theme" || route === "appearance" ? undefined : chip}

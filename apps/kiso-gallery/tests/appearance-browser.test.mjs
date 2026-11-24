@@ -47,7 +47,7 @@ async function plain(page) {
 }
 async function pickTheme(panel, name) {
   const before = await panel.getByRole("tab", { selected: true }).innerText();
-  await tab(panel, "Gallery only");
+  await tab(panel, "Theme");
   await panel.getByRole("radio", { name: `${name} theme`, exact: true }).check();
   await tab(panel, before.trim());
 }
