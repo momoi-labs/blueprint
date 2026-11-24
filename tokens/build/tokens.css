@@ -853,6 +853,7 @@
   --color-info-surface: light-dark(rgba(41, 94, 156, 0.12), rgba(121, 174, 236, 0.12));
   --color-info-border: light-dark(rgba(41, 94, 156, 0.35), rgba(121, 174, 236, 0.35));
   --color-overlay: light-dark(rgba(36, 59, 83, 0.4), rgba(10, 18, 30, 0.6));
+  --color-shadow-hairline: rgba(0, 0, 0, 0);
   --color-accent: light-dark(var(--color-accent-800), var(--color-accent-300));
   --color-card-foreground: var(--color-foreground);
   --color-popover-foreground: var(--color-foreground);
@@ -867,6 +868,7 @@
   --color-code-string: var(--color-success);
   --color-code-constant: var(--color-warning);
   --color-code-name: var(--color-accent);
+  --shadow-xs: 0px 1px 1px 0px var(--color-shadow-hairline);
 }
 
 [data-neutral="zinc"] {
