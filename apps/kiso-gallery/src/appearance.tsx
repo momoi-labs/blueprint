@@ -199,7 +199,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     if (!override) onChange(Object.fromEntries(phoneKeys.map(key => [key, "inherit"])));
   }
   const landingBands = <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />;
-  const headerWidth = <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} />;
+  const headerWidth = <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} disabledOptions={settings.headerVariant === "floating" ? [] : ["page", "outset"]} onChange={headerWidth => onChange({ headerWidth })} />;
   const sections: Record<AppearanceSectionId, ReactNode> = {
   presets: <AppearanceSection {...head("presets")} title="Presets" collapsed={collapsed.includes("presets")}>
     <p className="muted t-label" role="status">Current look: <strong>{presetName(settings)}</strong></p>
@@ -228,7 +228,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   </AppearanceSection>,
   colors: <AppearanceSection {...head("colors")} title="Colors and type">
     <div className="appearance-colors">
-      {!galleryOnly && <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />}
+      <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
       <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
       <Segmented label="Neutral" options={["warm", "zinc"] as const} value={settings.neutral} onChange={neutral => onChange({ neutral })} />
       <Segmented label="Primary action" options={["accent", "contrast"] as const} value={settings.primary} onChange={primary => onChange({ primary })} />
@@ -250,17 +250,20 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   header: <AppearanceSection {...head("header")} title="Header">
     <Segmented label="Header" options={["default", "plain", "floating"] as const} value={settings.headerVariant} onChange={headerVariant => onChange({ headerVariant })} />
     <Segmented label="Header size" options={["compact", "default", "editorial"] as const} value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} />
+    <p className="muted t-label">Header changes the gallery header. App pages keep their own header.</p>
     {!galleryOnly && headerWidth}
   </AppearanceSection>,
   gallery: <AppearanceSection {...head("gallery")} title="Gallery only">
     <p className="muted t-label">These choices change the gallery preview. The exported code leaves them out.</p>
-    <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
     {headerWidth}
+    <p className="muted t-label">Header width needs the Floating header and a window 700px or wider.</p>
     {landingBands}
+    <p className="muted t-label">Landing bands change the gallery home page.</p>
   </AppearanceSection>,
   page: <AppearanceSection {...head("page")} title="Page">
     <Segmented label="Page width" options={["full", "contained"] as const} value={settings.pageWidth} onChange={pageWidth => onChange({ pageWidth })} />
     {settings.pageWidth === "contained" && <Segmented label="Page alignment" options={["start", "center", "end"] as const} value={settings.pageAlign} onChange={pageAlign => onChange({ pageAlign })} />}
+    <p className="muted t-label">Page width changes gallery pages on a wide window. App pages use the full width.</p>
   </AppearanceSection>,
   panels: <AppearanceSection {...head("panels")} title="Panels">
     <fieldset className="appearance-choices">
@@ -356,6 +359,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     <Segmented label="Chart fill" options={fill.values} names={fill.names} value={settings.chartFill} onChange={chartFill => onChange({ chartFill })} />
     <Segmented label="Chart layout" options={layout.values} names={layout.names} value={settings.chartLayout} onChange={chartLayout => onChange({ chartLayout })} />
     <Segmented label="Chart legend" options={legend.values} names={legend.names} value={settings.chartLegend} onChange={chartLegend => onChange({ chartLegend })} />
+    <p className="muted t-label">Series colors stay the same under every accent, so a series never reads as a status.</p>
   </AppearanceSection>,
   phone: <AppearanceSection {...head("phone")} title="Phone">
     <RadioGroup label="Same as desktop" variant="segmented" value={phoneOverride ? "override" : "same"} onValueChange={choosePhone}>

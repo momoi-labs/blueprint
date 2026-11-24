@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { AccentSelector, AppShellPanel, Button, Dot, Drawer, DrawerContent, DrawerTitle, Link, RadioGroup, RadioGroupItem, ThemeSelector } from "@momoi-labs/kiso-react";
+import { AppShellPanel, Button, Dot, Drawer, DrawerContent, DrawerTitle, Link, RadioGroup, RadioGroupItem } from "@momoi-labs/kiso-react";
 import { DemoOptionsContext, DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
-import { AppearanceControls, VisualSelector, presetName } from "./appearance";
+import { VisualSelector, presetName } from "./appearance";
+import { LookSettings, type LookTab } from "./look-settings";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
 type View = "demo" | "look";
 const focusOpener = (view: View) => document.querySelector<HTMLElement>(view === "look" ? ".look-chip" : 'a[href="#gallery-settings"]')?.focus();
-const presetsOnly = ["presets"] as const;
 const reveal = (update: () => void) => {
   if (document.querySelector(".component-gallery > .gallery-settings-panel[hidden]")) animateGalleryPanels(".gallery-settings-panel", update);
   else update();
 };
 
-export function GallerySettings({ children, settings, onChange, demos, onDemosChange, lookDisabled = false }: {
+export function GallerySettings({ children, settings, onChange, demos, onDemosChange, lookDisabled = false, lookNote }: {
   children: (panel: ReactNode, chip: ReactNode) => ReactNode;
   lookDisabled?: boolean;
+  lookNote?: string;
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   demos: DemoOptions;
@@ -24,6 +25,7 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
 }) {
   const [state, setState] = useState<{ open: boolean; view: View }>({ open: false, view: "demo" });
   const [hasDemo, setHasDemo] = useState(false);
+  const [lookTab, setLookTab] = useState<LookTab>("look");
   const view = state.view;
   const open = state.open && !(lookDisabled && view === "look");
   const setOpen = useCallback((next: boolean) => setState(current => ({ ...current, open: next })), []);
@@ -135,13 +137,11 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
     <div className="appearance-controls-scroll" role="region" aria-label="Demo options list" tabIndex={0} hidden={view !== "demo"}>
       <div ref={setTarget} className="gallery-component-settings" />
     </div>
-    {view === "look" && <div className="appearance-controls-scroll gallery-look" role="region" aria-label="Look list" tabIndex={0}>
-      <AppearanceControls settings={settings} onChange={onChange} sections={presetsOnly} />
-      <section className="appearance-section appearance-colors" aria-label="Colors">
-        <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
-        <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
-      </section>
-      <p className="gallery-look-more"><Link href="#theme" onClick={() => { if (!desktop) setOpen(false); }}>Edit every setting</Link></p>
+    {view === "look" && <div className="gallery-look" role="region" aria-label="Look list">
+      {lookNote && <p className="muted t-label gallery-look-note">{lookNote}</p>}
+      <LookSettings settings={settings} onChange={onChange} tab={lookTab} onTabChange={setLookTab} idPrefix="look" variant="stacked"
+        phoneHint="Layouts > Phone shows the result." />
+      <p className="gallery-look-more"><Link href="#theme" onClick={() => { if (!desktop) setOpen(false); }}>Preview and export</Link></p>
     </div>}
   </>;
   const chip = <Button size="sm" className="look-chip" aria-label={`Look: ${presetName(settings)}`} title="Change the look"

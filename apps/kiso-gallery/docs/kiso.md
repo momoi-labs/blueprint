@@ -19,7 +19,9 @@
 - `KisoBrand` renders the approved horizontal lockup with outlined text.
 - `GallerySettings` owns the side panel: the demo options of a component page
   and the Look view that the header chip opens.
-- `ThemeGenerator` owns the appearance controls, Reset and Share.
+- `LookSettings` owns the appearance controls in tabs. The Look view and
+  `ThemeGenerator` both render it.
+- `ThemeGenerator` owns the large preview, Reset, Share and Export.
 - `ComponentOrbit` demonstrates connected switches, an input and an action.
 - `FoundationLab` compares light and dark tokens with a draggable light boundary.
 - `HeroPanels` composes three interactive examples, with the project summary in front.
