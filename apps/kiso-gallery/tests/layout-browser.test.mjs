@@ -307,6 +307,7 @@ for (const width of [390, 320]) test(`The phone chrome is compact and touchable 
   try {
     for (const route of ["components", "components/button"]) {
       await page.goto(`${url}#${route}`);
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.locator("h1").first().waitFor();
       const header = await page.locator(".catalog-header").boundingBox();
       const trailRoom = await page.evaluate(() => {
@@ -434,6 +435,7 @@ for (const frame of ["inset", "default"]) for (const theme of ["light", "dark"])
   const page = await open(1440, frame, theme, false, { headerVariant: "floating" });
   try {
     await page.goto(`${url}#components`);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.locator(".catalog-header[data-catalog-bar='page'] .catalog-header-brand").waitFor();
     const x = await page.evaluate(() => {
       const sidebar = document.querySelector(".component-gallery > .catalog-sidebar").getBoundingClientRect();
@@ -457,6 +459,7 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
   const page = await open(1440);
   try {
     await page.goto(`${url}#components`);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     // With a default or plain header, the sidebar header owns the brand.
     await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "default" }));
     const navigation = page.locator(".catalog-sidebar");
@@ -484,6 +487,7 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
     assert.equal(await page.locator(".catalog-sidebar .kiso-brand").count(), 0, "The floating rail has no mark");
     for (const width of [768, 390]) {
       await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.locator(".catalog-header-brand .kiso-brand").waitFor();
       assert.equal(await navigation.isVisible(), false);
     }
