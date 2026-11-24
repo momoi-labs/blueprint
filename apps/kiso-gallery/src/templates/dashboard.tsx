@@ -39,10 +39,10 @@ export function DashboardLayout({ products, go, open }: { products: Product[]; g
   const attention = products.filter(product => stockState(product) !== "In stock");
   return (
     <>
-      <PageHeader actions={<>
+      <PageHeader actions={<div className="btn-group">
         {range.control}
-        <Button size="sm"><RefreshCw className="icon icon-sm" aria-hidden="true" /> Refresh</Button>
-      </>}>
+        <Button><RefreshCw className="icon icon-sm" aria-hidden="true" /> Refresh</Button>
+      </div>}>
         <PageHeaderTitle>Overview</PageHeaderTitle>
         <PageHeaderDescription>Sales and orders this month, and the products to restock.</PageHeaderDescription>
       </PageHeader>

@@ -60,6 +60,9 @@ mode has no `bounds`. `className` applies to the wrapper around both buttons.
 
 The trigger is a group of two buttons.
 
+To join it with a button that follows, such as Refresh, put both in a
+`.btn-group`. The button then shares the height and border of the trigger.
+
 - The pause button is icon-only with an accessible name and a tooltip:
   "Pause" on a live value, "Resume live" on a paused one. Pause applies
   `{ kind: "absolute", from: now - duration, to: now }`. Resume applies
