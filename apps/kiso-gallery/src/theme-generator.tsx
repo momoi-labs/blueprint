@@ -1,11 +1,14 @@
 import { useState, type ReactNode } from "react";
-import { Badge, Button, CodeBlock, RadioGroup, RadioGroupItem, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
+import { Badge, Button, CodeBlock, PageHeader, PageHeaderTitle, RadioGroup, RadioGroupItem, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import {
   AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Monitor, Palette, PanelTop, RotateCcw,
   Scan, Smartphone, Sparkles, Square, SquareDashed, SquareTerminal, SwatchBook, Target, TriangleAlert,
 } from "lucide-react";
+import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { AppearanceControls, type AppearanceSectionId } from "./appearance";
 import type { AppearanceSettings } from "./appearance-settings";
+import { AppearanceShare } from "./appearance-share-ui";
+import { AppearanceUsage } from "./appearance-usage";
 import { ThemePreview, type Device } from "./layout-examples";
 import { shopPages } from "./templates/shop";
 
@@ -56,10 +59,12 @@ function exportCode(settings: AppearanceSettings) {
   return `${html}\n<head>\n  <script>\n    const phone = ${JSON.stringify(phone)};\n    const desktop = ${JSON.stringify(desktop)};\n    const phoneQuery = matchMedia("(max-width: 699px)");\n    const apply = () => Object.assign(document.documentElement.dataset, phoneQuery.matches ? phone : desktop);\n    apply();\n    phoneQuery.addEventListener("change", apply);\n  </script>\n</head>`;
 }
 
-export function ThemeGenerator({ settings, onChange, onReset }: {
+export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   onReset: () => void;
+  demos: DemoOptions;
+  onShare: (settings: AppearanceSettings, demos: DemoOptions) => void;
 }) {
   const [tab, setTab] = useState<TabId>("look");
   const [page, setPage] = useState("dashboard");
@@ -75,6 +80,15 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
   };
   const jumps = current.sections.filter(id => id !== "sketch");
   return <div className="gen-workspace">
+    <div className="gen-head">
+      <PageHeader variant="default" actions={<>
+        <Button size="sm" onClick={onReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>
+        <AppearanceShare settings={settings} demos={demos} onApply={onShare} />
+        <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" aria-hidden="true" />Export</Button>
+      </>}>
+        <PageHeaderTitle>Theme generator</PageHeaderTitle>
+      </PageHeader>
+    </div>
     <div className="gen-rail">
       <Tabs className="gen-tabs" orientation="vertical" value={tab} onValueChange={value => setTab(value as TabId)}>
         <TabsList className="gen-nav" aria-label="Settings groups">
@@ -82,17 +96,13 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
         </TabsList>
         <div className="gen-panel">
           <div className="gen-panel-head">
-            <div className="gen-panel-title">
-              <h2 className="t-h3">{current.icon}{current.label}</h2>
-              {tab !== "code" && <Button variant="ghost" size="sm" onClick={onReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>}
-              <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" aria-hidden="true" />Export</Button>
-            </div>
+            <h2 className="t-h3 gen-panel-title">{current.icon}{current.label}</h2>
             {jumps.length > 1 && <nav className="gen-jumps" aria-label={`${current.label} sections`}>
               {jumps.map(id => <button key={id} type="button" className="gen-jump" onClick={() => flash(id)}>{sectionNames[id]}</button>)}
             </nav>}
           </div>
           {tabs.map(item => <TabsContent key={item.id} value={item.id} className="gen-scroll">
-            {item.id === "code" ? <ExportPanel settings={settings} /> : <AppearanceControls settings={settings} onChange={onChange} sections={item.sections}
+            {item.id === "code" ? <><ExportPanel settings={settings} /><AppearanceUsage settings={settings} diagram={demos.diagram} /></> : <AppearanceControls settings={settings} onChange={onChange} sections={item.sections}
               icons={icons} idPrefix="gen" presetFields="defined" galleryOnly
               phoneHint="Switch the preview to Phone to see the result."
               onJump={part => flash(part)} />}

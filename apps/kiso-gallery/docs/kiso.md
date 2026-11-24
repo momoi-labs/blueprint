@@ -17,7 +17,8 @@
 ## Product components
 
 - `KisoBrand` renders the approved horizontal lockup with outlined text.
-- `GallerySettings` owns appearance controls.
+- `GallerySettings` owns the demo options panel of a component page.
+- `ThemeGenerator` owns the appearance controls, Reset and Share.
 - `ComponentOrbit` demonstrates connected switches, an input and an action.
 - `FoundationLab` compares light and dark tokens with a draggable light boundary.
 - `HeroPanels` composes three interactive examples, with the project summary in front.
@@ -30,7 +31,7 @@ The Kiso symbol follows `--color-accent-base`. The wordmark follows
 `--color-foreground`. Keep its outlines in sync with `docs/brand/`.
 The lockup sits directly in the shell brand link, without a BrandMark tile.
 The introduction uses `基礎` with a smaller `kiso` reading in foreground color.
-New visits and Reset appearance use the complete SNES preset. Saved preferences
+New visits and Reset use the complete SNES preset. Saved preferences
 remain in effect until reset.
 The shell lockup is 24 px high. Its place follows
 [shell layout](../../../kiso/docs/patterns/shell-layout.md): Intro is the home,
@@ -57,6 +58,7 @@ stay, as the table contract asks.
 | Gallery shell | Application shell |
 | Introduction and landing layout | Compact landing composition: split hero with a component card in perspective, three live examples in the inverse theme and accent CTA. Uses page layout as a width reference. No marketing pattern contract yet. |
 | Components | Interactive component catalog, no catalog pattern |
+| Theme generator | Full-viewport tool below the gallery header: PageHeader with Reset, Share and Export, a settings column that scrolls by itself, and a live preview that fills the rest. Stacks below 900px. No tool pattern contract yet. |
 | Layout examples | One application, Tabi & Smoke, on ConsoleShell: login, dashboard, report and CRUD patterns with ListPage, FormPage and DetailPage. The landing page stays apart: the public page of the same shop, on the landing composition of the Introduction, and its sign in opens the login. |
 
 ## Exceptions

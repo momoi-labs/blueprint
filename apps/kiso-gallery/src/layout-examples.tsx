@@ -160,10 +160,10 @@ const phoneSize = [390, 844] as const;
 /* Draws its child at its own size, then scales it down to fit the stage,
    so a whole screen shows without scrolling. Without a size, the child's
    own size is measured, as for a terminal screen. */
-function Scaled({ size, fill = false, className, children }: { size?: readonly [number, number]; fill?: boolean; className?: string; children: ReactNode }) {
+function Scaled({ size, fill = false, className, children }: { size?: readonly [number, number]; fill?: boolean | "both"; className?: string; children: ReactNode }) {
   const stage = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState<{ scale: number; width: number; height: number; drawWidth: number } | null>(null);
+  const [fit, setFit] = useState<{ scale: number; width: number; height: number; drawWidth: number; drawHeight: number } | null>(null);
   useLayoutEffect(() => {
     const room = stage.current;
     const screen = inner.current;
@@ -172,11 +172,13 @@ function Scaled({ size, fill = false, className, children }: { size?: readonly [
       const style = getComputedStyle(room);
       const width = room.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
       const height = room.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-      const [base, h] = size ?? [screen.offsetWidth, screen.offsetHeight];
-      if (!base || !h || width <= 0 || height <= 0) return;
-      const w = size && fill ? Math.max(base, Math.floor(h * width / height)) : base;
+      const [base, low] = size ?? [screen.offsetWidth, screen.offsetHeight];
+      if (!base || !low || width <= 0 || height <= 0) return;
+      const grow = size && fill === "both" ? Math.max(1, base / width, low / height) : 0;
+      const w = grow ? Math.floor(width * grow) : size && fill ? Math.max(base, Math.floor(low * width / height)) : base;
+      const h = grow ? Math.floor(height * grow) : low;
       const scale = Math.min(1, width / w, height / h);
-      setFit({ scale, width: Math.floor(w * scale), height: Math.floor(h * scale), drawWidth: w });
+      setFit({ scale, width: Math.floor(w * scale), height: Math.floor(h * scale), drawWidth: w, drawHeight: h });
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -187,7 +189,7 @@ function Scaled({ size, fill = false, className, children }: { size?: readonly [
   return <div ref={stage} className={`layout-stage ${className ?? ""}`}>
     <div className="layout-scaled" style={fit ? { width: fit.width, height: fit.height } : undefined}>
       <div ref={inner} className="layout-scaled-screen"
-        style={{ ...(size ? { width: fit?.drawWidth ?? size[0], height: size[1] } : { width: "max-content" }), transform: `scale(${fit?.scale ?? 1})`, visibility: fit ? undefined : "hidden" }}>
+        style={{ ...(size ? { width: fit?.drawWidth ?? size[0], height: fit?.drawHeight ?? size[1] } : { width: "max-content" }), transform: `scale(${fit?.scale ?? 1})`, visibility: fit ? undefined : "hidden" }}>
         {children}
       </div>
     </div>
@@ -493,7 +495,7 @@ export function ThemePreview({ page, device, accent, theme, onPage }: { page: st
     return <Scaled className="hatch"><TuiScreen data={data} page={at.page} state={state} accent={accent} theme={theme} /></Scaled>;
   }
   const phone = device === "phone";
-  return <Scaled size={phone ? phoneSize : desktopSize} fill={!phone} className={phone ? "hatch layout-stage-phone" : undefined}>
+  return <Scaled size={phone ? phoneSize : desktopSize} fill={!phone && "both"} className={phone ? "hatch layout-stage-phone" : undefined}>
     <ExampleFrame route={route} title={`${label} at ${phone ? "phone" : "desktop"} size`}
       onNavigate={path => { if (path.startsWith("example/")) onPage(path.slice(8)); }} />
   </Scaled>;

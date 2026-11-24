@@ -23,7 +23,7 @@ export const DemoSettingsContext = createContext<{
   target: HTMLElement | null;
   linkTarget?: HTMLElement | null;
   open: boolean;
-  register: (title: string | null) => void;
+  register: (title: string | null, manual?: boolean) => void;
   /** Opens the panel and asks the demo section to take focus. */
   show: () => void;
   /** Bumped by `show`, so an already open panel still scrolls to the section. */
@@ -84,8 +84,8 @@ export function DemoSettings({ title, children, manual = false }: { title: strin
   const open = settings?.open;
   const revision = settings?.revision ?? 0;
   useEffect(() => {
-    if (!register || manual) return;
-    register(title);
+    if (!register) return;
+    register(title, manual);
     return () => register(null);
   }, [register, title, manual]);
   useLayoutEffect(() => {
@@ -96,7 +96,7 @@ export function DemoSettings({ title, children, manual = false }: { title: strin
   }, [revision, open]);
   if (!settings) return <div className="demo-settings-inline">{children}</div>;
   return <>
-    {manual && settings.linkTarget && createPortal(<a href="#gallery-settings" className="link" aria-label={`${title} options in Appearance`} onClick={event => {
+    {settings.linkTarget && createPortal(<a href="#gallery-settings" className="link" aria-label={`${title} options`} onClick={event => {
       event.preventDefault();
       settings.show();
     }}>Options</a>, settings.linkTarget)}
@@ -116,7 +116,7 @@ export function DemoSettingsHint({ title }: { title: string }) {
   if (!settings) return null;
   return (
     <p className="muted t-label demo-settings-hint">
-      {title} options live in the Appearance panel.{" "}
+      {title} options live in the options panel.{" "}
       <Button size="sm" variant="ghost" className="btn-link" onClick={settings.show}>
         Open {title} options
       </Button>

@@ -5,7 +5,7 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { preview } from "vite";
-import { tab, toggleSettings } from "./settings-tabs.mjs";
+import { closeGenerator, openGenerator, openOptions, tab } from "./settings-tabs.mjs";
 import { settingsText, shareCode, shareLink, shareText, readShare } from "../src/appearance-share.ts";
 // Load Playwright before any test is registered. An await between the tests
 // and the hooks below lets the runner start the tests first, and the after
@@ -190,7 +190,7 @@ test("a malformed share link leaves the gallery working", async () => {
     await page.getByText("Appearance not applied", { exact: true }).waitFor();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), defaults.accent);
     assert.equal(new URL(page.url()).search, "");
-    await page.getByRole("button", { name: "Open settings", exact: true }).waitFor();
+    await page.locator('.catalog-header a[href="#theme"]').first().waitFor();
   } finally { await page.context().close(); }
 });
 
@@ -198,16 +198,14 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
   test(`Share actions copy a link, copy settings and paste them at ${width}px ${colorScheme}`, async () => {
     const page = await open("#components/button", width, colorScheme);
     try {
-      if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
-      await page.locator("#gallery-settings").waitFor();
-      const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
+      const menu = (await openGenerator(page)).getByRole("button", { name: "Share", exact: true });
       await menu.click();
       if (screenshots) await page.screenshot({ path: `${screenshots}/share-menu-${width}-${colorScheme}.png` });
       await page.getByRole("menuitem", { name: "Copy link" }).click();
       await page.getByText("Link copied", { exact: true }).waitFor();
       const link = await page.evaluate(() => navigator.clipboard.readText());
       assert(new URL(link).searchParams.get("appearance") !== null);
-      assert.equal(new URL(link).hash, "#components/button");
+      assert.equal(new URL(link).hash, "#theme");
       await menu.click();
       await page.getByRole("menuitem", { name: "Copy settings" }).click();
       await page.getByText("Settings copied", { exact: true }).waitFor();
@@ -228,9 +226,8 @@ test("every preset retains its shadow through actual clipboard and fresh-context
     ["Brush study", "soft"], ["Momoi signature", "soft"], ["Pixel everywhere", "hard"]];
   const page = await open("#components/card");
   try {
-    const panel = page.locator("#gallery-settings");
-    if (!await panel.isVisible()) await toggleSettings(page);
-    await panel.getByRole("tab", { name: "Look", exact: true }).click();
+    const panel = await openGenerator(page);
+    await tab(panel, "Look");
     const copy = async action => {
       await panel.getByRole("button", { name: "Share", exact: true }).click();
       await page.getByRole("menuitem", { name: action, exact: true }).click();
@@ -254,7 +251,7 @@ test("every preset retains its shadow through actual clipboard and fresh-context
         await fresh.reload();
         assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected, `${name} reload`);
       } finally { await fresh.context().close(); }
-      await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
+      await panel.getByRole("button", { name: "Reset", exact: true }).click();
       assert.equal(await page.evaluate(() => window.kisoAppearance.read().shadowStyle), "soft");
       await page.evaluate(text => navigator.clipboard.writeText(text), copied);
       await panel.getByRole("button", { name: "Share", exact: true }).click();
@@ -273,19 +270,17 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
   test(`all shadow scopes survive clipboard and a clean URL at ${width}px ${colorScheme}`, async () => {
     const page = await open("#components/diagram", width, colorScheme);
     try {
-      const panel = page.locator("#gallery-settings");
-      if (!await panel.isVisible()) await toggleSettings(page);
-      const pick = (label, value) => panel.getByRole("group", { name: label, exact: true }).locator(`input[value="${value}"]`).check({ force: true });
+      await (await openOptions(page)).getByRole("group", { name: "Node shadow", exact: true }).locator('input[value="soft"]').check({ force: true });
+      const panel = await openGenerator(page);
       const choose = (label, value) => panel.getByRole("radiogroup", { name: label, exact: true }).getByRole("radio", { name: new RegExp(`^${value}$`, "i") }).check();
       await tab(panel, "Frame");
       await choose("Panel shadow", "hard");
       const outer = panel.locator("details").filter({ has: page.locator("summary", { hasText: "Outer frame style" }) });
-      if (await outer.getAttribute("open") === null) await outer.locator("summary").click();
+      if (await outer.count() && await outer.getAttribute("open") === null) await outer.locator("summary").click();
       await choose("Outer shadow", "soft");
       await tab(panel, "Phone");
       await panel.getByRole("radiogroup", { name: "Same as desktop", exact: true }).getByRole("radio", { name: "Override", exact: true }).check();
       await choose("Phone shadow", "none");
-      await pick("Node shadow", "soft");
       const expected = await page.evaluate(() => window.kisoAppearance.read());
       assert.equal(expected.shadowStyle, "hard");
       assert.equal(expected.outerShadowStyle, "soft");
@@ -300,7 +295,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
       assert.deepEqual(JSON.parse(copied).s, expected);
       assert.equal(JSON.parse(copied).diagram.shadowStyle, "soft");
       const link = await copy("Copy link");
-      const fresh = await open(link.slice(url.length), width, colorScheme);
+      const fresh = await open(link.slice(url.length).replace("#theme", "#components/diagram"), width, colorScheme);
       try {
         await fresh.locator('.diagram-lanes[data-shadow-style="soft"]').first().waitFor();
         assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected);
@@ -311,12 +306,13 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
         await fresh.locator('.diagram-lanes').first().waitFor();
         assert.deepEqual(await fresh.evaluate(() => window.kisoAppearance.read()), expected);
       } finally { await fresh.context().close(); }
-      await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
+      await panel.getByRole("button", { name: "Reset", exact: true }).click();
       await page.evaluate(text => navigator.clipboard.writeText(text), copied);
       await panel.getByRole("button", { name: "Share", exact: true }).click();
       await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
       await page.getByText("Appearance applied", { exact: true }).last().waitFor();
       assert.deepEqual(await page.evaluate(() => window.kisoAppearance.read()), expected);
+      await closeGenerator(page);
       assert.equal(await page.locator(".diagram-lanes").first().getAttribute("data-shadow-style"), "soft");
     } finally { await page.context().close(); }
   });
@@ -331,7 +327,7 @@ test("Share copies the Diagram options and Paste sets them", async () => {
     await pick("Node shadow", "Hard");
     await pick("Edge shape", "Curve");
     await pick("Layout", "Top to bottom");
-    const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
+    const menu = (await openGenerator(page)).getByRole("button", { name: "Share", exact: true });
     await menu.click();
     await page.getByRole("menuitem", { name: "Copy settings" }).click();
     await page.getByText("Settings copied", { exact: true }).waitFor();
@@ -340,6 +336,7 @@ test("Share copies the Diagram options and Paste sets them", async () => {
     await menu.click();
     await page.getByRole("menuitem", { name: "Paste settings" }).click();
     await page.getByText("Appearance applied", { exact: true }).waitFor();
+    await closeGenerator(page);
     assert(await options.getByRole("group", { name: "Edge shape", exact: true }).getByRole("radio", { name: "Straight", exact: true }).isChecked());
     assert(await options.getByRole("group", { name: "Arrowhead", exact: true }).getByRole("radio", { name: "Dot", exact: true }).isChecked());
     assert.equal(await page.locator(".diagram").first().getAttribute("data-direction"), "right", "A pasted look replaces the earlier options");
@@ -356,10 +353,10 @@ for (const [route, scope, inline] of [["diagram", "diagram"], ["alert", "alert",
     const page = await open(`#components/${route}`);
     try {
       const panel = page.locator("#gallery-settings");
-      // PaneGrid does not open the panel by itself; wait for it to slide in.
-      if (!await panel.isVisible()) await toggleSettings(page);
-      await panel.waitFor();
-      await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+      if (!inline) {
+        await openOptions(page);
+        await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+      }
       const section = inline ? page.locator(".catalog-preview .demo-control-bar") : panel.locator(".gallery-component-settings");
       await section.locator("select, fieldset").first().waitFor();
       let controls = 0;
@@ -375,14 +372,14 @@ for (const [route, scope, inline] of [["diagram", "diagram"], ["alert", "alert",
         controls++;
       }
       const copied = async () => {
-        await panel.getByRole("button", { name: "Share", exact: true }).click();
+        await (await openGenerator(page)).getByRole("button", { name: "Share", exact: true }).click();
         await page.getByRole("menuitem", { name: "Copy settings" }).click();
         await page.getByText("Settings copied", { exact: true }).last().waitFor();
         return JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
       };
       assert(controls > 0);
       assert.equal(Object.keys((await copied())[scope] ?? {}).length, controls, "Each changed control is in the copied settings");
-      await panel.getByRole("button", { name: "Reset appearance" }).click();
+      await page.locator(".gen-head").getByRole("button", { name: "Reset", exact: true }).click();
       assert.deepEqual(Object.keys(await copied()), ["v", "s"], "Reset clears every demo option");
     } finally { await page.context().close(); }
   });
@@ -394,18 +391,22 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
     await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     const density = page.locator(".catalog-pane", { has: page.getByRole("table", { name: "Memory comparison" }) }).getByLabel("Density");
     await density.selectOption("compact");
-    if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
-    const menu = page.locator("#gallery-settings").getByRole("button", { name: "Share", exact: true });
+    const menu = (await openGenerator(page)).getByRole("button", { name: "Share", exact: true });
     await menu.click();
     await page.getByRole("menuitem", { name: "Copy settings" }).click();
     await page.getByText("Settings copied", { exact: true }).waitFor();
     assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).table, { density: "compact" });
-    await page.locator("#gallery-settings").getByRole("button", { name: "Reset appearance" }).click();
+    await page.locator(".gen-head").getByRole("button", { name: "Reset", exact: true }).click();
+    await closeGenerator(page);
+    await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     assert.equal(await density.inputValue(), "comfortable", "Reset clears a catalog card's option");
     await page.evaluate(() => navigator.clipboard.writeText('{"v":1,"s":{},"table":{"density":"spacious"}}'));
+    await openGenerator(page);
     await menu.click();
     await page.getByRole("menuitem", { name: "Paste settings" }).click();
     await page.getByText("Appearance applied", { exact: true }).waitFor();
+    await closeGenerator(page);
+    await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     assert.equal(await density.inputValue(), "spacious", "A pasted look sets a catalog card's option");
   } finally { await page.context().close(); }
 });
@@ -413,8 +414,9 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
 test("Copy settings and Paste settings restore large corners on controls", async () => {
   const page = await open("#components/form-field");
   try {
-    if (!await page.locator("#gallery-settings").isVisible()) await toggleSettings(page);
+    await openGenerator(page);
     await page.locator(".appearance-composition").filter({ hasText: "SNES" }).click();
+    await closeGenerator(page);
     const inspect = () => page.evaluate(() => ({
       cornerSize: window.kisoAppearance.read().cornerSize,
       frameScope: window.kisoAppearance.read().frameScope,
@@ -423,6 +425,7 @@ test("Copy settings and Paste settings restore large corners on controls", async
     const before = await inspect();
     assert.equal(before.cornerSize, "large");
     assert.equal(before.frameScope, "all");
+    await openGenerator(page);
     await page.getByRole("button", { name: "Share", exact: true }).click();
     await page.getByRole("menuitem", { name: "Copy settings", exact: true }).click();
     const copied = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
@@ -431,11 +434,14 @@ test("Copy settings and Paste settings restore large corners on controls", async
     // The "Settings copied" toast can sit over the presets; close it first.
     await page.getByRole("region", { name: /Notifications/ }).getByRole("button", { name: /close|dismiss/i }).first().click().catch(() => {});
     await page.locator(".toast").first().waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
-    await page.locator("#gallery-settings").getByRole("button", { name: "Pixel everywhere", exact: true }).click();
+    await page.locator(".gen-workspace").getByRole("button", { name: "Pixel everywhere", exact: true }).click();
+    await closeGenerator(page);
     assert.notDeepEqual(await inspect(), before);
+    await openGenerator(page);
     await page.getByRole("button", { name: "Share", exact: true }).click();
     await page.getByRole("menuitem", { name: "Paste settings", exact: true }).click();
     await page.waitForFunction(() => document.documentElement.dataset.cornerSize === "large");
+    await closeGenerator(page);
     assert.deepEqual(await inspect(), before);
     await page.reload();
     assert.deepEqual(await inspect(), before);

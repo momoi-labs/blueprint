@@ -1,67 +1,35 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { Settings } from "lucide-react";
-import { AppShellPanel, AppShellPanelToggle, Button, Drawer, DrawerContent, DrawerTitle, DrawerTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { AppShellPanel, Button, Drawer, DrawerContent, DrawerTitle } from "@momoi-labs/kiso-react";
 import { DemoOptionsContext, DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
-import { AppearanceControls, VisualSelector, type AppearanceSectionId } from "./appearance";
+import { VisualSelector } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
-import { AppearanceShare } from "./appearance-share-ui";
-import { AppearanceUsage } from "./appearance-usage";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
-const appearanceTabs: { value: string; label: string; sections?: AppearanceSectionId[] }[] = [
-  { value: "look", label: "Look", sections: ["presets", "colors"] },
-  { value: "layout", label: "Layout", sections: ["sketch", "shell", "header", "page"] },
-  { value: "frame", label: "Frame", sections: ["panels", "marks", "scope", "outer"] },
-  { value: "canvas", label: "Canvas", sections: ["background", "charts"] },
-  { value: "phone", label: "Phone", sections: ["phone"] },
-  { value: "code", label: "Code" },
-];
+const focusOptionsLink = () => document.querySelector<HTMLElement>('a[href="#gallery-settings"]')?.focus();
 
-export function GallerySettings({ children, route, settings, onChange, demos, onDemosChange, onReset }: {
-  children: (panel: ReactNode, toggle: ReactNode) => ReactNode;
-  route: string;
+export function GallerySettings({ children, settings, onChange, demos, onDemosChange }: {
+  children: (panel: ReactNode) => ReactNode;
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   demos: DemoOptions;
   onDemosChange: Dispatch<SetStateAction<DemoOptions>>;
-  onReset: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1200px)").matches);
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
-  const [message, setMessage] = useState("");
-  const [tab, setTab] = useState("look");
-  const scroll = useRef<HTMLDivElement>(null);
-  // A new tab starts at its top. The strip is sticky, so scroll back to it
-  // only when it has scrolled away; a phone section header stays in view.
-  function selectTab(value: string) {
-    setTab(value);
-    requestAnimationFrame(() => {
-      const region = scroll.current;
-      const tabs = region?.querySelector(".appearance-tabs");
-      const list = tabs?.querySelector<HTMLElement>(":scope > [role=tablist]");
-      if (!region || !tabs || !list) return;
-      if (list.offsetParent) {
-        const top = tabs.getBoundingClientRect().top - region.getBoundingClientRect().top + region.scrollTop;
-        region.scrollTop = Math.min(region.scrollTop, top);
-      } else tabs.querySelector(".tabs-section[aria-expanded=true]")?.scrollIntoView({ block: "nearest" });
-    });
-  }
-  const trigger = useRef<HTMLButtonElement>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
-  const manualOpen = useRef(false);
-  const returnFocus = useRef(false);
-  // Demo options open beside the page on a desktop. Below 1200px the panel
-  // is a modal drawer, so it waits for the options link instead of covering
-  // the demo the person just opened.
-  const register = useCallback((title: string | null) => {
-    if (title && matchMedia("(min-width: 1200px)").matches) setOpen(true);
+  const register = useCallback((title: string | null, manual = false) => {
+    if (!title) setOpen(false);
+    else if (!manual && matchMedia("(min-width: 1200px)").matches) setOpen(true);
   }, []);
   const [revision, setRevision] = useState(0);
   const show = useCallback(() => {
-    setOpen(true);
-    setRevision(value => value + 1);
+    const update = () => {
+      setOpen(true);
+      setRevision(value => value + 1);
+    };
+    if (document.querySelector(".component-gallery > .gallery-settings-panel[hidden]")) animateGalleryPanels(".gallery-settings-panel", update);
+    else update();
   }, []);
   // Demo choices draw with the same previews as the sections above. "Pane
   // defaults" previews the current global choice, so inherit reads as a value.
@@ -119,74 +87,46 @@ export function GallerySettings({ children, route, settings, onChange, demos, on
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
+
   useEffect(() => {
-    // Old bookmarks now open settings over Intro instead of a separate page.
-    if (route === "appearance") {
-      setOpen(true);
-      window.location.replace("#intro");
-    }
-  }, [route]);
-  useLayoutEffect(() => {
-    if (desktop && open && manualOpen.current) heading.current?.focus();
-    if (desktop && !open && returnFocus.current) trigger.current?.focus();
-    manualOpen.current = false;
-    returnFocus.current = false;
+    if (!desktop || !open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (!(event.target instanceof Node) || !document.getElementById("gallery-settings")?.contains(event.target)) return;
+      animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
+      focusOptionsLink();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [desktop, open]);
 
   function close() {
-    returnFocus.current = true;
-    if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
-    else setOpen(false);
+    if (!desktop) return setOpen(false);
+    animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
+    focusOptionsLink();
   }
-  const controls = <>
-    <div className="gallery-settings-actions">
-      <div className="gallery-settings-buttons">
-        <Button size="sm" onClick={() => { onReset(); setMessage("Global settings reset."); }}>Reset appearance</Button>
-        <AppearanceShare settings={settings} demos={demos} onApply={(next, nextDemos) => { onChange(next); onDemosChange(nextDemos); }} />
-      </div>
-      <p role="status" className="muted t-label">{message}</p>
-    </div>
-    <div className="appearance-controls-scroll" role="region" aria-label="Settings options" tabIndex={0} ref={scroll}>
-      <div ref={setTarget} className="gallery-component-settings" />
-      <Tabs sections className="appearance-tabs" value={tab} onValueChange={selectTab}>
-        <TabsList aria-label="Appearance groups">
-          {appearanceTabs.map(item => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}
-        </TabsList>
-        {appearanceTabs.map(item => <TabsContent key={item.value} value={item.value} forceMount hidden={tab !== item.value}>
-          {item.sections ? <AppearanceControls settings={settings} onChange={onChange} sections={item.sections} collapsed={["outer"]} />
-            : <AppearanceUsage settings={settings} diagram={demos.diagram} />}
-        </TabsContent>)}
-      </Tabs>
-    </div>
-  </>;
-  const toggle = <AppShellPanelToggle ref={trigger} placement="header"
-    className="gallery-settings-trigger btn-icon" aria-label={open ? "Close settings" : "Open settings"}
-    aria-expanded={open} aria-controls="gallery-settings" onClick={() => {
-      manualOpen.current = true;
-      returnFocus.current = true;
-      if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(value => !value));
-      else setOpen(value => !value);
-    }}>
-    <Settings className="icon" aria-hidden="true" />
-  </AppShellPanelToggle>;
+  const closeButton = <Button size="sm" variant="ghost" onClick={close} aria-label="Close options">Close</Button>;
+  const controls = <div className="appearance-controls-scroll" role="region" aria-label="Demo options list" tabIndex={0}>
+    <div ref={setTarget} className="gallery-component-settings" />
+  </div>;
 
   const panel = desktop ? <AppShellPanel id="gallery-settings" className="gallery-settings-panel appearance-controls" hidden={!open}
-    aria-labelledby="gallery-settings-title" onKeyDown={event => {
-      if (event.key === "Escape" && !event.defaultPrevented) { event.stopPropagation(); close(); }
-    }}>
+    aria-labelledby="gallery-settings-title">
     <div className="gallery-settings-heading">
-      <h2 id="gallery-settings-title" className="t-h3" ref={heading} tabIndex={-1}>Appearance</h2>
+      <h2 id="gallery-settings-title" className="t-h3">Demo options</h2>
+      {closeButton}
     </div>
     {controls}
   </AppShellPanel> : null;
 
   return <DemoOptionsContext.Provider value={optionsContext}><DemoSettingsContext.Provider value={context}>
     <Drawer open={!desktop && open} onOpenChange={setOpen}>
-      {children(panel, desktop ? toggle : <DrawerTrigger asChild>{toggle}</DrawerTrigger>)}
-      {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}>
+      {children(panel)}
+      {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}
+        onCloseAutoFocus={event => { event.preventDefault(); focusOptionsLink(); }}>
         <div className="gallery-settings-heading">
-          <DrawerTitle>Appearance</DrawerTitle>
-          <Button size="sm" variant="ghost" onClick={close} aria-label="Close settings">Close</Button>
+          <DrawerTitle>Demo options</DrawerTitle>
+          {closeButton}
         </div>
         {controls}
       </DrawerContent>}

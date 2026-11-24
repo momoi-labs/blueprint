@@ -30,7 +30,7 @@ for (const width of [390, 1440]) for (const theme of ["light", "dark"]) {
         assert.equal(await page.locator(".studio-showcase-grid > section").count(), 3);
         assert.equal(await page.locator('table[aria-label="Example projects"]').count(), 1);
         const routes = await page.locator(".intro-page a").evaluateAll(links => [...new Set(links.map(link => link.getAttribute("href")))]);
-        assert.deepEqual(routes.sort(), ["#appearance", "#components", "#components/form-field", "#example", "#example/crud", "https://github.com/momoi-labs/blueprint"]);
+        assert.deepEqual(routes.sort(), ["#components", "#components/form-field", "#example", "#example/crud", "#theme", "https://github.com/momoi-labs/blueprint"]);
         assert(await page.locator(".studio-hero h1").innerText().then(text => text.includes("Small pieces.")));
       };
       await check();

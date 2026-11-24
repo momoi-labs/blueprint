@@ -79,14 +79,16 @@ function App() {
     window.kisoAppearance.save(settings);
   }, [settings]);
   const reset = () => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); };
+  const applyShare = (next: AppearanceSettings, nextDemos: DemoOptions) => { update(next); setDemos(nextDemos); };
+  useEffect(() => {
+    if (route === "appearance") window.location.replace("#theme");
+  }, [route]);
 
   return (
-    <GallerySettings route={route} settings={settings} onChange={update} demos={demos} onDemosChange={setDemos}
-      onReset={reset}>
-      {(panel, toggle) => <ComponentGallery
+    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos}>
+      {panel => <ComponentGallery
         panel={panel}
-        settingsToggle={toggle}
-        route={route === "appearance" ? "intro" : route}
+        route={route === "appearance" ? "theme" : route}
         brand={<KisoBrand />}
         version={import.meta.env.VITE_KISO_VERSION}
         theme={settings.theme}
@@ -99,7 +101,7 @@ function App() {
         terminalPages={terminalPages}
         intro={intro}
         accents={<Accents />}
-        generator={<ThemeGenerator settings={settings} onChange={update} onReset={reset} />}
+        generator={<ThemeGenerator settings={settings} onChange={update} onReset={reset} demos={demos} onShare={applyShare} />}
         settingsEnabled
       />}
     </GallerySettings>

@@ -370,7 +370,6 @@ type CatalogId = (typeof catalog)[number][0];
 // Default panes span three columns, wide panes six, and full panes twelve.
 // Demos too wide to share the page with their open options. Their options
 // wait behind an "Options" link next to the description.
-const manualOptions = new Set<string>(["pane-grid", "site-section", "site-header"]);
 
 const catalogSize: Partial<Record<CatalogId, "wide" | "full">> = {
   textarea: "wide",
@@ -2194,7 +2193,6 @@ export function ComponentGallery({
   generator,
   settingsEnabled = false,
   panel,
-  settingsToggle,
   brand,
 }: {
   route: string;
@@ -2214,7 +2212,6 @@ export function ComponentGallery({
   generator?: ReactNode;
   settingsEnabled?: boolean;
   panel?: ReactNode;
-  settingsToggle?: ReactNode;
   brand?: ReactNode;
 }) {
   const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
@@ -2578,8 +2575,6 @@ export function ComponentGallery({
             />}
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
-
-            {settingsToggle}
           </div>
           </>}
         </Header>
@@ -2627,7 +2622,7 @@ export function ComponentGallery({
       <AppShellMain>
         {!pageBar && topBar}
         <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingGenerator ? "catalog-generator" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
-        {!showingIntro && <div className="catalog-heading">
+        {!showingIntro && !showingGenerator && <div className="catalog-heading">
           {!browsing && !showingExample && !showingTerminal && !showingPage && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
@@ -2673,8 +2668,6 @@ export function ComponentGallery({
                 ? "Layouts"
                 : showingTerminal
                 ? "TUI gallery"
-                : showingGenerator
-                ? "Theme generator"
                 : showingAccents
                 ? "Accents"
                 : browsing
@@ -2686,14 +2679,12 @@ export function ComponentGallery({
                 ? "Templates by use case, built from Kiso components. Open one to see its states, copy its code and read about its components."
                 : showingTerminal
                 ? "Kiso in a terminal, drawn by tui-kiso with ratatui."
-                : showingGenerator
-                ? "Build a look for your project on the Tabi & Smoke shop app, then copy the attributes for its index.html."
                 : showingAccents
                 ? "Every accent in light and dark, on the shipped tokens. Contrast is read from the rendered colors."
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
-              {!browsing && !showingExample && !showingTerminal && !showingPage && manualOptions.has(current?.[0] ?? "") && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
+              {!browsing && !showingExample && !showingTerminal && !showingPage && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}

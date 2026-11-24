@@ -51,7 +51,7 @@ export function Intro() {
             <section aria-labelledby="studio-foundations-title">
               <FoundationLab />
               <p className="t-caps">01 / Foundations</p><h3 id="studio-foundations-title">A common visual language</h3><p className="muted">Color, type and spacing that stay consistent.</p>
-              <Button asChild variant="ghost" size="sm"><a href="#appearance">Explore appearance <span aria-hidden="true">→</span></a></Button>
+              <Button asChild variant="ghost" size="sm"><a href="#theme">Explore appearance <span aria-hidden="true">→</span></a></Button>
             </section>
             <section aria-labelledby="studio-components-title">
               <ComponentOrbit />

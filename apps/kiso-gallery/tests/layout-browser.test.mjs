@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { before, after } from "node:test";
 import { test } from "./shard.mjs";
-import { field, tab, toggleSettings } from "./settings-tabs.mjs";
+import { field, tab } from "./settings-tabs.mjs";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 
@@ -15,8 +15,6 @@ before(async () => {
   browser = await chromium.launch();
   const page = await open(1440);
   await page.goto(`${url}#components`);
-  // The full catalog renders every demo; a CI runner needs more than the
-  // 5s default, as for the settings toggle in settings-tabs.mjs.
   await page.locator(".catalog-pane").first().waitFor({ timeout: 30_000 });
   titles = await page.locator(".catalog-pane").evaluateAll(elements => Object.fromEntries(elements.map(el => [`components/${el.dataset.paneId}`, el.querySelector(".grid-pane-title").textContent.trim()])));
   routes = Object.keys(titles);
@@ -37,14 +35,15 @@ async function open(width, frame = "default", theme = "dark", hasTouch = false, 
   await page.addInitScript(({ frame, theme, saved }) => { if (window === window.top) localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ appShell: frame, theme, ...saved })); }, { frame, theme, saved });
   return page;
 }
-async function settings(page, open) {
+async function options(page, open) {
   const panel = page.locator("#gallery-settings");
   if (await panel.isVisible() !== open) {
-    await toggleSettings(page, open ? "Open settings" : "Close settings");
+    if (open) await page.locator('a[href="#gallery-settings"]').click();
+    else await panel.getByRole("button", { name: "Close options", exact: true }).click();
   }
   await panel.waitFor({ state: open ? "visible" : "hidden" });
-  if (open) await panel.evaluate(el => el.querySelectorAll("section.appearance-section > details").forEach(details => { details.open = true; }));
 }
+const optionsLinkFocused = page => page.waitForFunction(() => document.activeElement?.getAttribute("href") === "#gallery-settings");
 async function layoutIssues(page, selector) {
   return page.locator(selector).evaluateAll(roots => {
     const issues = [];
@@ -82,22 +81,13 @@ async function layoutIssues(page, selector) {
     return issues;
   });
 }
-async function assertSettingsToggle(page) {
+async function assertOptionsPanel(page) {
   const main = await page.locator('.component-gallery > [data-slot="app-shell-main"]').boundingBox();
-  const trigger = page.locator(".gallery-settings-trigger");
-  const toggle = await trigger.boundingBox();
-  const header = await page.locator(".catalog-header").boundingBox();
-  const search = await page.locator('[aria-label="Find a component"]:visible, .catalog-compact-search:visible').boundingBox();
-  assert.equal(await trigger.getAttribute("data-placement"), "header");
-  assert(toggle.x >= header.x && toggle.x + toggle.width <= header.x + header.width + 1);
-  assert(toggle.y >= header.y && toggle.y + toggle.height <= header.y + header.height + 1);
-  assert(toggle.x >= search.x + search.width, "The gear stays to the right of search at every width");
-  const minimum = await page.evaluate(() => matchMedia("(pointer: coarse)").matches ? 44 : 24);
-  assert(toggle.width >= minimum && toggle.height >= minimum, "The settings gear keeps its pointer target");
+  assert.equal(await page.locator(".gallery-settings-trigger").count(), 0, "The header has no settings gear");
   const panel = page.locator(".component-gallery > .app-shell-panel");
   if (await panel.isVisible()) {
     const frameMargin = await page.locator('.component-gallery > [data-slot="app-shell-main"]').evaluate(el => parseFloat(getComputedStyle(el).marginRight));
-    assert.equal(main.x + main.width + frameMargin, (await panel.boundingBox()).x, "Only the frame's reserved margin separates preview and settings");
+    assert.equal(main.x + main.width + frameMargin, (await panel.boundingBox()).x, "Only the frame's reserved margin separates preview and options");
   }
 }
 
@@ -112,8 +102,7 @@ for (const [index, width] of widths.entries()) test(`Every catalog detail and la
       if (titles[route]) await page.locator('.catalog-heading [data-slot="page-header-title"]').filter({ hasText: titles[route] }).waitFor();
       else await page.locator(route === "intro" ? ".catalog-intro" : ".catalog-layouts").waitFor();
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await settings(page, width >= 1200);
-      await assertSettingsToggle(page);
+      await assertOptionsPanel(page);
       const issues = await layoutIssues(page, route.startsWith("components/") ? ".catalog-preview" : ".catalog-main");
       if (issues.length) failures.push({ route, issues });
     }
@@ -139,9 +128,8 @@ for (const frame of fullSweep ? ["default", "inset"] : ["inset"]) test(`Catalog 
     await page.goto(`${url}#components`);
     for (const width of [1920, 1200, 1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const panelOpen of width >= 1200 ? [true, false] : [false]) {
-        await settings(page, panelOpen);
-        await assertSettingsToggle(page);
+      {
+        await assertOptionsPanel(page);
         for (const collapsed of width >= 1200 ? [false, true] : [false]) {
           if (width >= 1200) {
             const button = page.getByRole("button", { name: collapsed ? "Collapse navigation" : "Expand navigation", exact: true });
@@ -157,12 +145,11 @@ for (const frame of fullSweep ? ["default", "inset"] : ["inset"]) test(`Catalog 
             return boxes.flatMap((a, i) => boxes.slice(i + 1).filter(b => a.box.left < b.box.right - 1 && a.box.right > b.box.left + 1 && a.box.top < b.box.bottom - 1 && a.box.bottom > b.box.top + 1).map(b => [a.name, b.name]));
           });
           assert.deepEqual(overlap, [], "Masonry cards must not overlap after rail changes");
-          assert.deepEqual(await layoutIssues(page, ".catalog-preview"), [], `${width}px, panel=${panelOpen}, collapsed=${collapsed}`);
+          assert.deepEqual(await layoutIssues(page, ".catalog-preview"), [], `${width}px, collapsed=${collapsed}`);
         }
       }
     }
     await page.setViewportSize({ width: 1440, height: 900 });
-    await settings(page, true);
     for (const link of await page.locator(".catalog-open").all()) {
       await link.evaluate(el => el.scrollIntoView({ block: "center" }));
       assert(await link.evaluate(el => {
@@ -177,23 +164,23 @@ test("Resizing between panel and drawer retains values, focus and page scrolling
   const page = await open(1440, "inset");
   try {
     await page.goto(`${url}#components/table`);
-    await settings(page, true);
+    await options(page, true);
     await page.getByRole("combobox", { name: /^Density/ }).selectOption("spacious");
     await page.getByRole("button", { name: /work_mem/ }).click();
     for (const width of [1199, 1200, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      await settings(page, true);
+      await options(page, true);
       assert.equal(await page.getByRole("combobox", { name: /^Density/ }).inputValue(), "spacious");
       if (width < 1200) {
-        const dialog = page.getByRole("dialog", { name: "Appearance", exact: true });
+        const dialog = page.getByRole("dialog", { name: "Demo options", exact: true });
         await dialog.waitFor();
         assert(await dialog.evaluate(el => el.contains(document.activeElement)), "Drawer receives focus after resizing");
       }
-      await settings(page, false);
-      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open settings");
+      await options(page, false);
+      await optionsLinkFocused(page);
       assert.equal(await page.getByRole("button", { name: /work_mem/ }).getAttribute("aria-expanded"), "true");
       assert.notEqual(await page.locator("body").evaluate(el => getComputedStyle(el).overflow), "hidden");
-      await settings(page, true);
+      await options(page, true);
     }
   } finally { await page.close(); }
 });
@@ -201,9 +188,9 @@ test("Resizing between panel and drawer retains values, focus and page scrolling
 for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choices and code remain reachable at ${width}px`, async () => {
   const page = await open(width, "inset", width === 1200 ? "light" : "dark", width === 320);
   try {
-    await page.goto(`${url}#components`);
-    await settings(page, true);
-    const panel = page.locator("#gallery-settings");
+    await page.goto(`${url}#theme`);
+    const panel = page.locator(".gen-workspace");
+    await panel.waitFor();
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async text => { window.copiedText = text; } } }));
     if (width === 320) {
       for (const button of await (await field(panel, "Accent")).getByRole("button").all()) {
@@ -221,11 +208,11 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
           if (await radio.isDisabled()) continue;
           await radio.check();
           assert(await radio.isChecked());
-          const issues = await layoutIssues(page, ".appearance-controls-scroll");
+          const issues = await layoutIssues(page, ".gen-scroll:not([hidden])");
           assert.deepEqual(issues, [], `${style}/${groupName}/${await radio.getAttribute("value")}`);
         }
       }
-      const region = panel.getByRole("region", { name: "Settings options" });
+      const region = panel.locator(".gen-scroll:not([hidden])");
       assert(await region.evaluate(el => el.scrollWidth <= el.clientWidth + 1), "Settings never need sideways scrolling");
       await tab(panel, "Code");
       for (const code of await panel.locator("pre > code").all()) {
@@ -235,7 +222,7 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
       const copy = panel.getByRole("button", { name: "Copy JavaScript", exact: true });
       await copy.click();
       assert((await page.evaluate(() => window.copiedText)).includes("Object.assign(root.dataset, attributes)"));
-      await panel.getByRole("button", { name: "Reset appearance", exact: true }).click();
+      await panel.getByRole("button", { name: "Reset", exact: true }).click();
       assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "default");
     }
   } finally { await page.close(); }
@@ -245,7 +232,6 @@ test("The StepBar table keeps its last column reachable on a narrow preview", as
   const page = await open(320);
   try {
     await page.goto(`${url}#components/step-bar`);
-    await settings(page, false);
     const scroll = page.locator('.catalog-preview [data-slot="table-container"]');
     await scroll.scrollIntoViewIfNeeded();
     await scroll.evaluate(el => el.scrollLeft = el.scrollWidth);
@@ -264,18 +250,17 @@ test("The workspace remains usable at an equivalent 200% layout zoom", async () 
   try {
     await page.route("https://fonts.googleapis.com/**", route => route.abort());
     await page.goto(`${url}#components/table`);
-    await settings(page, true);
+    await options(page, true);
     await page.getByRole("combobox", { name: /^Density/ }).selectOption("spacious");
-    await settings(page, false);
-    await assertSettingsToggle(page);
+    await options(page, false);
+    await assertOptionsPanel(page);
     await page.getByRole("button", { name: /work_mem/ }).click();
     assert.equal(await page.getByRole("button", { name: /work_mem/ }).getAttribute("aria-expanded"), "true");
     assert.deepEqual(await layoutIssues(page, ".catalog-preview"), []);
-    await settings(page, true);
+    await options(page, true);
     assert.equal(await page.getByRole("combobox", { name: /^Density/ }).inputValue(), "spacious");
-    await page.getByRole("button", { name: "Reset appearance", exact: true }).click();
     await page.keyboard.press("Escape");
-    await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open settings");
+    await optionsLinkFocused(page);
   } finally { await page.close(); }
 });
 
@@ -335,9 +320,9 @@ for (const width of [390, 320]) test(`The phone chrome is compact and touchable 
     await page.getByRole("navigation", { name: "Component categories" }).waitFor();
     assert.deepEqual(await small(), [], "Browse sheet targets");
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Open settings", exact: true }).click();
-    await page.locator("#gallery-settings").waitFor();
-    assert.deepEqual(await small(), [], "Settings drawer targets");
+    await page.goto(`${url}#components/table`);
+    await options(page, true);
+    assert.deepEqual(await small(), [], "Options drawer targets");
   } finally { await page.close(); }
 });
 
@@ -428,16 +413,16 @@ for (const width of [390, 900]) test(`Navigation overlays the page from the left
     await page.getByRole("dialog", { name: "Categories", exact: true }).getByRole("link", { name: /^Forms/ }).click();
     await drawer.waitFor({ state: "hidden" });
     assert(page.url().endsWith("#components"), "Choosing a category navigates and closes the drawer");
-    const settingsTrigger = page.locator(".gallery-settings-trigger");
-    await settingsTrigger.click();
-    const appearance = page.getByRole("dialog", { name: "Appearance", exact: true });
-    await appearance.waitFor();
-    assert.deepEqual(await appearance.evaluate(drawerStyle), navigationStyle, "Both drawers share width, paper and header spacing");
-    const bounds = await appearance.boundingBox();
-    assert(Math.abs(bounds.x + bounds.width - width) < 1, "Appearance still opens at the right edge");
+    await page.goto(`${url}#components/table`);
+    await options(page, true);
+    const demoOptions = page.getByRole("dialog", { name: "Demo options", exact: true });
+    await demoOptions.waitFor();
+    assert.deepEqual(await demoOptions.evaluate(drawerStyle), navigationStyle, "Both drawers share width, paper and header spacing");
+    const bounds = await demoOptions.boundingBox();
+    assert(Math.abs(bounds.x + bounds.width - width) < 1, "Demo options open at the right edge");
     await page.keyboard.press("Escape");
-    await appearance.waitFor({ state: "hidden" });
-    await page.waitForFunction(el => el === document.activeElement, await settingsTrigger.elementHandle());
+    await demoOptions.waitFor({ state: "hidden" });
+    await optionsLinkFocused(page);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   } finally { await page.close(); }
 });
@@ -501,30 +486,6 @@ test("gallery lockups stay compact and use the accent with navigation open", asy
       await page.locator(".catalog-header-brand .kiso-brand").waitFor();
       assert.equal(await navigation.isVisible(), false);
     }
-  } finally { await page.close(); }
-});
-
-// The docked settings panel takes the last column. On the home page the bar
-// spans only the content column, so it stays centered with the content.
-test("The floating bar keeps one row over the content column with the settings panel open", async () => {
-  const page = await open(1440, "inset");
-  try {
-    await page.goto(url);
-    await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.read(), headerVariant: "floating" }));
-    const header = page.locator(".catalog-header[data-catalog-bar='page']");
-    await header.locator(".catalog-header-brand").waitFor();
-    await settings(page, true);
-    const bar = await header.evaluate(el => {
-      const box = el.getBoundingClientRect();
-      const outside = [...el.querySelectorAll("nav a, .catalog-tools > *")].filter(child => {
-        const r = child.getBoundingClientRect();
-        return r.width && (r.left < box.left || r.right > box.right || r.top < box.top || r.bottom > box.bottom);
-      }).length;
-      const main = document.querySelector(".component-gallery > [data-slot='app-shell-main']").getBoundingClientRect();
-      return { left: box.left, right: box.right, mainLeft: main.left, mainRight: main.right, outside };
-    });
-    assert(Math.abs(bar.left - bar.mainLeft) <= 24 && Math.abs(bar.right - bar.mainRight) <= 24, `The bar spans the content column, got ${bar.left}-${bar.right} for ${bar.mainLeft}-${bar.mainRight}`);
-    assert.equal(bar.outside, 0, "Tabs, search and the gear stay inside the bar");
   } finally { await page.close(); }
 });
 

@@ -84,7 +84,7 @@ for (const width of [390, 1440]) for (const theme of ["light", "dark"]) {
   test(`Usage stays inside the preview with highlighted, copyable code at ${width}px ${theme}`, () => withGallery(async page => {
     const settings = page.locator("#gallery-settings");
     if (await settings.isVisible()) {
-      await page.getByRole("button", { name: "Close settings", exact: true }).click();
+      await page.getByRole("button", { name: "Close options", exact: true }).click();
       await settings.waitFor({ state: "hidden" });
     }
     const usage = page.locator(".catalog-preview > .catalog-code");
