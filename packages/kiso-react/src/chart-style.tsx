@@ -9,7 +9,7 @@ import { Line } from "recharts"
 export type ChartLine = "straight" | "stepped" | "curved"
 export type ChartFill = "none" | "dots" | "tint" | "squares" | "scanlines"
 export type ChartStyle = "solid" | "pixel" | "halftone" | "rounded"
-export type ChartTreatment = { line: ChartLine; fill: ChartFill }
+export type ChartTreatment = { line: ChartLine; fill: ChartFill; mono?: boolean }
 export const chartStylePresets: Record<ChartStyle, ChartTreatment> = {
   solid: { line: "straight", fill: "none" },
   pixel: { line: "stepped", fill: "none" },
@@ -30,15 +30,15 @@ export type ChartTreatmentProps = {
 // Geometry must update with a scoped appearance attribute, not just CSS paint.
 export function useChartStyle(ref: React.RefObject<HTMLElement | null>, override: ChartTreatmentProps = {}, mounted = true): ChartTreatment {
   const [inherited, setInherited] = React.useState<ChartTreatment>(chartStylePresets.solid)
-  const fixed = override.chartStyle || (override.chartLine && override.chartFill)
+  const [mono, setMono] = React.useState(false)
   React.useLayoutEffect(() => {
-    if (fixed) return
     const element = ref.current
     if (!element) return
     const read = () => {
       const style = getComputedStyle(element)
       const line = style.getPropertyValue("--chart-line").trim()
       const fill = style.getPropertyValue("--chart-fill").trim()
+      setMono(style.getPropertyValue("--chart-palette").trim() === "mono")
       setInherited(current => {
         const next = { line: chartLines.includes(line) ? line as ChartLine : "straight", fill: chartFills.includes(fill) ? fill as ChartFill : "none" }
         return next.line === current.line && next.fill === current.fill ? current : next
@@ -46,11 +46,11 @@ export function useChartStyle(ref: React.RefObject<HTMLElement | null>, override
     }
     read()
     const observer = new MutationObserver(read)
-    observer.observe(element.ownerDocument.documentElement, { attributes: true, subtree: true, attributeFilter: ["data-chart-style", "data-chart-line", "data-chart-fill"] })
+    observer.observe(element.ownerDocument.documentElement, { attributes: true, subtree: true, attributeFilter: ["data-chart-style", "data-chart-line", "data-chart-fill", "data-chart-palette"] })
     return () => observer.disconnect()
-  }, [ref, fixed, mounted])
+  }, [ref, mounted])
   const base = override.chartStyle ? chartStylePresets[override.chartStyle] : inherited
-  return { line: override.chartLine ?? base.line, fill: override.chartFill ?? base.fill }
+  return { line: override.chartLine ?? base.line, fill: override.chartFill ?? base.fill, mono }
 }
 
 /* Layout and legend placement follow data-chart-layout and data-chart-legend
@@ -119,7 +119,18 @@ export const pixelCurve: CurveFactory = context => {
 
 /* The texture under a line. Dots and squares sit on a 4px screen; scanlines
    are 1px rules every 3px. None and tint need no pattern. */
-export function ChartPattern({ id, color, fill }: { id: string; color: string; fill: ChartFill }) {
+export function ChartPattern({ id, color, fill, hatch }: { id: string; color: string; fill: ChartFill; hatch?: number }) {
+  if (hatch) {
+    const kind = hatch % 5
+    const size = kind === 1 ? 10 : kind === 4 ? 4 : 6
+    return <pattern id={id} width={size} height={size} patternUnits="userSpaceOnUse">
+      {kind === 1 ? <path d="M-1 1L1 -1M0 10L10 0M9 11L11 9" stroke={color} strokeWidth={1} />
+        : kind === 2 ? <path d="M-1 5L1 7M0 0L6 6M5 -1L7 1" stroke={color} strokeWidth={1} />
+        : kind === 3 ? <path d="M1 1h1.5v1.5h-1.5zM4 4h1.5v1.5h-1.5z" fill={color} />
+        : kind === 4 ? <path d="M0 2H4" stroke={color} strokeWidth={1} />
+        : <path d="M3 0V6" stroke={color} strokeWidth={1} />}
+    </pattern>
+  }
   if (fill === "scanlines") return <pattern id={id} width={4} height={3} patternUnits="userSpaceOnUse">
     <rect width={4} height={1} fill={color} />
   </pattern>

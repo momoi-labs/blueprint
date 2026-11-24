@@ -5,6 +5,8 @@ import { clsx as cn } from "clsx"
 import { chartColor, chartSlot, defaultChartSummary, formatChartTime, formatChartValue,
   measured, seriesSummary, validateChart, type ChartSample, type ChartSeries, type ChartSummaryStat } from "./chart-data.js"
 
+import { ChartPattern } from "./chart-style.js"
+
 export type { ChartSummaryStat } from "./chart-data.js"
 
 const defaultLabels = {
@@ -30,9 +32,12 @@ export type ChartLegendProps = React.ComponentProps<"div"> & {
 
 export function ChartSeriesLabel({ series, index }: { series: ChartSeries; index: number }) {
   const slot = chartSlot(series, index)
+  const id = React.useId()
   return <span className="chart-series-label">
     <svg className="chart-series-swatch" aria-hidden="true" width="28" height="12" viewBox="0 0 28 12">
-      <path d="M0 6H28" stroke={chartColor(slot)} strokeWidth="2" />
+      <defs><ChartPattern id={`${id}-hatch`} color={chartColor(slot)} fill="none" hatch={slot} /></defs>
+      <path className="chart-series-line" d="M0 6H28" stroke={chartColor(slot)} strokeWidth="2" />
+      <path className="chart-series-hatch" d="M1 1H27V11H1Z" stroke={chartColor(slot)} strokeWidth="1" fill={`url(#${id}-hatch)`} />
     </svg>
     <span>{slot}. {series.label}</span>
   </span>

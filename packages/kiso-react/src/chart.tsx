@@ -83,7 +83,7 @@ export function Chart({ data, series, label, variant = "line", layout: requested
     ...(fractional ? { fractionalSecondDigits: 3 as const } : {}), timeZoneName: "longOffset" }).format(timestamp)
     : formatChartTime
   const frame = React.useRef<HTMLElement>(null)
-  const { line, fill } = useChartStyle(frame, { chartStyle, chartLine, chartFill })
+  const { line, fill, mono } = useChartStyle(frame, { chartStyle, chartLine, chartFill })
   const presentation = useChartPresentation(frame, layoutProp, legendProp)
   const legend = presentation.legend
   // An inherited split cannot hold a stack, so a stacked chart keeps one plot.
@@ -207,10 +207,11 @@ export function Chart({ data, series, label, variant = "line", layout: requested
         aria-label={lane ? `${label}: ${lane.label}` : label} aria-describedby={`${id}-help`}
         margin={spark ? { top: 4, right: 0, bottom: 0, left: 0 } : { top: 8, right: 20, bottom: 0, left: 0 }} {...pointerHandlers}>
         <defs>{indices.map(index => <ChartPattern key={series[index]!.key} id={`${id}-fill-${index}`}
-          color={chartColor(chartSlot(series[index]!, index))} fill={fill} />)}</defs>
-        {!spark && <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={0.5} />}
+          color={chartColor(chartSlot(series[index]!, index))} fill={fill}
+          hatch={mono && variant === "stacked-area" ? chartSlot(series[index]!, index) : undefined} />)}</defs>
+        {!spark && <CartesianGrid vertical={!!mono} stroke="var(--color-border)" strokeWidth={0.5} />}
         <XAxis dataKey="timestamp" type="number" domain={["dataMin", "dataMax"]} scale="time"
-          axisLine={false} tickLine={false} tickFormatter={formatTime} minTickGap={spark ? 8 : 48}
+          axisLine={false} tickLine={mono && !spark ? { stroke: "var(--color-border-strong)" } : false} tickFormatter={formatTime} minTickGap={spark ? 8 : 48}
           ticks={spark && data.length ? [...new Set([data[0]!.timestamp, ...(pinned !== null ? [pinned] : []), data.at(-1)!.timestamp])] : undefined}
           interval={spark ? 0 : undefined}
           tick={spark ? (tick: { x?: number | string; y?: number | string; payload?: { value: number } }) => <text x={tick.x} y={tick.y} dy={12}
@@ -240,6 +241,11 @@ export function Chart({ data, series, label, variant = "line", layout: requested
               const at = dotProps.index ?? -1
               const isolated = measured(plot[at]?.values[index])
                 && !measured(plot[at - 1]?.values[index]) && !measured(plot[at + 1]?.values[index])
+              const every = Math.max(1, Math.ceil(plot.length / 12))
+              if (mono && !spark && !isolated && measured(plot[at]?.values[index]) && (at + index * Math.floor(every / 2)) % every === 0
+                && dotProps.cx !== undefined && dotProps.cy !== undefined)
+                return <rect key={at} x={dotProps.cx - 2.5} y={dotProps.cy - 2.5} width={5} height={5} strokeWidth={1}
+                  stroke={chartColor(slot)} fill={slot % 2 ? "var(--color-card)" : chartColor(slot)} opacity={dimmed ? 0.3 : 1} />
               return <ChartDot key={at} cx={dotProps.cx} cy={dotProps.cy} r={isolated ? 3 : 0}
                 line={line} fill={chartColor(slot)} opacity={dimmed ? 0.3 : 1} />
             }, activeDot: (dotProps: { cx?: number; cy?: number }) => <ChartDot {...dotProps}
@@ -249,8 +255,8 @@ export function Chart({ data, series, label, variant = "line", layout: requested
           const textured = fill === "dots" || fill === "squares" || fill === "scanlines"
           return variant === "stacked-area" || fill !== "none"
             ? <Area key={item.key} {...common} type={curve} stackId={variant === "stacked-area" ? "total" : undefined}
-                fill={textured ? `url(#${id}-fill-${index})` : chartColor(slot)}
-                fillOpacity={dimmed ? 0.06 : 0.2} />
+                fill={textured || (mono && variant === "stacked-area") ? `url(#${id}-fill-${index})` : chartColor(slot)}
+                fillOpacity={mono && variant === "stacked-area" ? (dimmed ? 0.15 : slot % 5 === 2 ? 1 : 0.7) : dimmed ? 0.06 : 0.2} />
             : <Line key={item.key} {...common} type={curve} />
         })}
         <ChartSyncMarker group={group} source={source} plot={plot} data={data} series={series} indices={indices}
@@ -270,7 +276,7 @@ export function Chart({ data, series, label, variant = "line", layout: requested
     frame.current = element
     if (typeof ref === "function") return ref(element)
     if (ref) ref.current = element
-  }} data-slot="chart" data-layout={spark ? "spark" : layout} data-legend={legend} data-line={line} data-fill={fill}
+  }} data-slot="chart" data-variant={variant} data-layout={spark ? "spark" : layout} data-legend={legend} data-line={line} data-fill={fill}
     className={cn("framed-chart", className)} aria-labelledby={`${id}-title`} onKeyDown={event => {
       onKeyDown?.(event)
       if (event.defaultPrevented || drag.current) return

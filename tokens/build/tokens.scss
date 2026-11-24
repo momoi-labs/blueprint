@@ -545,6 +545,56 @@ $accent-pine-primary-foreground: #1b1a1e;
 $accent-pine-accent-surface: #1b4039;
 $accent-pine-accent-surface-hover: #244d44;
 $accent-pine-selected: #2e5e54;
+$accent-blueprint-accent-50: #f1f7ff;
+$accent-blueprint-accent-200: #e1edfe;
+$accent-blueprint-accent-300: #c7ddfe;
+$accent-blueprint-accent-400: #9bc2fb;
+$accent-blueprint-accent-500: #6ca2f1;
+$accent-blueprint-accent-600: #3b7bd7;
+$accent-blueprint-accent-700: #2463bd;
+$accent-blueprint-accent-800: #00449b;
+$accent-blueprint-accent-900: #002d72;
+$accent-blueprint-accent-950: #051f43;
+$accent-blueprint-accent-base: #79aeec; // The drawing ink for links, focus and the primary fill.
+$accent-blueprint-primary: #79aeec;
+$accent-blueprint-primary-hover: #93bff2;
+$accent-blueprint-primary-foreground: #142338;
+$accent-blueprint-accent-surface: #233b58;
+$accent-blueprint-accent-surface-hover: #2b4668;
+$accent-blueprint-selected: #34527a;
+$accent-blueprint-focus: #79aeec;
+$accent-blueprint-background: #192a41; // The sheet: warm off-white in light, saturated navy in dark.
+$accent-blueprint-surface: #1d2e46;
+$accent-blueprint-elevated-surface: #263a53;
+$accent-blueprint-muted: #142338;
+$accent-blueprint-sidebar: #1d2e46;
+$accent-blueprint-card: #1d2e46;
+$accent-blueprint-popover: #263a53;
+$accent-blueprint-foreground: #d8e4f0;
+$accent-blueprint-muted-foreground: #91a9c1;
+$accent-blueprint-subtle-foreground: #7f97b1;
+$accent-blueprint-border: #4a6282;
+$accent-blueprint-border-strong: #7088a4;
+$accent-blueprint-input: #7088a4;
+$accent-blueprint-secondary: #263a53;
+$accent-blueprint-secondary-hover: #344962;
+$accent-blueprint-disabled: #4a6282;
+$accent-blueprint-disabled-surface: #1d2e46;
+$accent-blueprint-skeleton: #344962;
+$accent-blueprint-hatch: #344962; // The grid line of the sheet. Also the empty block of a segmented progress track.
+$accent-blueprint-success: #81c5ae;
+$accent-blueprint-warning: #e5c078;
+$accent-blueprint-danger: #e59494;
+$accent-blueprint-info: #79aeec;
+$accent-blueprint-success-surface: rgba(129, 197, 174, 0.12);
+$accent-blueprint-success-border: rgba(129, 197, 174, 0.35);
+$accent-blueprint-warning-surface: rgba(229, 192, 120, 0.12);
+$accent-blueprint-warning-border: rgba(229, 192, 120, 0.35);
+$accent-blueprint-danger-surface: rgba(229, 148, 148, 0.12);
+$accent-blueprint-danger-border: rgba(229, 148, 148, 0.35);
+$accent-blueprint-info-surface: rgba(121, 174, 236, 0.12);
+$accent-blueprint-info-border: rgba(121, 174, 236, 0.35);
+$accent-blueprint-overlay: rgba(10, 18, 30, 0.6);
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.
