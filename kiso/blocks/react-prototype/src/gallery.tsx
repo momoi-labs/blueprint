@@ -2242,8 +2242,9 @@ export function ComponentGallery({
   const showingExample = (route === "examples" || route === "example" || route.startsWith("example/")) && example !== undefined;
   const showingIntro = route === "intro" && intro !== undefined;
   const showingTerminal = (route === "tui" || route.startsWith("tui/")) && terminal !== undefined;
-  const showingAccents = (route === "accents" && accents !== undefined) || (route === "theme" && generator !== undefined);
+  const showingAccents = route === "accents" && accents !== undefined;
   const showingGenerator = route === "theme" && generator !== undefined;
+  const showingPage = showingAccents || showingGenerator;
   // The logo follows the header variant. A floating header is a full-width
   // pill that holds the logo on every page; any other header leaves it to the
   // sidebar header. On an inset home with a non-floating header, the bar
@@ -2283,7 +2284,7 @@ export function ComponentGallery({
       gallery.style.removeProperty("--catalog-col-start"); gallery.style.removeProperty("--catalog-col-end");
     };
   }, [homeBar]);
-  const browsing = !showingExample && !showingIntro && !showingTerminal && !showingAccents && selected === "all";
+  const browsing = !showingExample && !showingIntro && !showingTerminal && !showingPage && selected === "all";
   const groups = Array.from(new Set(catalog.map((entry) => entry[2])));
   const entries = catalog.filter((entry) =>
     entry[1].toLowerCase().includes(search.trim().toLowerCase()),
@@ -2362,7 +2363,7 @@ export function ComponentGallery({
         </NavigationList>
       </NavigationGroup>
     </Navigation>
-  ) : showingAccents && !showingGenerator ? (
+  ) : showingAccents ? (
     <Navigation aria-label="Accents">
       <NavigationGroup label="Accents">
         <NavigationList>
@@ -2463,7 +2464,7 @@ export function ComponentGallery({
                         <NavigationLink href="#tui">TUI gallery</NavigationLink>
                       </NavigationItem>
                     )}
-                    {accents !== undefined && (showingGenerator || !showingAccents) && (
+                    {accents !== undefined && !showingAccents && (
                       <NavigationItem>
                         <NavigationLink href="#accents">
                           Accents
@@ -2527,7 +2528,7 @@ export function ComponentGallery({
           {!phone && <Navigation aria-label="Preview pages">
             <NavigationList className="nav-row">
               <NavigationItem>
-                <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
+                <NavigationLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingPage} onClick={showAll}>
                   Components <Badge variant="info">New</Badge>
                 </NavigationLink>
               </NavigationItem>
@@ -2543,7 +2544,7 @@ export function ComponentGallery({
               )}
               {accents !== undefined && (
                 <NavigationItem>
-                  <NavigationLink href="#accents" active={showingAccents && !showingGenerator}>
+                  <NavigationLink href="#accents" active={showingAccents}>
                     Accents
                   </NavigationLink>
                 </NavigationItem>
@@ -2627,7 +2628,7 @@ export function ComponentGallery({
         {!pageBar && topBar}
         <div ref={content} className={`catalog-main ${showingIntro ? "catalog-intro" : showingExample ? "catalog-layouts" : showingTerminal ? "catalog-tui" : showingGenerator ? "catalog-generator" : showingAccents ? "catalog-accents" : browsing ? "catalog-browse" : "catalog-detail"}`}>
         {!showingIntro && <div className="catalog-heading">
-          {!browsing && !showingExample && !showingTerminal && !showingAccents && (
+          {!browsing && !showingExample && !showingTerminal && !showingPage && (
             <Breadcrumb aria-label="Component location">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -2658,7 +2659,7 @@ export function ComponentGallery({
           )}
           <PageHeader
             actions={
-              showingExample || showingTerminal || showingAccents ? undefined : browsing ? (
+              showingExample || showingTerminal || showingPage ? undefined : browsing ? (
                 <p className="muted t-label" role="status">
                   {visible.length} {visible.length === 1 ? "component" : "components"}
                 </p>
@@ -2692,7 +2693,7 @@ export function ComponentGallery({
                 : browsing
                 ? "Components in action. Built for your next interface."
                 : current?.[3] ?? "Preview, states and usage."}
-              {!browsing && !showingExample && !showingTerminal && !showingAccents && manualOptions.has(current?.[0] ?? "") && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
+              {!browsing && !showingExample && !showingTerminal && !showingPage && manualOptions.has(current?.[0] ?? "") && demoSettings && <>{" "}<span ref={setOptionsLinkTarget} /></>}
             </PageHeaderDescription>
           </PageHeader>
         </div>}
@@ -2700,7 +2701,7 @@ export function ComponentGallery({
         {example !== undefined && <div hidden={!showingExample}>{example}</div>}
         {terminal !== undefined && <div hidden={!showingTerminal}>{terminal}</div>}
         {showingGenerator ? generator : showingAccents && accents}
-        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal || showingAccents}>
+        <CatalogGrid {...(browsing ? { ...paneLayout, pack: true, flow: "masonry" as const } : {})} className={browsing ? "catalog-pane-grid" : "catalog-sections"} aria-label="Components" hidden={showingExample || showingIntro || showingTerminal || showingPage}>
           {visible.map(([id, name, category, description]) => (
             <CatalogPane
               id={id}
@@ -2752,7 +2753,7 @@ export function ComponentGallery({
             </CatalogPane>
           ))}
         </CatalogGrid>
-        {!showingExample && !showingIntro && !showingTerminal && !showingAccents && visible.length === 0 && (
+        {!showingExample && !showingIntro && !showingTerminal && !showingPage && visible.length === 0 && (
           <EmptyState variant="no-results">
             <EmptyStateTitle>{browsing ? "No matching components" : "Component not found"}</EmptyStateTitle>
             <EmptyStateActions><Button onClick={showAll}>Show all components</Button></EmptyStateActions>
@@ -2774,7 +2775,7 @@ export function ComponentGallery({
             <span className="bottom-nav-icon" aria-hidden="true"><BookOpen className="icon" /></span>
             <span>Intro</span>
           </BottomNavLink>}
-          <BottomNavLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingAccents} onClick={showAll}>
+          <BottomNavLink href="#components" active={!showingExample && !showingIntro && !showingTerminal && !showingPage} onClick={showAll}>
             <span className="bottom-nav-icon" aria-hidden="true"><Boxes className="icon" /></span>
             <span>Components</span>
           </BottomNavLink>

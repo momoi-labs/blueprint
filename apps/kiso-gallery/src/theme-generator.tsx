@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Badge, Button, CodeBlock, RadioGroup, RadioGroupItem, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import {
-  AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Monitor, Palette, PanelTop, PencilRuler, RotateCcw,
+  AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Monitor, Palette, PanelTop, RotateCcw,
   Scan, Smartphone, Sparkles, Square, SquareDashed, SquareTerminal, SwatchBook, Target, TriangleAlert,
 } from "lucide-react";
 import { AppearanceControls, type AppearanceSectionId } from "./appearance";
@@ -12,12 +12,12 @@ import { shopPages } from "./templates/shop";
 type TabId = "look" | "layout" | "frame" | "canvas" | "phone" | "code";
 
 const tabs: { id: TabId; label: string; icon: ReactNode; sections: AppearanceSectionId[] }[] = [
-  { id: "look", label: "Look", icon: <Palette className="icon" />, sections: ["presets", "colors"] },
-  { id: "layout", label: "Layout", icon: <LayoutDashboard className="icon" />, sections: ["sketch", "shell", "header", "page", "gallery"] },
-  { id: "frame", label: "Frame", icon: <Frame className="icon" />, sections: ["panels", "marks", "scope", "outer"] },
-  { id: "canvas", label: "Canvas", icon: <Layers className="icon" />, sections: ["background", "charts"] },
-  { id: "phone", label: "Phone", icon: <Smartphone className="icon" />, sections: ["phone"] },
-  { id: "code", label: "Code", icon: <CodeXml className="icon" />, sections: [] },
+  { id: "look", label: "Look", icon: <Palette className="icon" aria-hidden="true" />, sections: ["presets", "colors"] },
+  { id: "layout", label: "Layout", icon: <LayoutDashboard className="icon" aria-hidden="true" />, sections: ["sketch", "shell", "header", "page", "gallery"] },
+  { id: "frame", label: "Frame", icon: <Frame className="icon" aria-hidden="true" />, sections: ["panels", "marks", "scope", "outer"] },
+  { id: "canvas", label: "Canvas", icon: <Layers className="icon" aria-hidden="true" />, sections: ["background", "charts"] },
+  { id: "phone", label: "Phone", icon: <Smartphone className="icon" aria-hidden="true" />, sections: ["phone"] },
+  { id: "code", label: "Code", icon: <CodeXml className="icon" aria-hidden="true" />, sections: [] },
 ];
 
 const sectionNames: Partial<Record<AppearanceSectionId, string>> = {
@@ -26,19 +26,19 @@ const sectionNames: Partial<Record<AppearanceSectionId, string>> = {
 };
 
 const icons: Partial<Record<AppearanceSectionId, ReactNode>> = {
-  presets: <Sparkles className="icon" />,
-  colors: <SwatchBook className="icon" />,
-  shell: <AppWindow className="icon" />,
-  header: <PanelTop className="icon" />,
-  page: <FileText className="icon" />,
-  gallery: <TriangleAlert className="icon" />,
-  panels: <Square className="icon" />,
-  marks: <Scan className="icon" />,
-  scope: <Target className="icon" />,
-  outer: <SquareDashed className="icon" />,
-  background: <Grid3x3 className="icon" />,
-  charts: <ChartLine className="icon" />,
-  phone: <Smartphone className="icon" />,
+  presets: <Sparkles className="icon" aria-hidden="true" />,
+  colors: <SwatchBook className="icon" aria-hidden="true" />,
+  shell: <AppWindow className="icon" aria-hidden="true" />,
+  header: <PanelTop className="icon" aria-hidden="true" />,
+  page: <FileText className="icon" aria-hidden="true" />,
+  gallery: <TriangleAlert className="icon" aria-hidden="true" />,
+  panels: <Square className="icon" aria-hidden="true" />,
+  marks: <Scan className="icon" aria-hidden="true" />,
+  scope: <Target className="icon" aria-hidden="true" />,
+  outer: <SquareDashed className="icon" aria-hidden="true" />,
+  background: <Grid3x3 className="icon" aria-hidden="true" />,
+  charts: <ChartLine className="icon" aria-hidden="true" />,
+  phone: <Smartphone className="icon" aria-hidden="true" />,
 };
 
 const galleryOnly = new Set(["theme", "headerWidth", "landingBands"]);
@@ -84,8 +84,8 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
           <div className="gen-panel-head">
             <div className="gen-panel-title">
               <h2 className="t-h3">{current.icon}{current.label}</h2>
-              {tab !== "code" && <Button variant="ghost" size="sm" onClick={onReset}><RotateCcw className="icon" />Reset</Button>}
-              <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" />Export</Button>
+              {tab !== "code" && <Button variant="ghost" size="sm" onClick={onReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>}
+              <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" aria-hidden="true" />Export</Button>
             </div>
             {jumps.length > 1 && <nav className="gen-jumps" aria-label={`${current.label} sections`}>
               {jumps.map(id => <button key={id} type="button" className="gen-jump" onClick={() => flash(id)}>{sectionNames[id]}</button>)}
@@ -94,6 +94,7 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
           {tabs.map(item => <TabsContent key={item.id} value={item.id} className="gen-scroll">
             {item.id === "code" ? <ExportPanel settings={settings} /> : <AppearanceControls settings={settings} onChange={onChange} sections={item.sections}
               icons={icons} idPrefix="gen" presetFields="defined" galleryOnly
+              phoneHint="Switch the preview to Phone to see the result."
               onJump={part => flash(part)} />}
           </TabsContent>)}
         </div>
@@ -105,9 +106,9 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
           {shopPages.map(([value, label]) => <RadioGroupItem key={value} value={value} label={label} />)}
         </RadioGroup>
         <RadioGroup label="Preview device" variant="segmented" value={device} onValueChange={value => setDevice(value as Device)}>
-          <RadioGroupItem value="desktop" label="Desktop" icon={<Monitor className="icon" />} />
-          <RadioGroupItem value="phone" label="Phone" icon={<Smartphone className="icon" />} />
-          <RadioGroupItem value="tui" label="TUI" icon={<SquareTerminal className="icon" />} />
+          <RadioGroupItem value="desktop" label="Desktop" icon={<Monitor className="icon" aria-hidden="true" />} />
+          <RadioGroupItem value="phone" label="Phone" icon={<Smartphone className="icon" aria-hidden="true" />} />
+          <RadioGroupItem value="tui" label="TUI" icon={<SquareTerminal className="icon" aria-hidden="true" />} />
         </RadioGroup>
       </div>
       <div className="gen-frame">
@@ -119,7 +120,7 @@ export function ThemeGenerator({ settings, onChange, onReset }: {
 
 function ExportPanel({ settings }: { settings: AppearanceSettings }) {
   return <section className="appearance-section gen-export" aria-labelledby="gen-export-title">
-    <h3 id="gen-export-title" className="t-caps"><CodeXml className="icon" />Project HTML</h3>
+    <h3 id="gen-export-title" className="t-caps"><CodeXml className="icon" aria-hidden="true" />Project HTML</h3>
     <p className="muted t-label">Put these attributes on the <code>&lt;html&gt;</code> tag of your project's <code>index.html</code>. Phone overrides add a small script.</p>
     <CodeBlock code={exportCode(settings)} copy="HTML" wrap />
     <p className="muted t-label gen-row"><Badge>Gallery only</Badge>Light or dark, header width and landing bands stay out. Your project takes light or dark from the reader.</p>
