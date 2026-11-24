@@ -1,6 +1,6 @@
 const tabs = {
   Look: ["Colors and type", "Presets", "Theme", "Accent", "Neutral", "Primary action", "Typeface", "Visual style"],
-  Layout: ["Shell", "Header", "Page", "Gallery only", "Application frame", "Outer spacing", "Landing bands", "Header size", "Header width", "Page width", "Page alignment"],
+  Layout: ["Shell", "Header", "Page", "Gallery only", "Application frame", "Outer spacing", "Landing bands", "Header size", "Page width", "Page alignment"],
   Frame: ["Panels", "Corner marks", "Where it applies", "Outer frame style", "Border style", "Panel shadow", "Border detail", "Corner type", "Corner size", "Panel fill", "Mark size",
     "Apply frames to", "Apply marks to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks"],
   Canvas: ["Background", "Charts", "Canvas background", "Paper tone", "Pattern placement", "Background strength", "Chart line", "Chart fill", "Chart layout", "Chart legend"],
