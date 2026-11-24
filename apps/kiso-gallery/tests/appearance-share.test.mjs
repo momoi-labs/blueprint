@@ -221,7 +221,7 @@ for (const [width, colorScheme] of [[1440, "light"], [1440, "dark"], [390, "ligh
 }
 
 test("every preset retains its shadow through actual clipboard and fresh-context URLs", async () => {
-  const presets = [["Default", "soft"], ["Blueprint", "hard"], ["Drawing plate", "hard"],
+  const presets = [["Kiso classic", "soft"], ["Blueprint", "hard"], ["Drawing plate", "hard"],
     ["Drafting sheet", "none"], ["Pixel workshop", "hard"], ["Manga board", "hard"],
     ["Brush study", "soft"], ["Momoi signature", "soft"], ["Pixel everywhere", "hard"]];
   const page = await open("#components/card");
@@ -379,7 +379,7 @@ for (const [route, scope, inline] of [["diagram", "diagram"], ["alert", "alert",
       };
       assert(controls > 0);
       assert.equal(Object.keys((await copied())[scope] ?? {}).length, controls, "Each changed control is in the copied settings");
-      await page.locator(".gen-head").getByRole("button", { name: "Reset", exact: true }).click();
+      await page.locator(".catalog-heading").getByRole("button", { name: "Reset", exact: true }).click();
       assert.deepEqual(Object.keys(await copied()), ["v", "s"], "Reset clears every demo option");
     } finally { await page.context().close(); }
   });
@@ -396,7 +396,7 @@ test("catalog cards keep their inline options with Share and Reset", async () =>
     await page.getByRole("menuitem", { name: "Copy settings" }).click();
     await page.getByText("Settings copied", { exact: true }).waitFor();
     assert.deepEqual(JSON.parse(await page.evaluate(() => navigator.clipboard.readText())).table, { density: "compact" });
-    await page.locator(".gen-head").getByRole("button", { name: "Reset", exact: true }).click();
+    await page.locator(".catalog-heading").getByRole("button", { name: "Reset", exact: true }).click();
     await closeGenerator(page);
     await page.locator('[data-pane-id="table"]').scrollIntoViewIfNeeded();
     assert.equal(await density.inputValue(), "comfortable", "Reset clears a catalog card's option");

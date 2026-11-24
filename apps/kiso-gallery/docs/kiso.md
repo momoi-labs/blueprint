@@ -17,7 +17,8 @@
 ## Product components
 
 - `KisoBrand` renders the approved horizontal lockup with outlined text.
-- `GallerySettings` owns the demo options panel of a component page.
+- `GallerySettings` owns the side panel: the demo options of a component page
+  and the Look view that the header chip opens.
 - `ThemeGenerator` owns the appearance controls, Reset and Share.
 - `ComponentOrbit` demonstrates connected switches, an input and an action.
 - `FoundationLab` compares light and dark tokens with a draggable light boundary.
@@ -58,7 +59,7 @@ stay, as the table contract asks.
 | Gallery shell | Application shell |
 | Introduction and landing layout | Compact landing composition: split hero with a component card in perspective, three live examples in the inverse theme and accent CTA. Uses page layout as a width reference. No marketing pattern contract yet. |
 | Components | Interactive component catalog, no catalog pattern |
-| Theme generator | Full-viewport tool below the gallery header: PageHeader with Reset, Share and Export, a settings column that scrolls by itself, and a live preview that fills the rest. Stacks below 900px. No tool pattern contract yet. |
+| Theme generator | Gallery page that fills the viewport: the standard page heading with Reset, Share and Export, then a settings card that scrolls by itself and a live preview card that fills the rest. Both cards wear the current look. Stacks below 900px. No tool pattern contract yet. |
 | Layout examples | One application, Tabi & Smoke, on ConsoleShell: login, dashboard, report and CRUD patterns with ListPage, FormPage and DetailPage. The landing page stays apart: the public page of the same shop, on the landing composition of the Introduction, and its sign in opens the login. |
 
 ## Exceptions

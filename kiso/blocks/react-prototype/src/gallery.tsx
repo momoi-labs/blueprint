@@ -2193,6 +2193,7 @@ export function ComponentGallery({
   generator,
   settingsEnabled = false,
   panel,
+  tools,
   brand,
 }: {
   route: string;
@@ -2212,6 +2213,7 @@ export function ComponentGallery({
   generator?: ReactNode;
   settingsEnabled?: boolean;
   panel?: ReactNode;
+  tools?: ReactNode;
   brand?: ReactNode;
 }) {
   const paneLayout = usePaneLayout("kiso-gallery-pane-layout");
@@ -2575,6 +2577,7 @@ export function ComponentGallery({
             />}
             {!settingsEnabled && <AccentSelector accent={accent} onChange={onAccentChange} preview={false} />}
             {showingIntro && !settingsEnabled && <ThemeSelector theme={theme} onChange={onThemeChange} />}
+            {tools}
           </div>
           </>}
         </Header>

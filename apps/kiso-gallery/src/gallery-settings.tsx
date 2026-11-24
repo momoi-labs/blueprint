@@ -1,36 +1,53 @@
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { AppShellPanel, Button, Drawer, DrawerContent, DrawerTitle } from "@momoi-labs/kiso-react";
+import { AccentSelector, AppShellPanel, Button, Dot, Drawer, DrawerContent, DrawerTitle, Link, RadioGroup, RadioGroupItem, ThemeSelector } from "@momoi-labs/kiso-react";
 import { DemoOptionsContext, DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
-import { VisualSelector } from "./appearance";
+import { AppearanceControls, VisualSelector, presetName } from "./appearance";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
 
-const focusOptionsLink = () => document.querySelector<HTMLElement>('a[href="#gallery-settings"]')?.focus();
+type View = "demo" | "look";
+const focusOpener = (view: View) => document.querySelector<HTMLElement>(view === "look" ? ".look-chip" : 'a[href="#gallery-settings"]')?.focus();
+const presetsOnly = ["presets"] as const;
+const reveal = (update: () => void) => {
+  if (document.querySelector(".component-gallery > .gallery-settings-panel[hidden]")) animateGalleryPanels(".gallery-settings-panel", update);
+  else update();
+};
 
-export function GallerySettings({ children, settings, onChange, demos, onDemosChange }: {
-  children: (panel: ReactNode) => ReactNode;
+export function GallerySettings({ children, settings, onChange, demos, onDemosChange, lookDisabled = false }: {
+  children: (panel: ReactNode, chip: ReactNode) => ReactNode;
+  lookDisabled?: boolean;
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   demos: DemoOptions;
   onDemosChange: Dispatch<SetStateAction<DemoOptions>>;
 }) {
-  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<{ open: boolean; view: View }>({ open: false, view: "demo" });
+  const [hasDemo, setHasDemo] = useState(false);
+  const view = state.view;
+  const open = state.open && !(lookDisabled && view === "look");
+  const setOpen = useCallback((next: boolean) => setState(current => ({ ...current, open: next })), []);
   const [desktop, setDesktop] = useState(() => matchMedia("(min-width: 1200px)").matches);
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const register = useCallback((title: string | null, manual = false) => {
-    if (!title) setOpen(false);
-    else if (!manual && matchMedia("(min-width: 1200px)").matches) setOpen(true);
+    setHasDemo(title !== null);
+    setState(current => {
+      if (current.open && current.view === "look") return current;
+      if (!title) return current.open ? { open: false, view: "demo" } : current;
+      return !manual && matchMedia("(min-width: 1200px)").matches ? { open: true, view: "demo" } : current;
+    });
   }, []);
   const [revision, setRevision] = useState(0);
-  const show = useCallback(() => {
-    const update = () => {
-      setOpen(true);
-      setRevision(value => value + 1);
-    };
-    if (document.querySelector(".component-gallery > .gallery-settings-panel[hidden]")) animateGalleryPanels(".gallery-settings-panel", update);
-    else update();
-  }, []);
+  const show = useCallback(() => reveal(() => {
+    setState({ open: true, view: "demo" });
+    setRevision(value => value + 1);
+  }), []);
+  const lookOpen = open && view === "look";
+  const toggleLook = () => {
+    if (!lookOpen) return reveal(() => setState({ open: true, view: "look" }));
+    if (desktop) animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
+    else setOpen(false);
+  };
   // Demo choices draw with the same previews as the sections above. "Pane
   // defaults" previews the current global choice, so inherit reads as a value.
   const choice = useCallback(({ label, kind, value, options, onChange, inherit, with: other, previews }: DemoChoiceProps) => {
@@ -78,7 +95,8 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
       return { ...current, [scope]: next as Record<string, string> };
     });
   }, [onDemosChange, onChange]);
-  const context = useMemo(() => ({ target, register, open, show, revision, choice }), [target, register, open, show, revision, choice]);
+  const demoOpen = open && view === "demo";
+  const context = useMemo(() => ({ target, register, open: demoOpen, show, revision, choice }), [target, register, demoOpen, show, revision, choice]);
   const optionsContext = useMemo(() => ({ options: { ...demos, header: { variant: settings.headerVariant, size: settings.headerSize } }, setOptions }), [demos, setOptions, settings.headerVariant, settings.headerSize]);
 
   useEffect(() => {
@@ -94,26 +112,47 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
       if (event.key !== "Escape" || event.defaultPrevented) return;
       if (!(event.target instanceof Node) || !document.getElementById("gallery-settings")?.contains(event.target)) return;
       animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
-      focusOptionsLink();
+      focusOpener(view);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [desktop, open]);
+  }, [desktop, open, view, setOpen]);
 
   function close() {
     if (!desktop) return setOpen(false);
     animateGalleryPanels(".gallery-settings-panel", () => setOpen(false));
-    focusOptionsLink();
+    focusOpener(view);
   }
-  const closeButton = <Button size="sm" variant="ghost" onClick={close} aria-label="Close options">Close</Button>;
-  const controls = <div className="appearance-controls-scroll" role="region" aria-label="Demo options list" tabIndex={0}>
-    <div ref={setTarget} className="gallery-component-settings" />
-  </div>;
+  const title = view === "look" ? "Look" : "Demo options";
+  const closeButton = <Button size="sm" variant="ghost" onClick={close} aria-label={view === "look" ? "Close look" : "Close options"}>Close</Button>;
+  const controls = <>
+    {hasDemo && <div className="gallery-settings-switch">
+      <RadioGroup label="Panel view" variant="segmented" value={view} onValueChange={next => setState({ open: true, view: next as View })}>
+        <RadioGroupItem value="demo" label="This page" />
+        <RadioGroupItem value="look" label="Look" />
+      </RadioGroup>
+    </div>}
+    <div className="appearance-controls-scroll" role="region" aria-label="Demo options list" tabIndex={0} hidden={view !== "demo"}>
+      <div ref={setTarget} className="gallery-component-settings" />
+    </div>
+    {view === "look" && <div className="appearance-controls-scroll gallery-look" role="region" aria-label="Look list" tabIndex={0}>
+      <AppearanceControls settings={settings} onChange={onChange} sections={presetsOnly} />
+      <section className="appearance-section appearance-colors" aria-label="Colors">
+        <AccentSelector preview={false} accent={settings.accent} onChange={accent => onChange({ accent })} />
+        <ThemeSelector theme={settings.theme} onChange={theme => onChange({ theme })} />
+      </section>
+      <p className="gallery-look-more"><Link href="#theme" onClick={() => { if (!desktop) setOpen(false); }}>Edit every setting</Link></p>
+    </div>}
+  </>;
+  const chip = <Button size="sm" className="look-chip" aria-label={`Look: ${presetName(settings)}`} title="Change the look"
+    aria-expanded={lookOpen} aria-controls="gallery-settings" onClick={toggleLook}>
+    <Dot className="look-chip-dot" /><span className="look-chip-name">{presetName(settings)}</span>
+  </Button>;
 
   const panel = desktop ? <AppShellPanel id="gallery-settings" className="gallery-settings-panel appearance-controls" hidden={!open}
     aria-labelledby="gallery-settings-title">
     <div className="gallery-settings-heading">
-      <h2 id="gallery-settings-title" className="t-h3">Demo options</h2>
+      <h2 id="gallery-settings-title" className="t-h3">{title}</h2>
       {closeButton}
     </div>
     {controls}
@@ -121,11 +160,11 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
 
   return <DemoOptionsContext.Provider value={optionsContext}><DemoSettingsContext.Provider value={context}>
     <Drawer open={!desktop && open} onOpenChange={setOpen}>
-      {children(panel)}
+      {children(panel, chip)}
       {!desktop && <DrawerContent id="gallery-settings" placement="side" className="gallery-settings-drawer appearance-controls" aria-describedby={undefined}
-        onCloseAutoFocus={event => { event.preventDefault(); focusOptionsLink(); }}>
+        onCloseAutoFocus={event => { event.preventDefault(); focusOpener(view); }}>
         <div className="gallery-settings-heading">
-          <DrawerTitle>Demo options</DrawerTitle>
+          <DrawerTitle>{title}</DrawerTitle>
           {closeButton}
         </div>
         {controls}
