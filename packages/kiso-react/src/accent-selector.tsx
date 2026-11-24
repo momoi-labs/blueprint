@@ -20,7 +20,7 @@ export const accents = [
 export type Accent = (typeof accents)[number];
 
 const label = (accent: string) =>
-  `${accent[0].toUpperCase()}${accent.slice(1)}`;
+  accent === "snes" ? "SNES" : `${accent[0].toUpperCase()}${accent.slice(1)}`;
 
 export function AccentSelector({
   accent,
@@ -45,10 +45,13 @@ export function AccentSelector({
               type="button"
               className="accent-pill"
               aria-pressed={accent === option}
-              data-accent={option}
               onClick={() => onChange(option)}
             >
-              <span className="accent-dot" aria-hidden="true" />
+              <span
+                className="accent-dot"
+                data-accent={option}
+                aria-hidden="true"
+              />
               {label(option)}
             </button>
           ))}

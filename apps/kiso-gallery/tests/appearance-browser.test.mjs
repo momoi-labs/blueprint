@@ -170,7 +170,7 @@ for (const theme of ['light', 'dark']) test(`Fresh visits and reset use SNES; a 
     const preset = panel.getByRole('button', { name: 'Pixel everywhere', exact: true });
     const classic = panel.getByRole('button', { name: 'Kiso classic', exact: true });
     assert.equal(await preset.getAttribute('aria-pressed'), 'false');
-    assert.equal(await panel.getByRole('button', { name: 'SNES', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await panel.locator('.appearance-presets').getByRole('button', { name: 'SNES', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.equal(initial.shadowStyle, 'soft');
     assert.equal(initial.accent, 'snes');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined);

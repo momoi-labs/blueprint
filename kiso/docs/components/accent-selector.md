@@ -69,14 +69,15 @@ control does not have to show all fourteen.
 | `plum` | plum dot, "Plum" | "Plum" |
 | `stone` | stone dot, "Stone" | "Stone" |
 | `steel` | steel dot, "Steel" | "Steel" |
-| `snes` | snes dot, "Snes" | "Snes" |
+| `snes` | snes dot, "SNES" | "SNES" |
 | `pine` | pine dot, "Pine" | "Pine" |
 
 The pill names the accent, so no hover is needed to tell which is which. The
 preview answers the choice: it is decorative and hidden from assistive
-technology, because the names already carry the meaning. Each pill and the
+technology, because the names already carry the meaning. Each dot and the
 preview carry their own `data-accent`, so their colours resolve under that
-accent with no inline values.
+accent with no inline values. The pill itself follows the page, so only the
+selected pill looks selected.
 
 The preview may be omitted where the row is inline chrome, such as a header
 toolbar. In a settings card it is always present.
