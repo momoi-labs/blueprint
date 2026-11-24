@@ -199,7 +199,6 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     if (!override) onChange(Object.fromEntries(phoneKeys.map(key => [key, "inherit"])));
   }
   const landingBands = <Segmented label="Landing bands" options={["inside", "full"] as const} names={{ inside: "Inside frame", full: "Full width" }} value={settings.landingBands} onChange={landingBands => onChange({ landingBands })} />;
-  const headerWidth = <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} disabledOptions={settings.headerVariant === "floating" ? [] : ["page", "outset"]} onChange={headerWidth => onChange({ headerWidth })} />;
   const sections: Record<AppearanceSectionId, ReactNode> = {
   presets: <AppearanceSection {...head("presets")} title="Presets" collapsed={collapsed.includes("presets")}>
     <p className="muted t-label" role="status">Current look: <strong>{presetName(settings)}</strong></p>
@@ -244,6 +243,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Shell bottom" options={["default", "fill"] as const} value={settings.shellBottom} onChange={shellBottom => onChange({ shellBottom })} />
       <Segmented label="Bottom style" options={["none", "fade"] as const} value={settings.shellBottomStyle} disabledOptions={settings.shellBottom === "fill" ? [] : ["none", "fade"]} onChange={shellBottomStyle => onChange({ shellBottomStyle })} />
       <Segmented label="Brand bar" options={["separate", "full"] as const} names={{ full: "Full row" }} value={settings.brandBar} onChange={brandBar => onChange({ brandBar })} />
+      <p className="muted t-label">Brand bar changes app pages. The gallery has no brand bar.</p>
       {!galleryOnly && landingBands}
     </>}
   </AppearanceSection>,
@@ -251,12 +251,9 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     <Segmented label="Header" options={["default", "plain", "floating"] as const} value={settings.headerVariant} onChange={headerVariant => onChange({ headerVariant })} />
     <Segmented label="Header size" options={["compact", "default", "editorial"] as const} value={settings.headerSize} onChange={headerSize => onChange({ headerSize })} />
     <p className="muted t-label">Header changes the gallery header. App pages keep their own header.</p>
-    {!galleryOnly && headerWidth}
   </AppearanceSection>,
   gallery: <AppearanceSection {...head("gallery")} title="Gallery only">
     <p className="muted t-label">These choices change the gallery preview. The exported code leaves them out.</p>
-    {headerWidth}
-    <p className="muted t-label">Header width needs the Floating header and a window 700px or wider.</p>
     {landingBands}
     <p className="muted t-label">Landing bands change the gallery home page.</p>
   </AppearanceSection>,
@@ -334,6 +331,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     <VisualSelector disabledOptions={marks.filter(m => incompatibleMark(m.value, outerBorder, outerCorner)).map(m => m.value)} label="Outer marks" value={settings.outerCornerMarks} onChange={outerCornerMarks => onChange({ outerCornerMarks })}
       preview={mark => <PanelPreview marks={mark === "inherit" ? settings.cornerMarks : mark} />}
       options={[["inherit", "Same as panels"], ...marks.map(m => [m.value, m.label] as [CornerMarks, string]), ...(settings.outerCornerMarks === "dots" ? [["dots", "Corner dots (legacy)"] as [CornerMarks, string]] : [])]} />
+    <p className="muted t-label">Outer marks change app pages. The gallery frame has no outer mark.</p>
   </AppearanceSection>,
   background: <AppearanceSection {...head("background")} title="Background">
     <fieldset className="appearance-choices">
