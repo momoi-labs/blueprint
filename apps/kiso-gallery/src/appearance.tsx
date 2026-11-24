@@ -183,6 +183,8 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     ["construction", "Construction lines"], ["guides", "Drawing guides"], ["fibers", "Paper fibers"], ["momoi", "Momoi watermark"], ["momoi-repeat", "Momoi repeat"], ["enso", "Kiso enso"],
     ["checker", "Checker"], ["glow", "Glow"], ["stripes", "Stripes"], ["rings", "Rings"],
   ] as const;
+  const diagramBackgrounds: readonly string[] = window.kisoAppearance.options.diagramBackgroundStyle;
+  const pageDiagramBackground = diagramBackgrounds.includes(settings.backgroundStyle) || ["checker", "glow", "stripes"].includes(settings.backgroundStyle) ? settings.backgroundStyle : "dots";
   const sameNames = { inherit: "Same" } as const;
   const chartOptions = <T extends string>(options: readonly { value: T; label: string }[]) => ({
     values: options.map(option => option.value),
@@ -351,6 +353,12 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Pattern placement" options={["outside", "inside", "both"] as const} names={{ outside: "Around frame", inside: "Inside frame" }} value={settings.backgroundPlacement} onChange={backgroundPlacement => onChange({ backgroundPlacement })} />
       <Segmented label="Background strength" options={["quiet", "visible"] as const} value={settings.backgroundStrength} onChange={backgroundStrength => onChange({ backgroundStrength })} />
     </>}
+    <VisualSelector label="Diagram background" value={settings.diagramBackgroundStyle} onChange={diagramBackgroundStyle => onChange({ diagramBackgroundStyle })}
+      preview={background => <BackgroundPreview background={background === "inherit" ? pageDiagramBackground : background} tone={settings.paperTone} />}
+      options={[["inherit", "Same as page"], ...backgrounds.filter(([value]) => diagramBackgrounds.includes(value))] as [AppearanceSettings["diagramBackgroundStyle"], string][]} />
+    {(settings.diagramBackgroundStyle === "inherit" ? pageDiagramBackground : settings.diagramBackgroundStyle) !== "solid" &&
+      <Segmented label="Diagram strength" options={["inherit", "quiet", "visible"] as const} names={{ inherit: "Same as page" }} value={settings.diagramBackgroundStrength} onChange={diagramBackgroundStrength => onChange({ diagramBackgroundStrength })} />}
+    <p className="muted t-label">A diagram never repeats a mark that belongs to the whole page: Momoi, Kiso enso or Rings. Under those, Same as page is a dot grid.</p>
   </AppearanceSection>,
   charts: <AppearanceSection {...head("charts")} title="Charts">
     <Segmented label="Chart line" options={line.values} names={line.names} value={settings.chartLine} onChange={chartLine => onChange({ chartLine })} />

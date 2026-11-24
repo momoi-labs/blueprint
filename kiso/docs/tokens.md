@@ -552,6 +552,8 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-background-style` | `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers`, `momoi`, `momoi-repeat`, `enso`, `checker`, `glow`, `stripes`, `rings` | `solid` |
 | `data-background-strength` | `quiet`, `visible` | `quiet` |
 | `data-background-placement` | `inside`, `outside`, `both` | `both` |
+| `data-diagram-background-style` | `inherit`, `solid`, `dots`, `grid`, `crosses`, `construction`, `guides`, `fibers` | `inherit`: the page's background, or `dots` under `momoi`, `momoi-repeat`, `enso` and `rings` |
+| `data-diagram-background-strength` | `inherit`, `quiet`, `visible` | `inherit` |
 | `data-paper-tone` | `theme`, `accent` | `theme` |
 | `data-frame-detail` | `small`, `medium`, `large` | `medium` |
 | `data-panel-fill` | `solid`, `translucent`, `glass` | `solid` |

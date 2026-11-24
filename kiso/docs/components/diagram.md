@@ -469,9 +469,21 @@ paints the page's canvas, the one `data-background-style` and
 `data-background-strength` on `<html>` chose, so a Blueprint page gets
 drawing guides in its diagrams and a solid page gets solid diagrams. A page
 that set no canvas at all gets a dot grid, the lightest sign of a drawing
-surface. `background` and `strength` override the page for one diagram,
-with the same values minus the Momoi signatures, which belong to one shell:
-`solid`, `dots`, `grid`, `crosses`, `construction`, `guides` or `fibers`.
+surface.
+
+A diagram never repeats a background that belongs to one shell. `momoi`,
+`momoi-repeat` and `enso` are one mark and `rings` grows from one corner, so
+a second copy inside a panel reads as a shape inside a shape. Under those
+four the diagram paints the dot grid at the page's strength. `checker` and
+`stripes` are even textures and `glow` is a wash with no shape, so the
+diagram follows them.
+
+`data-diagram-background-style` and `data-diagram-background-strength` on
+`<html>` set the background of every diagram on the page. `inherit`, the
+default, follows the page as described above. `background` and `strength`
+override both for one diagram. All three take the page's values minus the
+five above and the two textures: `solid`, `dots`, `grid`, `crosses`,
+`construction`, `guides` or `fibers`, at `quiet` or `visible`.
 This is the one exception to "cards never receive a pattern" in
 [tokens](../tokens.md): the pattern is inside the panel, on the canvas, not
 on the nodes.
@@ -550,7 +562,8 @@ use `--color-border` and `--color-border-strong`. Frames use the Card tokens plu
 stopped frame) and `--color-danger` (failed frame). Captions use `.t-caps`; titles
 use `--type-weight-semibold`; free text and edge labels use `--font-mono`,
 with labels at `--type-size-metadata`. The background pattern reads the
-canvas variables that `data-background-style` sets for the shell. Groups
+canvas variables that `data-background-style` sets for the shell, or the
+ones `data-diagram-background-style` sets for diagrams. Groups
 use `--color-border-strong` for the dashed frame and footer rule and
 `--color-card` behind the title, the plates of turned labels, the gaps of
 crossings and the knockouts under curved and straight edges. Series edges use `--color-chart-1` to

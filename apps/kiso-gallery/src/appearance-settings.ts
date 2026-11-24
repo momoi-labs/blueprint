@@ -43,6 +43,8 @@ export interface AppearanceSettings {
   backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat" | "enso" | "checker" | "glow" | "stripes" | "rings";
   backgroundStrength: "quiet" | "visible";
   backgroundPlacement: "both" | "inside" | "outside";
+  diagramBackgroundStyle: "inherit" | "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers";
+  diagramBackgroundStrength: "inherit" | AppearanceSettings["backgroundStrength"];
   frameDetail: MarkSize;
   paperTone: "theme" | "accent";
   panelFill: "solid" | "translucent" | "glass";
@@ -88,6 +90,8 @@ const mainOptions = {
   backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"],
   backgroundStrength: ["quiet", "visible"],
   backgroundPlacement: ["both", "inside", "outside"],
+  diagramBackgroundStyle: ["inherit", "solid", "dots", "grid", "crosses", "construction", "guides", "fibers"],
+  diagramBackgroundStrength: ["inherit", "quiet", "visible"],
   frameDetail: ["medium", "small", "large"],
   paperTone: ["theme", "accent"],
   panelFill: ["solid", "translucent", "glass"],
