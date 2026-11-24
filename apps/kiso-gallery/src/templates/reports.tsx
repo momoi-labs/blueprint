@@ -24,9 +24,9 @@ export function ReportsLayout({ go }: { go: (path: string) => void }) {
         <TableHeader>
           <TableRow>
             <TableHead>Month</TableHead>
-            <TableHead>Orders</TableHead>
-            <TableHead>Revenue</TableHead>
-            <TableHead>Shipped on time</TableHead>
+            <TableHead className="num">Orders</TableHead>
+            <TableHead className="num">Revenue</TableHead>
+            <TableHead className="num">Shipped on time</TableHead>
             <TableHead>Prepared</TableHead>
           </TableRow>
         </TableHeader>
@@ -36,9 +36,9 @@ export function ReportsLayout({ go }: { go: (path: string) => void }) {
               <TableCell>
                 <Link href={shopHref(`report/${report.id}`)} onClick={event => { event.preventDefault(); go(`report/${report.id}`); }}>{report.month}</Link>
               </TableCell>
-              <TableCell className="mono">{report.orders}</TableCell>
-              <TableCell className="mono">{report.revenue}</TableCell>
-              <TableCell className="mono">{report.onTime}%</TableCell>
+              <TableCell className="num">{report.orders}</TableCell>
+              <TableCell className="num">{report.revenue}</TableCell>
+              <TableCell className="num">{report.onTime}%</TableCell>
               <TableCell>{report.prepared}</TableCell>
             </TableRow>
           ))}

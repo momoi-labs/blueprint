@@ -21,6 +21,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFrame,
   TableHead,
   TableHeader,
   TableRow,
@@ -75,29 +76,31 @@ export function DashboardLayout({ products, go, open }: { products: Product[]; g
         </DashboardPanel>
         <DashboardPanel id="attention" title="Needs attention" size={12} newRow
           actions={<Link className="t-label" href={shopHref(crudPath("list"))} onClick={event => { event.preventDefault(); go(crudPath("list")); }}>View all products</Link>}>
-          <Table aria-label="Products that need attention">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>In stock</TableHead>
-                <TableHead>Reorder at</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {attention.map(product => (
-                <TableRow key={product.sku}>
-                  <TableCell>
-                    <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
-                  </TableCell>
-                  <TableCell><Badge variant={product.stock === 0 ? "danger" : "warning"}>{stockState(product)}</Badge></TableCell>
-                  <TableCell className="mono">{product.stock}</TableCell>
-                  <TableCell className="mono">{product.reorder}</TableCell>
+          <TableFrame>
+            <Table aria-label="Products that need attention">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="num">In stock</TableHead>
+                  <TableHead className="num">Reorder at</TableHead>
                 </TableRow>
-              ))}
-              {attention.length === 0 && <TableRow><TableCell colSpan={4} className="muted">Every product is above its reorder point.</TableCell></TableRow>}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {attention.map(product => (
+                  <TableRow key={product.sku}>
+                    <TableCell>
+                      <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
+                    </TableCell>
+                    <TableCell><Badge variant={product.stock === 0 ? "danger" : "warning"}>{stockState(product)}</Badge></TableCell>
+                    <TableCell className="num">{product.stock}</TableCell>
+                    <TableCell className="num">{product.reorder}</TableCell>
+                  </TableRow>
+                ))}
+                {attention.length === 0 && <TableRow><TableCell colSpan={4} className="muted">Every product is above its reorder point.</TableCell></TableRow>}
+              </TableBody>
+            </Table>
+          </TableFrame>
         </DashboardPanel>
       </DashboardGrid>
     </>

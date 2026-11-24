@@ -108,8 +108,8 @@ export function ReportLayout({ report, products }: { report: MonthlyReport; prod
                       <TableHead>Product</TableHead>
                       <TableHead>SKU</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Sold</TableHead>
+                      <TableHead className="num">Price</TableHead>
+                      <TableHead className="num">Sold</TableHead>
                       <TableHead>Stock</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -119,8 +119,8 @@ export function ReportLayout({ report, products }: { report: MonthlyReport; prod
                         <TableCell>{product.name}</TableCell>
                         <TableCell className="mono">{product.sku}</TableCell>
                         <TableCell>{product.category}</TableCell>
-                        <TableCell className="mono">{money(product.price)}</TableCell>
-                        <TableCell className="mono">{product.sold}</TableCell>
+                        <TableCell className="num">{money(product.price)}</TableCell>
+                        <TableCell className="num">{product.sold}</TableCell>
                         <TableCell><Status value={stockState(product)} /></TableCell>
                       </TableRow>
                     ))}
