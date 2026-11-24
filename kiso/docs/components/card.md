@@ -62,7 +62,10 @@ surfaces and needs that lift — not on every tile. A recessed band inside a Car
 — header strip, footer, table head — uses `--color-muted`.
 
 Do not add outline/ghost Card variants. If the grouping needs no surface,
-it is a section with a heading, not a Card.
+it is a section with a heading, not a Card. In a
+[PaneGrid](pane-grid.md#frame) or a [DashboardGrid](dashboard-grid.md), that
+section is a pane with `frame="none"`: the reader still moves and resizes
+it.
 
 ## Panel shadows
 

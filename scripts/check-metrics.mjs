@@ -63,6 +63,11 @@ assert.throws(() => render(h(BarGauge, { label: 'Invalid', rows: [], max: 0 })),
 assert.match(render(h(BarGauge, { label: 'Memory', rows: [{ key: 'db', label: 'Database', value: 0 }], max: 100 })), /aria-valuenow="0"/);
 assert.match(render(h(Disclosure, { summary: 'System', open: true }, 'CPU')), /<details[^>]*open=""[^>]*><summary>System/);
 assert.match(render(h(DashboardGrid, null, h(DashboardPanel, { id: 'cpu', title: 'CPU', size: 12 }, 'Metrics'))), /data-slot="dashboard-panel"[^>]*--s:12/);
+const bare = render(h(DashboardGrid, null, h(DashboardPanel, { id: 'low', title: 'Low stock', frame: 'none' }, 'Table')));
+assert.match(bare, /data-frame="none"[^>]*class="grid-pane dashboard-panel"/);
+assert.match(bare, /aria-label="Move Low stock"/);
+assert.match(bare, /aria-label="Resize Low stock"/);
+assert.doesNotMatch(bare, /panel-shadow/);
 assert.match(render(h(DashboardGrid, null, h(DashboardPanel, { id: 'cpu', title: 'CPU', expandable: true }, 'Metrics'))), /aria-label="Expand CPU" aria-keyshortcuts="v"/);
 assert.doesNotMatch(render(h(DashboardGrid, null, h(DashboardPanel, { id: 'cpu', title: 'CPU' }, 'Metrics'))), /Expand CPU/);
 const bounds = { from: 1000, to: 10000 };

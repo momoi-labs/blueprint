@@ -85,7 +85,8 @@ Data and structure
 - Split, Pane, and Splitter, a list-detail layout with a resizable divider.
 - PaneGrid and GridPane, summary panes on twelve columns that the reader
   resizes at the end edge and moves by the title. `onLayoutChange` reports
-  the rows and sizes for the product to persist.
+  the rows and sizes for the product to persist. `frame="none"` on a pane
+  draws no Card, for a pane that holds one TableFrame.
 - LogView, LogViewLine, LogViewTime, and LogViewLevel.
 - StepList, a run's steps with a state each, and StepBar, the same run as
   one segment per step for a summary, a table cell, or a toast.

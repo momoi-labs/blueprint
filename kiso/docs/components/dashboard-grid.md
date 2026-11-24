@@ -20,6 +20,10 @@ chart keeps its caption, so a panel with two charts names both. In a
 [Report](../patterns/report.md) a panel holds one chart, and its caption hides
 wherever the chart sits.
 
+A panel that holds one [TableFrame](table.md) takes `frame="none"`. It draws
+no Card, so the table's frame is the only one, under the panel title and its
+actions. See [PaneGrid](pane-grid.md#frame).
+
 ## Props
 
 DashboardGrid takes every PaneGrid prop: `layout`, `defaultLayout`,
@@ -33,6 +37,7 @@ DashboardGrid takes every PaneGrid prop: `layout`, `defaultLayout`,
 | `size` | `6` | Width in columns of twelve when no layout is saved. |
 | `min` | `1` | Narrowest width. |
 | `newRow` | `false` | Start a row when no layout is saved. |
+| `frame` | `default` | `none` draws no Card, for a panel whose content brings its own frame. |
 | `expandable` | `false` | Add an Expand control and the `V` shortcut. See [Expand](#expand). |
 
 ```tsx

@@ -565,9 +565,10 @@ export type GridPaneProps = Omit<React.ComponentProps<"article">, "title" | "id"
   newRow?: boolean
   /* Compact controls beside the title. */
   actions?: React.ReactNode
+  frame?: "default" | "none"
 }
 
-export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, actions, className, style, children, ...props }: GridPaneProps) {
+export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, actions, frame = "default", className, style, children, ...props }: GridPaneProps) {
   const context = React.useContext(PaneContext)
   if (!context) throw new Error("GridPane must be a child of PaneGrid.")
   const { placement, api } = context
@@ -575,11 +576,12 @@ export function GridPane({ id, title, min: _min, size: _size, newRow: _newRow, a
     <article
       data-slot="grid-pane"
       data-pane-id={id}
-      className={cn("grid-pane card", className)}
+      data-frame={frame}
+      className={cn("grid-pane", frame !== "none" && "card", className)}
       style={{ "--r": placement.row, "--c": placement.col, "--s": placement.span, ...style } as React.CSSProperties}
       {...props}
     >
-      <PanelShadow />
+      {frame !== "none" && <PanelShadow />}
       <div
         data-slot="grid-pane-head"
         className="grid-pane-head"
