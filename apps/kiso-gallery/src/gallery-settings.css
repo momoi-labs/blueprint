@@ -47,6 +47,9 @@
      without the version link. A floating bar spans the screen and keeps it. */
   :root:not([data-header-variant="floating"]) .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-version { display: none; }
 }
+@media (max-width: 1199px) {
+  .catalog-header .catalog-version { display: none; }
+}
 @media (max-width: 699px) {
   .catalog-header .catalog-tools { display: flex; flex: none; }
   .look-chip { max-width: 8.5rem; min-height: var(--size-touch-min); }
