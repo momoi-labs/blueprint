@@ -2550,6 +2550,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 /* The empty layer cannot become a flex/grid item or a direct-child divider. */
 .panel-shadow.panel-shadow { margin: 0; padding: 0; border: 0; }
+.app-shell:not(.app-shell .app-shell) > :is(main, [data-slot="app-shell-main"]) > .panel-shadow { right: max(var(--corner-overlay-inset, var(--appearance-overlay-inset, -1px)), calc(var(--panel-shadow-x, 3px) - var(--app-shell-outer, 0px))); }
 
 /* Paint decorative edges above table headers and panel footers. */
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::before,
@@ -2609,6 +2610,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 [data-corner-marks="none"],
 :where([data-outer-corner-marks="none"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --corner-mark: 0; }
+.app-shell:not(.app-shell .app-shell) > :is(main, [data-slot="app-shell-main"])::after { --mark-reach-limit: var(--app-shell-outer, 0px); }
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, :where(.app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]))::after,
 :where([data-frame-scope="all"]) :is(.radio-item:where(.radio-group[data-variant="tiles"] > *), .file-dropzone)::after {
   content: var(--appearance-mark-content, "");
@@ -2648,7 +2650,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --mark-anchor: calc(var(--appearance-mark-anchor-tick, 1) * var(--corner-mark-tick) + var(--appearance-mark-anchor-gap, 1) * var(--corner-mark-gap) + var(--appearance-mark-anchor, 0px));
   --mark-reach: calc((1 - var(--appearance-sheet, 0)) * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))))) + var(--appearance-sheet, 0) * (var(--presentation-grid-gap) / 2 + 1px + var(--mark-anchor)));
   --mark-reach-start: calc(var(--mark-reach) + var(--appearance-sheet, 0) * 1px);
-  inset: calc(-1 * var(--marks-visible, 1) * var(--mark-reach-start)) calc(-1 * var(--marks-visible, 1) * var(--mark-reach)) calc(-1 * var(--marks-visible, 1) * var(--mark-reach)) calc(-1 * var(--marks-visible, 1) * var(--mark-reach-start));
+  inset: calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw)));
   background-image: var(--appearance-mark-images,
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
