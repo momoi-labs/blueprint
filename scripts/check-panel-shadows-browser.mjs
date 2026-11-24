@@ -213,6 +213,29 @@ test('outer shadow overrides do not leak into nested panels or dialogs', async (
   } finally { await page.close(); }
 });
 
+test('shadow scope keeps the cast on the outer frame, on first-level panels or on every panel', async () => {
+  const page = await open('canvas&corners=rounded&marks=none&appShellOuter=full&shadowStyle=soft&outerShadowStyle=inherit');
+  try {
+    const read = () => page.evaluate(() => Object.fromEntries(Object.entries({ outer: '#outer', card: '#sample', nested: '#sample .table-wrap' }).map(([name, selector]) => [name, getComputedStyle(document.querySelector(selector)).boxShadow !== 'none'])));
+    const all = await read();
+    assert.deepEqual(all, { outer: true, card: true, nested: true });
+    const paint = () => page.evaluate(() => ['#outer', '#sample', '#sample .table-wrap'].map(selector => getComputedStyle(document.querySelector(selector)).boxShadow));
+    const plain = await paint();
+    await page.evaluate(() => { document.documentElement.dataset.shadowScope = 'all'; });
+    assert.deepEqual(await paint(), plain, 'all keeps the current look');
+    await page.evaluate(() => { document.documentElement.dataset.shadowScope = 'first'; });
+    assert.deepEqual(await read(), { outer: true, card: true, nested: false });
+    await page.evaluate(() => { document.documentElement.dataset.shadowScope = 'outer'; });
+    assert.deepEqual(await read(), { outer: true, card: false, nested: false });
+    await page.locator('#sample .table-wrap').evaluate(el => { el.dataset.shadowStyle = 'hard'; });
+    assert.match(await page.locator('#sample .table-wrap').evaluate(el => getComputedStyle(el).boxShadow), /3px 3px 0px 0px$/, 'An explicit panel choice still casts');
+    await page.getByRole('button', { name: 'Open dialog', exact: true }).click();
+    assert.equal(await page.getByRole('dialog').evaluate(el => getComputedStyle(el).boxShadow), 'none', 'outer removes the dialog cast');
+    await page.evaluate(() => { document.documentElement.dataset.shadowScope = 'first'; });
+    assert.match(await page.getByRole('dialog').evaluate(el => getComputedStyle(el).boxShadow), /3px 3px 8px 0px$/, 'A dialog is a first-level panel');
+  } finally { await page.close(); }
+});
+
 test('generated HTML and JavaScript render with shipped CSS and cross the phone breakpoint', async () => {
   const init = readFileSync(new URL('../apps/kiso-gallery/public/appearance-init.js', import.meta.url), 'utf8');
   const window = {};

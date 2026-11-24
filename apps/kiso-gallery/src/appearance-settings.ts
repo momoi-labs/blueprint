@@ -30,6 +30,7 @@ export interface AppearanceSettings {
   appShellOuter: "auto" | "full" | "compact" | "none";
   shellBottom: "default" | "fill";
   shellBottomStyle: "none" | "fade";
+  shellRight: "default" | "fill";
   brandBar: "separate" | "full";
   pageWidth: "full" | "contained";
   pageAlign: "start" | "center" | "end";
@@ -39,6 +40,7 @@ export interface AppearanceSettings {
   outerCornerMarks: "inherit" | CornerMarks;
   frameScope: "all" | "panels" | "outer";
   markScope: "panels" | "all" | "outer";
+  shadowScope: "all" | "first" | "outer";
   markClearance: "normal" | "sheet";
   backgroundStyle: "solid" | "dots" | "grid" | "crosses" | "construction" | "guides" | "fibers" | "momoi" | "momoi-repeat" | "enso" | "checker" | "glow" | "stripes" | "rings";
   backgroundStrength: "quiet" | "visible";
@@ -81,11 +83,13 @@ const mainOptions = {
   appShellOuter: ["auto", "full", "compact", "none"],
   shellBottom: ["default", "fill"],
   shellBottomStyle: ["none", "fade"],
+  shellRight: ["default", "fill"],
   brandBar: ["separate", "full"],
   pageWidth: ["full", "contained"],
   pageAlign: ["start", "center", "end"],
   frameScope: ["all", "panels", "outer"],
   markScope: ["panels", "all", "outer"],
+  shadowScope: ["all", "first", "outer"],
   markClearance: ["normal", "sheet"],
   backgroundStyle: ["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"],
   backgroundStrength: ["quiet", "visible"],
@@ -175,12 +179,12 @@ export function randomAppearance(current: AppearanceSettings, random = Math.rand
     shadowStyle: pick(["none", "hard", "soft"]), borderStyle: inner.border, cornerStyle: inner.corner, cornerMarks: inner.marks,
     cornerSize: pick(["small", "medium", "large"]), markSize: pick(["small", "medium", "large"]),
     visualStyle: pick(["default", "editorial"]), appShell: pick(["default", "inset"]),
-    frameScope: pick(["outer", "panels", "all"]), markScope: pick(["outer", "panels", "all"]),
+    frameScope: pick(["outer", "panels", "all"]), markScope: pick(["outer", "panels", "all"]), shadowScope: pick(["outer", "first", "all"]),
     markClearance: pick(["normal", "sheet"]),
     backgroundStyle: pick(["solid", "dots", "grid", "crosses", "construction", "guides", "fibers", "momoi", "momoi-repeat", "enso", "checker", "glow", "stripes", "rings"]),
     backgroundStrength: pick(["quiet", "visible"]), backgroundPlacement: pick(["inside", "outside", "both"]),
     frameDetail: pick(["small", "medium", "large"]), paperTone: pick(["theme", "accent"]), panelFill: pick(["solid", "translucent", "glass"]),
-    shellBottom: pick(["default", "fill"]), shellBottomStyle: pick(["none", "fade"]),
+    shellBottom: pick(["default", "fill"]), shellBottomStyle: pick(["none", "fade"]), shellRight: pick(["default", "fill"]),
     outerShadowStyle: "inherit", outerBorderStyle: outer?.border ?? "inherit", outerCornerStyle: outer?.corner ?? "inherit", outerCornerMarks: outer?.marks ?? "inherit",
   };
 }

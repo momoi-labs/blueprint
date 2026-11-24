@@ -1,11 +1,12 @@
 const tabs = {
   Look: ["Colors and type", "Presets", "Theme", "Accent", "Neutral", "Primary action", "Typeface", "Visual style"],
-  Layout: ["Shell", "Header", "Page", "Gallery only", "Application frame", "Outer spacing", "Landing bands", "Header size", "Page width", "Page alignment"],
+  Layout: ["Shell", "Header", "Page", "Application frame", "Outer spacing", "Shell right", "Header size", "Page width", "Page alignment"],
   Frame: ["Panels", "Corner marks", "Where it applies", "Outer frame style", "Border style", "Panel shadow", "Border detail", "Corner type", "Corner size", "Panel fill", "Mark size",
-    "Apply frames to", "Apply marks to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks"],
+    "Apply frames to", "Apply marks to", "Apply shadows to", "Mark clearance", "Outer shadow", "Outer border", "Outer corners", "Outer marks"],
   Canvas: ["Background", "Charts", "Canvas background", "Paper tone", "Pattern placement", "Background strength", "Chart line", "Chart fill", "Chart layout", "Chart legend"],
   Phone: ["Phone", "Phone shadow", "Phone background", "Phone border", "Phone corners", "Phone marks", "Phone panel fill"],
   Code: ["Use in code"],
+  Gallery: ["Gallery only", "Landing bands"],
 };
 
 /** Opens a tab by its label, or by the name of a section or group inside it. */

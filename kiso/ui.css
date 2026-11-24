@@ -2506,6 +2506,12 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 }
 [data-shadow-style="soft"],
 :where([data-outer-shadow-style="soft"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) { --panel-shadow-blur: 8px; }
+:where([data-shadow-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block):not([data-shadow-style]),
+:where([data-shadow-scope="first"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block) :is(.card, .table-wrap, .logview, .marked, pre, .code-block):not([data-shadow-style]) {
+  --panel-shadow-legacy: ;
+  --panel-shadow-projection: none;
+  --panel-shadow-layer: none;
+}
 :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block, .app-shell > :is(main, [data-slot="app-shell-main"])) {
   isolation: isolate;
   --panel-fill-pixel: 0;
@@ -5061,6 +5067,48 @@ button.bottom-nav-link { width: 100%; border: 0; background: none; font: inherit
     --shell-bottom-inset: calc(var(--bottom-nav-size) + env(safe-area-inset-bottom));
     padding-block-end: calc(var(--app-shell-outer, 0px) + var(--bottom-nav-size) + env(safe-area-inset-bottom));
   }
+}
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+  padding-inline-end: 0;
+  overflow-x: clip;
+}
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) {
+  margin-inline-end: 0;
+  border-inline-end-width: 0;
+  --pixel-header-clip: polygon(var(--pixel-inner-r) 0, 100% 0, 100% 100%, 0 100%, 0 var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-step), var(--pixel-inner-r) var(--pixel-inner-step));
+  --pixel-footer-clip: polygon(0 0, 100% 0, 100% 100%, var(--pixel-inner-r) 100%, var(--pixel-inner-r) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-r)), 0 calc(100% - var(--pixel-inner-r)));
+}
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))),
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::before,
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) > .panel-shadow span {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::before,
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) > .panel-shadow {
+  margin-inline-end: calc(-1 * var(--pixel-r, 0px));
+  border-inline-end-width: 0;
+}
+:where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:not(:has(> .app-shell-panel:not([hidden])))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::after { margin-inline-end: calc(-1 * var(--spacing-2xl)); }
+@media (max-width: 1023px) {
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) {
+    margin-inline-end: 0;
+    border-inline-end-width: 0;
+    --pixel-header-clip: polygon(var(--pixel-inner-r) 0, 100% 0, 100% 100%, 0 100%, 0 var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-r), var(--pixel-inner-step) var(--pixel-inner-step), var(--pixel-inner-r) var(--pixel-inner-step));
+    --pixel-footer-clip: polygon(0 0, 100% 0, 100% 100%, var(--pixel-inner-r) 100%, var(--pixel-inner-r) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-step)), var(--pixel-inner-step) calc(100% - var(--pixel-inner-r)), 0 calc(100% - var(--pixel-inner-r)));
+  }
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))),
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::before,
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) > .panel-shadow span {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::before,
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"]))) > .panel-shadow {
+    margin-inline-end: calc(-1 * var(--pixel-r, 0px));
+    border-inline-end-width: 0;
+  }
+  :where([data-shell-right="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):where(:has(> .app-shell-panel:not([hidden]))) > :is(main, [data-slot="app-shell-main"]):where(:not(:has(> .app-shell-panel-toggle[data-placement="floating"], > .topbar .app-shell-panel-toggle[data-placement="floating"])))::after { margin-inline-end: calc(-1 * var(--spacing-2xl)); }
 }
 :where([data-shell-bottom="fill"]) .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
   padding-block-end: var(--shell-bottom-inset, 0px);

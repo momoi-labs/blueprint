@@ -2,20 +2,21 @@ import type { ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import {
   AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Palette, PanelTop,
-  Scan, Smartphone, Sparkles, Square, SquareDashed, SwatchBook, Target, TriangleAlert,
+  Scan, Settings, Smartphone, Sparkles, Square, SquareDashed, SwatchBook, Target, TriangleAlert,
 } from "lucide-react";
 import { AppearanceControls, type AppearanceSectionId } from "./appearance";
 import type { AppearanceSettings } from "./appearance-settings";
 
-export type LookTab = "look" | "layout" | "frame" | "canvas" | "phone" | "code";
+export type LookTab = "look" | "layout" | "frame" | "canvas" | "phone" | "code" | "gallery";
 
 const tabs: { id: LookTab; label: string; icon: ReactNode; sections: AppearanceSectionId[] }[] = [
   { id: "look", label: "Look", icon: <Palette className="icon" aria-hidden="true" />, sections: ["presets", "colors"] },
-  { id: "layout", label: "Layout", icon: <LayoutDashboard className="icon" aria-hidden="true" />, sections: ["sketch", "shell", "header", "page", "gallery"] },
+  { id: "layout", label: "Layout", icon: <LayoutDashboard className="icon" aria-hidden="true" />, sections: ["sketch", "shell", "header", "page"] },
   { id: "frame", label: "Frame", icon: <Frame className="icon" aria-hidden="true" />, sections: ["panels", "marks", "scope", "outer"] },
   { id: "canvas", label: "Canvas", icon: <Layers className="icon" aria-hidden="true" />, sections: ["background", "charts"] },
   { id: "phone", label: "Phone", icon: <Smartphone className="icon" aria-hidden="true" />, sections: ["phone"] },
   { id: "code", label: "Code", icon: <CodeXml className="icon" aria-hidden="true" />, sections: [] },
+  { id: "gallery", label: "Gallery", icon: <Settings className="icon" aria-hidden="true" />, sections: ["gallery"] },
 ];
 
 const sectionNames: Partial<Record<AppearanceSectionId, string>> = {
@@ -62,7 +63,7 @@ export function LookSettings({ settings, onChange, tab, onTabChange, idPrefix, v
   const jumps = current.sections.filter(id => id !== "sketch");
   return <Tabs className="gen-tabs" data-variant={variant} orientation={variant === "rail" ? "vertical" : "horizontal"} value={current.id} onValueChange={value => onTabChange(value as LookTab)}>
     <TabsList className="gen-nav" aria-label="Settings groups">
-      {shown.map(item => <TabsTrigger key={item.id} value={item.id}>{item.icon}<span>{item.label}</span></TabsTrigger>)}
+      {shown.map(item => <TabsTrigger key={item.id} value={item.id} className={item.id === "gallery" ? "gen-nav-apart" : undefined}>{item.icon}<span>{item.label}</span></TabsTrigger>)}
     </TabsList>
     <div className="gen-panel">
       <div className="gen-panel-head">
