@@ -1827,7 +1827,7 @@ table.table {
   padding-inline:
     max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-start, 0)))
     max(var(--presentation-page-padding), calc(var(--presentation-page-padding) + var(--page-free, 0px) * var(--page-free-end, 1)));
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--presentation-section-gap); align-content: start; min-width: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: calc(var(--presentation-section-gap) + var(--appearance-sheet, 0) * (var(--presentation-grid-gap) - var(--presentation-section-gap))); align-content: start; min-width: 0;
 }
 .page-header {
   display: grid; min-width: 0; gap: var(--page-header-gap);
@@ -2654,7 +2654,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   /* Styles give their anchor as parts of the tick and gap, so it follows the
      mark size and grid gap of the region the panel sits in. */
   --mark-anchor: calc(var(--appearance-mark-anchor-tick, 1) * var(--corner-mark-tick) + var(--appearance-mark-anchor-gap, 1) * var(--corner-mark-gap) + var(--appearance-mark-anchor, 0px));
-  --mark-reach: calc((1 - var(--appearance-sheet, 0)) * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))))) + var(--appearance-sheet, 0) * (var(--presentation-grid-gap) / 2 + 1px + var(--mark-anchor)));
+  --mark-reach: calc((1 - var(--appearance-sheet, 0)) * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))))) + var(--appearance-sheet, 0) * (var(--presentation-grid-gap) / 2 + var(--mark-frame, 1px) + var(--mark-anchor)));
   --mark-reach-start: calc(var(--mark-reach) + var(--appearance-sheet, 0) * 1px);
   inset: calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw)));
   background-image: var(--appearance-mark-images,
@@ -3036,7 +3036,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-panel-border: none;
   --appearance-frame-shadow: none;
   --appearance-band-content: none; --appearance-footer-clip: none; --appearance-ink-clip: none;
-  border: 0; border-radius: 0; box-shadow: none;
+  border: 0; border-radius: 0; box-shadow: none; --mark-frame: 0px;
 }
 :where([data-frame-scope="outer"]) :is(.card, .dialog, .table-wrap, .logview, .marked, .palette, pre, .code-block)::before { content: none; }
 :where([data-frame-scope="outer"], [data-frame-scope="panels"]) :is(.btn, .input:not(.field-control *), .select:not(.field-control *), .textarea, .field-control, .chip-input-box, .radio-item, .file-dropzone) { border-radius: 4px; }
@@ -3699,6 +3699,8 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .time-range-live > .btn:first-child { border-start-start-radius: var(--radius-md); border-end-start-radius: var(--radius-md); }
 .time-range-live > .btn:last-child { border-start-end-radius: var(--radius-md); border-end-end-radius: var(--radius-md); margin-inline-start: -1px; }
 .time-range-live > .time-range-trigger { justify-self: auto; }
+.btn-group > .time-range-live:not(:last-child) > .btn:last-child { border-start-end-radius: 0; border-end-end-radius: 0; }
+.btn-group > .time-range-live + .btn { height: auto; min-height: var(--btn-height); margin-inline-start: -1px; }
 .time-range-live-pause { height: auto; min-height: var(--size-control-md); width: var(--size-control-md); }
 .tooltip.time-range-live-tip { display: grid; gap: var(--spacing-xs); width: 18rem; max-width: calc(100vw - 2 * var(--spacing-md)); padding: var(--spacing-sm) var(--spacing-md); border: 1px solid var(--color-border); background: var(--color-popover); color: var(--color-popover-foreground); }
 .time-range-live-tip small, .time-range-live-note { color: var(--color-muted-foreground); font-size: var(--type-size-label); margin: 0; }

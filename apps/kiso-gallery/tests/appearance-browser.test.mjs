@@ -927,6 +927,100 @@ test('Plain header preference stays transparent and static in a desktop inset sh
 });
 
 
+function sharedMarkCorners() {
+  const corners = [];
+  const walk = (doc, ox, oy, scale) => {
+    const win = doc.defaultView;
+    for (const el of doc.querySelectorAll("*")) {
+      if (el.tagName === "IFRAME") {
+        const r = el.getBoundingClientRect();
+        if (el.contentDocument && r.width) walk(el.contentDocument, ox + (r.left + el.clientLeft) * scale, oy + (r.top + el.clientTop) * scale, scale * r.width / el.offsetWidth);
+        continue;
+      }
+      const cs = win.getComputedStyle(el, "::after");
+      if (cs.content === "none" || cs.position !== "absolute" || Number(cs.opacity) === 0 || !cs.getPropertyValue("--mark-reach") || !el.closest(".page")) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height || !el.checkVisibility()) continue;
+      const k = r.width / el.offsetWidth;
+      const px = value => parseFloat(value) * k;
+      const probe = doc.createElement("i");
+      probe.style.cssText = "position:absolute;visibility:hidden;width:var(--presentation-grid-gap)";
+      el.append(probe);
+      const gap = parseFloat(win.getComputedStyle(probe).width);
+      probe.remove();
+      const own = win.getComputedStyle(el);
+      const pad = { left: r.left + px(own.borderLeftWidth), top: r.top + px(own.borderTopWidth), right: r.right - px(own.borderRightWidth), bottom: r.bottom - px(own.borderBottomWidth) };
+      const box = { left: pad.left + px(cs.left), top: pad.top + px(cs.top), right: pad.right - px(cs.right), bottom: pad.bottom - px(cs.bottom) };
+      const anchor = (-parseFloat(cs.right) - gap / 2) * k - px(own.borderRightWidth);
+      const x = { l: box.left + anchor, r: box.right - anchor - k }, y = { t: box.top + anchor, b: box.bottom - anchor - k };
+      let arms = null;
+      const images = cs.backgroundImage.split(/,\s*(?=linear-gradient)/);
+      if (images.length === 8 && images.every(image => image.startsWith("linear-gradient"))) {
+        const sizes = cs.backgroundSize.split(",").map(part => part.trim().split(/\s+/).map(px));
+        arms = cs.backgroundPosition.split(",").map((position, index) => {
+          const parts = position.match(/calc\([^)]*\)|\S+/g);
+          const at = (part, free) => {
+            const calc = part.match(/^calc\(([\d.]+)% ([-+]) ([\d.]+)px\)$/);
+            if (calc) return free * parseFloat(calc[1]) / 100 + (calc[2] === "-" ? -1 : 1) * px(calc[3]);
+            return part.endsWith("%") ? free * parseFloat(part) / 100 : px(part);
+          };
+          const [w, h] = sizes[index];
+          const x0 = box.left + at(parts[0], box.right - box.left - w), y0 = box.top + at(parts[1], box.bottom - box.top - h);
+          return { x0, y0, x1: x0 + w, y1: y0 + h };
+        });
+      }
+      const label = `${el.tagName.toLowerCase()}.${[...el.classList].slice(0, 2).join(".")}`;
+      [["tl", "l", "t"], ["tr", "r", "t"], ["bl", "l", "b"], ["br", "r", "b"]].forEach(([corner, h, v], index) => {
+        const arm = arms && { h: arms[index * 2], v: arms[index * 2 + 1] };
+        const page = n => n * scale;
+        corners.push({ el, doc, label, corner, scale: scale * k, x: ox + page(x[h]), y: oy + page(y[v]),
+          arm: arm && { hx0: ox + page(arm.h.x0), hx1: ox + page(arm.h.x1), hy: oy + page(arm.h.y0), vx: ox + page(arm.v.x0), vy0: oy + page(arm.v.y0), vy1: oy + page(arm.v.y1) } });
+      });
+    }
+  };
+  walk(document, 0, 0, 1);
+  const groups = [];
+  for (const corner of corners) {
+    const reach = 14 * corner.scale;
+    const group = groups.find(g => g.every(other => other.doc === corner.doc && other.el !== corner.el && !other.el.contains(corner.el) && !corner.el.contains(other.el)) && Math.abs(g[0].x - corner.x) < reach && Math.abs(g[0].y - corner.y) < reach);
+    if (group) group.push(corner); else groups.push([corner]);
+  }
+  return groups.filter(group => group.length > 1).map(group => {
+    const spread = pick => (Math.max(...group.map(pick)) - Math.min(...group.map(pick))) / group[0].scale;
+    const armOff = Math.max(...group.map(c => c.arm ? Math.max(Math.abs(c.arm.hy - c.y), Math.abs(c.arm.vx - c.x)) / c.scale : 0));
+    return { offset: Math.max(spread(c => c.x), spread(c => c.y), armOff), at: [group[0].x, group[0].y],
+      marks: group.map(({ label, corner, x, y, arm }) => ({ label, corner, x, y, arm })) };
+  });
+}
+
+test("Sheet marks of neighboring panels meet at every shared corner", async () => {
+  const rows = [];
+  for (const width of [1440, 390]) {
+    const page = await open("example/dashboard", width);
+    try {
+      await page.frameLocator("iframe").first().locator(".layout-stats").first().waitFor();
+      const panel = await settings(page);
+      await tab(panel, "Presets");
+      const presets = (await panel.getByLabel("Presets").getByRole("button").allTextContents()).filter(name => name !== "Random");
+      const marks = (await page.evaluate(() => window.kisoAppearance.options.cornerMarks)).filter(mark => mark !== "none");
+      for (const preset of presets) {
+        await panel.getByLabel("Presets").getByRole("button", { name: preset, exact: true }).click();
+        const look = await page.evaluate(() => window.kisoAppearance.read());
+        for (const mark of marks) {
+          await page.evaluate(next => window.kisoAppearance.save(next), { ...look, cornerMarks: mark, markClearance: "sheet", markScope: "panels" });
+          await page.waitForFunction(mark => [...document.querySelectorAll("iframe")].every(frame => !frame.contentDocument?.querySelector(".layout-stats") || frame.contentDocument.documentElement.dataset.cornerMarks === mark && frame.contentDocument.documentElement.dataset.markClearance === "sheet"), mark);
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          const corners = await page.evaluate(sharedMarkCorners);
+          rows.push({ mark, preset, width, corners: corners.length, offset: Math.max(0, ...corners.map(corner => corner.offset)) });
+        }
+      }
+    } finally { await page.close(); }
+  }
+  console.log(["mark type | preset | width | corners checked | max offset", ...rows.map(row => `${row.mark} | ${row.preset} | ${row.width} | ${row.corners} | ${row.offset.toFixed(2)}`)].join("\n"));
+  for (const mark of new Set(rows.map(row => row.mark))) assert(rows.some(row => row.mark === mark && row.corners > 0), `${mark} marks share corners on the dashboard`);
+  assert.deepEqual(rows.filter(row => row.offset > 0.5), [], "Marks at a shared corner coincide within 0.5px");
+});
+
 test("presets replace the fields they do not define", async () => {
   const page = await open("intro");
   try {
