@@ -132,7 +132,7 @@ export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "h
 const phoneKeys = ["phoneShadowStyle", "phoneBackgroundStyle", "phoneBorderStyle", "phoneCornerStyle", "phoneCornerMarks", "phonePanelFill"] as const;
 const isExpressive = (border: string) => border === "manga" || border === "brush";
 
-export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, presetFields = "all", galleryOnly = false }: {
+export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, presetFields = "all", galleryOnly = false, phoneHint = "Layouts > Phone shows the result." }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   sections: readonly AppearanceSectionId[];
@@ -142,6 +142,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   onJump?: (part: SketchPart) => void;
   presetFields?: "all" | "defined";
   galleryOnly?: boolean;
+  phoneHint?: string;
 }) {
   const borderName = useId();
   const cornerName = useId();
@@ -352,7 +353,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <RadioGroupItem value="same" label="Same" />
       <RadioGroupItem value="override" label="Override" />
     </RadioGroup>
-    <p className="muted t-label">Below 700px wide the phone choices replace the desktop ones. Layouts &gt; Phone shows the result.</p>
+    <p className="muted t-label">Below 700px wide the phone choices replace the desktop ones. {phoneHint}</p>
     {phoneOverride && <>
       <Segmented label="Phone shadow" value={settings.phoneShadowStyle} options={settings.phoneShadowStyle === "auto" ? ["inherit", "none", "hard", "soft", "auto"] as const : ["inherit", "none", "hard", "soft"] as const}
         names={{ ...sameNames, auto: "Legacy elevation" }} onChange={phoneShadowStyle => onChange({ phoneShadowStyle })} />
