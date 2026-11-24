@@ -1,6 +1,5 @@
 import { RefreshCw } from "lucide-react";
 import {
-  Badge,
   BarGauge,
   Button,
   Card,
@@ -18,6 +17,7 @@ import {
   StatHeader,
   StatLabel,
   StatValue,
+  StatusBadge,
   Table,
   TableBody,
   TableCell,
@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@momoi-labs/kiso-react";
 import { usePaneLayout } from "../../../../kiso/blocks/react-prototype/src/use-pane-layout";
-import { crudPath } from "./crud";
+import { crudPath, tone } from "./crud";
 import { sales, salesSeries, shopHref, soldByCategory, stockState, useReportRange, whole, type Product } from "./shop-data";
 
 /* The overview follows the dashboard pattern: the range in the page header,
@@ -74,35 +74,33 @@ export function DashboardLayout({ products, go, open }: { products: Product[]; g
             <BarGauge label="Units sold by category" rows={soldByCategory} max={120} />
           </div>
         </DashboardPanel>
-        <DashboardPanel id="attention" title="Needs attention" size={12} newRow
-          actions={<Link className="t-label" href={shopHref(crudPath("list"))} onClick={event => { event.preventDefault(); go(crudPath("list")); }}>View all products</Link>}>
-          <TableFrame>
-            <Table aria-label="Products that need attention">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="num">In stock</TableHead>
-                  <TableHead className="num">Reorder at</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attention.map(product => (
-                  <TableRow key={product.sku}>
-                    <TableCell>
-                      <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
-                    </TableCell>
-                    <TableCell><Badge variant={product.stock === 0 ? "danger" : "warning"}>{stockState(product)}</Badge></TableCell>
-                    <TableCell className="num">{product.stock}</TableCell>
-                    <TableCell className="num">{product.reorder}</TableCell>
-                  </TableRow>
-                ))}
-                {attention.length === 0 && <TableRow><TableCell colSpan={4} className="muted">Every product is above its reorder point.</TableCell></TableRow>}
-              </TableBody>
-            </Table>
-          </TableFrame>
-        </DashboardPanel>
       </DashboardGrid>
+      <section className="stack-sm" aria-labelledby="overview-attention">
+        <div className="between">
+          <h2 className="t-h3" id="overview-attention">Needs attention</h2>
+          <Link className="t-label" href={shopHref(crudPath("list"))} onClick={event => { event.preventDefault(); go(crudPath("list")); }}>View all products</Link>
+        </div>
+        <TableFrame>
+          <Table aria-label="Products that need attention">
+            <TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="cell-secondary">SKU</TableHead><TableHead className="num cell-secondary">Reorder at</TableHead><TableHead className="num">In stock</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {attention.map(product => (
+                <TableRow key={product.sku}>
+                  <TableCell>
+                    <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
+                  </TableCell>
+                  <TableCell className="mono cell-secondary">{product.sku}</TableCell>
+                  <TableCell className="num cell-secondary">{product.reorder}</TableCell>
+                  <TableCell className="num">{product.stock}</TableCell>
+                  <TableCell><StatusBadge tone={tone(product)}>{stockState(product)}</StatusBadge></TableCell>
+                </TableRow>
+              ))}
+              {attention.length === 0 && <TableRow><TableCell colSpan={5} className="muted">Every product is above its reorder point.</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+          <div className="table-footer"><span>{attention.length} of {products.length} products need attention</span></div>
+        </TableFrame>
+      </section>
     </>
   );
 }
