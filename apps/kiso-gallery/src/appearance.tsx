@@ -359,7 +359,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
     <Segmented label="Chart fill" options={fill.values} names={fill.names} value={settings.chartFill} onChange={chartFill => onChange({ chartFill })} />
     <Segmented label="Chart layout" options={layout.values} names={layout.names} value={settings.chartLayout} onChange={chartLayout => onChange({ chartLayout })} />
     <Segmented label="Chart legend" options={legend.values} names={legend.names} value={settings.chartLegend} onChange={chartLegend => onChange({ chartLegend })} />
-    <p className="muted t-label">Series colors stay the same under every accent, so a series never reads as a status.</p>
+    <p className="muted t-label">These change every chart, in the gallery and in the app pages. A page with no chart shows no change. Series colors stay the same under every accent, so a series never reads as a status.</p>
   </AppearanceSection>,
   phone: <AppearanceSection {...head("phone")} title="Phone">
     <RadioGroup label="Same as desktop" variant="segmented" value={phoneOverride ? "override" : "same"} onValueChange={choosePhone}>
