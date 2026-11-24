@@ -5,7 +5,7 @@ import '../../packages/kiso-react/dist/styles.css';
 const params = new URLSearchParams(location.search);
 Object.assign(document.documentElement.dataset, { theme: params.get('theme') || 'light', borderStyle: params.get('border') || 'solid', cornerSize: params.get('size') || 'medium', cornerMarks: params.get('marks') || 'arcs' });
 if (params.has('corners')) document.documentElement.dataset.cornerStyle = params.get('corners');
-for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail', 'appShellOuter', 'shadowStyle', 'outerShadowStyle', 'headerVariant', 'headerSize', 'appShell']) {
+for (const key of ['outerBorderStyle', 'outerCornerStyle', 'outerCornerMarks', 'frameScope', 'markScope', 'shadowScope', 'markClearance', 'backgroundStyle', 'backgroundStrength', 'panelFill', 'paperTone', 'backgroundPlacement', 'frameDetail', 'appShellOuter', 'shadowStyle', 'outerShadowStyle', 'headerVariant', 'headerSize', 'appShell']) {
   if (params.has(key)) document.documentElement.dataset[key] = params.get(key);
 }
 function Sample({ id = 'sample', title = 'Environment' }) {

@@ -244,6 +244,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
       <Segmented label="Outer spacing" options={["auto", "full", "compact", "none"] as const} value={settings.appShellOuter} onChange={appShellOuter => onChange({ appShellOuter })} />
       <Segmented label="Shell bottom" options={["default", "fill"] as const} value={settings.shellBottom} onChange={shellBottom => onChange({ shellBottom })} />
       <Segmented label="Bottom style" options={["none", "fade"] as const} value={settings.shellBottomStyle} disabledOptions={settings.shellBottom === "fill" ? [] : ["none", "fade"]} onChange={shellBottomStyle => onChange({ shellBottomStyle })} />
+      <Segmented label="Shell right" options={["default", "fill"] as const} value={settings.shellRight} onChange={shellRight => onChange({ shellRight })} />
       <Segmented label="Brand bar" options={["separate", "full"] as const} names={{ full: "Full row" }} value={settings.brandBar} onChange={brandBar => onChange({ brandBar })} />
       <p className="muted t-label">Brand bar changes app pages. The gallery has no brand bar.</p>
       {!galleryOnly && landingBands}
@@ -318,6 +319,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   scope: <AppearanceSection {...head("scope")} title="Where it applies">
     <Segmented label="Apply frames to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.frameScope} onChange={frameScope => onChange({ frameScope })} />
     <Segmented label="Apply marks to" options={["outer", "panels", "all"] as const} names={{ outer: "Outer only", panels: "With panels", all: "With controls" }} value={settings.markScope} onChange={markScope => onChange({ markScope })} />
+    <Segmented label="Apply shadows to" options={["outer", "first", "all"] as const} names={{ outer: "Outer only", first: "First level", all: "All levels" }} value={settings.shadowScope} onChange={shadowScope => onChange({ shadowScope })} />
     <p className="muted t-label">Native controls use compact internal guides. With controls, badges, menus, tooltips and other small surfaces follow the control corners too.</p>
   </AppearanceSection>,
   outer: <AppearanceSection {...head("outer")} title="Outer frame style" collapsed={collapsed.includes("outer")}>

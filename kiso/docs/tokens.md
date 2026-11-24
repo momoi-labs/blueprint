@@ -544,6 +544,7 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | --- | --- | --- |
 | `data-frame-scope` | `outer`, `panels`, `all` | Existing panel and control styling |
 | `data-mark-scope` | `outer`, `panels`, `all` | `panels` |
+| `data-shadow-scope` | `outer`, `first`, `all` | `all` |
 | `data-outer-border-style` | `inherit` or a border value | `inherit` |
 | `data-outer-shadow-style` | `inherit`, `auto`, `none`, `hard`, `soft` | `inherit` |
 | `data-outer-corner-style` | `inherit` or a corner value | `inherit` |
@@ -560,6 +561,7 @@ Dashed, Double, Side rail, Weighted base, or Offset.
 | `data-app-shell-outer` | `auto`, `full`, `compact`, `none` | `auto`: `full` from 700px, `none` below |
 | `data-shell-bottom` | `default`, `fill` | `default` |
 | `data-shell-bottom-style` | `none`, `fade` | `none` |
+| `data-shell-right` | `default`, `fill` | `default` |
 
 Set these on `html`, alongside theme and accent. The outer choices apply to
 inset AppShell main frames. Their children and portals retain the inner
@@ -581,6 +583,13 @@ still apply. A focused field turns its ink to the focus color; a focused
 button or switch drops the contour and shows the standard ring. RadioGroup tiles and
 FileDropzone use the full panel contour and panel marks, with their own
 selection and error colors.
+
+Shadow scope sets which panels cast the `data-shadow-style` shadow. `all`
+casts it on every panel. `first` removes it from a card, table, log viewer,
+marked block or code block that sits inside another panel. Dialogs, drawers
+and palettes stay first-level panels. `outer` removes it from every panel and
+keeps it on the inset shell frame and a floating Header. An explicit
+`data-shadow-style` on a panel still applies in every scope.
 
 Control-sized surfaces take the control contour too: BrandMark, Badge, Alert,
 Lifecycle clusters, ChipInput chips, FilterInput groups, Skeleton, segmented

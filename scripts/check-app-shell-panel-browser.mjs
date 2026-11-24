@@ -195,6 +195,50 @@ for (const width of [1440, 1000]) test(`Inset shell bottom fill reaches the view
   } finally { await page.close(); }
 });
 
+for (const width of [1440, 1000]) test(`Inset shell right fill reaches the viewport edge at ${width}px`, async () => {
+  const page = await open('variant=inset', width);
+  try {
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { appShellOuter: 'full', cornerStyle: 'rounded', shadowStyle: 'hard', borderStyle: 'double' }));
+    const settings = page.locator('#settings');
+    await settings.evaluate(el => { el.hidden = true; });
+    const read = () => page.locator('[data-slot="app-shell-main"]').first().evaluate(el => {
+      const style = getComputedStyle(el);
+      return { right: el.getBoundingClientRect().right, viewport: document.documentElement.clientWidth, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, radius: `${style.borderTopRightRadius} ${style.borderBottomRightRadius}`, start: style.borderBottomLeftRadius, border: style.borderRightWidth, before: getComputedStyle(el, '::before').borderTopRightRadius, beforeBorder: getComputedStyle(el, '::before').borderRightWidth };
+    });
+    await page.evaluate(() => { document.documentElement.dataset.shellRight = 'fill'; });
+    assert.notEqual((await read()).border, '0px', 'Beside a floating toggle the main keeps its end border');
+    await page.evaluate(() => { delete document.documentElement.dataset.shellRight; });
+    await page.getByLabel('Toggle placement').selectOption('header');
+    const plain = await read();
+    assert(plain.right < plain.viewport - 1, 'Without the option the frame keeps its right margin');
+    assert.notEqual(plain.radius, '0px 0px');
+    await page.evaluate(() => { document.documentElement.dataset.shellRight = 'default'; });
+    assert.deepEqual(await read(), plain, 'Default keeps the current look');
+    await page.evaluate(() => { document.documentElement.dataset.shellRight = 'fill'; });
+    const fill = await read();
+    assert(Math.abs(fill.right - fill.viewport) <= 1, 'Main ends at the viewport edge');
+    assert.equal(fill.overflow, 0, 'The page does not scroll sideways');
+    assert.equal(fill.radius, '0px 0px', 'Square end corners');
+    assert.equal(fill.start, plain.start, 'The start corners keep their radius');
+    assert.equal(fill.before, '0px', 'The frame overlay follows the square corners');
+    assert.equal(fill.border, '0px', 'No end border');
+    assert.equal(fill.beforeBorder, '0px', 'The double overlay has no end line');
+    await page.evaluate(() => { document.documentElement.dataset.shellBottom = 'fill'; });
+    const both = await read();
+    assert(Math.abs(both.right - both.viewport) <= 1, 'Right fill holds with bottom fill');
+    assert.equal(`${both.radius} ${both.start}`, '0px 0px 0px', 'Right and bottom fill square three corners');
+    await page.evaluate(() => { document.documentElement.dataset.shellBottom = 'default'; });
+    await settings.evaluate(el => { el.hidden = false; });
+    const beside = await read();
+    const panel = await settings.boundingBox();
+    assert(Math.abs(panel.x + panel.width - beside.viewport) <= 1, 'A visible panel reaches the viewport edge');
+    if (width >= 1024) {
+      assert.equal(beside.radius, plain.radius, 'Beside a panel the main keeps its end corners');
+      assert.equal(beside.border, plain.border, 'Beside a panel the main keeps its end border');
+    } else assert.equal(beside.radius, '0px 0px', 'Above a stacked panel the main still fills');
+  } finally { await page.close(); }
+});
+
 for (const width of [1440, 390]) test(`Inset shell bottom fill reaches the bottom of a nested shell at ${width}px`, async () => {
   const page = await open('variant=inset', width);
   try {

@@ -314,6 +314,19 @@ preview, ends at its own bottom edge. It has no effect on the default variant.
 The gallery saves these choices under Appearance > Layout > Shell bottom and
 Bottom style.
 
+### Shell right
+
+`data-shell-right` on `html` sets how an inset frame meets the inline-end edge
+of its shell. It has no effect on the default variant.
+
+| Value | Result |
+| --- | --- |
+| `default` (or omitted) | The outer space, end border, end corners, shadow and end corner marks stay. |
+| `fill` | The shell has no outer space at its inline-end edge. The main area runs to that edge. Its end corners are square and it has no end border. The shell clips the shadow and the end corner marks. From 1024px, a visible AppShellPanel takes the edge, and the main area keeps its frame beside it. A main area that reserves space for a floating panel toggle also keeps its frame. |
+
+`fill` combines with `data-shell-bottom="fill"`. The gallery saves this choice
+under Appearance > Layout > Shell right.
+
 ### Brand bar
 
 `data-brand-bar` on `html` sets how the console brand bar meets the main panel
