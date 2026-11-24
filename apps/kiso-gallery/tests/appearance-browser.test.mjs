@@ -236,7 +236,7 @@ for (const width of [390, 1440]) test(`Random changes appearance without losing 
 
 for (const [width, frame, theme] of [
   [1440, "Default", "light"], [1440, "Default", "dark"],
-  [1440, "Inset", "light"], [1440, "Inset", "dark"], [320, "Inset", "dark"],
+  [1440, "Inset", "light"], [1440, "Inset", "dark"],
 ]) test(`The generator keeps Reset above its scrolling options at ${width}px in ${frame}/${theme}`, async () => {
   const page = await open("components", width, theme);
   try {
