@@ -88,8 +88,9 @@ for (const width of [390, 1440]) test(`Chart treatments select, persist and expo
     for (const [select, label, attribute, value] of [['Chart line', 'Stepped', 'chartLine', 'stepped'], ['Chart line', 'Curved', 'chartLine', 'curved'],
       ['Chart fill', 'Dots', 'chartFill', 'dots'], ['Chart fill', 'Scanlines', 'chartFill', 'scanlines']]) {
       const panel = await settings(page);
+      const choices = await field(panel, select);
       const baseline = await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]);
-      await (await field(panel, select)).getByRole('radio', { name: label, exact: true }).check();
+      await choices.getByRole('radio', { name: label, exact: true }).check();
       assert.deepEqual(await page.evaluate(() => [document.documentElement.scrollHeight, document.documentElement.scrollWidth]), baseline);
       await page.waitForFunction(([key, expected]) => document.documentElement.dataset[key] === expected, [attribute, value]);
       await close(page);
