@@ -725,6 +725,8 @@ export const accentBlueprintDangerBorder: string;
 export const accentBlueprintInfoSurface: string;
 export const accentBlueprintInfoBorder: string;
 export const accentBlueprintOverlay: string;
+/** Blueprint has no blurred shadows, so the 1px contact shadow under a resting control is transparent. */
+export const accentBlueprintShadowHairline: string;
 /** Heading family. Inter, same as body; headings differentiate by size and weight. */
 export const fontHeading: string;
 /** Body family. Inter for interface text. */

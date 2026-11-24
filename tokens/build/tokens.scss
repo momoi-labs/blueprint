@@ -595,6 +595,7 @@ $accent-blueprint-danger-border: rgba(229, 148, 148, 0.35);
 $accent-blueprint-info-surface: rgba(121, 174, 236, 0.12);
 $accent-blueprint-info-border: rgba(121, 174, 236, 0.35);
 $accent-blueprint-overlay: rgba(10, 18, 30, 0.6);
+$accent-blueprint-shadow-hairline: rgba(0, 0, 0, 0); // Blueprint has no blurred shadows, so the 1px contact shadow under a resting control is transparent.
 $font-heading: Inter, system-ui, sans-serif; // Heading family. Inter, same as body; headings differentiate by size and weight.
 $font-body: Inter, system-ui, sans-serif; // Body family. Inter for interface text.
 $font-mono: 'JetBrains Mono', ui-monospace, monospace; // Monospace family. Code and machine-readable values (hashes, identifiers). Numeric tables use body with tabular figures, not mono.

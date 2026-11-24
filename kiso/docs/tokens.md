@@ -266,7 +266,8 @@ warm off-white sheet (`#e9e9e1`). Dark is pale ink (`#d8e4f0`) on saturated navy
 the one accent that also restates the status roles, so that success, warning and
 danger sit in the same ink family. Borders and the grid role (`hatch`) are blue,
 never neutral grey. The accent ramp points at cobalt; `accent.base` is its own
-ink.
+ink. `shadow-hairline` is transparent, so a resting control has no blurred
+shadow.
 
 Applications own the choice and its persistence, exactly as with the theme.
 Use [AccentSelector](components/accent-selector.md) for the control.
