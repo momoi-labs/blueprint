@@ -30,6 +30,13 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
+.gallery-settings-switch { flex: none; padding: 0 var(--spacing-lg) var(--spacing-md); }
+.gallery-settings-switch .radio-group { display: grid; grid-template-columns: 1fr 1fr; }
+.appearance-controls-scroll[hidden] { display: none; }
+.gallery-look-more { margin: 0; padding-block: var(--spacing-md) var(--spacing-lg); }
+.look-chip { flex: none; gap: var(--spacing-xs); max-width: 12rem; }
+.look-chip-dot { flex: none; color: var(--color-primary); }
+.look-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (min-width: 1200px) {
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-header { flex-wrap: wrap; gap: var(--spacing-sm); }
   .component-gallery:has(> .app-shell-panel:not([hidden])) .catalog-tools { flex: 1; justify-content: end; }
@@ -40,6 +47,7 @@
 }
 @media (max-width: 699px) {
   .catalog-header .catalog-tools { display: flex; flex: none; }
+  .look-chip { max-width: 8.5rem; min-height: var(--size-touch-min); }
 }
 
 /* The layout previews cover most of the page signature and leave a fragment

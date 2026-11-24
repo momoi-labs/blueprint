@@ -23,7 +23,7 @@ export async function field(panel, name) {
 }
 
 export async function openGenerator(page) {
-  const root = page.locator(".gen-workspace");
+  const root = page.locator(".catalog-generator");
   if (!await root.isVisible()) {
     await page.evaluate(() => { window.kisoTestBack = ["#theme", "#appearance"].includes(location.hash) ? "#intro" : location.hash; location.hash = "#theme"; });
     await root.waitFor({ timeout: 30_000 });

@@ -222,7 +222,7 @@ for (const width of fullSweep ? [320, 1200, 1920] : [1200]) test(`Settings choic
       const copy = panel.getByRole("button", { name: "Copy JavaScript", exact: true });
       await copy.click();
       assert((await page.evaluate(() => window.copiedText)).includes("Object.assign(root.dataset, attributes)"));
-      await panel.getByRole("button", { name: "Reset", exact: true }).click();
+      await page.locator(".catalog-generator").getByRole("button", { name: "Reset", exact: true }).click();
       assert.equal(await page.evaluate(() => document.documentElement.dataset.visualStyle), "default");
     }
   } finally { await page.close(); }

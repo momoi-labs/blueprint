@@ -85,9 +85,10 @@ function App() {
   }, [route]);
 
   return (
-    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos}>
-      {panel => <ComponentGallery
+    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}>
+      {(panel, chip) => <ComponentGallery
         panel={panel}
+        tools={route === "theme" || route === "appearance" ? undefined : chip}
         route={route === "appearance" ? "theme" : route}
         brand={<KisoBrand />}
         version={import.meta.env.VITE_KISO_VERSION}

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Badge, Button, CodeBlock, PageHeader, PageHeaderTitle, RadioGroup, RadioGroupItem, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
+import { Badge, Button, Card, CodeBlock, PageHeader, PageHeaderDescription, PageHeaderTitle, RadioGroup, RadioGroupItem, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import {
   AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Monitor, Palette, PanelTop, RotateCcw,
   Scan, Smartphone, Sparkles, Square, SquareDashed, SquareTerminal, SwatchBook, Target, TriangleAlert,
@@ -79,17 +79,19 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
     section.classList.add("gen-flash");
   };
   const jumps = current.sections.filter(id => id !== "sketch");
-  return <div className="gen-workspace">
-    <div className="gen-head">
-      <PageHeader variant="default" actions={<>
+  return <>
+    <div className="catalog-heading">
+      <PageHeader actions={<>
         <Button size="sm" onClick={onReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>
         <AppearanceShare settings={settings} demos={demos} onApply={onShare} />
         <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" aria-hidden="true" />Export</Button>
       </>}>
-        <PageHeaderTitle>Theme generator</PageHeaderTitle>
+        <PageHeaderTitle tabIndex={-1}>Theme generator</PageHeaderTitle>
+        <PageHeaderDescription>Build a look, see it on real pages and export it for your project.</PageHeaderDescription>
       </PageHeader>
     </div>
-    <div className="gen-rail">
+    <div className="gen-workspace">
+    <Card className="gen-rail">
       <Tabs className="gen-tabs" orientation="vertical" value={tab} onValueChange={value => setTab(value as TabId)}>
         <TabsList className="gen-nav" aria-label="Settings groups">
           {tabs.map(item => <TabsTrigger key={item.id} value={item.id}>{item.icon}<span>{item.label}</span></TabsTrigger>)}
@@ -103,14 +105,14 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
           </div>
           {tabs.map(item => <TabsContent key={item.id} value={item.id} className="gen-scroll">
             {item.id === "code" ? <><ExportPanel settings={settings} /><AppearanceUsage settings={settings} diagram={demos.diagram} /></> : <AppearanceControls settings={settings} onChange={onChange} sections={item.sections}
-              icons={icons} idPrefix="gen" presetFields="defined" galleryOnly
+              icons={icons} idPrefix="gen" galleryOnly
               phoneHint="Switch the preview to Phone to see the result."
               onJump={part => flash(part)} />}
           </TabsContent>)}
         </div>
       </Tabs>
-    </div>
-    <section className="gen-preview" aria-label="Live preview">
+    </Card>
+    <Card className="gen-preview" role="region" aria-label="Live preview">
       <div className="gen-preview-head">
         <RadioGroup label="Preview page" variant="segmented" value={page.split("/")[0]} onValueChange={setPage}>
           {shopPages.map(([value, label]) => <RadioGroupItem key={value} value={value} label={label} />)}
@@ -124,8 +126,9 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
       <div className="gen-frame">
         <ThemePreview page={page} device={device} accent={settings.accent} theme={settings.theme} onPage={setPage} />
       </div>
-    </section>
-  </div>;
+    </Card>
+    </div>
+  </>;
 }
 
 function ExportPanel({ settings }: { settings: AppearanceSettings }) {

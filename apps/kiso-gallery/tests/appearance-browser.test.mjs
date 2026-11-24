@@ -161,30 +161,44 @@ test('Border choices update existing panels and guided controls', async () => {
   } finally { await page.close(); }
 });
 
-for (const theme of ['light', 'dark']) test(`Fresh visits and reset use SNES; a preset replaces only its own fields in ${theme}`, async () => {
+for (const theme of ['light', 'dark']) test(`Fresh visits and reset use SNES; a preset replaces the whole look in ${theme}`, async () => {
   const page = await open('intro', 1440, theme);
   try {
     const read = () => page.evaluate(() => window.kisoAppearance.read());
     const initial = await read();
     const panel = await settings(page);
     const preset = panel.getByRole('button', { name: 'Pixel everywhere', exact: true });
+    const classic = panel.getByRole('button', { name: 'Kiso classic', exact: true });
     assert.equal(await preset.getAttribute('aria-pressed'), 'false');
+    assert.equal(await panel.getByRole('button', { name: 'SNES', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.equal(initial.shadowStyle, 'soft');
     assert.equal(initial.accent, 'snes');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined);
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light dark');
-    await panel.getByRole('button', { name: 'Default', exact: true }).click();
-    assert.deepEqual(await read(), { ...initial, shadowStyle: 'soft', appShell: 'default' }, 'Default replaces only the fields it defines');
+    await classic.click();
+    const direct = await read();
+    assert.equal(direct.appShell, 'default');
+    assert.notEqual(direct.accent, 'snes', 'Kiso classic replaces the fields it does not define');
+    assert.equal(await classic.getAttribute('aria-pressed'), 'true');
     await page.reload();
     assert.equal((await read()).appShell, 'default', 'Saved appearance is not overwritten by the new default');
     await settings(page);
+    await panel.getByRole('button', { name: 'Reset', exact: true }).click();
+    await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
+    await classic.click();
+    assert.deepEqual(await read(), direct, 'Click order does not change the result');
+    await (await field(panel, 'Accent')).getByRole('button', { name: 'Teal', exact: true }).click();
+    assert.equal(await classic.getAttribute('aria-pressed'), 'false', 'A changed look is no longer the preset');
+    assert.equal(await panel.locator('.appearance-presets [aria-pressed="true"]').count(), 0);
+    assert.equal((await panel.getByRole('status').filter({ hasText: 'Current look' }).innerText()).trim(), 'Current look: Custom');
     await panel.getByRole('button', { name: 'Blueprint', exact: true }).click();
     await preset.click();
     const look = await read();
-    assert.equal(look.accent, 'cobalt', 'Pixel everywhere keeps the accent of the earlier preset');
+    assert.equal(look.accent, direct.accent, 'Pixel everywhere drops the accent of the earlier preset');
     assert.equal(look.shadowStyle, 'hard');
     assert.equal(look.cornerStyle, 'pixel');
     await pickTheme(panel, 'Dark');
+    assert.equal(await preset.getAttribute('aria-pressed'), 'true', 'Light or dark is not part of the look');
     await preset.click();
     assert.equal((await read()).theme, 'dark', 'A preset keeps the chosen theme');
     await panel.getByRole('button', { name: 'Manga board', exact: true }).click();
@@ -913,18 +927,20 @@ test('Plain header preference stays transparent and static in a desktop inset sh
 });
 
 
-test("presets keep the fields they do not define", async () => {
+test("presets replace the fields they do not define", async () => {
   const page = await open("intro");
   try {
-    const initial = await page.evaluate(() => window.kisoAppearance.read());
+    const base = await page.evaluate(() => window.kisoAppearance.presetDefaults);
     const panel = await settings(page);
     await tab(panel, "Presets");
     for (const label of ["Pixel workshop", "Drafting sheet", "Pixel everywhere"]) {
+      await page.evaluate(() => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, typeface: "dm-sans" }));
       await panel.getByRole("button", { name: label, exact: true }).click();
       const look = await page.evaluate(() => window.kisoAppearance.read());
-      assert.equal(look.panelFill, initial.panelFill, label);
-      assert.equal(look.headerVariant, initial.headerVariant, label);
-      assert.equal(look.accent, initial.accent, label);
+      assert.equal(look.panelFill, base.panelFill, label);
+      assert.equal(look.headerVariant, base.headerVariant, label);
+      assert.equal(look.typeface, base.typeface, label);
+      assert.equal(await panel.getByRole("button", { name: label, exact: true }).getAttribute("aria-pressed"), "true", label);
       if (label === "Pixel workshop") {
         assert.equal(look.outerCornerStyle, "pixel");
         assert.equal(look.outerCornerMarks, "brackets");

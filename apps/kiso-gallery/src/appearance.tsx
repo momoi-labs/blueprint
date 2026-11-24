@@ -37,7 +37,7 @@ const sizes: Size[] = ["off", "small", "medium", "large"];
 const markSizes: MarkSize[] = ["small", "medium", "large"];
 
 const compositions: { label: string; settings: Partial<AppearanceSettings> }[] = [
-  { label: "Default", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
+  { label: "Kiso classic", settings: { shadowStyle: "soft", theme: "system", appShell: "default" } },
   { label: "Blueprint", settings: { shadowStyle: "hard", accent: "cobalt", paperTone: "accent", backgroundStyle: "guides", backgroundPlacement: "inside", outerBorderStyle: "double" } },
   { label: "Drawing plate", settings: { shadowStyle: "hard", accent: "terracotta", backgroundStyle: "fibers", outerBorderStyle: "double", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
   { label: "Drafting sheet", settings: { shadowStyle: "none", backgroundStyle: "dots", cornerMarks: "none", outerCornerMarks: "ticks", markScope: "outer" } },
@@ -49,6 +49,18 @@ const compositions: { label: string; settings: Partial<AppearanceSettings> }[] =
   { label: "pg-probe", settings: { theme: "dark", accent: "gold", neutral: "zinc", primary: "contrast", typeface: "dm-sans", shadowStyle: "none", borderStyle: "solid", cornerStyle: "rounded", cornerSize: "small", cornerMarks: "none", visualStyle: "default", appShell: "default", headerVariant: "default", pageWidth: "contained", pageAlign: "center", frameScope: "all", markScope: "panels", backgroundStyle: "solid", panelFill: "solid", paperTone: "theme" } },
   { label: "Pixel everywhere", settings: { shadowStyle: "hard", theme: "system", cornerStyle: "pixel", cornerSize: "small", backgroundStyle: "fibers", visualStyle: "editorial", frameScope: "all", markScope: "panels" } },
 ];
+
+const sameLook = (look: AppearanceSettings, settings: AppearanceSettings) =>
+  Object.keys(look).every(key => key === "theme" || look[key as keyof AppearanceSettings] === settings[key as keyof AppearanceSettings]);
+
+export function presetLooks() {
+  const base = { ...window.kisoAppearance.presetDefaults, cornerStyle: "square", cornerSize: "medium", backgroundStyle: "solid", visualStyle: "default", appShell: "inset", frameScope: "panels" } as AppearanceSettings;
+  return compositions.map(({ label, settings }) => ({ label, look: { ...base, ...settings } }));
+}
+
+export function presetName(settings: AppearanceSettings) {
+  return presetLooks().find(preset => sameLook(preset.look, settings))?.label ?? "Custom";
+}
 
 export function VisualSelector<T extends string>({ label, value, options, onChange, preview, disabled = false, disabledOptions = [], layout = "compact" }: {
   label: string; value: T; options: readonly (readonly [T, string])[]; onChange: (value: T) => void;
@@ -132,7 +144,7 @@ export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "h
 const phoneKeys = ["phoneShadowStyle", "phoneBackgroundStyle", "phoneBorderStyle", "phoneCornerStyle", "phoneCornerMarks", "phonePanelFill"] as const;
 const isExpressive = (border: string) => border === "manga" || border === "brush";
 
-export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, presetFields = "all", galleryOnly = false, phoneHint = "Layouts > Phone shows the result." }: {
+export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, galleryOnly = false, phoneHint = "Layouts > Phone shows the result." }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
   sections: readonly AppearanceSectionId[];
@@ -140,7 +152,6 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   icons?: Partial<Record<AppearanceSectionId, ReactNode>>;
   idPrefix?: string;
   onJump?: (part: SketchPart) => void;
-  presetFields?: "all" | "defined";
   galleryOnly?: boolean;
   phoneHint?: string;
 }) {
@@ -182,7 +193,6 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const layout = chartOptions(chartLayoutOptions);
   const legend = chartOptions(chartLegendOptions);
   const head = (key: AppearanceSectionId) => ({ icon: icons?.[key], id: idPrefix && `${idPrefix}-${key}` });
-  const definedOnly = presetFields === "defined";
   function choosePhone(next: string) {
     const override = next === "override";
     setPhoneChosen(override);
@@ -192,16 +202,15 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   const headerWidth = <Segmented label="Header width" options={["page", "outset"] as const} value={settings.headerWidth} onChange={headerWidth => onChange({ headerWidth })} />;
   const sections: Record<AppearanceSectionId, ReactNode> = {
   presets: <AppearanceSection {...head("presets")} title="Presets" collapsed={collapsed.includes("presets")}>
+    <p className="muted t-label" role="status">Current look: <strong>{presetName(settings)}</strong></p>
     <div className="appearance-presets">
-      {compositions.map(composition => {
-        const next = { ...window.kisoAppearance.presetDefaults, theme: settings.theme, cornerStyle: "square" as const, cornerSize: "medium" as const, backgroundStyle: "solid" as const, visualStyle: "default" as const, appShell: "inset" as const, frameScope: "panels" as const, ...composition.settings };
-        const applied = definedOnly ? Object.fromEntries(Object.entries(composition.settings).filter(([key]) => key !== "theme")) as Partial<AppearanceSettings> : next;
-        return <Button key={composition.label} variant="ghost" className="appearance-composition" aria-pressed={Object.entries(applied).every(([key, value]) => settings[key as keyof AppearanceSettings] === value)} onClick={() => onChange(applied)}>
+      {presetLooks().map(({ label, look: next }) => {
+        return <Button key={label} variant="ghost" className="appearance-composition" aria-pressed={sameLook(next, settings)} onClick={() => onChange({ ...next, theme: settings.theme })}>
           <span className="appearance-composition-preview" data-accent={next.accent} data-preview-tone={next.paperTone} aria-hidden="true">
             <BackgroundPreview background={next.backgroundStyle} tone={next.paperTone} />
             <PanelPreview shadow={next.outerShadowStyle === "inherit" ? next.shadowStyle : next.outerShadowStyle} border={next.outerBorderStyle === "inherit" ? next.borderStyle : next.outerBorderStyle} corner={next.outerCornerStyle === "inherit" ? next.cornerStyle : next.outerCornerStyle} marks={next.outerCornerMarks === "inherit" ? next.cornerMarks : next.outerCornerMarks} size={next.cornerSize} markSize={next.markSize} detail={next.frameDetail} />
           </span>
-          <span>{composition.label}</span>
+          <span>{label}</span>
         </Button>;
       })}
       <Button variant="ghost" className="appearance-composition" onClick={() => onChange(randomAppearance(settings))}>
