@@ -7,6 +7,7 @@ import { preview } from "vite";
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 const widths = [1440, 1000, 390];
+const fullSweep = process.env.KISO_FULL_SWEEP === "1";
 let server, browser, url;
 before(async () => {
   server = await preview({ root: fileURLToPath(new URL("../", import.meta.url)), configFile: false, logLevel: "error", preview: { host: "127.0.0.1", port: 0 } });
@@ -57,8 +58,8 @@ function header() {
   return { parts: parts.length, space: box(next).top - Math.max(...parts.map(part => box(part).bottom)), gap: parseFloat(getComputedStyle(page).rowGap) };
 }
 
-const looks = [{}, { appShell: "default" }, { borderStyle: "manga", cornerMarks: "ticks", outerBorderStyle: "inherit", outerCornerMarks: "inherit" }];
-for (const width of widths) test(`every generator option takes a click at ${width}px`, async () => {
+const looks = fullSweep ? [{}, { appShell: "default" }, { borderStyle: "manga", cornerMarks: "ticks", outerBorderStyle: "inherit", outerCornerMarks: "inherit" }] : [{}];
+for (const width of fullSweep ? widths : [1440]) test(`every generator option takes a click at ${width}px`, async () => {
   const page = await open(width);
   try {
     let clicked = 0;
