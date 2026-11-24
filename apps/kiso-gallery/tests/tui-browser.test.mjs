@@ -133,7 +133,7 @@ test("A TUI page named as a component does not open that component's options", a
   const page = await open("tui/table", { width: 1440 });
   try {
     await page.waitForTimeout(300);
-    assert.equal(await page.locator("#gallery-settings").isVisible(), false, "Appearance stays closed");
+    assert.equal(await page.locator("#gallery-settings").isVisible(), false, "Demo options stay closed");
     assert.equal(await page.locator(".catalog-pane, .catalog-section").count(), 0, "No component demo is drawn");
   } finally {
     await page.close();

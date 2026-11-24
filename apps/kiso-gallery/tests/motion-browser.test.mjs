@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { before, after } from 'node:test';
 import { test } from './shard.mjs';
-import { toggleSettings } from './settings-tabs.mjs';
 import { fileURLToPath } from 'node:url';
 import { preview } from 'vite';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -45,24 +44,32 @@ test('Both rails animate, accept interrupted toggles and retain demo values', as
     const notes = page.getByRole('textbox', { name: 'Operator notes', exact: true });
     await page.locator('[data-pane-id="textarea"]').scrollIntoViewIfNeeded();
     await notes.fill('Keep this draft');
-    for (const selector of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle']) {
-      for (let click = 0; click < 2; click++) {
-        await page.locator(selector).click();
-        await settled(page);
-      }
-      const initial = await page.locator(selector).getAttribute('aria-expanded');
-      await page.evaluate(selector => {
-        document.querySelector(selector).click();
-        document.querySelector(selector).click();
-      }, selector);
+    const selector = '.component-gallery .catalog-sidebar-toggle';
+    for (let click = 0; click < 2; click++) {
+      await page.locator(selector).click();
       await settled(page);
-      assert.equal(await page.locator(selector).getAttribute('aria-expanded'), initial, 'Two rapid clicks return to the initial state');
     }
+    const initial = await page.locator(selector).getAttribute('aria-expanded');
+    await page.evaluate(selector => {
+      document.querySelector(selector).click();
+      document.querySelector(selector).click();
+    }, selector);
+    await settled(page);
+    assert.equal(await page.locator(selector).getAttribute('aria-expanded'), initial, 'Two rapid clicks return to the initial state');
+    assert.equal(await notes.inputValue(), 'Keep this draft');
+    await page.evaluate(() => { location.hash = '#components/table'; });
+    const options = page.locator('#gallery-settings');
+    await options.waitFor();
+    await options.getByRole('button', { name: 'Close options', exact: true }).click();
+    await options.waitFor({ state: 'hidden' });
+    await settled(page);
+    await page.locator('a[href="#gallery-settings"]').click();
+    await options.waitFor();
+    await settled(page);
     const animations = await page.evaluate(() => window.railAnimations.map(animation => ({ name: animation.id, duration: animation.effect.getTiming().duration })));
     for (const name of ['gallery-settings-in', 'gallery-settings-out', 'gallery-navigation-in', 'gallery-navigation-out']) {
       assert(animations.some(animation => animation.name === name && animation.duration > 0 && animation.duration <= 250), `${name} runs as a short transition`);
     }
-    assert.equal(await notes.inputValue(), 'Keep this draft');
     assert.deepEqual(errors, []);
   } finally { await page.close(); }
 });
@@ -70,7 +77,7 @@ test('Both rails animate, accept interrupted toggles and retain demo values', as
 test('The header and catalog accept pointer input during rail animations', async () => {
   const page = await open();
   try {
-    for (const selector of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle']) {
+    for (const selector of ['.component-gallery .catalog-sidebar-toggle']) {
       const initial = await page.locator(selector).getAttribute('aria-expanded');
       for (let click = 0; click < 2; click++) {
         const box = await page.locator(selector).boundingBox();
@@ -81,7 +88,7 @@ test('The header and catalog accept pointer input during rail animations', async
             animation.currentTime = 80;
           }
         });
-        for (const target of ['.gallery-settings-trigger', '.component-gallery .catalog-sidebar-toggle', '.catalog-open']) {
+        for (const target of ['.component-gallery .catalog-sidebar-toggle', '.catalog-open']) {
           assert(await page.locator(target).first().evaluate(el => {
             const box = el.getBoundingClientRect();
             return el.contains(document.elementFromPoint(box.right - 4, box.top + box.height / 2));
@@ -102,11 +109,12 @@ for (const mode of ['reduce', 'unsupported']) test(`Rail toggles respond without
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await toggleSettings(page);
+    await page.evaluate(() => { location.hash = '#components/table'; });
     await page.locator('#gallery-settings').waitFor();
+    await page.locator('a[href="#gallery-settings"]').click();
     await page.keyboard.press('Escape');
     await page.locator('#gallery-settings').waitFor({ state: 'hidden' });
-    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Open settings');
+    await page.waitForFunction(() => document.activeElement?.getAttribute('href') === '#gallery-settings');
     await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click();
     await page.locator("#component-navigation[data-collapsed='true']").waitFor();
     await page.getByRole('button', { name: 'Expand navigation', exact: true }).click();

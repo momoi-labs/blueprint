@@ -3,7 +3,7 @@ import { before, after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 import { chromium } from "playwright";
-import { toggleSettings } from "./settings-tabs.mjs";
+import { openOptions } from "./settings-tabs.mjs";
 
 let server, browser, url;
 before(async () => {
@@ -26,7 +26,7 @@ for (const width of [390, 1440]) {
       const section = page.locator("main .site-section").first();
       await section.waitFor();
       const panel = page.locator("#gallery-settings");
-      if (!await panel.isVisible()) await toggleSettings(page);
+      await openOptions(page);
       const options = panel.locator(".gallery-component-settings");
       await options.getByLabel("Tone").selectOption("accent");
       await options.getByLabel("Body layout").selectOption("grid");

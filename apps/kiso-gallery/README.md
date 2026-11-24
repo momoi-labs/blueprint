@@ -27,29 +27,26 @@ With legacy `auto` elevation, Side rail, Weighted base and Offset outline use
 matching border and shadow colors in both themes, including accent and state
 colors. Explicit Hard and Soft shadows remain neutral.
 
-## Appearance panel
+## Theme generator and demo options
 
-Appearance is available on every page through the gear after the header search.
-The same button opens and closes the panel. Navigation on the left
-and settings on the right can close independently to give the preview more room.
-The gallery composes the shared AppShellPanel and AppShellPanelToggle.
-Both desktop rails animate with the existing motion tokens. Reduced motion
-and browsers without Web Animations update immediately. Repeated clicks can
-interrupt a transition. Demos retain their values while the workspace resizes.
+The Theme generator at `/#theme` holds every appearance setting. The header
+link Theme opens it, and the old `/#appearance` bookmark redirects to it. At
+900px and wider it fills the viewport below the gallery header: the settings
+column scrolls by itself and the preview takes the rest. Below 900px it stacks,
+settings first.
 
-Desktop keeps the preview interactive beside the panel. Small screens use a
-modal Drawer with Escape dismissal and focus return. The old `/#appearance`
-bookmark opens settings on Intro.
-
-The panel uses the navigation sidebar background in Default and Inset frames.
-Reset appearance and Share stay at the top while the options scroll. The
-settings sit in five tabs: Look (colors and presets), Canvas (background and
-charts), Frame (main style, where to apply, and layout), Phone, and Code (Use
-in code). In Frame, Where to apply and Layout start closed. Below 1024px the
-tabs become sections, one open at a time.
+Reset and Share sit in the generator header. Reset also clears every demo
+option. The settings sit in six tabs: Look (presets and colors), Layout,
+Frame, Canvas, Phone, and Code (project HTML and Use in code).
 Compact choices keep visual samples, labels, and keyboard controls.
-Table, Alert, ApplicationShell, and inline field demos add their own controls
-above the tabs and open the panel on arrival. Closing it retains the current demo values.
+
+Component pages keep their own demo options in a panel on the right. It opens
+on arrival at 1200px and wider, and from the Options link of the page. Close
+hides it and retains the current demo values. Small screens use a
+modal Drawer with Escape dismissal and focus return. Navigation on the left
+and demo options on the right close independently. The gallery composes the
+shared AppShellPanel. Both desktop rails animate with the existing motion
+tokens. Reduced motion and browsers without Web Animations update immediately.
 Changing pages replaces the component controls and keeps global preferences.
 The catalog overview and standalone prototype keep controls beside each demo.
 
