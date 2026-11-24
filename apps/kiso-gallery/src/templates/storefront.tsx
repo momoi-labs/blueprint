@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFrame,
   TableHead,
   TableHeader,
   TableRow,
@@ -51,24 +52,26 @@ export function Storefront() {
           <Card>
             <CardHeader><h2>On the shelf this week</h2></CardHeader>
             <CardContent>
-              <Table aria-label="Products on the shelf this week">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {shelf.map(product => (
-                    <TableRow key={product.sku}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell className="mono">{money(product.price)}</TableCell>
-                      <TableCell><StatusBadge tone={tone(product)}>{stockState(product)}</StatusBadge></TableCell>
+              <TableFrame>
+                <Table aria-label="Products on the shelf this week">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead className="num">Price</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {shelf.map(product => (
+                      <TableRow key={product.sku}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell className="num">{money(product.price)}</TableCell>
+                        <TableCell><StatusBadge tone={tone(product)}>{stockState(product)}</StatusBadge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableFrame>
             </CardContent>
           </Card>
         </div>

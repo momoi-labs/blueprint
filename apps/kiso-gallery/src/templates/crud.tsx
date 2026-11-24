@@ -60,15 +60,15 @@ function ProductsScreen({ products, width, go, open }: { products: Product[]; wi
     filters={<div className="list-filters"><Search aria-label="Search products" placeholder="Search by name or SKU" value={query} onChange={event => setQuery(event.target.value)} /></div>}
     count={`${rows.length} of ${products.length} products`}
   >
-    <TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="cell-secondary">SKU</TableHead><TableHead className="cell-secondary">Price</TableHead><TableHead>Stock</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+    <TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="cell-secondary">SKU</TableHead><TableHead className="num cell-secondary">Price</TableHead><TableHead className="num">Stock</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
     <TableBody>
       {rows.map(product => <TableRow key={product.sku}>
         <TableCell>
           <Link href={shopHref(crudPath("detail"))} onClick={event => { event.preventDefault(); open(product.sku); }}>{product.name}</Link>
         </TableCell>
         <TableCell className="mono cell-secondary">{product.sku}</TableCell>
-        <TableCell className="mono cell-secondary">{money(product.price)}</TableCell>
-        <TableCell className="mono">{product.stock}</TableCell>
+        <TableCell className="num cell-secondary">{money(product.price)}</TableCell>
+        <TableCell className="num">{product.stock}</TableCell>
         <TableCell><StatusBadge tone={tone(product)}>{stockState(product)}</StatusBadge></TableCell>
       </TableRow>)}
       {rows.length === 0 && <TableRow><TableCell colSpan={5} className="muted">No product matches this search.</TableCell></TableRow>}
@@ -222,13 +222,13 @@ function DetailScreen({ product, width, tab, go }: { product: Product; width: Pa
         label: "Stock",
         content: <TableFrame frame="none">
           <Table aria-label={`Stock changes of ${product.name}`}>
-            <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Reason</TableHead><TableHead>Change</TableHead><TableHead>In stock</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Reason</TableHead><TableHead className="num">Change</TableHead><TableHead className="num">In stock</TableHead></TableRow></TableHeader>
             <TableBody>
               {movementsOf(product).map(row => <TableRow key={row.date}>
                 <TableCell>{row.date}</TableCell>
                 <TableCell>{row.reason}</TableCell>
-                <TableCell className="mono">{row.change > 0 ? `+${row.change}` : row.change}</TableCell>
-                <TableCell className="mono">{row.after}</TableCell>
+                <TableCell className="num">{row.change > 0 ? `+${row.change}` : row.change}</TableCell>
+                <TableCell className="num">{row.after}</TableCell>
               </TableRow>)}
             </TableBody>
           </Table>
@@ -241,13 +241,13 @@ function DetailScreen({ product, width, tab, go }: { product: Product; width: Pa
           label: "Orders",
           content: <TableFrame frame="none">
             <Table aria-label={`Orders with ${product.name}`}>
-              <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead>Units</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead className="num">Units</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
               <TableBody>
                 {orders.map(order => <TableRow key={order.id}>
                   <TableCell className="mono">{order.id}</TableCell>
                   <TableCell>{order.date}</TableCell>
                   <TableCell>{order.customer}</TableCell>
-                  <TableCell className="mono">{order.quantity}</TableCell>
+                  <TableCell className="num">{order.quantity}</TableCell>
                   <TableCell><StatusBadge tone={order.state === "Shipped" ? "success" : "neutral"}>{order.state}</StatusBadge></TableCell>
                 </TableRow>)}
               </TableBody>
