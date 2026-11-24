@@ -36,6 +36,23 @@ title and optional compact actions ([Button](button.md) `sm`, `ghost`, or
 [IconButton](icon-button.md)). Its body holds the payload: a [KV](kv.md), a
 short [Table](table.md), a code block, a [Stat](stat.md).
 
+### Frame
+
+| Prop | Default | Contract |
+| --- | --- | --- |
+| `frame` | `default` | `default` draws the pane as a Card. `none` draws no surface: no fill, border, radius, shadow, corner marks or padding. |
+
+Use `frame="none"` when the body is one component that brings its own frame,
+such as a [TableFrame](table.md), so the reader sees one frame and not a
+table inside a Card. The head is then a heading above that frame,
+`--spacing-sm` apart, with the title at the start and the actions at the
+end. The pane has no minimum height and its body does not scroll, so the
+inner frame keeps its shadow and corner marks. Moving, resizing and the
+keyboard work as on a framed pane; the resizer sits on the pane's end edge.
+Do not use it for loose content: text, a [KV](kv.md) or a [Stat](stat.md)
+need the Card. CSS consumers set `data-frame="none"` on `.grid-pane` and
+leave out the `card` class and the `.panel-shadow` child.
+
 ## Sizes
 
 Every size is a number of columns out of twelve, stored by pane id.
@@ -168,7 +185,8 @@ Gaps use `--presentation-grid-gap`. The head's padding uses
 `--presentation-panel-padding`; the body follows Card. The resizer and the
 drop bar use `--color-ring`; a refused drop uses `--color-danger`; the rule
 between rows uses `--color-border-strong`. The pane is a Card and follows
-every appearance setting.
+every appearance setting. With `frame="none"` the pane draws nothing; the
+frame in its body follows the appearance settings.
 
 Compose under the [Dashboard pattern](../patterns/dashboard.md) for an
 object's summary. Use [DashboardGrid](dashboard-grid.md) for metric panels.

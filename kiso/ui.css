@@ -3557,6 +3557,10 @@ button.diagram-line:focus-visible { outline: 2px solid var(--color-ring); outlin
 .grid-pane-title { margin: 0; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .grid-pane-actions { display: flex; align-items: center; gap: var(--spacing-xs); flex: none; cursor: auto; }
 .grid-pane-body { padding: var(--presentation-panel-padding); min-width: 0; overflow: auto; display: grid; gap: var(--presentation-panel-gap); align-content: start; }
+.grid-pane[data-frame="none"] { min-height: 0; row-gap: var(--spacing-sm); }
+.grid-pane[data-frame="none"] > .grid-pane-head { padding: 0; border-bottom: 0; }
+.grid-pane[data-frame="none"] > .grid-pane-head:focus-visible { outline-offset: 2px; }
+.grid-pane[data-frame="none"] > .grid-pane-body { padding: 0; overflow: visible; }
 /* The end edge resizes the pane. Same language as .splitter: a hairline that
    lights up, with a wider pointer area. */
 .grid-pane-resizer {
