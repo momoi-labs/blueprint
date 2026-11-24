@@ -17,6 +17,9 @@
 .appearance-option-description { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .appearance-option input:checked + .appearance-option-body { border-color: var(--color-focus); background: var(--color-accent-surface); }
 .appearance-option input:focus-visible + .appearance-option-body { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+@media (max-width: 359px) {
+  .appearance-options-compact { grid-template-columns: minmax(0, 1fr); }
+}
 @media (pointer: coarse) {
   .appearance-colors .accent-pill { min-height: var(--size-touch-min); }
 }
