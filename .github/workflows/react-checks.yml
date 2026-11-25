@@ -99,6 +99,7 @@ jobs:
         shard: [1, 2, 3, 4]
     env:
       KISO_TEST_SHARD: ${{ matrix.shard }}/4
+      KISO_TEST_CONCURRENCY: 2
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-react-checks
