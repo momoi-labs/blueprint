@@ -1,9 +1,8 @@
 // Runs scripts/check-*-browser.mjs in parallel and prints a duration summary.
 // Usage: node scripts/run-browser-checks.mjs [--shard=i/n] [script ...]
-// KISO_BROWSER_CONCURRENCY overrides the default of min(8, os.availableParallelism()).
+// KISO_BROWSER_CONCURRENCY overrides the default of 4.
 import { spawn } from 'node:child_process';
 import { glob } from 'node:fs/promises';
-import { availableParallelism } from 'node:os';
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lockBrowser } from './lock.mjs';
@@ -26,8 +25,7 @@ if (shard) {
 }
 if (!scripts.length) { console.log('No browser checks to run.'); process.exit(0); }
 
-// Capped at 8: more Chromium instances than that starve each other and trip timeouts.
-const limit = Math.max(1, Number(process.env.KISO_BROWSER_CONCURRENCY) || Math.min(8, availableParallelism()));
+const limit = Math.max(1, Number(process.env.KISO_BROWSER_CONCURRENCY) || 4);
 const label = file => basename(file).replace(/^check-|-browser\.mjs$/g, '');
 const width = Math.max(...scripts.map(file => label(file).length));
 const results = [];
