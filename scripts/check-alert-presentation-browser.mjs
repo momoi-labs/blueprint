@@ -40,5 +40,33 @@ for (const theme of ['light', 'dark']) for (const width of [320, 390, 1200]) tes
     const link = page.getByRole('link', { name: 'Read documentation' });
     await link.focus(); assert(await link.evaluate(el => el === document.activeElement));
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/alert-${width}-${theme}.png`, fullPage: true });
+    assert.equal(await page.locator('[data-slot="alert"][data-side]').count(), 0);
   } finally { await page.close(); }
+});
+test('Overlay alert honors side top, middle, and bottom', async () => {
+  const viewport = { width: 1200, height: 800 };
+  for (const appearance of ['tinted', 'loud']) {
+    const rects = {};
+    for (const side of ['top', 'middle', 'bottom']) {
+      const page = await browser.newPage({ viewport, reducedMotion: 'reduce' });
+      await page.route('https://fonts.googleapis.com/**', route => route.abort());
+      try {
+        await page.goto(`${url}?theme=dark&overlay=${side}&appearance=${appearance}`);
+        const alert = page.locator('#overlay-alert');
+        await alert.waitFor();
+        assert.equal(await alert.getAttribute('data-side'), side);
+        rects[side] = await alert.evaluate(el => {
+          const r = el.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, height: r.height };
+        });
+      } finally { await page.close(); }
+    }
+    assert(rects.top.top < 32, `${appearance} top overlay near top: ${rects.top.top}`);
+    assert(Math.abs((rects.middle.top + rects.middle.height / 2) - viewport.height / 2) <= 2, `${appearance} middle overlay centered`);
+    assert(viewport.height - rects.bottom.bottom < 32, `${appearance} bottom overlay near bottom: ${rects.bottom.bottom}`);
+    if (appearance === 'loud') {
+      assert.equal(Math.round(rects.top.top), 0);
+      assert.equal(Math.round(viewport.height - rects.bottom.bottom), 0);
+    }
+  }
 });

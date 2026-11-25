@@ -2,8 +2,16 @@ import { createElement as h } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Alert, AlertTitle, AlertDescription, AlertContent } from '../../packages/kiso-react/dist/index.js';
 import '../../packages/kiso-react/dist/styles.css';
-document.documentElement.dataset.theme = new URLSearchParams(location.search).get('theme') || 'light';
-createRoot(document.getElementById('root')).render(h('main', { className: 'page' },
+const params = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = params.get('theme') || 'light';
+const overlaySide = params.get('overlay');
+const overlayAppearance = params.get('appearance') || 'tinted';
+createRoot(document.getElementById('root')).render(
+  overlaySide
+    ? h(Alert, { placement: 'overlay', side: overlaySide, appearance: overlayAppearance, variant: 'error', id: 'overlay-alert' },
+        h(AlertContent, null, h(AlertTitle, null, 'Database unreachable'), h(AlertDescription, null, 'Checkout cannot reach the primary database.')),
+      )
+    : h('main', { className: 'page' },
   ...['tinted', 'rail'].map(appearance => h('section', { className: 'stack-sm', key: appearance },
     h('h1', { className: 't-h3' }, appearance),
     ...['info', 'success', 'warning', 'error'].map(variant => h(Alert, { key: variant, variant, appearance },
