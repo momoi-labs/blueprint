@@ -2,6 +2,7 @@
 // Usage: node scripts/run-gallery-tests.mjs [--test-name-pattern=regex ...] [test file ...]
 // --test-name-pattern needs at least one test file. Each test times out after
 // 7 minutes, or 15 with KISO_FULL_SWEEP=1. KISO_TEST_SHARD passes through.
+// KISO_TEST_CONCURRENCY overrides the default of 4 files at a time.
 import { spawn } from 'node:child_process';
 import { globSync } from 'node:fs';
 import { basename } from 'node:path';
@@ -28,7 +29,8 @@ const isSweep = file => basename(file) === 'generator-browser.test.mjs';
 const batches = [files.filter(file => !isSweep(file)), files.filter(isSweep)].filter(batch => batch.length);
 
 const timeout = process.env.KISO_FULL_SWEEP === '1' ? 900000 : 420000;
-const nodeArgs = ['--test', '--test-concurrency=4', `--test-timeout=${timeout}`, ...patterns.map(pattern => `--test-name-pattern=${pattern}`)];
+const concurrency = Math.max(1, Number(process.env.KISO_TEST_CONCURRENCY) || 4);
+const nodeArgs = ['--test', `--test-concurrency=${concurrency}`, `--test-timeout=${timeout}`, ...patterns.map(pattern => `--test-name-pattern=${pattern}`)];
 
 await lockBrowser();
 

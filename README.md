@@ -119,7 +119,8 @@ cover coarse and fine pointers at 390px and 1280px in both themes. Set
 
 `npm run check:browser` runs every `scripts/check-*-browser.mjs` in parallel
 (4 at a time; `KISO_BROWSER_CONCURRENCY` sets the limit, CI uses 2), and `npm run check:gallery` runs
-the gallery tests. Both take a machine-wide lock, so two suites never run at
+the gallery tests (4 files at a time; `KISO_TEST_CONCURRENCY` sets the limit,
+CI uses 2). Both take a machine-wide lock, so two suites never run at
 once: a second one waits, since parallel suites starve Chromium and time out.
 Before a PR, run `npm run check:changed`: it runs only the browser checks and
 gallery tests related to files changed against `origin/main`, and everything
