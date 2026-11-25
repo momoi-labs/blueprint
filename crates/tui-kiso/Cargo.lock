@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "kiso-tokens"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "lab"
@@ -1506,7 +1506,7 @@ dependencies = [
 
 [[package]]
 name = "tui-kiso"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "kiso-core",
  "kiso-tokens",

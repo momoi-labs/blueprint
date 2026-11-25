@@ -1,6 +1,6 @@
 [package]
 name = "tui-kiso"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Kiso components for ratatui terminal interfaces"
 license = "MIT"
@@ -20,7 +20,7 @@ crossterm = ["ratatui/crossterm"]
 
 [dependencies]
 kiso-core = { path = "../kiso-core", version = "0.1.0" }
-kiso-tokens = { path = "../kiso-tokens", version = "0.7.0" }
+kiso-tokens = { path = "../kiso-tokens", version = "0.8.0" }
 ratatui = { version = "0.30.2", default-features = false }
 unicode-segmentation = "1"
 unicode-width = "0.2"
