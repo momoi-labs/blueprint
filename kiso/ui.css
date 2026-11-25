@@ -4772,6 +4772,7 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 ) {
   --panel-shadow-contour: 0 0, 100% 0, 100% 100%, 0 100%, 0 0;
   --panel-shadow-shaped: 0;
+  --panel-shadow-layer: none;
   background-color: var(--header-fill, var(--frame-fill, var(--color-background)));
 }
 :where([data-frame-scope="outer"]) :is(

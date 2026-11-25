@@ -926,6 +926,19 @@ test('Plain header preference stays transparent and static in a desktop inset sh
   } finally { await page.close(); }
 });
 
+test('A floating header with an outer-only large Manga frame stays inside the page', async () => {
+  const page = await open('components', 1440);
+  try {
+    await page.evaluate(() => window.kisoAppearance.save({
+      ...window.kisoAppearance.read(), appShell: 'inset', headerVariant: 'floating', borderStyle: 'manga',
+      frameDetail: 'large', frameScope: 'outer', shadowStyle: 'soft',
+    }));
+    await page.reload();
+    await page.locator('.catalog-header').waitFor();
+    assert.deepEqual(await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]), [1440, 1440]);
+  } finally { await page.close(); }
+});
+
 
 function sharedMarkCorners() {
   const corners = [];
