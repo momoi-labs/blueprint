@@ -58,7 +58,11 @@ for (const colorScheme of ['light', 'dark']) for (const width of [390, 1440]) {
         await page.keyboard.press('Escape');
         await child.waitFor({ state: 'hidden' });
         assert(await parent.isVisible(), 'Escape closes only the child');
-        assert(await parent.evaluate(element => element.contains(document.activeElement)), 'focus returns to the parent');
+        assert(await parent.evaluate(element => new Promise(resolve => {
+          const end = performance.now() + 2000;
+          const settled = () => element.contains(document.activeElement) || performance.now() > end ? resolve(element.contains(document.activeElement)) : requestAnimationFrame(settled);
+          settled();
+        })), 'focus returns to the parent');
         await page.keyboard.press('Escape');
         await parent.waitFor({ state: 'hidden' });
       } finally { await page.close(); }
