@@ -4,5 +4,10 @@ import { test as nodeTest } from "node:test";
 
 const [index, total] = (process.env.KISO_TEST_SHARD ?? "1/1").split("/").map(Number);
 let count = 0;
+let placeholder = false;
 
-export const test = (...args) => (count++ % total === index - 1 ? nodeTest(...args) : undefined);
+export const test = (...args) => {
+  if (count++ % total === index - 1) return nodeTest(...args);
+  if (!placeholder) nodeTest(`tests of other shards than ${index}/${total}`, { skip: true }, () => {});
+  placeholder = true;
+};
