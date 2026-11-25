@@ -952,10 +952,12 @@ function sharedMarkCorners() {
       const pad = { left: r.left + px(own.borderLeftWidth), top: r.top + px(own.borderTopWidth), right: r.right - px(own.borderRightWidth), bottom: r.bottom - px(own.borderBottomWidth) };
       const box = { left: pad.left + px(cs.left), top: pad.top + px(cs.top), right: pad.right - px(cs.right), bottom: pad.bottom - px(cs.bottom) };
       const anchor = (-parseFloat(cs.right) - gap / 2) * k - px(own.borderRightWidth);
-      const x = { l: box.left + anchor, r: box.right - anchor - k }, y = { t: box.top + anchor, b: box.bottom - anchor - k };
+      const ruled = cs.outlineStyle === "solid" && parseFloat(cs.outlineWidth) > 0;
+      const x = ruled ? { l: box.left - k, r: box.right } : { l: box.left + anchor, r: box.right - anchor - k };
+      const y = ruled ? { t: box.top - k, b: box.bottom } : { t: box.top + anchor, b: box.bottom - anchor - k };
       let arms = null;
       const images = cs.backgroundImage.split(/,\s*(?=linear-gradient)/);
-      if (images.length === 8 && images.every(image => image.startsWith("linear-gradient"))) {
+      if (!ruled && images.length === 8 && images.every(image => image.startsWith("linear-gradient"))) {
         const sizes = cs.backgroundSize.split(",").map(part => part.trim().split(/\s+/).map(px));
         arms = cs.backgroundPosition.split(",").map((position, index) => {
           const parts = position.match(/calc\([^)]*\)|\S+/g);
@@ -1002,7 +1004,7 @@ test("Sheet marks of neighboring panels meet at every shared corner", async () =
       const panel = await settings(page);
       await tab(panel, "Presets");
       const presets = (await panel.getByLabel("Presets").getByRole("button").allTextContents()).filter(name => name !== "Random");
-      const marks = (await page.evaluate(() => window.kisoAppearance.options.cornerMarks)).filter(mark => mark !== "none");
+      const marks = (await page.evaluate(() => window.kisoAppearance.options.cornerMarks)).filter(mark => !["none", "arcs", "diagonal"].includes(mark));
       for (const preset of presets) {
         await panel.getByLabel("Presets").getByRole("button", { name: preset, exact: true }).click();
         const look = await page.evaluate(() => window.kisoAppearance.read());

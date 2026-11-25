@@ -408,10 +408,10 @@ test('New border contours, clearance, patterns and frameless suppression compose
       const image = await page.locator('#canvas').evaluate(el => { const s = getComputedStyle(el, '::before'); return [s.backgroundImage, s.maskImage]; });
       assert.equal(image.every(value => value === 'none'), background === 'solid', background);
     }
-    await page.evaluate(() => { document.documentElement.dataset.borderStyle = 'offset'; document.documentElement.dataset.markClearance = 'sheet'; });
+    await page.evaluate(() => { document.documentElement.dataset.borderStyle = 'offset'; document.documentElement.dataset.markClearance = 'sheet'; document.documentElement.dataset.cornerMarks = 'ticks'; });
     // Sheet marks sit on the center of the grid gap, outside the offset stroke.
-    const sheet = await page.locator('#sample').evaluate(el => ({ top: parseFloat(getComputedStyle(el, '::after').top), gap: parseFloat(getComputedStyle(el).getPropertyValue('--presentation-grid-gap')), stroke: parseFloat(getComputedStyle(el).getPropertyValue('--appearance-effect-clearance')) }));
-    assert(sheet.top <= -(sheet.gap / 2 + 1) && sheet.gap / 2 > sheet.stroke, `Offset plus drawing-sheet clearance stays outside the frame: ${JSON.stringify(sheet)}`);
+    const sheet = await page.locator('#sample').evaluate(el => { const mark = getComputedStyle(el, '::after'); return { top: parseFloat(mark.top) - parseFloat(mark.outlineWidth) + parseFloat(getComputedStyle(el).borderTopWidth), line: parseFloat(mark.outlineWidth), gap: parseFloat(getComputedStyle(el).getPropertyValue('--presentation-grid-gap')), stroke: parseFloat(getComputedStyle(el).getPropertyValue('--appearance-effect-clearance')) }; });
+    assert(sheet.line > 0 && sheet.top <= -sheet.gap / 2 && sheet.top + sheet.line >= -sheet.gap / 2 && sheet.gap / 2 > sheet.stroke, `Offset plus drawing-sheet clearance stays outside the frame: ${JSON.stringify(sheet)}`);
   } finally { await page.close(); }
 });
 

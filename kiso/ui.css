@@ -2601,7 +2601,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
 :where([data-outer-corner-marks]:not([data-outer-corner-marks="inherit"])) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --corner-mark: 1;
   --appearance-palette-marks: "";
-  --appearance-mark-mask: none;
+  --appearance-mark-mask: initial;
   --appearance-mark-bg: transparent;
   --appearance-mark-inset: initial;
   --appearance-mark-anchor: initial;
@@ -2611,6 +2611,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-length-extra: initial;
   --appearance-mark-images: initial;
   --appearance-mark-curve: 0;
+  --appearance-mark-sheet: 1;
+  --appearance-mark-rule: 1;
   --appearance-mark-excludes-brush: 0;
 }
 [data-corner-marks="none"],
@@ -2626,7 +2628,9 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   background-repeat: no-repeat;
   /* Ticks sit off the corner and extend the frame's edges; brackets set the
      offset to 0 so each corner's two lines meet in an L. */
-  --mark-length: calc(var(--corner-mark-tick) + var(--appearance-mark-length-extra, 0px));
+  --mark-sheet: calc(var(--appearance-sheet, 0) * var(--appearance-mark-sheet, 1));
+  --mark-rule: calc(var(--mark-sheet) * var(--appearance-mark-rule, 1) * var(--marks-visible));
+  --mark-length: calc((1 - var(--mark-rule)) * (var(--corner-mark-tick) + var(--appearance-mark-length-extra, 0px)));
   --mark-offset: calc((var(--corner-mark-tick) + var(--corner-mark-gap)) * var(--appearance-mark-offset-scale, 1));
   background-size:
     var(--mark-length) 1px, 1px var(--mark-length),
@@ -2647,15 +2651,28 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
      around the panel does not scroll for marks nobody sees. Sheet clearance
      puts each mark's anchor (the line, dot or vertex that neighbours share)
      on the center of the grid gap, so the marks of neighbouring panels meet as
-     one shape. Insets start inside the 1px frame border, so the top and left
-     reach 1px further than the bottom and right, and both panels draw their
-     shared line on the same pixel. */
+     one shape. */
   /* Styles give their anchor as parts of the tick and gap, so it follows the
      mark size and grid gap of the region the panel sits in. */
-  --mark-anchor: calc(var(--appearance-mark-anchor-tick, 1) * var(--corner-mark-tick) + var(--appearance-mark-anchor-gap, 1) * var(--corner-mark-gap) + var(--appearance-mark-anchor, 0px));
-  --mark-reach: calc((1 - var(--appearance-sheet, 0)) * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))))) + var(--appearance-sheet, 0) * (var(--presentation-grid-gap) / 2 + var(--mark-frame, 1px) + var(--mark-anchor)));
-  --mark-reach-start: calc(var(--mark-reach) + var(--appearance-sheet, 0) * 1px);
-  inset: calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw))) calc(-1 * var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw)));
+  --mark-anchor: calc((1 - var(--mark-rule)) * (var(--appearance-mark-anchor-tick, 1) * var(--corner-mark-tick) + var(--appearance-mark-anchor-gap, 1) * var(--corner-mark-gap) + var(--appearance-mark-anchor, 0px)));
+  --mark-reach: calc((1 - var(--mark-sheet)) * (var(--appearance-effect-clearance, 0px) + var(--appearance-cast-clearance, 0px) - var(--appearance-mark-inset, calc(-1 * (var(--corner-mark-tick) + var(--corner-mark-gap))))) + var(--mark-sheet) * (var(--presentation-grid-gap) / 2 + var(--mark-frame, 1px) + var(--mark-anchor)));
+  --mark-reach-start: calc(var(--mark-reach) + var(--mark-sheet) * 1px);
+  --mark-reach-end: calc(var(--marks-visible, 1) * min(var(--mark-reach), var(--mark-reach-limit, 100vw)));
+  --mark-reach-near: calc(var(--marks-visible, 1) * min(var(--mark-reach-start), var(--mark-reach-limit, 100vw)));
+  /* Sheet ticks and brackets are the outline, cut to arms by the mask. A
+     browser snaps an outline, a border and a mask tile to device pixels, but
+     not a gradient line or an inset. So the far edges come from the near edge
+     plus a size that holds one snapped border, and the lines of two neighbours
+     land on the same device pixels at any pixel ratio. */
+  box-sizing: content-box;
+  top: calc(var(--mark-rule) * 1px - var(--mark-reach-near));
+  left: calc(var(--mark-rule) * 1px - var(--mark-reach-near));
+  width: calc(100% + var(--mark-reach-near) + var(--mark-reach-end) - var(--mark-rule) * 3px);
+  height: calc(100% + var(--mark-reach-near) + var(--mark-reach-end) - var(--mark-rule) * 3px);
+  border: 0 solid transparent;
+  border-top-width: calc(var(--mark-rule) * 1px);
+  border-left-width: calc(var(--mark-rule) * 1px);
+  outline: calc(var(--mark-rule) * 1px) solid var(--color-corner-mark);
   background-image: var(--appearance-mark-images,
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
@@ -2666,11 +2683,29 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)),
     linear-gradient(var(--color-corner-mark), var(--color-corner-mark)));
   background-color: var(--appearance-mark-bg, transparent);
-  mask-image: var(--appearance-mark-mask, none);
+  --mark-drawn: var(--appearance-mark-rule, 1);
+  --mark-plain: calc(var(--mark-drawn) - var(--mark-rule));
+  --mark-shape: calc(1 - var(--mark-drawn));
+  --mark-cut: calc(var(--mark-rule) * (var(--appearance-mark-offset-scale, 1) * (var(--corner-mark-gap) + 2px) - 2px));
+  --mark-cut-edge: calc(var(--mark-rule) * -3px);
+  --mark-cut-arm: calc(var(--mark-rule) * (var(--corner-mark-tick) + (1 - var(--appearance-mark-offset-scale, 1)) * 2px));
+  --mark-cut-band: calc(var(--mark-rule) * 5px);
+  --mark-cut-image: linear-gradient(#000 0 0);
+  mask-image: var(--appearance-mark-mask, var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image), var(--mark-cut-image));
   --mark-long: max(calc(var(--corner-mark-tick) + 1px), calc((var(--radius-surface) + var(--corner-mark-gap)) * var(--appearance-mark-curve, 0)));
   --mark-short: max(calc(var(--corner-mark-tick) + 1px), calc((var(--radius-surface) * var(--corner-panel-opposite, 1) + var(--corner-mark-gap)) * var(--appearance-mark-curve, 0)));
-  mask-size: var(--mark-long) var(--mark-long), var(--mark-short) var(--mark-short), var(--mark-short) var(--mark-short), var(--mark-long) var(--mark-long);
-  mask-position: left top, right top, left bottom, right bottom;
+  --mark-shape-long: calc(var(--mark-shape) * var(--mark-long));
+  --mark-shape-short: calc(var(--mark-shape) * var(--mark-short));
+  mask-size:
+    calc(var(--mark-cut-arm) + var(--mark-shape-long) + var(--mark-plain) * 100%) calc(var(--mark-cut-band) + var(--mark-shape-long) + var(--mark-plain) * 100%),
+    calc(var(--mark-cut-arm) + var(--mark-shape-short)) calc(var(--mark-cut-band) + var(--mark-shape-short)),
+    calc(var(--mark-cut-arm) + var(--mark-shape-short)) calc(var(--mark-cut-band) + var(--mark-shape-short)),
+    calc(var(--mark-cut-arm) + var(--mark-shape-long)) calc(var(--mark-cut-band) + var(--mark-shape-long)),
+    var(--mark-cut-band) var(--mark-cut-arm), var(--mark-cut-band) var(--mark-cut-arm), var(--mark-cut-band) var(--mark-cut-arm), var(--mark-cut-band) var(--mark-cut-arm);
+  mask-position:
+    left var(--mark-cut) top var(--mark-cut-edge), right var(--mark-cut) top var(--mark-cut-edge), left var(--mark-cut) bottom var(--mark-cut-edge), right var(--mark-cut) bottom var(--mark-cut-edge),
+    left var(--mark-cut-edge) top var(--mark-cut), right var(--mark-cut-edge) top var(--mark-cut), left var(--mark-cut-edge) bottom var(--mark-cut), right var(--mark-cut-edge) bottom var(--mark-cut);
+  mask-clip: no-clip;
   mask-repeat: no-repeat;
 }
 
@@ -2704,6 +2739,7 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + 1px));
   --appearance-mark-anchor-tick: .5;
   --appearance-mark-anchor-gap: 0;
+  --appearance-mark-rule: 0;
   --appearance-mark-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%223%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
     url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22translate%2810%200%29%20scale%28-1%201%29%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%223%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
     url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cg%20transform%3D%22translate%280%2010%29%20scale%281%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%223%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
@@ -2795,12 +2831,15 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-inset: calc(-1 * (var(--corner-mark-gap) + var(--corner-mark-tick)));
   --appearance-mark-anchor-tick: 0;
   --appearance-mark-anchor-gap: 0;
-  --appearance-mark-anchor: -.5px;
+  --appearance-mark-sheet: 0;
+  --appearance-mark-rule: 0;
   --appearance-mark-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M0%200L10%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M10%200L0%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M10%200L0%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpath%20d%3D%22M0%200L10%2010%22%20stroke%3D%22black%22%20stroke-width%3D%221%22/%3E%3C/svg%3E");
 }
 [data-corner-marks="arcs"],
 :where([data-outer-corner-marks="arcs"]) :where(.app-shell:not(.app-shell .app-shell):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant]))) > :is(main, [data-slot="app-shell-main"]) {
   --appearance-mark-curve: 1;
+  --appearance-mark-sheet: 0;
+  --appearance-mark-rule: 0;
 }
 
 .palette::after { content: var(--appearance-mark-content, var(--appearance-palette-marks, none)); }
@@ -2849,6 +2888,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --inner-appearance-mark-length-extra: var(--appearance-mark-length-extra);
   --inner-appearance-mark-mask: var(--appearance-mark-mask);
   --inner-appearance-mark-curve: var(--appearance-mark-curve);
+  --inner-appearance-mark-sheet: var(--appearance-mark-sheet);
+  --inner-appearance-mark-rule: var(--appearance-mark-rule);
   --inner-appearance-overlay-border: var(--corner-overlay-border, var(--appearance-overlay-border));
   --inner-appearance-overlay-content: var(--appearance-overlay-content);
   --inner-appearance-overlay-inset: var(--corner-overlay-inset, var(--appearance-overlay-inset));
@@ -2936,6 +2977,8 @@ pre code { display: block; overflow-x: auto; padding: 0; background: none; borde
   --appearance-mark-length-extra: var(--inner-appearance-mark-length-extra);
   --appearance-mark-mask: var(--inner-appearance-mark-mask);
   --appearance-mark-curve: var(--inner-appearance-mark-curve);
+  --appearance-mark-sheet: var(--inner-appearance-mark-sheet);
+  --appearance-mark-rule: var(--inner-appearance-mark-rule);
   --appearance-overlay-border: var(--inner-appearance-overlay-border);
   --appearance-overlay-content: var(--inner-appearance-overlay-content);
   --appearance-overlay-inset: var(--inner-appearance-overlay-inset);

@@ -316,7 +316,7 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
         </label>)}
       </div>
     </fieldset>
-    <p className="muted t-label">Curved brackets do not pair with Pixel, Manga or Brush. Brush also excludes outer brackets. Unavailable choices remain saved.</p>
+    <p className="muted t-label">Curved brackets do not pair with Pixel, Manga or Brush. Brush also excludes outer brackets. Unavailable choices remain saved. Curved brackets and diagonal ticks keep to their own panel under Drawing sheet.</p>
     {(settings.cornerMarks !== "none" || outerMark !== "none" || phoneMark !== "none") && <Segmented label="Mark size" options={markSizes} value={settings.markSize} onChange={markSize => onChange({ markSize })} />}
     <Segmented label="Mark clearance" options={["normal", "sheet"] as const} names={{ sheet: "Drawing sheet" }} value={settings.markClearance} onChange={markClearance => onChange({ markClearance })} />
   </AppearanceSection>,
