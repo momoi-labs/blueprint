@@ -1,5 +1,33 @@
 # @momoi-labs/kiso-react
 
+## 0.37.0
+
+### Minor Changes
+
+- c2a3fab: Add the `blueprint` accent: blue ink on a warm off-white sheet in light, pale ink on saturated navy in dark. It restates the neutral and status roles.
+  
+  Add four appearance attributes for every look: `data-technical-text="mono"`, `data-control-style="tactile"`, `data-progress-style="segmented"` and `data-panel-labels="numbered"`.
+  
+  Add `data-chart-palette="mono"` for the Blueprint look only. It draws every chart series in the foreground ink and tells series apart by line dash, square markers and, in a stacked chart, a hatch per band. `Chart` sets `data-variant` on its figure and `ChartTreatment` has a `mono` flag.
+  
+  Sheet clearance now makes neighboring marks meet at one point: `.page` stacks its blocks at the grid gap under `data-mark-clearance="sheet"`, and panels without a border under `data-frame-scope="outer"` no longer sit 1px off. A `TimeRangeControl` in live mode joins a following button inside a `.btn-group`.
+- 7274f68: `GridPane` and `DashboardPanel` take `frame="none"`. The pane draws no Card, so a pane that holds one `TableFrame` shows one frame under its title and actions. The reader moves and resizes it like any other pane. CSS consumers set `data-frame="none"` on `.grid-pane`.
+
+### Patch Changes
+
+- 3237c33: `AccentSelector` marks only the selected pill. `data-accent` moved from the pill to its dot, so a pill no longer takes the surface of its own accent, which made Nocturne and SNES look selected. The `snes` pill reads "SNES".
+- Updated dependencies [3237c33]
+- Updated dependencies [c2a3fab]
+- Updated dependencies [d77a3c1]
+- Updated dependencies [9198d29]
+- Updated dependencies [58176ca]
+- Updated dependencies [ce00e04]
+- Updated dependencies [7274f68]
+- Updated dependencies [ff775de]
+- Updated dependencies [3e10846]
+- Updated dependencies [4635dd5]
+  - @momoi-labs/kiso@1.15.0
+
 ## 0.36.0
 
 ### Minor Changes

@@ -1,5 +1,33 @@
 # @momoi-labs/kiso
 
+## 1.15.0
+
+### Minor Changes
+
+- c2a3fab: Add the `blueprint` accent: blue ink on a warm off-white sheet in light, pale ink on saturated navy in dark. It restates the neutral and status roles.
+  
+  Add four appearance attributes for every look: `data-technical-text="mono"`, `data-control-style="tactile"`, `data-progress-style="segmented"` and `data-panel-labels="numbered"`.
+  
+  Add `data-chart-palette="mono"` for the Blueprint look only. It draws every chart series in the foreground ink and tells series apart by line dash, square markers and, in a stacked chart, a hatch per band. `Chart` sets `data-variant` on its figure and `ChartTreatment` has a `mono` flag.
+  
+  Sheet clearance now makes neighboring marks meet at one point: `.page` stacks its blocks at the grid gap under `data-mark-clearance="sheet"`, and panels without a border under `data-frame-scope="outer"` no longer sit 1px off. A `TimeRangeControl` in live mode joins a following button inside a `.btn-group`.
+- 9198d29: A diagram no longer repeats a page background that belongs to one shell. Under `momoi`, `momoi-repeat`, `enso` and `rings` it paints the dot grid. `data-diagram-background-style` and `data-diagram-background-strength` on `<html>` set the background of every diagram on the page.
+- 7274f68: `GridPane` and `DashboardPanel` take `frame="none"`. The pane draws no Card, so a pane that holds one `TableFrame` shows one frame under its title and actions. The reader moves and resizes it like any other pane. CSS consumers set `data-frame="none"` on `.grid-pane`.
+- 4635dd5: Add `data-shell-right="fill"`, which takes the inset frame to the right edge of the page, and `data-shadow-scope` (`outer`, `first`, `all`), which sets how deep panels cast a shadow.
+
+### Patch Changes
+
+- 3237c33: `AccentSelector` marks only the selected pill. `data-accent` moved from the pill to its dot, so a pill no longer takes the surface of its own accent, which made Nocturne and SNES look selected. The `snes` pill reads "SNES".
+- d77a3c1: With `data-brand-bar="full"` on an inset shell, the brand fill now starts at
+  the top edge of the main panel, so the brand cell and the top bar line up.
+  Before, on a patterned canvas, the fill began at the top of the sidebar and
+  showed as a strip above the top bar. With `data-border-style="none"`, the
+  shell also kept a 1px offset for a border that the main panel no longer draws.
+- 58176ca: A floating header with a large Manga frame on the outer shell only no longer widens the page by 2 px.
+- ce00e04: A `PageHeader` with actions keeps its full height in a `.page` that scrolls. The 32px floor sat on the header row, which replaced its content minimum, so a page taller than its shell shrank the row to 32px and the title and description ran under the next block. The floor now sits on the title block.
+- ff775de: Corner marks and the hard shadow of the outer application frame stay inside the outer gutter. With a compact gutter, large marks or sheet clearance they reached past the page edge and made the page scroll sideways.
+- 3e10846: Sheet clearance (`data-mark-clearance="sheet"`) draws corner marks that match on every side. Ticks are now crop marks: each arm runs along a side of its panel, one gap from the crossing, instead of pointing away from it. Ticks and brackets are drawn on whole device pixels, so their stroke no longer changes from mark to mark at a fractional display scale such as 1.6. Arcs and diagonals no longer move to the center of the grid gap, where they met as chevrons; they stay at their own panel as in `normal`.
+
 ## 1.14.0
 
 ### Minor Changes

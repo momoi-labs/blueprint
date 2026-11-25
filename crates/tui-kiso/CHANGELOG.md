@@ -1,5 +1,11 @@
 # tui-kiso
 
+## 0.3.0
+
+### Minor Changes
+
+- 5d1ff86: Add the `snes` accent, dark and light, so every Kiso accent has a terminal theme.
+
 ## 0.2.0
 
 ### Minor Changes
