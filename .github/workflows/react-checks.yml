@@ -40,7 +40,8 @@ concurrency:
 
 permissions:
   contents: read
-  # A failed job cancels the rest of the run.
+  # A failed job cancels the rest of the run, so that job shows as cancelled
+  # too. Its annotation and the run summary name it and its failed tests.
   actions: write
 
 env:
@@ -62,7 +63,9 @@ jobs:
       - run: npm run check:deploy --workspace=kiso-gallery
       - name: Cancel the run
         if: failure()
-        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        run: |
+          echo "::error title=Static checks failed::This job failed and cancels the rest of the run. The run summary lists the failed tests."
+          gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -85,7 +88,9 @@ jobs:
           KISO_BROWSER_CONCURRENCY: 2
       - name: Cancel the run
         if: failure()
-        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        run: |
+          echo "::error title=Browser checks ${{ matrix.shard }}/3 failed::This job failed and cancels the rest of the run. The run summary lists the failed tests."
+          gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -109,7 +114,9 @@ jobs:
       - run: node scripts/run-gallery-tests.mjs
       - name: Cancel the run
         if: failure()
-        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+        run: |
+          echo "::error title=Gallery tests ${{ matrix.shard }}/4 failed::This job failed and cancels the rest of the run. The run summary lists the failed tests."
+          gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ github.token }}
 
