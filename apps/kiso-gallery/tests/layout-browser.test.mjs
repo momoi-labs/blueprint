@@ -611,3 +611,24 @@ test("The terminal switch shows Reports and each monthly report", async () => {
     }
   } finally { await page.close(); }
 });
+
+for (const [name, path, saved] of [
+  ["auto spacing", "?phone-frame#example/crud", {}],
+  ["compact spacing", "?phone-frame#example/crud", { appShellOuter: "compact" }],
+  ["no borders", "?phone-frame#example/crud", { borderStyle: "none", outerBorderStyle: "inherit" }],
+  ["dialog preview", "#example/dashboard", {}],
+]) test(`The full brand bar starts with the top bar on a patterned canvas, ${name}`, async () => {
+  const page = await open(1440, "inset", "light", false, { brandBar: "full", backgroundStyle: "construction", outerBorderStyle: "solid", ...saved });
+  try {
+    await page.goto(`${url}${path}`);
+    const root = path.startsWith("?") ? page : page.frameLocator(".layout-dialog iframe");
+    const shell = root.locator('html[data-brand-bar="full"] .app-shell[data-shell-layout]');
+    await shell.locator(".topbar").waitFor();
+    const [fill, bar] = await shell.evaluate(el => {
+      const header = el.querySelector(":scope > .sidebar > .sidebar-header");
+      const top = header.getBoundingClientRect().top + parseFloat(getComputedStyle(header, "::after").top);
+      return [top, el.querySelector(":scope > main").getBoundingClientRect().top];
+    });
+    assert.equal(fill, bar, "The brand fill starts at the top edge of the main panel");
+  } finally { await page.close(); }
+});
