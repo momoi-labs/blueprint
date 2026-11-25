@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { before, after } from "node:test";
+import { after } from "node:test";
 import { test } from "./shard.mjs";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
@@ -8,16 +8,18 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright")
 const fullSweep = process.env.KISO_FULL_SWEEP === "1";
 const browsers = new Map();
 let server, url;
-before(async () => {
+async function serve() {
+  if (server) return;
   server = await preview({ root: fileURLToPath(new URL("../", import.meta.url)), configFile: false, logLevel: "error", preview: { host: "127.0.0.1", port: 0 } });
   url = `http://127.0.0.1:${server.httpServer.address().port}/`;
-});
+}
 after(async () => {
   for (const browser of browsers.values()) await browser.close();
   if (server) await new Promise(resolve => server.httpServer.close(resolve));
 });
 
 async function open(scale, look) {
+  await serve();
   if (!browsers.has(scale)) browsers.set(scale, await chromium.launch({ args: [`--force-device-scale-factor=${scale}`] }));
   const context = await browsers.get(scale).newContext({ viewport: null, colorScheme: "dark" });
   const page = await context.newPage();
