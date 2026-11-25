@@ -623,11 +623,15 @@ fields, framed buttons and, with frame scope `all`, Steps markers. These interna
 `none` hides marks, and Border None suppresses them without discarding the saved
 selection. Incompatible curved marks on Pixel, Manga or Brush, and brackets on Brush,
 stay saved but are hidden until the frame supports them.
-`sheet` puts the marks on the center of the grid gap
-(`--presentation-grid-gap`), so the marks of neighbouring panels join into one
-shape. Brackets form a cross where four panels meet and a tee on an edge.
-Ticks form an open crop cross, arcs a four-point star, diagonals an X, and
-dots merge into one dot. Panels laid out with another gap do not join, so
+`sheet` puts ticks, brackets and dots on the center of the grid gap
+(`--presentation-grid-gap`), so the marks of neighbouring panels share one
+line. Brackets form a cross where four panels meet and a tee on an edge.
+Ticks are crop marks: each arm runs along a side of its panel and stops one
+gap short of the crossing, so every panel sits inside its own four corners.
+Dots merge into one dot. Ticks and brackets are drawn on whole device pixels,
+so every mark has the same stroke at a fractional display scale. Arcs and
+diagonals do not join into one shape, so they stay at their own panel as in
+`normal`. Panels laid out with another gap do not join, so
 `.page` stacks its blocks at the grid gap in `sheet`. Offset
 and expressive borders reserve space for their stroke in `normal` only; in
 `sheet`, a Manga stroke can touch the marks. Curved brackets follow the selected radius, including
