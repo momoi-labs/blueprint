@@ -390,13 +390,18 @@ test("v3 project demos restore across reload, cross-tab storage, drift recovery,
       const saved = JSON.parse(localStorage.getItem("kiso-gallery-project-config") || "null");
       return saved?.demos?.diagram?.edges === "curve" && saved?.demos?.diagram?.direction === "down";
     });
+
+    await panel.getByRole("button", { name: "Reset", exact: true }).click();
+    await panel.locator(".gen-project-bar").waitFor({ state: "detached" });
+    await second.waitForFunction(() => document.documentElement.dataset.accent === "snes" && document.querySelector(".diagram")?.getAttribute("data-direction") === "right");
+    assert.equal(await isCurved(second), false);
   } finally { await context.close(); }
 });
 
-test("incoming v3 share URL works when localStorage is blocked", async () => {
+test("incoming v3 share URL works when localStorage is blocked and survives viewport resize", async () => {
   const v3Payload = {
     v: 3,
-    appearance: { accent: "gold", cornerStyle: "rounded" },
+    appearance: { accent: "gold", cornerStyle: "rounded", phone: { borderStyle: "rail" } },
     structure: { pageWidth: "contained" },
     demos: { diagram: { edges: "curve", direction: "down" } },
   };
@@ -416,8 +421,16 @@ test("incoming v3 share URL works when localStorage is blocked", async () => {
     assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "gold");
     assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerMarks), "none");
     assert.equal(await page.evaluate(() => document.documentElement.dataset.shadowStyle), "auto");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.borderStyle), "solid");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => document.documentElement.dataset.borderStyle === "rail");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "gold");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerMarks), "none");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForFunction(() => document.documentElement.dataset.borderStyle === "solid");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "gold");
     const lookPanel = await openLookPanel(page);
     await lookPanel.locator(".gallery-look-project").waitFor();
-    assert.match(await lookPanel.locator(".gallery-look-project").innerText(), /3 fields/);
+    assert.match(await lookPanel.locator(".gallery-look-project").innerText(), /4 fields/);
   } finally { await page.close(); }
 });
