@@ -4115,6 +4115,10 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
 .app-shell[data-background-canvas]::before {
   content: "";
   grid-area: var(--canvas-row) / var(--canvas-column);
+  position: sticky;
+  top: var(--canvas-margin, 0px);
+  align-self: start;
+  height: calc(min(calc(100dvh - var(--shell-bottom-inset, 0px)), 100%) - 2 * var(--canvas-margin, 0px));
   min-width: 0;
   pointer-events: none;
   background-color: var(--canvas-mask-color, transparent);
@@ -4571,7 +4575,8 @@ button.step-row:focus-visible { outline: 2px solid var(--color-focus); outline-o
   margin: var(--canvas-frame-inset, 0px);
 }
 :where([data-background-placement="inside"]) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas])::before {
-  margin: var(--canvas-frame-inset, 0px);
+  --canvas-margin: var(--canvas-frame-inset, 0px);
+  margin: var(--canvas-margin);
 }
 /* The layer spans the frame margin too; the signature still sits in the
    frame's own corner rather than on its border. */

@@ -730,7 +730,7 @@
   :root[data-header-variant="floating"] .component-gallery > .catalog-header[data-catalog-bar="page"] { top: var(--spacing-md); }
   /* With no sidebar, the home canvas runs behind the pill too: one surface. */
   :root[data-header-variant="floating"] .component-gallery[data-catalog-layout="home"]:has(> .catalog-header[data-catalog-bar="page"])::before { grid-area: 1 / 1 / -1 / -1; }
-  :root[data-header-variant="floating"] .component-gallery[data-catalog-layout="section"]:has(> .catalog-header[data-catalog-bar="page"])::before { position: fixed; inset: 0; }
+  :root[data-header-variant="floating"] .component-gallery[data-catalog-layout="section"]:has(> .catalog-header[data-catalog-bar="page"])::before { position: fixed; inset: 0; align-self: stretch; height: auto; }
   :root[data-header-variant="floating"] .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel) {
     border: 1px solid var(--color-border);
     border-radius: var(--appearance-corners, var(--radius-surface));

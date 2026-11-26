@@ -715,3 +715,90 @@ test("Sidebar icons keep their position when collapsing and expanding", async ()
     }
   } finally { await page.close(); }
 });
+
+test("Background canvas stays visible across narrow and tall scrolling pages", async () => {
+  const settle = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const diffPixels = async (page, first, second) => page.evaluate(async ({ a, b }) => {
+    const decode = async src => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${src}`;
+      await image.decode();
+      const canvas = Object.assign(document.createElement("canvas"), { width: image.width, height: image.height });
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0);
+      return ctx.getImageData(0, 0, image.width, image.height).data;
+    };
+    const da = await decode(a);
+    const db = await decode(b);
+    let changed = 0;
+    for (let i = 0; i < da.length; i += 4) {
+      if (Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2]) >= 6) changed++;
+    }
+    return changed;
+  }, { a: first.toString("base64"), b: second.toString("base64") });
+  const scrollPage = async (page, y) => {
+    await page.evaluate(offset => {
+      const scroller = document.querySelector('.component-gallery > [data-slot="app-shell-main"] > .catalog-main');
+      if (scroller && getComputedStyle(scroller).overflowY !== "visible" && scroller.scrollHeight > scroller.clientHeight + 50) scroller.scrollTop = offset;
+      else window.scrollTo(0, offset);
+    }, y);
+    await settle(page);
+  };
+  const cases = [
+    [390, "inset", { accent: "snes", backgroundStyle: "glow", headerVariant: "floating", panelFill: "glass", appShellOuter: "full" }, 10000],
+    [800, "inset", { accent: "snes", backgroundStyle: "glow", headerVariant: "floating", panelFill: "glass", appShellOuter: "full" }, 20000],
+    [800, "default", { accent: "snes", backgroundStyle: "glow", headerVariant: "default", panelFill: "glass" }, 20000],
+    [1280, "default", { accent: "snes", backgroundStyle: "glow", headerVariant: "default", panelFill: "glass" }, 20000],
+    [800, "inset", { accent: "snes", backgroundStyle: "enso", headerVariant: "floating", panelFill: "glass", appShellOuter: "full" }, 500],
+    [800, "inset", { accent: "snes", backgroundStyle: "momoi", headerVariant: "default", panelFill: "glass", appShellOuter: "full" }, 200],
+    [800, "inset", { accent: "snes", backgroundStyle: "momoi", backgroundPlacement: "inside", headerVariant: "default", panelFill: "glass", appShellOuter: "full" }, 200],
+  ];
+  for (const [width, frame, saved, minPixels] of cases) {
+    const page = await open(width, frame, "light", width < 1024, { ...saved, backgroundStrength: "quiet" });
+    try {
+      await page.goto(`${url}#components`);
+      await page.locator(".catalog-pane").first().waitFor({ timeout: 30_000 });
+      await settle(page);
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${saved.backgroundStyle}/${frame}/${width}: horizontal overflow`);
+      if (saved.backgroundPlacement === "inside") {
+        const insideBounds = await page.evaluate(() => {
+          const shell = document.querySelector(".component-gallery");
+          const layer = getComputedStyle(shell, "::before");
+          const top = parseFloat(layer.marginTop);
+          const height = parseFloat(layer.height);
+          const bottom = parseFloat(layer.marginBottom);
+          return { top, height, bottom, viewport: innerHeight };
+        });
+        assert(insideBounds.top > 0, `inside placement keeps frame margin (${insideBounds.top}px)`);
+        assert(insideBounds.top + insideBounds.height + insideBounds.bottom <= insideBounds.viewport + 1, `inside canvas fits initial viewport (${insideBounds.top + insideBounds.height + insideBounds.bottom}px > ${insideBounds.viewport}px)`);
+      }
+      for (const offset of [0, 2000]) {
+        await scrollPage(page, offset);
+        await page.evaluate(() => { document.documentElement.dataset.backgroundStrength = "quiet"; });
+        await settle(page);
+        const quiet = await page.screenshot();
+        await page.evaluate(() => { document.documentElement.dataset.backgroundStrength = "visible"; });
+        await settle(page);
+        const visible = await page.screenshot();
+        const changed = await diffPixels(page, quiet, visible);
+        assert(changed >= minPixels, `${saved.backgroundStyle}/${frame}/${width}@${offset}: expected >= ${minPixels} painted pixels, got ${changed}`);
+      }
+    } finally { await page.close(); }
+  }
+  const nested = await open(1280, "inset", "light", false, { accent: "snes", backgroundStyle: "glow", backgroundStrength: "visible", headerVariant: "floating", panelFill: "glass" });
+  try {
+    await nested.goto(`${url}#components/app-shell`);
+    await nested.locator(".gallery-shell-preview").first().waitFor({ timeout: 30_000 });
+    await settle(nested);
+    const bounds = await nested.evaluate(() => {
+      const preview = document.querySelector(".gallery-shell-preview");
+      preview.setAttribute("data-background-canvas", "");
+      const rect = preview.getBoundingClientRect();
+      const layer = getComputedStyle(preview, "::before");
+      return { shellHeight: rect.height, layerHeight: parseFloat(layer.height), position: layer.position };
+    });
+    assert(bounds.shellHeight <= 420, `nested shell kept its preview height (${bounds.shellHeight}px)`);
+    assert(bounds.layerHeight <= bounds.shellHeight + 1, `nested canvas stayed inside its frame (${bounds.layerHeight}px > ${bounds.shellHeight}px)`);
+    assert.notEqual(bounds.position, "fixed");
+  } finally { await nested.close(); }
+});
