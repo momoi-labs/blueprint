@@ -154,11 +154,18 @@ test("persists changes, restores them on reload, and resets system mode", () => 
 });
 
 test("blocked storage still allows live changes and defaults on reload", () => {
-  const { api, dataset } = boot({}, true);
+  const { api, dataset, resize } = boot({}, true);
   assert.equal(dataset.borderStyle, "solid");
-  assert.doesNotThrow(() => api.save({ ...api.defaults, theme: "light", borderStyle: "round" }));
+  assert.doesNotThrow(() => api.save({ ...api.defaults, theme: "light", accent: "gold", borderStyle: "round", phoneBorderStyle: "rail" }));
   assert.equal(dataset.borderStyle, "solid");
   assert.equal(dataset.theme, "light");
+  assert.equal(dataset.accent, "gold");
+  resize(true);
+  assert.equal(dataset.accent, "gold");
+  assert.equal(dataset.borderStyle, "rail");
+  resize(false);
+  assert.equal(dataset.accent, "gold");
+  assert.equal(dataset.borderStyle, "solid");
   assert.equal(boot({}, true).dataset.borderStyle, "solid");
 });
 

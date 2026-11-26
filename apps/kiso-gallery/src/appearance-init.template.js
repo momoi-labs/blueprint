@@ -59,8 +59,10 @@
     }
     return validate(saved);
   }
+  let current = null;
   function apply(value) {
     const settings = validate(value);
+    current = settings;
     const shown = { ...settings };
     if (phone?.matches) for (const key of phoneKeys) if (settings[phoneKey(key)] !== "inherit") shown[key] = settings[phoneKey(key)];
     delete document.documentElement.dataset.pageHeader;
@@ -81,5 +83,5 @@
   }
   window.kisoAppearance = { defaults, presetDefaults, options, read, save, apply };
   apply(read());
-  phone?.addEventListener?.("change", () => apply(read()));
+  phone?.addEventListener?.("change", () => apply(current ?? read()));
 })();

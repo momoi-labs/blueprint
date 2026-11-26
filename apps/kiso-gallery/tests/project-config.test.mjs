@@ -346,19 +346,20 @@ test("parseProjectConfig restores saved configs and rejects malformed storage va
   for (const invalid of [null, "", "{bad", "[]", "{}", '{"appearance":[]}', '{"appearance":{},"structure":null}']) {
     assert.equal(parseProjectConfig(invalid, source), null, String(invalid));
   }
-  const filtered = parseProjectConfig(JSON.stringify({
-    kiso: { "@momoi-labs/kiso": "^1.15.0", constructor: "bad" },
-    appearance: { accent: "gold", theme: "dark", bogus: "x", phone: { borderStyle: "bad", panelFill: "solid" } },
-    structure: { pageWidth: "full", accent: "teal", headerWidth: "outset" },
-    demos: {
-      __proto__: { polluted: "yes" },
-      constructor: { polluted: "yes" },
-      prototype: { polluted: "yes" },
-      diagram: { edges: "curve", constructor: "bad", invalid: "nope" },
-      unknown: { a: "b" },
+  const rawPolluted = `{
+    "kiso": { "@momoi-labs/kiso": "^1.15.0", "__proto__": "bad", "constructor": "bad" },
+    "appearance": { "accent": "gold", "theme": "dark", "bogus": "x", "phone": { "borderStyle": "bad", "panelFill": "solid" } },
+    "structure": { "pageWidth": "full", "accent": "teal", "headerWidth": "outset" },
+    "demos": {
+      "__proto__": { "polluted": "yes" },
+      "constructor": { "polluted": "yes" },
+      "prototype": { "polluted": "yes" },
+      "diagram": { "edges": "curve", "__proto__": "bad", "constructor": "bad", "invalid": "nope" },
+      "unknown": { "a": "b" }
     },
-    rest: [{ name: "lang", value: "en" }, { name: 123, value: "bad" }],
-  }), source, { diagram: { edges: ["orthogonal", "curve"] } });
+    "rest": [{ "name": "lang", "value": "en" }, { "name": 123, "value": "bad" }]
+  }`;
+  const filtered = parseProjectConfig(rawPolluted, source, { diagram: { edges: ["orthogonal", "curve"] } });
   assert.deepEqual(plain(filtered), {
     kiso: { "@momoi-labs/kiso": "^1.15.0" },
     appearance: { accent: "gold", phone: { panelFill: "solid" } },
@@ -366,8 +367,11 @@ test("parseProjectConfig restores saved configs and rejects malformed storage va
     demos: { diagram: { edges: "curve" } },
     rest: [{ name: "lang", value: "en" }],
   });
+  assert.equal(Object.hasOwn(filtered.demos, "__proto__"), false);
   assert.equal(Object.hasOwn(filtered.demos, "constructor"), false);
+  assert.equal(Object.hasOwn(filtered.demos.diagram, "__proto__"), false);
   assert.equal(Object.hasOwn(filtered.demos.diagram, "constructor"), false);
+  assert.equal(({}).polluted, undefined);
 });
 
 test("project preview helpers resolve Kiso fallbacks and strip gallery-only fields", () => {
