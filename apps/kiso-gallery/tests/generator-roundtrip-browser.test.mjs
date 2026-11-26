@@ -88,13 +88,21 @@ test("editing a control and clicking a preset in project mode change only define
     const minimal = '<html lang="en" data-theme="dark" data-accent="cobalt">';
     const dialog = await importViaDialog(page, panel, minimal);
     await dialog.waitFor({ state: "detached" });
+    const sparsePreview = await page.evaluate(() => window.kisoAppearance.read());
+    assert.equal(sparsePreview.accent, "cobalt");
+    assert.equal(sparsePreview.shadowStyle, "auto");
+    assert.equal(sparsePreview.panelFill, "solid");
+    assert.equal(sparsePreview.backgroundStyle, "solid");
+    assert.equal(sparsePreview.cornerStyle, "square");
+    assert.equal(sparsePreview.appShell, "default");
+    assert.equal(sparsePreview.frameScope, "panels");
     await tab(panel, "Frame");
-    await panel.getByRole("group", { name: "Corner type", exact: true }).locator('input[value="asym"]').check({ force: true });
+    await panel.getByRole("group", { name: "Corner type", exact: true }).locator('input[value="rounded"]').check({ force: true });
     await tab(panel, "Gallery");
     await panel.getByRole("radiogroup", { name: "Landing bands", exact: true }).getByRole("radio", { name: "Inside frame", exact: true }).click();
     await tab(panel, "Code");
     const afterEdit = (await panel.locator(".gen-export [data-slot='code-block'] code").innerText()).trim();
-    assert.deepEqual(attributeSet(afterEdit), new Set(['lang="en"', 'data-theme="dark"', 'data-accent="cobalt"', 'data-corner-style="asym"']));
+    assert.deepEqual(attributeSet(afterEdit), new Set(['lang="en"', 'data-theme="dark"', 'data-accent="cobalt"', 'data-corner-style="rounded"']));
     await tab(panel, "Look");
     const presetButton = panel.getByLabel("Presets").getByRole("button", { name: "Drafting sheet", exact: true });
     await presetButton.focus();
@@ -105,7 +113,7 @@ test("editing a control and clicking a preset in project mode change only define
       'lang="en"',
       'data-theme="dark"',
       'data-accent="cobalt"',
-      'data-corner-style="asym"',
+      'data-corner-style="rounded"',
       'data-shadow-style="none"',
       'data-background-style="dots"',
       'data-corner-marks="none"',
@@ -136,6 +144,12 @@ test("importing JSON v3 with diverging TUI renders the Rust snippet and divergen
     });
     const dialog = await importViaDialog(page, panel, pgProbeV3);
     await dialog.waitFor({ state: "detached" });
+    const v3Preview = await page.evaluate(() => window.kisoAppearance.read());
+    assert.equal(v3Preview.accent, "gold");
+    assert.equal(v3Preview.panelFill, "solid");
+    assert.equal(v3Preview.shadowStyle, "auto");
+    assert.equal(v3Preview.backgroundStyle, "solid");
+    assert.equal(v3Preview.cornerMarks, "ticks");
     await tab(panel, "Code");
     const rustSection = panel.locator(".gen-export-rust");
     await rustSection.waitFor();
