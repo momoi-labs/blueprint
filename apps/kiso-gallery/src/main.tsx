@@ -1,4 +1,4 @@
-import { StrictMode, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { StrictMode, useCallback, useEffect, useLayoutEffect, useState, type SetStateAction } from "react";
 import { AppShell, AppShellMain, Toasts, useToast } from "@momoi-labs/kiso-react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
@@ -92,7 +92,7 @@ function App() {
   );
   const [settings, setSettings] = useState(window.kisoAppearance.read);
   const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(readSavedProject);
-  const [demos, setDemos] = useState(incomingDemos);
+  const [demos, setDemos] = useState<DemoOptions>(() => incomingLook?.settings ? incomingDemos : (projectConfig?.demos ?? {}));
   const update = useCallback((patch: Partial<AppearanceSettings>) => {
     setSettings(current => ({ ...current, ...patch }));
     const exported = exportedPatch(patch);
@@ -107,6 +107,18 @@ function App() {
       setProjectConfig(current => current ? applyPresetToProjectConfig(current, exported) : null);
     }
   }, []);
+  const updateDemos = useCallback((next: SetStateAction<DemoOptions>) => {
+    const resolved = typeof next === "function" ? next(demos) : next;
+    setDemos(resolved);
+    const cleaned = Object.fromEntries(Object.entries(resolved).filter(([, values]) => Object.keys(values).length));
+    setProjectConfig(current => {
+      if (!current) return null;
+      const updated = { ...current };
+      if (Object.keys(cleaned).length) updated.demos = cleaned;
+      else delete updated.demos;
+      return updated;
+    });
+  }, [demos]);
   const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
   const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />;
@@ -130,7 +142,11 @@ function App() {
   useEffect(() => {
     const follow = (event: StorageEvent) => {
       if (event.key === null || event.key === "kiso-gallery-appearance") setSettings(window.kisoAppearance.read());
-      if (event.key === null || event.key === projectConfigStorageKey) setProjectConfig(readSavedProject());
+      if (event.key === null || event.key === projectConfigStorageKey) {
+        const saved = readSavedProject();
+        setProjectConfig(saved);
+        setDemos(saved?.demos ?? {});
+      }
     };
     window.addEventListener("storage", follow);
     return () => window.removeEventListener("storage", follow);
@@ -161,7 +177,7 @@ function App() {
 
   return (
     <GallerySettings settings={settings} onChange={update} onPreset={applyPreset} projectConfig={projectConfig} onClearProject={clearProject}
-      demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}
+      demos={demos} onDemosChange={updateDemos} lookDisabled={route === "theme" || route === "appearance"}
       lookNote={route === "tui" || route.startsWith("tui/") ? "The terminal follows the accent and light or dark. Other settings change the page around it." : undefined}>
       {(panel, chip) => <ComponentGallery
         panel={panel}

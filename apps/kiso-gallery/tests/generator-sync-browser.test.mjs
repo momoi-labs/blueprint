@@ -320,3 +320,55 @@ test("Reset in theme clears both settings and projectConfig across theme and com
     assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "snes");
   } finally { await page.close(); }
 });
+
+test("v3 project demos restore across reload and cross-tab storage events", async () => {
+  const v3WithDemos = {
+    v: 3,
+    appearance: { accent: "gold" },
+    structure: { pageWidth: "contained" },
+    demos: { diagram: { edges: "curve", direction: "down" } },
+  };
+  const code = Buffer.from(JSON.stringify(v3WithDemos)).toString("base64url");
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });
+  const isCurved = async page => page.locator("#gallery-settings .gallery-component-settings").getByRole("group", { name: "Edge shape", exact: true }).getByRole("radio", { name: "Curve", exact: true }).isChecked();
+  try {
+    const first = await context.newPage();
+    first.setDefaultTimeout(10_000);
+    await first.route("https://fonts.googleapis.com/**", route => route.abort());
+    await first.goto(`${url}?appearance=${code}#components/diagram`);
+    await first.locator('.diagram[data-direction="down"]').first().waitFor();
+    assert.equal(await isCurved(first), true);
+
+    await first.reload();
+    await first.locator('.diagram[data-direction="down"]').first().waitFor();
+    assert.equal(await isCurved(first), true);
+
+    const second = await context.newPage();
+    second.setDefaultTimeout(10_000);
+    await second.route("https://fonts.googleapis.com/**", route => route.abort());
+    await second.goto(`${url}#components/diagram`);
+    await second.locator('.diagram[data-direction="down"]').first().waitFor();
+    assert.equal(await isCurved(second), true);
+
+    await first.evaluate(() => { window.location.hash = "#theme"; });
+    const panel = await openGenerator(first);
+    await panel.getByRole("button", { name: "Reset", exact: true }).click();
+    await panel.locator(".gen-project-bar").waitFor({ state: "detached" });
+
+    await second.waitForFunction(() => document.querySelector(".diagram")?.getAttribute("data-direction") === "right");
+    assert.equal(await isCurved(second), false);
+    assert.equal(await second.evaluate(() => document.documentElement.dataset.accent), "snes");
+
+    const updatedProject = {
+      v: 3,
+      appearance: { accent: "teal" },
+      structure: {},
+      demos: { diagram: { edges: "curve", direction: "down" } },
+    };
+    await importViaDialog(first, panel, JSON.stringify(updatedProject));
+    await panel.locator(".gen-project-bar").waitFor();
+
+    await second.waitForFunction(() => document.documentElement.dataset.accent === "teal" && document.querySelector(".diagram")?.getAttribute("data-direction") === "down");
+    assert.equal(await isCurved(second), true);
+  } finally { await context.close(); }
+});
