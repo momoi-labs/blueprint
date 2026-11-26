@@ -1,62 +1,166 @@
 import { flushSync } from "react-dom";
 
 const active = new Map<string, () => void>();
+const scrollSelector = ".sidebar-body, .appearance-controls-scroll";
 
-// Animate only the rail. Catalog layout and pointer input update immediately.
+function parseDuration(value: string) {
+  return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+}
+
+function minAnimatedWidth(fullWidth: number, styles: CSSStyleDeclaration) {
+  const pixelRadius = parseFloat(styles.getPropertyValue("--pixel-r")) || 0;
+  return Math.min(fullWidth, Math.max(32, 2 * pixelRadius));
+}
+
 export function animateGalleryPanels(selector: string, update: () => void) {
-  active.get(selector)?.();
   const panel = document.querySelector<HTMLElement>(`.component-gallery > ${selector}`);
   if (!panel || !panel.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    active.get(selector)?.();
     update();
     return;
   }
-  // A collapsed navigation is Kiso's icon rail: it stays in the page, but it is closed.
-  const closing = !panel.hidden && panel.dataset.collapsed !== "true";
-  const fromRail = !panel.hidden && panel.dataset.collapsed === "true";
-  const bounds = panel.getBoundingClientRect();
+
+  const wasAnimating = active.has(selector);
+  const liveWidth = panel.getBoundingClientRect().width;
+  const liveOpacity = parseFloat(getComputedStyle(panel).getPropertyValue("--catalog-sidebar-label-opacity"));
+  active.get(selector)?.();
+
+  const wasHidden = panel.hidden;
+  const closing = !wasHidden && panel.dataset.collapsed !== "true";
+  const beforeBounds = panel.getBoundingClientRect();
+  const beforeClientWidth = panel.clientWidth;
+  const beforeStyles = getComputedStyle(panel);
+  const beforeNavWidth = closing ? panel.querySelector<HTMLElement>(".sidebar-body > nav")?.getBoundingClientRect().width ?? 0 : 0;
   const snapshot = closing ? panel.cloneNode(true) as HTMLElement : null;
-  const scrollSelector = ".sidebar-body, .appearance-controls-scroll";
   const scrollers = snapshot ? [...panel.querySelectorAll<HTMLElement>(scrollSelector)].map(el => el.scrollTop) : [];
+  const beforeHasPixelClip = beforeStyles.clipPath.startsWith("polygon(");
+  const copiedStyles = snapshot ? {
+    backgroundColor: beforeStyles.backgroundColor,
+    backgroundImage: beforeStyles.backgroundImage,
+    backdropFilter: beforeStyles.backdropFilter,
+    boxShadow: beforeStyles.boxShadow,
+    color: beforeStyles.color,
+    borderTop: beforeStyles.borderTop,
+    borderRight: beforeStyles.borderRight,
+    borderBottom: beforeStyles.borderBottom,
+    borderLeft: beforeStyles.borderLeft,
+    borderRadius: beforeStyles.borderRadius,
+  } : null;
+
   flushSync(update);
 
-  const target = snapshot ?? panel;
-  if (snapshot) {
-    // A noninteractive copy lets the closed rail fade without holding its column.
+  const isSidebar = selector === ".catalog-sidebar";
+  const inPlace = !wasHidden && !panel.hidden;
+
+  if (inPlace) {
+    const startWidth = wasAnimating ? liveWidth : beforeBounds.width;
+    const afterWidth = panel.getBoundingClientRect().width;
+    if (Math.abs(startWidth - afterWidth) < 1) return;
+
+    const afterNavWidth = panel.dataset.collapsed !== "true" ? panel.querySelector<HTMLElement>(".sidebar-body > nav")?.getBoundingClientRect().width ?? 0 : 0;
+    const expandedBodyWidth = Math.max(beforeNavWidth, afterNavWidth);
+    const startOpacity = wasAnimating && Number.isFinite(liveOpacity) ? liveOpacity : (closing ? 1 : 0);
+
+    panel.dataset.panelMotion = closing ? "collapsing" : "expanding";
+    if (expandedBodyWidth > 0) {
+      panel.style.setProperty("--catalog-sidebar-expanded-body-width", `${expandedBodyWidth}px`);
+    }
+
+    const styles = getComputedStyle(panel);
+    const frames: Keyframe[] = closing
+      ? [
+          { width: `${startWidth}px`, "--catalog-sidebar-label-opacity": startOpacity },
+          { offset: 0.7, "--catalog-sidebar-label-opacity": 0 },
+          { width: `${afterWidth}px`, "--catalog-sidebar-label-opacity": 0 },
+        ]
+      : [
+          { width: `${startWidth}px`, "--catalog-sidebar-label-opacity": startOpacity },
+          ...(wasAnimating ? [] : [{ offset: 0.2, "--catalog-sidebar-label-opacity": 0 }]),
+          { width: `${afterWidth}px`, "--catalog-sidebar-label-opacity": 1 },
+        ];
+
+    const animation = panel.animate(frames, {
+      duration: parseDuration(styles.getPropertyValue("--motion-duration-normal").trim()),
+      easing: styles.getPropertyValue("--motion-easing-standard").trim(),
+    });
+    animation.id = `gallery-${isSidebar ? "navigation" : "settings"}-${closing ? "out" : "in"}`;
+
+    let done = false;
+    const cleanup = () => {
+      if (done) return;
+      done = true;
+      if (animation.playState !== "finished") animation.cancel();
+      delete panel.dataset.panelMotion;
+      panel.style.removeProperty("--catalog-sidebar-expanded-body-width");
+      if (active.get(selector) === cleanup) active.delete(selector);
+    };
+    active.set(selector, cleanup);
+    void animation.finished.then(cleanup, cleanup);
+    return;
+  }
+
+  const target = snapshot && panel.hidden ? snapshot : panel;
+  const fullWidth = target === snapshot ? beforeBounds.width : panel.getBoundingClientRect().width;
+  const expandedContentWidth = target === snapshot ? beforeClientWidth : panel.clientWidth;
+
+  if (target === snapshot && copiedStyles) {
     snapshot.removeAttribute("id");
     snapshot.setAttribute("aria-hidden", "true");
     snapshot.inert = true;
+    snapshot.dataset.panelMotion = "closing";
+    if (beforeHasPixelClip) snapshot.dataset.gallerySnapshot = "";
     snapshot.querySelectorAll("[id], [name]").forEach(el => {
       el.removeAttribute("id");
       el.removeAttribute("name");
     });
-    Object.assign(snapshot.style, {
-      position: "fixed", margin: "0", left: `${bounds.left}px`, top: `${bounds.top}px`,
-      width: `${bounds.width}px`, height: `${bounds.height}px`, pointerEvents: "none", zIndex: "2",
+    if (expandedContentWidth > 0) {
+      snapshot.style.setProperty("--gallery-settings-expanded-width", `${expandedContentWidth}px`);
+    }
+    Object.assign(snapshot.style, copiedStyles, {
+      position: "fixed",
+      margin: "0",
+      top: `${beforeBounds.top}px`,
+      left: "auto",
+      right: `${document.documentElement.clientWidth - beforeBounds.right}px`,
+      width: `${beforeBounds.width}px`,
+      height: `${beforeBounds.height}px`,
+      pointerEvents: "none",
+      zIndex: "2",
     });
     document.body.append(snapshot);
     snapshot.querySelectorAll<HTMLElement>(scrollSelector).forEach((el, index) => {
       if (scrollers[index]) el.scrollTop = scrollers[index];
     });
+  } else {
+    panel.dataset.panelMotion = "opening";
+    if (expandedContentWidth > 0) {
+      panel.style.setProperty("--gallery-settings-expanded-width", `${expandedContentWidth}px`);
+    }
   }
+
   const styles = getComputedStyle(target);
-  const duration = styles.getPropertyValue("--motion-duration-normal").trim();
-  const collapsed = selector === ".catalog-sidebar" ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)";
-  let frames: Keyframe[] = [{ opacity: 0, clipPath: collapsed }, { opacity: 1, clipPath: "inset(0 0 0 0)" }];
-  if (fromRail) {
-    // The rail stays, and its header holds the toggle, so the header shows at
-    // once and keeps taking clicks. The rest opens from the rail's edge.
-    const top = panel.querySelector<HTMLElement>(".catalog-sidebar-header")?.offsetHeight ?? 0;
-    const shape = (x: string) => `polygon(0 0, 100% 0, 100% ${top}px, ${x} ${top}px, ${x} 100%, 0 100%)`;
-    frames = [{ clipPath: shape(`${bounds.width}px`) }, { clipPath: shape("100%") }];
-  }
+  const collapsedWidth = minAnimatedWidth(fullWidth, styles);
+  const frames: Keyframe[] = [
+    { opacity: 0, width: `${collapsedWidth}px` },
+    { opacity: 1, width: `${fullWidth}px` },
+  ];
   const animation = target.animate(closing ? frames.reverse() : frames, {
-    duration: parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000),
+    duration: parseDuration(styles.getPropertyValue("--motion-duration-normal").trim()),
     easing: styles.getPropertyValue("--motion-easing-standard").trim(),
   });
-  animation.id = `gallery-${selector === ".catalog-sidebar" ? "navigation" : "settings"}-${closing ? "out" : "in"}`;
+  animation.id = `gallery-${isSidebar ? "navigation" : "settings"}-${closing ? "out" : "in"}`;
+
+  let done = false;
   const cleanup = () => {
+    if (done) return;
+    done = true;
     if (animation.playState !== "finished") animation.cancel();
-    snapshot?.remove();
+    if (target === snapshot) {
+      snapshot.remove();
+    } else {
+      delete panel.dataset.panelMotion;
+      panel.style.removeProperty("--gallery-settings-expanded-width");
+    }
     if (active.get(selector) === cleanup) active.delete(selector);
   };
   active.set(selector, cleanup);

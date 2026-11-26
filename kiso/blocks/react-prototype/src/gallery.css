@@ -738,12 +738,14 @@
     top: calc(var(--catalog-bar) + 2 * var(--spacing-md));
     height: calc(100dvh - var(--catalog-bar) - 3 * var(--spacing-md));
   }
-  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel) {
+  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel),
+  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) body > .gallery-settings-panel[data-gallery-snapshot] {
     --pixel-r: round(calc(12px * var(--appearance-scale, 1)), 1px);
     --pixel-step: round(calc(4px * var(--appearance-scale, 1)), 1px);
     clip-path: polygon(var(--pixel-r) 0, calc(100% - var(--pixel-r)) 0, calc(100% - var(--pixel-r)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-step), calc(100% - var(--pixel-step)) var(--pixel-r), 100% var(--pixel-r), 100% calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-r)), calc(100% - var(--pixel-step)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) calc(100% - var(--pixel-step)), calc(100% - var(--pixel-r)) 100%, var(--pixel-r) 100%, var(--pixel-r) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-step)), var(--pixel-step) calc(100% - var(--pixel-r)), 0 calc(100% - var(--pixel-r)), 0 var(--pixel-r), var(--pixel-step) var(--pixel-r), var(--pixel-step) var(--pixel-step), var(--pixel-r) var(--pixel-step));
   }
-  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel)::before {
+  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) .component-gallery:has(> .catalog-header[data-catalog-bar="page"]) > :is(.catalog-sidebar, .gallery-settings-panel)::before,
+  :root[data-header-variant="floating"][data-corner-style="pixel"]:not([data-frame-scope="outer"], [data-border-style="manga"], [data-border-style="brush"]) body > .gallery-settings-panel[data-gallery-snapshot]::before {
     content: "";
     position: absolute;
     inset: -1px;
@@ -767,6 +769,64 @@
   :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar .nav-item.sidebar-link-with-icon {
     padding-inline-start: calc((var(--size-touch-min) + var(--spacing-md) - 2px - 2 * var(--spacing-sm) - var(--size-icon-md)) / 2);
   }
+  .component-gallery > .catalog-sidebar[data-panel-motion] {
+    overflow: clip;
+    overflow-clip-margin: border-box;
+    z-index: 2;
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] > .catalog-sidebar-header,
+  .component-gallery > .catalog-sidebar[data-panel-motion] > .sidebar-footer {
+    overflow: hidden;
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] > .catalog-sidebar-header > .sidebar-expanded-content {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] > .sidebar-body {
+    overflow-x: hidden;
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] > .sidebar-body > nav {
+    width: var(--catalog-sidebar-expanded-body-width);
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] .nav-group > .t-caps {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .component-gallery > .catalog-sidebar[data-panel-motion] :is(.nav-group > .t-caps, .sidebar-link-with-icon .sidebar-link-label, .sidebar-link-trailing) {
+    opacity: var(--catalog-sidebar-label-opacity);
+  }
+  .component-gallery > .catalog-sidebar[data-collapsed="true"][data-panel-motion="collapsing"] .nav-group > .t-caps {
+    visibility: visible;
+    inline-size: auto;
+    padding-inline: var(--spacing-sm);
+  }
+  .component-gallery > .catalog-sidebar[data-collapsed="true"][data-panel-motion="collapsing"] .sidebar-link-with-icon .sidebar-link-label {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    clip-path: none;
+  }
+  .component-gallery > .catalog-sidebar[data-collapsed="true"][data-panel-motion="collapsing"] .sidebar-link-trailing {
+    display: inline-flex;
+  }
+  :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar[data-collapsed="true"][data-panel-motion="collapsing"] > .catalog-sidebar-header {
+    justify-items: end;
+    padding-inline: var(--spacing-md) var(--spacing-sm);
+  }
+  .gallery-settings-panel[data-panel-motion] {
+    justify-self: end;
+  }
+  .gallery-settings-panel[data-panel-motion] > * {
+    width: var(--gallery-settings-expanded-width);
+  }
+}
+
+@property --catalog-sidebar-label-opacity {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
 }
 
 /* Floating pill: the content clears the rounded ends, and the tabs sit
