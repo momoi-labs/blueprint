@@ -3,11 +3,15 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import { appearanceOptions, presetDefaults } from "../src/appearance-settings.ts";
-import { projectShareText, readShare } from "../src/appearance-share.ts";
+import { projectShareText, readShare, settingsText, shareCode } from "../src/appearance-share.ts";
 import {
   applyPresetToProjectConfig, checkTuiDivergence, exportedPatch, exportProjectHtml, exportRustSnippet, fieldClass,
-  importProjectHtml, parseProjectConfig, projectPreviewDefaults, settingsFromProject,
+  importProjectHtml, parseProjectConfig, projectFromSettings, projectPreviewDefaults, settingsFromProject,
 } from "../src/project-config.ts";
+import {
+  dataSignature, deliveryProjects, expectedDeliveryRepos, expectedPresetLabels, extractDataAttributes,
+  galleryPresets, kebabToCamel, presetCompositions, readSourceCompositions, uniqueDeliveryProjects,
+} from "./combination-fixtures.mjs";
 
 const window = { matchMedia: () => ({ matches: false, addEventListener() {} }) };
 runInNewContext(readFileSync(new URL("../public/appearance-init.js", import.meta.url), "utf8"), {
@@ -390,4 +394,175 @@ test("project preview helpers resolve Kiso fallbacks and strip gallery-only fiel
   assert.equal(preview.headerWidth, "outset");
   assert.equal(preview.landingBands, "inside");
   assert.deepEqual(exportedPatch({ accent: "teal", theme: "dark", headerWidth: "outset", landingBands: "full", pageWidth: "full" }), { accent: "teal", pageWidth: "full" });
+});
+
+test("all 11 delivery repos and variants import, export, persist, and round-trip share v3 without losing unset fields", () => {
+  const repos = [...new Set(deliveryProjects.map(project => project.repo))].sort();
+  assert.deepEqual(repos, [...expectedDeliveryRepos].sort());
+
+  const alternateReceiver = {
+    options: source.options,
+    defaults: Object.fromEntries(
+      Object.entries(source.options).map(([key, values]) => [key, values[values.length - 1]]),
+    ),
+  };
+
+  for (const project of deliveryProjects) {
+    const dataAttrs = extractDataAttributes(project.html);
+    assert.equal(Object.keys(dataAttrs).length, project.expectedDataCount, `${project.id}: data-* count`);
+
+    const imported = importProjectHtml(project.html, source);
+    assert.equal(imported.error, undefined, `${project.id}: no import error`);
+    assert.ok(imported.config, `${project.id}: config imported`);
+    assert.deepEqual(imported.skipped, [], `${project.id}: zero skipped attributes`);
+    assert.deepEqual(
+      imported.config.rest.map(attr => attr.name),
+      project.expectedRest,
+      `${project.id}: preserved rest attributes`,
+    );
+
+    for (const galleryOnlyKey of ["theme", "headerWidth", "landingBands"]) {
+      assert.equal(Object.hasOwn(imported.config.appearance, galleryOnlyKey), false, `${project.id}: ${galleryOnlyKey} not in appearance`);
+      assert.equal(Object.hasOwn(imported.config.structure, galleryOnlyKey), false, `${project.id}: ${galleryOnlyKey} not in structure`);
+    }
+
+    const exported = exportProjectHtml(imported.config);
+    assert.deepEqual(attributeSet(exported), attributeSet(project.html), `${project.id}: lossless HTML export`);
+    assert.deepEqual(plain(importProjectHtml(exported, source).config), plain(imported.config), `${project.id}: re-import matches`);
+    assert.deepEqual(plain(parseProjectConfig(JSON.stringify(imported.config), source)), plain(imported.config), `${project.id}: storage round-trip`);
+
+    const v3Json = projectShareText(imported.config);
+    const v3Code = Buffer.from(v3Json, "utf8").toString("base64url");
+    for (const shareInput of [v3Json, v3Code, `https://example.test/?appearance=${v3Code}#theme`]) {
+      const decoded = readShare(shareInput, alternateReceiver);
+      assert.equal(decoded.error, undefined, `${project.id}: share v3 decoded`);
+      assert.deepEqual(decoded.skipped, [], `${project.id}: share v3 skipped none`);
+      assert.ok(decoded.project, `${project.id}: share v3 returns project`);
+      assert.deepEqual(plain(decoded.project.appearance), plain(imported.config.appearance), `${project.id}: share v3 appearance preserves unset fields`);
+      assert.deepEqual(plain(decoded.project.structure), plain(imported.config.structure), `${project.id}: share v3 structure preserves unset fields`);
+    }
+  }
+
+  for (const group of uniqueDeliveryProjects) {
+    const first = importProjectHtml(group.html, source).config;
+    for (const coveredId of group.covers) {
+      const member = deliveryProjects.find(project => project.id === coveredId);
+      assert.equal(dataSignature(member.html), group.signature, `${coveredId} matches ${group.id} text signature`);
+      const memberConfig = importProjectHtml(member.html, source).config;
+      assert.deepEqual(plain(memberConfig.appearance), plain(first.appearance), `${coveredId} appearance matches ${group.id}`);
+      assert.deepEqual(plain(memberConfig.structure), plain(first.structure), `${coveredId} structure matches ${group.id}`);
+    }
+  }
+});
+
+test("all 11 gallery presets have valid options and apply cleanly standalone and onto project configs", () => {
+  assert.deepEqual(galleryPresets.map(preset => preset.label), expectedPresetLabels);
+  assert.deepEqual(plain(presetCompositions), plain(readSourceCompositions()));
+
+  const pgconfigBase = importProjectHtml(deliveryProjects.find(project => project.id === "pgconfig").html, source).config;
+  const emptyBase = importProjectHtml('<html lang="en">', source).config;
+
+  for (const preset of galleryPresets) {
+    for (const [key, value] of Object.entries(preset.defined)) {
+      assert.ok(Object.hasOwn(appearanceOptions, key), `${preset.label}: defined key ${key} exists`);
+      assert.ok(appearanceOptions[key].includes(value), `${preset.label}: defined ${key}=${value} is valid`);
+    }
+    assert.deepEqual(Object.keys(preset.look).sort(), Object.keys(appearanceOptions).sort(), `${preset.label}: look has all fields`);
+    for (const [key, value] of Object.entries(preset.look)) {
+      assert.ok(appearanceOptions[key].includes(value), `${preset.label}: look ${key}=${value} is valid`);
+    }
+
+    for (const isPhone of [false, true]) {
+      const dataset = {};
+      const sandboxWindow = { matchMedia: () => ({ matches: isPhone, addEventListener() {} }) };
+      runInNewContext(readFileSync(new URL("../public/appearance-init.js", import.meta.url), "utf8"), {
+        window: sandboxWindow,
+        document: { documentElement: { dataset } },
+        localStorage: { getItem: () => null, setItem() {} },
+      });
+      const applied = sandboxWindow.kisoAppearance.apply(preset.look);
+      assert.deepEqual(plain(applied), plain(preset.look), `${preset.label}: apply keeps all look values (phone=${isPhone})`);
+
+      for (const [key, value] of Object.entries(preset.defined)) {
+        if (key.startsWith("phone")) {
+          const target = key[5].toLowerCase() + key.slice(6);
+          if (isPhone && value !== "inherit") assert.equal(dataset[target], value, `${preset.label}: phone override ${target}`);
+          continue;
+        }
+        if (key === "theme") {
+          assert.equal(dataset.theme, value === "system" ? undefined : value, `${preset.label}: theme dataset`);
+          continue;
+        }
+        const phoneOverride = preset.defined[`phone${key[0].toUpperCase()}${key.slice(1)}`];
+        const expected = isPhone && phoneOverride && phoneOverride !== "inherit" ? phoneOverride : value;
+        assert.equal(dataset[key], expected, `${preset.label}: dataset.${key} (phone=${isPhone})`);
+      }
+    }
+
+    for (const shareInput of [settingsText(preset.look), shareCode(preset.look, source)]) {
+      const decoded = readShare(shareInput, source);
+      assert.deepEqual(decoded.skipped, [], `${preset.label}: v2 share skipped none`);
+      assert.deepEqual(plain(decoded.settings), plain(preset.look), `${preset.label}: v2 share round-trip`);
+    }
+
+    const asProject = projectFromSettings(preset.look);
+    const v3Decoded = readShare(projectShareText(asProject), source);
+    assert.deepEqual(v3Decoded.skipped, [], `${preset.label}: v3 share skipped none`);
+    assert.deepEqual(plain(v3Decoded.project.appearance), plain(asProject.appearance), `${preset.label}: v3 appearance`);
+    assert.deepEqual(plain(v3Decoded.project.structure), plain(asProject.structure), `${preset.label}: v3 structure`);
+
+    const onEmpty = applyPresetToProjectConfig(emptyBase, preset.defined);
+    const onSparse = applyPresetToProjectConfig(pgconfigBase, preset.defined);
+    assert.deepEqual(onSparse.rest, pgconfigBase.rest, `${preset.label}: preserves rest on sparse project`);
+
+    const expectedExportedDefined = exportedPatch(preset.defined);
+    for (const [key, value] of Object.entries(expectedExportedDefined)) {
+      if (key.startsWith("phone")) {
+        const target = key[5].toLowerCase() + key.slice(6);
+        if (value === "inherit") {
+          assert.equal(onEmpty.appearance.phone?.[target], undefined, `${preset.label}: inherit phone not written`);
+        } else {
+          assert.equal(onEmpty.appearance.phone?.[target], value, `${preset.label}: phone.${target} set on empty`);
+          assert.equal(onSparse.appearance.phone?.[target], value, `${preset.label}: phone.${target} set on sparse`);
+        }
+      } else if (fieldClass[key] === "structure") {
+        assert.equal(onEmpty.structure[key], value, `${preset.label}: structure.${key} set on empty`);
+        assert.equal(onSparse.structure[key], value, `${preset.label}: structure.${key} set on sparse`);
+      } else {
+        assert.equal(onEmpty.appearance[key], value, `${preset.label}: appearance.${key} set on empty`);
+        assert.equal(onSparse.appearance[key], value, `${preset.label}: appearance.${key} set on sparse`);
+      }
+    }
+
+    for (const galleryOnlyKey of ["theme", "headerWidth", "landingBands"]) {
+      assert.equal(Object.hasOwn(onEmpty.appearance, galleryOnlyKey), false, `${preset.label}: ${galleryOnlyKey} excluded from empty`);
+      assert.equal(Object.hasOwn(onSparse.appearance, galleryOnlyKey), false, `${preset.label}: ${galleryOnlyKey} excluded from sparse`);
+      assert.equal(Object.hasOwn(onEmpty.structure, galleryOnlyKey), false, `${preset.label}: ${galleryOnlyKey} excluded from empty structure`);
+      assert.equal(Object.hasOwn(onSparse.structure, galleryOnlyKey), false, `${preset.label}: ${galleryOnlyKey} excluded from sparse structure`);
+    }
+
+    const unsetSample = Object.keys(appearanceOptions).filter(key =>
+      fieldClass[key] !== "galleryOnly"
+      && !key.startsWith("phone")
+      && !Object.hasOwn(preset.defined, key)
+      && !Object.hasOwn(pgconfigBase.appearance, key)
+      && !Object.hasOwn(pgconfigBase.structure, key),
+    );
+    for (const key of unsetSample) {
+      assert.equal(Object.hasOwn(onSparse.appearance, key), false, `${preset.label}: unset ${key} stays unset in appearance`);
+      assert.equal(Object.hasOwn(onSparse.structure, key), false, `${preset.label}: unset ${key} stays unset in structure`);
+    }
+
+    const exportedFromSparse = exportProjectHtml(onSparse);
+    const reimported = importProjectHtml(exportedFromSparse, source);
+    assert.deepEqual(reimported.skipped, [], `${preset.label}: sparse+preset export re-imports cleanly`);
+    assert.deepEqual(plain(reimported.config), plain(onSparse), `${preset.label}: sparse+preset export round-trips`);
+
+    const dataFromSparse = extractDataAttributes(exportedFromSparse);
+    for (const [attr, value] of Object.entries(dataFromSparse)) {
+      const camel = kebabToCamel(attr);
+      if (fieldClass[camel] === "structure") assert.equal(onSparse.structure[camel], value);
+      else if (fieldClass[camel] === "appearance") assert.equal(onSparse.appearance[camel], value);
+    }
+  }
 });
