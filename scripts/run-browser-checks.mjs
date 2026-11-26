@@ -1,11 +1,13 @@
 // Runs scripts/check-*-browser.mjs in parallel and prints a duration summary.
 // Usage: node scripts/run-browser-checks.mjs [--shard=i/n] [script ...]
-// KISO_BROWSER_CONCURRENCY overrides the default of 4.
+// KISO_BROWSER_CONCURRENCY overrides the default of 4. A check, or a test in it,
+// fails by name after 7 minutes, or KISO_TEST_TIMEOUT ms.
 import { spawn } from 'node:child_process';
 import { glob } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lockBrowser } from './lock.mjs';
+import { report, track } from './test-events.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);
@@ -23,46 +25,72 @@ if (shard) {
   if (!(index >= 1 && index <= total)) throw new Error(`Invalid --shard=${shard}, expected i/n with 1 <= i <= n`);
   scripts = scripts.filter((_, position) => position % total === index - 1);
 }
-if (!scripts.length) { console.log('No browser checks to run.'); process.exit(0); }
+if (!scripts.length) {
+  if (shard) { report('No browser check in this shard', [`--shard=${shard} selected none of the checks`]); process.exit(1); }
+  console.log('No browser checks to run.');
+  process.exit(0);
+}
 
 const limit = Math.max(1, Number(process.env.KISO_BROWSER_CONCURRENCY) || 4);
+const timeout = Number(process.env.KISO_TEST_TIMEOUT) || 420000;
 const label = file => basename(file).replace(/^check-|-browser\.mjs$/g, '');
 const width = Math.max(...scripts.map(file => label(file).length));
 const results = [];
 const started = Date.now();
 const running = new Set();
 
-function prefix(name, stream, out) {
+function prefix(name, stream, out, seen = () => {}) {
   let rest = '';
+  const write = line => { seen(line); out.write(`[${name.padEnd(width)}] ${line}\n`); };
   stream.setEncoding('utf8');
   stream.on('data', chunk => {
     const lines = (rest + chunk).split('\n');
     rest = lines.pop();
-    for (const line of lines) out.write(`[${name.padEnd(width)}] ${line}\n`);
+    lines.forEach(write);
   });
-  stream.on('end', () => { if (rest) out.write(`[${name.padEnd(width)}] ${rest}\n`); });
+  stream.on('end', () => { if (rest) write(rest); });
+}
+
+function signal(child, name) {
+  try { process.kill(-child.pid, name); } catch {}
 }
 
 function run(file) {
   const name = label(file);
   const begin = Date.now();
   return new Promise(resolve => {
-    const child = spawn(process.execPath, [file], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    const progress = track(root);
+    const child = spawn(process.execPath, [`--test-timeout=${timeout}`, '--test-force-exit', ...progress.args, file], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
     running.add(child);
     prefix(name, child.stdout, process.stdout);
-    prefix(name, child.stderr, process.stderr);
-    child.on('error', error => { console.error(`[${name}] ${error.message}`); resolve({ name, code: 1, seconds: 0 }); });
-    child.on('close', code => { running.delete(child); resolve({ name, code: code ?? 1, seconds: (Date.now() - begin) / 1000 }); });
+    let thrown;
+    prefix(name, child.stderr, process.stderr, line => { if (!thrown && /^\w*Error\b.*: /.test(line)) thrown = line; });
+    let stuck;
+    const timer = setTimeout(() => {
+      progress.read();
+      stuck = progress.stuck();
+      signal(child, 'SIGTERM');
+      setTimeout(() => signal(child, 'SIGKILL'), 10000).unref();
+    }, timeout + 30000);
+    child.on('error', error => { console.error(`[${name}] ${error.message}`); resolve({ name, code: 1, seconds: 0, failures: [error.message] }); });
+    child.on('close', code => {
+      clearTimeout(timer);
+      running.delete(child);
+      progress.close();
+      const failures = stuck ? [`timed out after ${Math.round((timeout + 30000) / 1000)}s${stuck.length ? ` in ${stuck.join(', ')}` : ''}`] : progress.failures();
+      if (!failures.length && code && thrown) failures.push(thrown);
+      resolve({ name, code: stuck ? 1 : code ?? 1, seconds: (Date.now() - begin) / 1000, failures });
+    });
   });
 }
 
 await lockBrowser();
 const queue = [...scripts];
 // A signal stops the queue and the running checks; the lock goes on exit.
-for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+for (const name of ['SIGINT', 'SIGTERM']) process.on(name, () => {
   queue.length = 0;
   if (!running.size) process.exit(130);
-  for (const child of running) child.kill(signal);
+  for (const child of running) signal(child, name);
 });
 console.log(`Running ${scripts.length} browser checks, ${limit} at a time`);
 await Promise.all(Array.from({ length: Math.min(limit, queue.length) }, async () => {
@@ -76,6 +104,6 @@ for (const { name, code, seconds } of results.sort((a, b) => b.seconds - a.secon
 const failed = results.filter(result => result.code !== 0);
 console.log(`\n${results.length - failed.length}/${results.length} passed in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 if (failed.length) {
-  console.error(`Failed: ${failed.map(result => result.name).join(', ')}`);
+  report('Failed browser checks', failed.flatMap(({ name, code, failures }) => (failures.length ? failures.map(failure => `${name}: ${failure}`) : [`${name}: exit code ${code}`])));
   process.exit(1);
 }
