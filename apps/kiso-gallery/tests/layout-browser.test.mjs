@@ -617,19 +617,34 @@ for (const [name, path, saved] of [
   ["compact spacing", "?phone-frame#example/crud", { appShellOuter: "compact" }],
   ["no borders", "?phone-frame#example/crud", { borderStyle: "none", outerBorderStyle: "inherit" }],
   ["dialog preview", "#example/dashboard", {}],
-]) test(`The full brand bar starts with the top bar on a patterned canvas, ${name}`, async () => {
+  ["SNES full fill", "#example/dashboard", { accent: "snes", backgroundStyle: "glow", outerBorderStyle: "none", panelFill: "glass", appShellOuter: "full", shellBottom: "fill", shellRight: "fill" }],
+  ["solid canvas", "?frame#example/dashboard", { backgroundStyle: "solid" }],
+]) test(`The full brand bar covers from the sidebar header top and aligns with the top bar, ${name}`, async () => {
   const page = await open(1440, "inset", "light", false, { brandBar: "full", backgroundStyle: "construction", outerBorderStyle: "solid", ...saved });
   try {
     await page.goto(`${url}${path}`);
     const root = path.startsWith("?") ? page : page.frameLocator(".layout-dialog iframe");
     const shell = root.locator('html[data-brand-bar="full"] .app-shell[data-shell-layout]');
     await shell.locator(".topbar").waitFor();
-    const [fill, bar] = await shell.evaluate(el => {
+    const metrics = await shell.evaluate(el => {
       const header = el.querySelector(":scope > .sidebar > .sidebar-header");
-      const top = header.getBoundingClientRect().top + parseFloat(getComputedStyle(header, "::after").top);
-      return [top, el.querySelector(":scope > main").getBoundingClientRect().top];
+      const after = getComputedStyle(header, "::after");
+      const shellRect = el.getBoundingClientRect();
+      const headerRect = header.getBoundingClientRect();
+      const topbarRect = el.querySelector(":scope > main > .topbar").getBoundingClientRect();
+      return {
+        shellTop: shellRect.top,
+        headerTop: headerRect.top,
+        fillTop: headerRect.top + parseFloat(after.top),
+        fillBottom: headerRect.bottom - parseFloat(after.bottom),
+        topbarBottom: topbarRect.bottom,
+      };
     });
-    assert.equal(fill, bar, "The brand fill starts at the top edge of the main panel");
+    assert(Math.abs(metrics.fillTop - metrics.headerTop) <= 0.5, `The brand fill starts at the sidebar header top (${JSON.stringify(metrics)})`);
+    if (saved.backgroundStyle !== "solid") {
+      assert(Math.abs(metrics.fillTop - metrics.shellTop) <= 0.5, `The brand fill reaches the shell top on a patterned canvas (${JSON.stringify(metrics)})`);
+    }
+    assert(Math.abs(metrics.fillBottom - metrics.topbarBottom) <= 0.5, `The brand fill bottom aligns with the top bar (${JSON.stringify(metrics)})`);
   } finally { await page.close(); }
 });
 
