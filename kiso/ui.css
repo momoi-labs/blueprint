@@ -1494,7 +1494,7 @@ table.table {
   .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: 1px; }
   :where([data-background-style]:not([data-background-style="solid"])) .app-shell[data-shell-layout]:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])),
   .app-shell[data-shell-layout][data-background-canvas]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: calc(var(--app-shell-outer) + 1px); }
-  :where([data-outer-border-style="none"], [data-app-shell-outer="none"], [data-border-style="none"]:where([data-outer-border-style="inherit"], :not([data-outer-border-style]))) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: 0px; --app-shell-frame-border: 0px; }
+  :where([data-outer-border-style="none"], [data-app-shell-outer="none"], [data-border-style="none"]:where([data-outer-border-style="inherit"], :not([data-outer-border-style]))) .app-shell[data-shell-layout]:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: 0px; }
   :where([data-outer-border-style="none"], [data-app-shell-outer="none"], [data-border-style="none"]:where([data-outer-border-style="inherit"], :not([data-outer-border-style]))):where([data-background-style]:not([data-background-style="solid"])) .app-shell[data-shell-layout]:where(:not(.app-shell .app-shell)):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) { --app-shell-frame-top: var(--app-shell-outer); }
 
   .app-shell[data-shell-layout] > .sidebar > .sidebar-header {
@@ -1524,7 +1524,7 @@ table.table {
     content: "";
     position: absolute;
     z-index: -1;
-    inset-block: calc(var(--app-shell-frame-top) - var(--app-shell-frame-border, 1px)) 0;
+    inset-block: 0;
     inset-inline-start: 0;
     width: 100vw;
     pointer-events: none;
