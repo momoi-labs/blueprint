@@ -434,3 +434,39 @@ test("incoming v3 share URL works when localStorage is blocked and survives view
     assert.match(await lookPanel.locator(".gallery-look-project").innerText(), /4 fields/);
   } finally { await page.close(); }
 });
+
+test("a delayed reset storage event does not wipe a newer imported project or delete it on the next edit", async () => {
+  const page = await open("#theme");
+  try {
+    const panel = await openGenerator(page);
+    await importViaDialog(page, panel, pgconfigHtml);
+    await panel.locator(".gen-project-bar").waitFor();
+
+    await page.evaluate(() => {
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: "kiso-gallery-reset",
+        newValue: `${Date.now()}-delayed`,
+        storageArea: localStorage,
+      }));
+    });
+
+    await panel.locator(".gen-project-bar").waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "cobalt");
+    const afterDelayed = await page.evaluate(() => JSON.parse(localStorage.getItem("kiso-gallery-project-config") || "null"));
+    assert.equal(afterDelayed?.appearance?.accent, "cobalt");
+
+    await tab(panel, "Frame");
+    await panel.getByRole("group", { name: "Corner type", exact: true }).locator('input[value="rounded"]').check({ force: true });
+
+    await panel.locator(".gen-project-bar").waitFor();
+    const afterEdit = await page.evaluate(() => JSON.parse(localStorage.getItem("kiso-gallery-project-config") || "null"));
+    assert.equal(afterEdit?.appearance?.accent, "cobalt");
+    assert.equal(afterEdit?.appearance?.cornerStyle, "rounded");
+
+    await tab(panel, "Code");
+    const exportedHtml = (await panel.locator(".gen-export [data-slot='code-block'] code").innerText()).trim();
+    assert.ok(exportedHtml.includes('data-accent="cobalt"'));
+    assert.ok(exportedHtml.includes('data-corner-style="rounded"'));
+    assert.ok(!exportedHtml.includes("data-panel-fill="));
+  } finally { await page.close(); }
+});
