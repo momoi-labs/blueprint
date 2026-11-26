@@ -1,4 +1,4 @@
-import { StrictMode, useCallback, useEffect, useLayoutEffect, useState, type SetStateAction } from "react";
+import { StrictMode, useCallback, useEffect, useLayoutEffect, useRef, useState, type SetStateAction } from "react";
 import { AppShell, AppShellMain, Toasts, useToast } from "@momoi-labs/kiso-react";
 import { createRoot } from "react-dom/client";
 import { ComponentGallery } from "../../../kiso/blocks/react-prototype/src/gallery";
@@ -27,7 +27,7 @@ import "./theme-generator.css";
 
 const readSavedProject = () => {
   try {
-    return parseProjectConfig(localStorage.getItem(projectConfigStorageKey), window.kisoAppearance);
+    return parseProjectConfig(localStorage.getItem(projectConfigStorageKey), window.kisoAppearance, demoSchema);
   } catch {
     return null;
   }
@@ -40,31 +40,34 @@ const saveProject = (config: ProjectConfig | null) => {
     return;
   }
 };
+const resolveSettings = (base: AppearanceSettings, project: ProjectConfig | null) =>
+  project ? settingsFromProject(project, projectPreviewDefaults(window.kisoAppearance.options, base)) : base;
 
 // A share link applies and saves its look, then drops the code from the URL.
 // The hash keeps the route, so the code lives in the query string.
 let incomingLook: ShareResult | null = null;
 let incomingDemos: DemoOptions = {};
+let incomingSettings: AppearanceSettings | null = null;
+let incomingProject: ProjectConfig | null = null;
 if (!phoneFrame && !standalone) {
   const url = new URL(window.location.href);
   const code = url.searchParams.get(shareParam);
   if (code !== null) {
     incomingLook = readShare(code, window.kisoAppearance, demoSchema);
     if (incomingLook.project) {
-      saveProject(incomingLook.project);
-      window.kisoAppearance.save(settingsFromProject(
-        incomingLook.project,
-        projectPreviewDefaults(window.kisoAppearance.options, window.kisoAppearance.read()),
-      ));
+      incomingProject = incomingLook.project;
+      saveProject(incomingProject);
+      incomingSettings = window.kisoAppearance.save(resolveSettings(window.kisoAppearance.read(), incomingProject));
     } else if (incomingLook.settings) {
       saveProject(null);
-      window.kisoAppearance.save(incomingLook.settings);
+      incomingSettings = window.kisoAppearance.save(incomingLook.settings);
     }
     incomingDemos = incomingLook.demos;
     url.searchParams.delete(shareParam);
     window.history.replaceState(null, "", url);
   }
 }
+const hasIncomingShare = Boolean(incomingLook?.settings);
 
 // A frame URL can carry a look for itself alone. It applies without saving,
 // so a measured or linked frame does not change the reader's gallery.
@@ -73,7 +76,7 @@ if (phoneFrame || standalone) {
   const code = new URLSearchParams(window.location.search).get(shareParam);
   const result = code === null ? null : readShare(code, window.kisoAppearance, demoSchema);
   const look = result?.project
-    ? settingsFromProject(result.project, projectPreviewDefaults(window.kisoAppearance.options, window.kisoAppearance.read()))
+    ? resolveSettings(window.kisoAppearance.read(), result.project)
     : result?.settings ?? null;
   if (look) frameLook = window.kisoAppearance.apply(look);
 }
@@ -90,9 +93,21 @@ function App() {
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "intro"
   );
-  const [settings, setSettings] = useState(window.kisoAppearance.read);
-  const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(readSavedProject);
-  const [demos, setDemos] = useState<DemoOptions>(() => incomingLook?.settings ? incomingDemos : (projectConfig?.demos ?? {}));
+  const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(() =>
+    hasIncomingShare ? incomingProject : readSavedProject()
+  );
+  const [settings, setSettings] = useState<AppearanceSettings>(() =>
+    incomingSettings ?? resolveSettings(window.kisoAppearance.read(), projectConfig)
+  );
+  const [demos, setDemos] = useState<DemoOptions>(() =>
+    hasIncomingShare ? incomingDemos : (projectConfig?.demos ?? {})
+  );
+  const demosRef = useRef(demos);
+  demosRef.current = demos;
+  const setDemosSync = useCallback((next: DemoOptions) => {
+    demosRef.current = next;
+    setDemos(next);
+  }, []);
   const update = useCallback((patch: Partial<AppearanceSettings>) => {
     setSettings(current => ({ ...current, ...patch }));
     const exported = exportedPatch(patch);
@@ -108,7 +123,8 @@ function App() {
     }
   }, []);
   const updateDemos = useCallback((next: SetStateAction<DemoOptions>) => {
-    const resolved = typeof next === "function" ? next(demos) : next;
+    const resolved = typeof next === "function" ? next(demosRef.current) : next;
+    demosRef.current = resolved;
     setDemos(resolved);
     const cleaned = Object.fromEntries(Object.entries(resolved).filter(([, values]) => Object.keys(values).length));
     setProjectConfig(current => {
@@ -118,7 +134,7 @@ function App() {
       else delete updated.demos;
       return updated;
     });
-  }, [demos]);
+  }, []);
   const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
   const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />;
@@ -141,33 +157,34 @@ function App() {
   }, [projectConfig]);
   useEffect(() => {
     const follow = (event: StorageEvent) => {
-      if (event.key === null || event.key === "kiso-gallery-appearance") setSettings(window.kisoAppearance.read());
-      if (event.key === null || event.key === projectConfigStorageKey) {
-        const saved = readSavedProject();
-        setProjectConfig(saved);
-        setDemos(saved?.demos ?? {});
+      const appearanceChanged = event.key === null || event.key === "kiso-gallery-appearance";
+      const projectChanged = event.key === null || event.key === projectConfigStorageKey;
+      if (!appearanceChanged && !projectChanged) return;
+      const savedProject = readSavedProject();
+      if (projectChanged) {
+        setProjectConfig(savedProject);
+        if (savedProject) setDemosSync(savedProject.demos ?? {});
       }
+      setSettings(resolveSettings(window.kisoAppearance.read(), savedProject));
     };
     window.addEventListener("storage", follow);
     return () => window.removeEventListener("storage", follow);
-  }, []);
+  }, [setDemosSync]);
   const reset = useCallback(() => {
     setProjectConfig(null);
     setSettings({ ...window.kisoAppearance.defaults });
-    setDemos({});
-  }, []);
+    setDemosSync({});
+  }, [setDemosSync]);
   const applyShare = useCallback((next: AppearanceSettings, nextDemos: DemoOptions, project?: ProjectConfig) => {
     setProjectConfig(project ?? null);
-    setSettings(current => project
-      ? settingsFromProject(project, projectPreviewDefaults(window.kisoAppearance.options, current))
-      : next);
-    setDemos(nextDemos);
-  }, []);
+    setSettings(current => project ? resolveSettings(current, project) : next);
+    setDemosSync(nextDemos);
+  }, [setDemosSync]);
   const importProject = useCallback((config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => {
     setProjectConfig(config);
     setSettings(nextSettings);
-    setDemos(nextDemos);
-  }, []);
+    setDemosSync(nextDemos);
+  }, [setDemosSync]);
   const clearProject = useCallback(() => {
     setProjectConfig(null);
   }, []);

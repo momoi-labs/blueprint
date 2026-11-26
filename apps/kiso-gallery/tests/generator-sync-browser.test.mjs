@@ -267,6 +267,7 @@ test("opening a v3 share link enters project mode with Kiso fallbacks across com
     assert.equal(previewSettings.phoneBorderStyle, "none");
     assert.equal(previewSettings.pageWidth, "contained");
     assert.equal(previewSettings.shadowStyle, "auto");
+    assert.equal(previewSettings.cornerMarks, "none");
     assert.equal(previewSettings.panelFill, "solid");
     assert.equal(previewSettings.backgroundStyle, "solid");
     assert.equal(previewSettings.frameScope, "panels");
@@ -321,7 +322,7 @@ test("Reset in theme clears both settings and projectConfig across theme and com
   } finally { await page.close(); }
 });
 
-test("v3 project demos restore across reload and cross-tab storage events", async () => {
+test("v3 project demos restore across reload, cross-tab storage, drift recovery, and clearProject", async () => {
   const v3WithDemos = {
     v: 3,
     appearance: { accent: "gold" },
@@ -339,9 +340,18 @@ test("v3 project demos restore across reload and cross-tab storage events", asyn
     await first.locator('.diagram[data-direction="down"]').first().waitFor();
     assert.equal(await isCurved(first), true);
 
+    await first.evaluate(() => {
+      const appearance = JSON.parse(localStorage.getItem("kiso-gallery-appearance"));
+      localStorage.setItem("kiso-gallery-appearance", JSON.stringify({ ...appearance, accent: "red", theme: "light", cornerMarks: "ticks" }));
+      localStorage.setItem("kiso-accent", "red");
+      localStorage.setItem("kiso-theme", "light");
+    });
     await first.reload();
     await first.locator('.diagram[data-direction="down"]').first().waitFor();
     assert.equal(await isCurved(first), true);
+    assert.equal(await first.evaluate(() => document.documentElement.dataset.accent), "gold");
+    assert.equal(await first.evaluate(() => document.documentElement.dataset.cornerMarks), "none");
+    assert.equal(await first.evaluate(() => document.documentElement.dataset.theme), "light");
 
     const second = await context.newPage();
     second.setDefaultTimeout(10_000);
@@ -352,23 +362,62 @@ test("v3 project demos restore across reload and cross-tab storage events", asyn
 
     await first.evaluate(() => { window.location.hash = "#theme"; });
     const panel = await openGenerator(first);
-    await panel.getByRole("button", { name: "Reset", exact: true }).click();
+    await panel.getByRole("button", { name: "Clear project", exact: true }).click();
     await panel.locator(".gen-project-bar").waitFor({ state: "detached" });
 
-    await second.waitForFunction(() => document.querySelector(".diagram")?.getAttribute("data-direction") === "right");
-    assert.equal(await isCurved(second), false);
-    assert.equal(await second.evaluate(() => document.documentElement.dataset.accent), "snes");
+    const secondLook = await openLookPanel(second);
+    assert.equal(await secondLook.locator(".gallery-look-project").count(), 0);
+    assert.equal(await second.locator('.diagram[data-direction="down"]').count() > 0, true);
+    assert.equal(await second.evaluate(() => document.documentElement.dataset.accent), "gold");
 
     const updatedProject = {
       v: 3,
       appearance: { accent: "teal" },
       structure: {},
-      demos: { diagram: { edges: "curve", direction: "down" } },
+      demos: { diagram: { edges: "straight", direction: "right" } },
     };
     await importViaDialog(first, panel, JSON.stringify(updatedProject));
     await panel.locator(".gen-project-bar").waitFor();
 
-    await second.waitForFunction(() => document.documentElement.dataset.accent === "teal" && document.querySelector(".diagram")?.getAttribute("data-direction") === "down");
-    assert.equal(await isCurved(second), true);
+    await second.waitForFunction(() => document.documentElement.dataset.accent === "teal" && document.querySelector(".diagram")?.getAttribute("data-direction") === "right");
+
+    await second.locator("#gallery-settings").getByRole("radio", { name: "This page", exact: true }).click();
+    const demoPanel = second.locator("#gallery-settings .gallery-component-settings");
+    const curveRadio = demoPanel.getByRole("group", { name: "Edge shape", exact: true }).getByRole("radio", { name: "Curve", exact: true });
+    const downRadio = demoPanel.getByRole("group", { name: "Layout", exact: true }).getByRole("radio", { name: "Top to bottom", exact: true });
+    await Promise.all([curveRadio.check({ force: true }), downRadio.check({ force: true })]);
+    await second.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem("kiso-gallery-project-config") || "null");
+      return saved?.demos?.diagram?.edges === "curve" && saved?.demos?.diagram?.direction === "down";
+    });
   } finally { await context.close(); }
+});
+
+test("incoming v3 share URL works when localStorage is blocked", async () => {
+  const v3Payload = {
+    v: 3,
+    appearance: { accent: "gold", cornerStyle: "rounded" },
+    structure: { pageWidth: "contained" },
+    demos: { diagram: { edges: "curve", direction: "down" } },
+  };
+  const code = Buffer.from(JSON.stringify(v3Payload)).toString("base64url");
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });
+  page.setDefaultTimeout(10_000);
+  await page.route("https://fonts.googleapis.com/**", route => route.abort());
+  await page.addInitScript(() => {
+    const deny = () => { throw new DOMException("Blocked", "SecurityError"); };
+    Storage.prototype.getItem = deny;
+    Storage.prototype.setItem = deny;
+    Storage.prototype.removeItem = deny;
+  });
+  try {
+    await page.goto(`${url}?appearance=${code}#components/diagram`);
+    await page.locator('.diagram[data-direction="down"]').first().waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), "gold");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.cornerMarks), "none");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.shadowStyle), "auto");
+    const lookPanel = await openLookPanel(page);
+    await lookPanel.locator(".gallery-look-project").waitFor();
+    assert.match(await lookPanel.locator(".gallery-look-project").innerText(), /3 fields/);
+  } finally { await page.close(); }
 });

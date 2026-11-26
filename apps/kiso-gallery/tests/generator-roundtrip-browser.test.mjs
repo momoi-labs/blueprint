@@ -149,7 +149,7 @@ test("importing JSON v3 with diverging TUI renders the Rust snippet and divergen
     assert.equal(v3Preview.panelFill, "solid");
     assert.equal(v3Preview.shadowStyle, "auto");
     assert.equal(v3Preview.backgroundStyle, "solid");
-    assert.equal(v3Preview.cornerMarks, "ticks");
+    assert.equal(v3Preview.cornerMarks, "none");
     await tab(panel, "Code");
     const rustSection = panel.locator(".gen-export-rust");
     await rustSection.waitFor();
