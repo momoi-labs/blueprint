@@ -347,15 +347,27 @@ test("parseProjectConfig restores saved configs and rejects malformed storage va
     assert.equal(parseProjectConfig(invalid, source), null, String(invalid));
   }
   const filtered = parseProjectConfig(JSON.stringify({
+    kiso: { "@momoi-labs/kiso": "^1.15.0", constructor: "bad" },
     appearance: { accent: "gold", theme: "dark", bogus: "x", phone: { borderStyle: "bad", panelFill: "solid" } },
     structure: { pageWidth: "full", accent: "teal", headerWidth: "outset" },
+    demos: {
+      __proto__: { polluted: "yes" },
+      constructor: { polluted: "yes" },
+      prototype: { polluted: "yes" },
+      diagram: { edges: "curve", constructor: "bad", invalid: "nope" },
+      unknown: { a: "b" },
+    },
     rest: [{ name: "lang", value: "en" }, { name: 123, value: "bad" }],
-  }), source);
+  }), source, { diagram: { edges: ["orthogonal", "curve"] } });
   assert.deepEqual(plain(filtered), {
+    kiso: { "@momoi-labs/kiso": "^1.15.0" },
     appearance: { accent: "gold", phone: { panelFill: "solid" } },
     structure: { pageWidth: "full" },
+    demos: { diagram: { edges: "curve" } },
     rest: [{ name: "lang", value: "en" }],
   });
+  assert.equal(Object.hasOwn(filtered.demos, "constructor"), false);
+  assert.equal(Object.hasOwn(filtered.demos.diagram, "constructor"), false);
 });
 
 test("project preview helpers resolve Kiso fallbacks and strip gallery-only fields", () => {
@@ -364,6 +376,7 @@ test("project preview helpers resolve Kiso fallbacks and strip gallery-only fiel
     projectPreviewDefaults(source.options, { ...source.defaults, theme: "light", headerWidth: "outset", landingBands: "inside" }),
   );
   assert.equal(preview.accent, "cobalt");
+  assert.equal(preview.cornerMarks, "none");
   assert.equal(preview.shadowStyle, "auto");
   assert.equal(preview.frameScope, "panels");
   assert.equal(preview.panelFill, "solid");

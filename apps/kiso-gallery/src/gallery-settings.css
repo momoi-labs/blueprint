@@ -34,12 +34,17 @@
 .gallery-settings-switch .radio-group { display: grid; grid-template-columns: 1fr 1fr; }
 .appearance-controls-scroll[hidden] { display: none; }
 .gallery-look { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.gallery-look-project {
+.gen-project-bar.gallery-look-project {
+  flex-direction: column;
+  align-items: flex-start;
   border-top: 1px solid var(--color-sidebar-border);
   border-bottom-color: var(--color-sidebar-border);
   border-radius: 0;
   padding: var(--spacing-xs) var(--spacing-lg);
   margin-bottom: var(--spacing-xs);
+}
+.gen-project-bar.gallery-look-project .btn {
+  margin-inline-start: calc(-1 * var(--spacing-sm));
 }
 .gallery-look-note { flex: none; margin: 0; padding: 0 var(--spacing-lg) var(--spacing-sm); }
 .gallery-look-more { flex: none; margin: 0; padding: var(--spacing-sm) var(--spacing-lg); border-top: 1px solid var(--color-sidebar-border); }

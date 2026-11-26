@@ -270,8 +270,12 @@ function PhoneFrame({ route }: { route: string }) {
 
 export function LayoutExamples({ route, accent, theme, onThemeChange }: { route: string; accent: string; theme: string; onThemeChange: (theme: string) => void }) {
   const [device, setDevice] = useState<Device>(() => {
-    const saved = localStorage.getItem("kiso-gallery-layout-device");
-    return devices.includes(saved as Device) ? (saved as Device) : "desktop";
+    try {
+      const saved = localStorage.getItem("kiso-gallery-layout-device");
+      return devices.includes(saved as Device) ? (saved as Device) : "desktop";
+    } catch {
+      return "desktop";
+    }
   });
   const [, requested] = route.split("/");
   const open = templates.find(template => template.id === requested);
@@ -281,7 +285,10 @@ export function LayoutExamples({ route, accent, theme, onThemeChange }: { route:
   if (phoneFrame) return <DeviceContext.Provider value={{ device: "desktop", choose: () => {}, tui: null, accent, theme, setTheme: onThemeChange }}>
     <LayoutExample route={route} />
   </DeviceContext.Provider>;
-  const choose = (next: Device) => { setDevice(next); localStorage.setItem("kiso-gallery-layout-device", next); };
+  const choose = (next: Device) => {
+    setDevice(next);
+    try { localStorage.setItem("kiso-gallery-layout-device", next); } catch { return; }
+  };
   return (
     <DeviceContext.Provider value={{ device, choose, tui, accent, theme, setTheme: onThemeChange }}>
       {standalone ? <LayoutExample route={route} /> : <>

@@ -106,6 +106,7 @@ export const emptyProject = (): ProjectConfig => ({ appearance: {}, structure: {
 export function projectPreviewDefaults(options: Options, current: AppearanceSettings): AppearanceSettings {
   return {
     ...Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]])),
+    cornerMarks: "none",
     shadowStyle: "auto",
     frameScope: "panels",
     theme: current.theme,
@@ -176,7 +177,13 @@ function readSavedTui(value: unknown): TuiConfig | undefined {
   return tui;
 }
 
-export function parseProjectConfig(raw: string | null, source: OptionsSource): ProjectConfig | null {
+const forbiddenKeys = new Set(["__proto__", "constructor", "prototype"]);
+
+export function parseProjectConfig(
+  raw: string | null,
+  source: OptionsSource,
+  schema?: Record<string, Record<string, readonly string[]>>,
+): ProjectConfig | null {
   if (!raw) return null;
   let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { return null; }
@@ -188,7 +195,7 @@ export function parseProjectConfig(raw: string | null, source: OptionsSource): P
   if (data.kiso && typeof data.kiso === "object" && !Array.isArray(data.kiso)) {
     const kiso: Record<string, string> = {};
     for (const [name, version] of Object.entries(data.kiso)) {
-      if (typeof version === "string") kiso[name] = version;
+      if (!forbiddenKeys.has(name) && typeof version === "string") kiso[name] = version;
     }
     config.kiso = kiso;
   }
@@ -212,8 +219,14 @@ export function parseProjectConfig(raw: string | null, source: OptionsSource): P
   if (data.demos && typeof data.demos === "object" && !Array.isArray(data.demos)) {
     const demos: DemoOptions = {};
     for (const [scope, values] of Object.entries(data.demos)) {
-      if (!values || typeof values !== "object" || Array.isArray(values)) continue;
-      const entries = Object.entries(values).filter(([, value]) => typeof value === "string") as [string, string][];
+      if (forbiddenKeys.has(scope) || !values || typeof values !== "object" || Array.isArray(values)) continue;
+      const accepted = schema ? (Object.hasOwn(schema, scope) ? schema[scope] : undefined) : undefined;
+      if (schema && !accepted) continue;
+      const entries = Object.entries(values).filter(([key, value]) => {
+        if (forbiddenKeys.has(key) || typeof value !== "string") return false;
+        if (!accepted) return true;
+        return Object.hasOwn(accepted, key) && accepted[key].includes(value);
+      }) as [string, string][];
       if (entries.length) demos[scope] = Object.fromEntries(entries);
     }
     if (Object.keys(demos).length) config.demos = demos;
