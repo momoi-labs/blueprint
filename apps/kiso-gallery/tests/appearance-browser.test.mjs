@@ -309,6 +309,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     const sidebarOpen = await sidebarWidth();
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).click();
     await page.getByRole("button", { name: "Expand navigation", exact: true }).waitFor();
+    await page.locator(".component-gallery .catalog-sidebar:not([data-panel-motion])").waitFor();
     const released = sidebarOpen - await sidebarWidth();
     assert(released > 150 && await width() >= start + released - 1);
     assert.equal((await panel.boundingBox()).width, initialPanelBox.width);
@@ -324,6 +325,7 @@ for (const frame of ["Default", "Inset"]) test(`Both rails release space indepen
     assert.equal(await page.getByRole("button", { name: /work_mem/ }).getAttribute("aria-expanded"), "true");
     await page.getByRole("button", { name: "Expand navigation", exact: true }).click();
     await page.getByRole("button", { name: "Collapse navigation", exact: true }).waitFor();
+    await page.locator(".component-gallery .catalog-sidebar:not([data-panel-motion])").waitFor();
     assert.equal(await width(), start);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   } finally { await page.close(); }
