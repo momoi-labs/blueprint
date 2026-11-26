@@ -18,6 +18,17 @@ import {
 } from "./project-config";
 import { shopPages } from "./templates/shop";
 
+function projectPreviewDefaults(options: Window["kisoAppearance"]["options"], current: AppearanceSettings): AppearanceSettings {
+  return {
+    ...Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]])),
+    shadowStyle: "auto",
+    frameScope: "panels",
+    theme: current.theme,
+    headerWidth: current.headerWidth,
+    landingBands: current.landingBands,
+  } as unknown as AppearanceSettings;
+}
+
 function settingsFromProject(config: ProjectConfig, defaults: AppearanceSettings): AppearanceSettings {
   const next = { ...defaults } as unknown as Record<string, string>;
   for (const section of [config.appearance, config.structure]) {
@@ -90,7 +101,7 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
 
   const handleShareApply = (next: AppearanceSettings, nextDemos: DemoOptions, project?: ProjectConfig) => {
     setProjectConfig(project ?? null);
-    onShare(next, nextDemos);
+    onShare(project ? settingsFromProject(project, projectPreviewDefaults(window.kisoAppearance.options, settings)) : next, nextDemos);
   };
 
   const handleImport = (config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => {
@@ -191,7 +202,7 @@ function ImportDialog({ settings, onImport }: {
         setError(`${result.error ?? "Could not read HTML."} Paste an <html> tag from index.html, then retry.`);
         return;
       }
-      const nextSettings = { ...settingsFromProject(result.config, window.kisoAppearance.defaults), theme: settings.theme };
+      const nextSettings = settingsFromProject(result.config, projectPreviewDefaults(window.kisoAppearance.options, settings));
       onImport(result.config, nextSettings, {});
       setOpen(false);
       setText("");
@@ -205,7 +216,9 @@ function ImportDialog({ settings, onImport }: {
       return;
     }
     const config = result.project ?? projectFromSettings(result.settings, result.demos);
-    const nextSettings = result.project ? { ...result.settings, theme: settings.theme } : result.settings;
+    const nextSettings = result.project
+      ? settingsFromProject(result.project, projectPreviewDefaults(window.kisoAppearance.options, settings))
+      : result.settings;
     onImport(config, nextSettings, result.demos);
     setOpen(false);
     setText("");
