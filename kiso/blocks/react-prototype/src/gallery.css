@@ -605,6 +605,7 @@
 /* Kiso's rail keeps the mark: it is the expand control, and shows the expand
    icon on hover or focus. */
 .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { padding: 0; justify-items: center; }
+.catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header > .sidebar-expanded-content { display: none; }
 .catalog-sidebar-toggle > .sidebar-rail-mark { width: var(--size-control-xs); }
 /* Without the mark (the floating pill holds it), the expand icon always shows. */
 .catalog-sidebar-toggle:not(:has(> .sidebar-rail-mark)) > .sidebar-rail-open { display: block; }
@@ -763,6 +764,9 @@
   }
   :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar[data-collapsed="true"] > .catalog-sidebar-header { justify-items: center; padding-inline: 0; }
   :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar .sidebar-body { padding-block-start: var(--spacing-sm); }
+  :root[data-header-variant="floating"] .component-gallery > .catalog-sidebar .nav-item.sidebar-link-with-icon {
+    padding-inline-start: calc((var(--size-touch-min) + var(--spacing-md) - 2px - 2 * var(--spacing-sm) - var(--size-icon-md)) / 2);
+  }
 }
 
 /* Floating pill: the content clears the rounded ends, and the tabs sit

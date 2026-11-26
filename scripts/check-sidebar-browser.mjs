@@ -263,3 +263,37 @@ for (const query of ['brandMark&shellLayout', 'brandMark&shellLayout&headerVaria
     assert((await box(page, '.topbar')).height < 100, 'The Header keeps its content height');
   } finally { await page.close(); }
 });
+
+for (const [label, query, bg] of [
+  ['default', '', 'solid'],
+  ['inset solid', 'variant=inset', 'solid'],
+  ['inset patterned', 'variant=inset', 'construction'],
+  ['shellLayout default', 'brandMark&shellLayout', 'solid'],
+  ['shellLayout inset solid', 'brandMark&shellLayout&variant=inset', 'solid'],
+  ['shellLayout inset patterned', 'brandMark&shellLayout&variant=inset', 'construction'],
+  ['shellLayout floating default', 'brandMark&shellLayout&headerVariant=floating', 'solid'],
+  ['shellLayout floating inset', 'brandMark&shellLayout&headerVariant=floating&variant=inset', 'construction'],
+]) test(`ApplicationShell icons keep their position on collapse, ${label}`, async () => {
+  const page = await open(query);
+  try {
+    await page.evaluate(value => { document.documentElement.dataset.backgroundStyle = value; }, bg);
+    const icons = () => page.evaluate(() => [...document.querySelectorAll('.sidebar .nav-item .sidebar-link-icon')].map(el => {
+      const rect = (el.querySelector('svg') || el).getBoundingClientRect();
+      return { x: rect.x, y: rect.y };
+    }));
+    const before = await icons();
+    assert(before.length >= 3);
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    const after = await icons();
+    for (let i = 0; i < before.length; i++) {
+      assert(Math.abs(after[i].x - before[i].x) <= 0.5 && Math.abs(after[i].y - before[i].y) <= 0.5,
+        `${label} icon ${i} shifted (${(after[i].x - before[i].x).toFixed(2)}, ${(after[i].y - before[i].y).toFixed(2)})`);
+    }
+    await page.getByRole('button', { name: 'Expand sidebar' }).click();
+    const reopened = await icons();
+    for (let i = 0; i < before.length; i++) {
+      assert(Math.abs(reopened[i].x - before[i].x) <= 0.5 && Math.abs(reopened[i].y - before[i].y) <= 0.5,
+        `${label} reopen icon ${i} shifted (${(reopened[i].x - before[i].x).toFixed(2)}, ${(reopened[i].y - before[i].y).toFixed(2)})`);
+    }
+  } finally { await page.close(); }
+});

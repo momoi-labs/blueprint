@@ -1458,10 +1458,20 @@ table.table {
 /* Collapse belongs to the desktop rail. Narrow layouts keep navigation visible. */
 @media (min-width: 1024px) {
   .app-shell:has(> .sidebar[data-collapsed="true"]) { --app-shell-sidebar-width: calc(var(--size-touch-min) + 2 * var(--spacing-md)); grid-template-columns: var(--app-shell-sidebar-width) minmax(0, 1fr); }
-  .sidebar[data-collapsed="true"] :is(.sidebar-expanded-content, .nav-group > .t-caps, .sidebar-link-trailing) { display: none; }
-  .sidebar[data-collapsed="true"] .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); padding: var(--spacing-sm); }
+  .sidebar[data-collapsed="true"] :is(.sidebar-expanded-content, .sidebar-link-trailing) { display: none; }
+  .sidebar[data-collapsed="true"] > .sidebar-header > .sidebar-expanded-content,
+  .sidebar[data-collapsed="true"] > .sidebar-actions.sidebar-expanded-content {
+    display: grid; visibility: hidden; pointer-events: none; overflow: hidden; white-space: nowrap; inline-size: 0; padding-inline: 0;
+  }
+  .sidebar[data-collapsed="true"] .nav-group > .t-caps { visibility: hidden; white-space: nowrap; overflow: hidden; inline-size: 0; padding-inline: 0; }
+  .sidebar[data-collapsed="true"] .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); padding-inline: var(--spacing-sm); }
+  .sidebar[data-collapsed="true"] .sidebar-header-collapsible > * { grid-area: 1 / 1; }
   .sidebar[data-collapsed="true"] .sidebar-toggle { justify-self: center; }
   .sidebar[data-collapsed="true"] .nav-item { justify-content: center; }
+  .app-shell > .sidebar .nav-item.sidebar-link-with-icon {
+    justify-content: flex-start;
+    padding-inline-start: calc(var(--app-shell-brand-inset) + (var(--size-control-sm) - var(--size-icon-md)) / 2 - var(--spacing-sm));
+  }
   .sidebar[data-collapsed="true"] .sidebar-link-with-icon .sidebar-link-label {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip-path: inset(50%); white-space: nowrap;
@@ -1528,11 +1538,8 @@ table.table {
     backdrop-filter: none;
   }
   .app-shell[data-shell-layout] > .sidebar > .sidebar-header > .sidebar-expanded-content { align-items: center; }
+  .app-shell[data-shell-layout] > .sidebar[data-collapsed="true"] > .sidebar-header > .sidebar-expanded-content { display: none; }
   .app-shell[data-shell-layout] > .sidebar > .sidebar-body { padding-block-start: var(--spacing-md); }
-  .app-shell[data-shell-layout] > .sidebar .nav-item.sidebar-link-with-icon {
-    justify-content: flex-start;
-    padding-inline-start: calc(var(--app-shell-brand-inset) + (var(--size-control-sm) - var(--size-icon-md)) / 2 - var(--spacing-sm));
-  }
   .app-shell[data-shell-layout] > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible {
     padding-block: var(--app-shell-frame-top) var(--app-shell-brand-stripe);
     padding-inline: 0;
@@ -1576,28 +1583,14 @@ table.table {
   .app-shell[data-shell-layout]:has(> .topbar) > .sidebar[data-collapsed="true"] > .sidebar-header { justify-items: center; }
 }
 @media (min-width: 1024px) {
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar[data-collapsed="true"]) {
-    --app-shell-sidebar-width: calc(var(--size-touch-min) + 2 * var(--spacing-md) - var(--app-shell-outer));
-    --app-shell-rail-inset: max(var(--spacing-sm), var(--app-shell-outer));
-    --app-shell-rail-start: var(--spacing-sm);
-    --app-shell-rail-end: var(--spacing-sm);
-    --app-shell-rail-reach: var(--app-shell-outer);
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) {
+    --app-shell-brand-inset: calc((var(--size-touch-min) + 2 * var(--spacing-md) - var(--size-control-sm)) / 2);
   }
-  :where([data-background-style]:not([data-background-style="solid"])) .app-shell:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar[data-collapsed="true"]) {
-    --app-shell-sidebar-width: calc(var(--size-touch-min) + 2 * var(--spacing-md));
-    --app-shell-rail-reach: 0px;
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar:not([hidden])) {
+    padding-inline-start: 0;
   }
   :where([data-brand-bar="full"]):where([data-background-style]:not([data-background-style="solid"])) .app-shell[data-shell-layout]:where(:not(.app-shell .app-shell), [data-background-canvas]):is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])):has(> .sidebar:not([hidden])) > :is(main, [data-slot="app-shell-main"]) { margin-inline-start: 0; }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] { margin-inline-start: calc(-1 * var(--app-shell-rail-reach)); }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > :is(.sidebar-body, .sidebar-header-collapsible),
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) {
-    padding-inline: var(--app-shell-rail-start) var(--app-shell-rail-end);
-  }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible,
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) { justify-items: center; }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible:has(.sidebar-rail-mark) > .sidebar-toggle { justify-self: center; }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] .nav-item:not(.app-shell[data-shell-layout] .sidebar-link-with-icon) { justify-content: center; padding-inline: var(--spacing-sm); }
-  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] .sidebar-rail-mark { max-inline-size: calc(var(--size-touch-min) + 2 * var(--spacing-md) - 2 * var(--app-shell-rail-inset)); }
+  .app-shell:is([data-variant="inset"], :where([data-app-shell="inset"]) :not([data-variant])) > .sidebar[data-collapsed="true"] .nav-item:not(.sidebar-link-with-icon) { justify-content: center; padding-inline: var(--spacing-sm); }
 }
 .app-shell-bar-brand { display: flex; min-width: 0; }
 .app-shell[data-shell-layout] > .topbar { align-self: start; }
