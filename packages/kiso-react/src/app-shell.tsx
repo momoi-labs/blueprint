@@ -261,7 +261,7 @@ function ApplicationShellSidebar({
   useIsomorphicLayoutEffect(() => {
     const sidebar = sidebarRef.current
     const focused = sidebar?.ownerDocument.activeElement
-    if (isCollapsed && focused && sidebar?.contains(focused) && !focused.getClientRects().length) {
+    if (isCollapsed && focused && sidebar?.contains(focused) && (!focused.getClientRects().length || sidebar.ownerDocument.defaultView?.getComputedStyle(focused).visibility === "hidden")) {
       toggleRef.current?.focus()
     }
   }, [isCollapsed])

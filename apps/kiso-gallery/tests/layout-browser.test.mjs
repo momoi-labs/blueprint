@@ -632,3 +632,86 @@ for (const [name, path, saved] of [
     assert.equal(fill, bar, "The brand fill starts at the top edge of the main panel");
   } finally { await page.close(); }
 });
+
+test("Sidebar icons keep their position when collapsing and expanding", async () => {
+  const page = await open(1440, "default", "light");
+  const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const measure = (rootSelector, expandedMark, collapsedMark) => page.evaluate(({ rootSelector, expandedMark, collapsedMark }) => {
+    const sidebar = document.querySelector(`${rootSelector} > .sidebar`);
+    const collapsed = sidebar.getAttribute("data-collapsed") === "true";
+    const icons = [...sidebar.querySelectorAll(".nav-item .sidebar-link-icon")].map((el, index) => {
+      const box = (el.querySelector("svg") || el).getBoundingClientRect();
+      const label = el.closest(".nav-item")?.querySelector(".sidebar-link-label")?.textContent?.trim() || String(index);
+      return { label, x: box.x, y: box.y };
+    });
+    const markEl = sidebar.querySelector(collapsed ? collapsedMark : expandedMark);
+    const markBox = markEl ? markEl.getBoundingClientRect() : null;
+    return { collapsed, icons, mark: markBox ? { x: markBox.x, y: markBox.y } : null };
+  }, { rootSelector, expandedMark, collapsedMark });
+  try {
+    await page.goto(`${url}?frame#example/dashboard`);
+    await page.locator(".app-shell[data-shell-layout] .sidebar .sidebar-link-icon").first().waitFor();
+    for (const appShell of ["default", "inset"]) {
+      for (const backgroundStyle of ["solid", "construction"]) {
+        for (const brandBar of ["separate", "full"]) {
+          await page.evaluate(cfg => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, theme: "light", ...cfg }), { appShell, backgroundStyle, brandBar });
+          if (await page.locator(".app-shell[data-shell-layout] > .sidebar").getAttribute("data-collapsed") === "true") {
+            await page.locator(".topbar .sidebar-toggle").first().click();
+          }
+          await settle();
+          const before = await measure(".app-shell[data-shell-layout]", ".sidebar-header .sidebar-expanded-content .shop-mark", ".sidebar-rail-mark .shop-mark");
+          assert(before.icons.length >= 4, "ConsoleShell renders its navigation icons");
+          await page.locator(".topbar .sidebar-toggle").first().click();
+          await settle();
+          const after = await measure(".app-shell[data-shell-layout]", ".sidebar-header .sidebar-expanded-content .shop-mark", ".sidebar-rail-mark .shop-mark");
+          assert.equal(after.collapsed, true);
+          const tag = `ConsoleShell ${appShell}/${backgroundStyle}/${brandBar}`;
+          assert(Math.abs(after.mark.x - before.mark.x) <= 0.5 && Math.abs(after.mark.y - before.mark.y) <= 0.5, `${tag} brand mark shifted`);
+          for (let i = 0; i < before.icons.length; i++) {
+            const dx = after.icons[i].x - before.icons[i].x;
+            const dy = after.icons[i].y - before.icons[i].y;
+            assert(Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5, `${tag} ${before.icons[i].label} shifted (${dx.toFixed(2)}, ${dy.toFixed(2)})`);
+          }
+          await page.locator(".topbar .sidebar-toggle").first().click();
+          await settle();
+          const reopened = await measure(".app-shell[data-shell-layout]", ".sidebar-header .sidebar-expanded-content .shop-mark", ".sidebar-rail-mark .shop-mark");
+          for (let i = 0; i < before.icons.length; i++) {
+            const dx = reopened.icons[i].x - before.icons[i].x;
+            const dy = reopened.icons[i].y - before.icons[i].y;
+            assert(Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5, `${tag} reopen ${before.icons[i].label} shifted (${dx.toFixed(2)}, ${dy.toFixed(2)})`);
+          }
+        }
+      }
+    }
+
+    await page.goto(`${url}#components`);
+    await page.locator(".catalog-sidebar .sidebar-link-icon").first().waitFor();
+    for (const headerVariant of ["default", "floating"]) {
+      for (const appShell of ["default", "inset"]) {
+        for (const backgroundStyle of ["solid", "construction"]) {
+          await page.evaluate(cfg => window.kisoAppearance.save({ ...window.kisoAppearance.defaults, theme: "light", ...cfg }), { headerVariant, appShell, backgroundStyle });
+          if (await page.locator(".catalog-sidebar").getAttribute("data-collapsed") === "true") {
+            await page.locator(".catalog-sidebar-toggle").first().click();
+          }
+          await settle();
+          const before = await measure(".component-gallery", ".catalog-sidebar-header .sidebar-expanded-content .kiso-brand-symbol", ".sidebar-rail-mark .kiso-brand-symbol");
+          assert(before.icons.length > 0, "Gallery sidebar renders its navigation icons");
+          await page.locator(".catalog-sidebar-toggle").first().click();
+          await settle();
+          const after = await measure(".component-gallery", ".catalog-sidebar-header .sidebar-expanded-content .kiso-brand-symbol", ".sidebar-rail-mark .kiso-brand-symbol");
+          assert.equal(after.collapsed, true);
+          const tag = `Gallery ${headerVariant}/${appShell}/${backgroundStyle}`;
+          if (headerVariant === "default") {
+            assert(Math.abs(after.mark.x - before.mark.x) <= 0.5 && Math.abs(after.mark.y - before.mark.y) <= 0.5, `${tag} brand mark shifted`);
+          }
+          for (let i = 0; i < before.icons.length; i++) {
+            const dx = after.icons[i].x - before.icons[i].x;
+            const dy = after.icons[i].y - before.icons[i].y;
+            assert(Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5, `${tag} ${before.icons[i].label} shifted (${dx.toFixed(2)}, ${dy.toFixed(2)})`);
+          }
+          await page.locator(".catalog-sidebar-toggle").first().click();
+        }
+      }
+    }
+  } finally { await page.close(); }
+});
