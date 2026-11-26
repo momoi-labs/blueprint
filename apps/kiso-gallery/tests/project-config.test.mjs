@@ -5,7 +5,8 @@ import { runInNewContext } from "node:vm";
 import { appearanceOptions, presetDefaults } from "../src/appearance-settings.ts";
 import { projectShareText, readShare } from "../src/appearance-share.ts";
 import {
-  applyPresetToProjectConfig, checkTuiDivergence, exportProjectHtml, exportRustSnippet, fieldClass, importProjectHtml,
+  applyPresetToProjectConfig, checkTuiDivergence, exportedPatch, exportProjectHtml, exportRustSnippet, fieldClass,
+  importProjectHtml, parseProjectConfig, projectPreviewDefaults, settingsFromProject,
 } from "../src/project-config.ts";
 
 const window = { matchMedia: () => ({ matches: false, addEventListener() {} }) };
@@ -330,4 +331,46 @@ test("share v1 and v2 still read and fill from the receiver defaults", () => {
   assert.equal(v2.settings.shadowStyle, "none");
   assert.deepEqual(v2.skipped, ["nope (unknown setting)", "pageWidth (invalid value)"]);
   assert.deepEqual(v2.demos, { diagram: { edges: "curve" } });
+});
+
+test("parseProjectConfig restores saved configs and rejects malformed storage values", () => {
+  const { config } = importProjectHtml(documents.pgconfig, source);
+  const full = {
+    ...config,
+    kiso: { "@momoi-labs/kiso": "^1.15.0" },
+    appearance: { ...config.appearance, phone: { borderStyle: "none" } },
+    tui: { accent: "snes", mode: "dark", look: { fill: "translucent", border: "rail", round: true, title: { pattern: "heavy", ink: "primary" } } },
+    demos: { diagram: { edges: "curve" } },
+  };
+  assert.deepEqual(plain(parseProjectConfig(JSON.stringify(full), source)), plain(full));
+  for (const invalid of [null, "", "{bad", "[]", "{}", '{"appearance":[]}', '{"appearance":{},"structure":null}']) {
+    assert.equal(parseProjectConfig(invalid, source), null, String(invalid));
+  }
+  const filtered = parseProjectConfig(JSON.stringify({
+    appearance: { accent: "gold", theme: "dark", bogus: "x", phone: { borderStyle: "bad", panelFill: "solid" } },
+    structure: { pageWidth: "full", accent: "teal", headerWidth: "outset" },
+    rest: [{ name: "lang", value: "en" }, { name: 123, value: "bad" }],
+  }), source);
+  assert.deepEqual(plain(filtered), {
+    appearance: { accent: "gold", phone: { panelFill: "solid" } },
+    structure: { pageWidth: "full" },
+    rest: [{ name: "lang", value: "en" }],
+  });
+});
+
+test("project preview helpers resolve Kiso fallbacks and strip gallery-only fields", () => {
+  const preview = settingsFromProject(
+    { appearance: { accent: "cobalt", phone: { backgroundStyle: "dots" } }, structure: { pageWidth: "contained" } },
+    projectPreviewDefaults(source.options, { ...source.defaults, theme: "light", headerWidth: "outset", landingBands: "inside" }),
+  );
+  assert.equal(preview.accent, "cobalt");
+  assert.equal(preview.shadowStyle, "auto");
+  assert.equal(preview.frameScope, "panels");
+  assert.equal(preview.panelFill, "solid");
+  assert.equal(preview.phoneBackgroundStyle, "dots");
+  assert.equal(preview.pageWidth, "contained");
+  assert.equal(preview.theme, "light");
+  assert.equal(preview.headerWidth, "outset");
+  assert.equal(preview.landingBands, "inside");
+  assert.deepEqual(exportedPatch({ accent: "teal", theme: "dark", headerWidth: "outset", landingBands: "full", pageWidth: "full" }), { accent: "teal", pageWidth: "full" });
 });

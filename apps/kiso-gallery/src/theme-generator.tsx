@@ -4,64 +4,19 @@ import {
   DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, FormField, PageHeader,
   PageHeaderDescription, PageHeaderTitle, RadioGroup, RadioGroupItem, Textarea, useToast,
 } from "@momoi-labs/kiso-react";
-import { CodeXml, FileJson, Monitor, RotateCcw, Smartphone, SquareTerminal, TriangleAlert, Upload, X } from "lucide-react";
+import { CodeXml, FileJson, Monitor, RotateCcw, Smartphone, SquareTerminal, TriangleAlert, Upload } from "lucide-react";
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
-import { LookSettings, type LookTab } from "./look-settings";
+import { LookSettings, ProjectModeBar, type LookTab } from "./look-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { projectShareText, readShare } from "./appearance-share";
 import { AppearanceShare, demoSchema } from "./appearance-share-ui";
 import { AppearanceUsage } from "./appearance-usage";
 import { ThemePreview, type Device } from "./layout-examples";
 import {
-  applyPresetToProjectConfig, checkTuiDivergence, exportProjectHtml, exportRustSnippet, fieldClass, importProjectHtml,
-  type ProjectConfig,
+  checkTuiDivergence, exportProjectHtml, exportRustSnippet, importProjectHtml, projectFromSettings,
+  projectPreviewDefaults, settingsFromProject, type ProjectConfig,
 } from "./project-config";
 import { shopPages } from "./templates/shop";
-
-function projectPreviewDefaults(options: Window["kisoAppearance"]["options"], current: AppearanceSettings): AppearanceSettings {
-  return {
-    ...Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]])),
-    shadowStyle: "auto",
-    frameScope: "panels",
-    theme: current.theme,
-    headerWidth: current.headerWidth,
-    landingBands: current.landingBands,
-  } as unknown as AppearanceSettings;
-}
-
-function settingsFromProject(config: ProjectConfig, defaults: AppearanceSettings): AppearanceSettings {
-  const next = { ...defaults } as unknown as Record<string, string>;
-  for (const section of [config.appearance, config.structure]) {
-    for (const [key, value] of Object.entries(section)) {
-      if (key === "phone" && value && typeof value === "object") {
-        for (const [name, override] of Object.entries(value)) {
-          next[`phone${name[0].toUpperCase()}${name.slice(1)}`] = override;
-        }
-      } else if (typeof value === "string") {
-        next[key] = value;
-      }
-    }
-  }
-  return next as unknown as AppearanceSettings;
-}
-
-function projectFromSettings(settings: AppearanceSettings, demos?: DemoOptions): ProjectConfig {
-  const config = applyPresetToProjectConfig({ appearance: {}, structure: {}, rest: [{ name: "lang", value: "en" }] }, settings);
-  return demos && Object.keys(demos).length ? { ...config, demos } : config;
-}
-
-function countProjectFields(config: ProjectConfig) {
-  const appearance = Object.keys(config.appearance).filter(key => key !== "phone").length;
-  const phone = Object.keys(config.appearance.phone ?? {}).length;
-  const structure = Object.keys(config.structure).length;
-  return appearance + phone + structure;
-}
-
-function exportedPatch(patch: Partial<AppearanceSettings>): Partial<AppearanceSettings> {
-  return Object.fromEntries(
-    Object.entries(patch).filter(([key]) => fieldClass[key as keyof AppearanceSettings] !== "galleryOnly"),
-  ) as Partial<AppearanceSettings>;
-}
 
 function resolvedTuiMode(theme: string): "light" | "dark" {
   if (theme === "light" || theme === "dark") return theme;
@@ -72,49 +27,27 @@ function formatProjectJson(config: ProjectConfig, demos: DemoOptions) {
   return JSON.stringify(JSON.parse(projectShareText(config, demos)), null, 2);
 }
 
-export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: {
+export function ThemeGenerator({ settings, onChange, onPreset, onReset, demos, onShare, projectConfig, onImport, onClearProject }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  onPreset: (defined: Partial<AppearanceSettings>) => void;
   onReset: () => void;
   demos: DemoOptions;
-  onShare: (settings: AppearanceSettings, demos: DemoOptions) => void;
+  onShare: (settings: AppearanceSettings, demos: DemoOptions, project?: ProjectConfig) => void;
+  projectConfig: ProjectConfig | null;
+  onImport: (config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => void;
+  onClearProject: () => void;
 }) {
   const [tab, setTab] = useState<LookTab>("look");
   const [page, setPage] = useState("dashboard");
   const [device, setDevice] = useState<Device>("desktop");
-  const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(null);
-
-  const handleChange = (patch: Partial<AppearanceSettings>) => {
-    onChange(patch);
-    setProjectConfig(current => current ? applyPresetToProjectConfig(current, patch) : null);
-  };
-
-  const handlePreset = (defined: Partial<AppearanceSettings>) => {
-    onChange(exportedPatch(defined));
-    setProjectConfig(current => current ? applyPresetToProjectConfig(current, defined) : null);
-  };
-
-  const handleReset = () => {
-    setProjectConfig(null);
-    onReset();
-  };
-
-  const handleShareApply = (next: AppearanceSettings, nextDemos: DemoOptions, project?: ProjectConfig) => {
-    setProjectConfig(project ?? null);
-    onShare(project ? settingsFromProject(project, projectPreviewDefaults(window.kisoAppearance.options, settings)) : next, nextDemos);
-  };
-
-  const handleImport = (config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => {
-    setProjectConfig(config);
-    onShare(nextSettings, nextDemos);
-  };
 
   return <>
     <div className="catalog-heading">
       <PageHeader actions={<>
-        <Button size="sm" onClick={handleReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>
-        <AppearanceShare settings={settings} demos={demos} onApply={handleShareApply} />
-        <ImportDialog settings={settings} onImport={handleImport} />
+        <Button size="sm" onClick={onReset}><RotateCcw className="icon" aria-hidden="true" />Reset</Button>
+        <AppearanceShare settings={settings} demos={demos} onApply={onShare} />
+        <ImportDialog settings={settings} onImport={onImport} />
         <Button variant="primary" size="sm" disabled={tab === "code"} onClick={() => setTab("code")}><CodeXml className="icon" aria-hidden="true" />Export</Button>
       </>}>
         <PageHeaderTitle tabIndex={-1}>Theme generator</PageHeaderTitle>
@@ -123,8 +56,8 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
     </div>
     <div className="gen-workspace">
     <Card className="gen-rail">
-      {projectConfig && <ProjectModeBar config={projectConfig} onClear={() => setProjectConfig(null)} />}
-      <LookSettings settings={settings} onChange={handleChange} onPreset={projectConfig ? handlePreset : undefined}
+      {projectConfig && <ProjectModeBar config={projectConfig} onClear={onClearProject} />}
+      <LookSettings settings={settings} onChange={onChange} onPreset={projectConfig ? onPreset : undefined}
         tab={tab} onTabChange={setTab} idPrefix="gen" variant="rail"
         phoneHint="Switch the preview to Phone to see the result."
         code={<><ExportPanel settings={settings} demos={demos} projectConfig={projectConfig} device={device} /><AppearanceUsage settings={settings} diagram={demos.diagram} /></>} />
@@ -146,25 +79,6 @@ export function ThemeGenerator({ settings, onChange, onReset, demos, onShare }: 
     </Card>
     </div>
   </>;
-}
-
-function ProjectModeBar({ config, onClear }: { config: ProjectConfig; onClear: () => void }) {
-  const fields = countProjectFields(config);
-  const preserved = config.rest?.length ?? 0;
-  const parts = [`${fields} ${fields === 1 ? "field" : "fields"}`];
-  if (preserved > 0) parts.push(`${preserved} preserved`);
-  if (config.tui) parts.push("TUI");
-  return (
-    <div className="gen-project-bar" role="status">
-      <div className="gen-project-meta">
-        <Badge variant="info">Project config</Badge>
-        <span className="muted t-label">{parts.join(" · ")}</span>
-      </div>
-      <Button size="xs" variant="ghost" onClick={onClear}>
-        <X className="icon" aria-hidden="true" />Clear project
-      </Button>
-    </div>
-  );
 }
 
 function ImportDialog({ settings, onImport }: {
