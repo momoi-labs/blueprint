@@ -99,7 +99,134 @@ const exportedKeys = (Object.keys(fieldClass) as (keyof AppearanceSettings)[])
 const byAttribute = new Map(exportedKeys.map(key => [`data-${kebab(key)}`, key]));
 const section = (key: string) => (fieldClass as Record<string, FieldClass>)[key];
 
+export const projectConfigStorageKey = "kiso-gallery-project-config";
+
 export const emptyProject = (): ProjectConfig => ({ appearance: {}, structure: {} });
+
+export function projectPreviewDefaults(options: Options, current: AppearanceSettings): AppearanceSettings {
+  return {
+    ...Object.fromEntries(Object.entries(options).map(([key, values]) => [key, values[0]])),
+    shadowStyle: "auto",
+    frameScope: "panels",
+    theme: current.theme,
+    headerWidth: current.headerWidth,
+    landingBands: current.landingBands,
+  } as unknown as AppearanceSettings;
+}
+
+export function settingsFromProject(config: ProjectConfig, defaults: AppearanceSettings): AppearanceSettings {
+  const next = { ...defaults } as unknown as Record<string, string>;
+  for (const group of [config.appearance, config.structure]) {
+    for (const [key, value] of Object.entries(group)) {
+      if (key === "phone" && value && typeof value === "object") {
+        for (const [name, override] of Object.entries(value)) {
+          next[`phone${capital(name)}`] = override;
+        }
+      } else if (typeof value === "string") {
+        next[key] = value;
+      }
+    }
+  }
+  return next as unknown as AppearanceSettings;
+}
+
+export function exportedPatch(patch: Partial<AppearanceSettings>): Partial<AppearanceSettings> {
+  return Object.fromEntries(
+    Object.entries(patch).filter(([key]) => Object.hasOwn(fieldClass, key) && fieldClass[key as keyof AppearanceSettings] !== "galleryOnly"),
+  ) as Partial<AppearanceSettings>;
+}
+
+export function projectFromSettings(settings: AppearanceSettings, demos?: DemoOptions): ProjectConfig {
+  const config = applyPresetToProjectConfig({ appearance: {}, structure: {}, rest: [{ name: "lang", value: "en" }] }, settings);
+  return demos && Object.keys(demos).length ? { ...config, demos } : config;
+}
+
+export function countProjectFields(config: ProjectConfig) {
+  const appearance = Object.keys(config.appearance).filter(key => key !== "phone").length;
+  const phone = Object.keys(config.appearance.phone ?? {}).length;
+  const structure = Object.keys(config.structure).length;
+  return appearance + phone + structure;
+}
+
+function readSavedTui(value: unknown): TuiConfig | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const input = value as Record<string, unknown>;
+  const tui: TuiConfig = {};
+  if (typeof input.accent === "string" && (tuiAccents as readonly string[]).includes(input.accent)) tui.accent = input.accent;
+  if (typeof input.mode === "string" && (tuiModes as readonly string[]).includes(input.mode)) tui.mode = input.mode;
+  if (typeof input.chartLegend === "string" && (tuiLegends as readonly string[]).includes(input.chartLegend)) tui.chartLegend = input.chartLegend;
+  if (input.look && typeof input.look === "object" && !Array.isArray(input.look)) {
+    const rawLook = input.look as Record<string, unknown>;
+    const look: TuiLook = {};
+    if (typeof rawLook.fill === "string" && (tuiFills as readonly string[]).includes(rawLook.fill)) look.fill = rawLook.fill;
+    if (typeof rawLook.border === "string" && (tuiBorders as readonly string[]).includes(rawLook.border)) look.border = rawLook.border;
+    if (typeof rawLook.round === "boolean") look.round = rawLook.round;
+    for (const part of ["title", "rule"] as const) {
+      const partValue = rawLook[part];
+      if (partValue && typeof partValue === "object" && !Array.isArray(partValue)) {
+        const { pattern, ink } = partValue as Record<string, unknown>;
+        if (typeof pattern === "string" && (tuiPatterns as readonly string[]).includes(pattern)
+          && typeof ink === "string" && (tuiInks as readonly string[]).includes(ink)) {
+          look[part] = { pattern, ink };
+        }
+      }
+    }
+    tui.look = look;
+  }
+  return tui;
+}
+
+export function parseProjectConfig(raw: string | null, source: OptionsSource): ProjectConfig | null {
+  if (!raw) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { return null; }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  const data = parsed as Record<string, unknown>;
+  if (!data.appearance || typeof data.appearance !== "object" || Array.isArray(data.appearance)) return null;
+  if (!data.structure || typeof data.structure !== "object" || Array.isArray(data.structure)) return null;
+  const config = emptyProject();
+  if (data.kiso && typeof data.kiso === "object" && !Array.isArray(data.kiso)) {
+    const kiso: Record<string, string> = {};
+    for (const [name, version] of Object.entries(data.kiso)) {
+      if (typeof version === "string") kiso[name] = version;
+    }
+    config.kiso = kiso;
+  }
+  for (const [key, value] of Object.entries(data.appearance)) {
+    if (key === "phone") {
+      const phone = readPhone(source.options, value, []);
+      if (Object.keys(phone).length) config.appearance.phone = phone;
+    } else if (section(key) === "appearance" && !key.startsWith("phone")) {
+      const checked = readFieldValue(source.options, key, value);
+      if (checked !== null) (config.appearance as Record<string, string>)[key] = checked;
+    }
+  }
+  for (const [key, value] of Object.entries(data.structure)) {
+    if (section(key) === "structure") {
+      const checked = readFieldValue(source.options, key, value);
+      if (checked !== null) config.structure[key] = checked;
+    }
+  }
+  const tui = readSavedTui(data.tui);
+  if (tui !== undefined) config.tui = tui;
+  if (data.demos && typeof data.demos === "object" && !Array.isArray(data.demos)) {
+    const demos: DemoOptions = {};
+    for (const [scope, values] of Object.entries(data.demos)) {
+      if (!values || typeof values !== "object" || Array.isArray(values)) continue;
+      const entries = Object.entries(values).filter(([, value]) => typeof value === "string") as [string, string][];
+      if (entries.length) demos[scope] = Object.fromEntries(entries);
+    }
+    if (Object.keys(demos).length) config.demos = demos;
+  }
+  if (Array.isArray(data.rest)) {
+    config.rest = data.rest
+      .filter((item): item is ProjectAttribute => Boolean(item) && typeof item === "object" && !Array.isArray(item)
+        && typeof (item as ProjectAttribute).name === "string"
+        && ((item as ProjectAttribute).value === null || typeof (item as ProjectAttribute).value === "string"))
+      .map(({ name, value }) => ({ name, value }));
+  }
+  return config;
+}
 
 export function readFieldValue(options: Options, key: string, value: unknown) {
   const values = Object.hasOwn(options, key) ? options[key] : undefined;

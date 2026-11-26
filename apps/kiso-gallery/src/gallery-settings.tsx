@@ -3,9 +3,10 @@ import { AppShellPanel, Button, Dot, Drawer, DrawerContent, DrawerTitle, Link, R
 import { DemoOptionsContext, DemoSettingsContext, type DemoChoiceProps, type DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import { animateGalleryPanels } from "../../../kiso/blocks/react-prototype/src/gallery-motion";
 import { VisualSelector, presetName } from "./appearance";
-import { LookSettings, type LookTab } from "./look-settings";
+import { LookSettings, ProjectModeBar, type LookTab } from "./look-settings";
 import { BackgroundPreview, PanelPreview } from "./appearance-previews";
 import type { AppearanceSettings, BorderStyle, CornerMarks, CornerStyle, Size } from "./appearance-settings";
+import type { ProjectConfig } from "./project-config";
 
 type View = "demo" | "look";
 const focusOpener = (view: View) => document.querySelector<HTMLElement>(view === "look" ? ".look-chip" : 'a[href="#gallery-settings"]')?.focus();
@@ -14,12 +15,15 @@ const reveal = (update: () => void) => {
   else update();
 };
 
-export function GallerySettings({ children, settings, onChange, demos, onDemosChange, lookDisabled = false, lookNote }: {
+export function GallerySettings({ children, settings, onChange, onPreset, projectConfig, onClearProject, demos, onDemosChange, lookDisabled = false, lookNote }: {
   children: (panel: ReactNode, chip: ReactNode) => ReactNode;
   lookDisabled?: boolean;
   lookNote?: string;
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  onPreset?: (defined: Partial<AppearanceSettings>) => void;
+  projectConfig?: ProjectConfig | null;
+  onClearProject?: () => void;
   demos: DemoOptions;
   onDemosChange: Dispatch<SetStateAction<DemoOptions>>;
 }) {
@@ -138,8 +142,9 @@ export function GallerySettings({ children, settings, onChange, demos, onDemosCh
       <div ref={setTarget} className="gallery-component-settings" />
     </div>
     {view === "look" && <div className="gallery-look" role="region" aria-label="Look list">
+      {projectConfig && onClearProject && <ProjectModeBar config={projectConfig} onClear={onClearProject} className="gallery-look-project" />}
       {lookNote && <p className="muted t-label gallery-look-note">{lookNote}</p>}
-      <LookSettings settings={settings} onChange={onChange} tab={lookTab} onTabChange={setLookTab} idPrefix="look" variant="stacked"
+      <LookSettings settings={settings} onChange={onChange} onPreset={projectConfig ? onPreset : undefined} tab={lookTab} onTabChange={setLookTab} idPrefix="look" variant="stacked"
         phoneHint="Layouts > Phone shows the result." />
       <p className="gallery-look-more"><Link href="#theme" onClick={() => { if (!desktop) setOpen(false); }}>Preview and export</Link></p>
     </div>}

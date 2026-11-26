@@ -12,6 +12,10 @@ import { GallerySettings } from "./gallery-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, shareParam, type ShareResult } from "./appearance-share";
 import { announceShare, demoSchema } from "./appearance-share-ui";
+import {
+  applyPresetToProjectConfig, exportedPatch, parseProjectConfig, projectConfigStorageKey,
+  projectPreviewDefaults, settingsFromProject, type ProjectConfig,
+} from "./project-config";
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import "@momoi-labs/kiso-react/styles.css";
 import "../../../kiso/blocks/react-prototype/src/gallery.css";
@@ -20,6 +24,22 @@ import "./appearance.css";
 import "./gallery-settings.css";
 import "./accents.css";
 import "./theme-generator.css";
+
+const readSavedProject = () => {
+  try {
+    return parseProjectConfig(localStorage.getItem(projectConfigStorageKey), window.kisoAppearance);
+  } catch {
+    return null;
+  }
+};
+const saveProject = (config: ProjectConfig | null) => {
+  try {
+    if (config) localStorage.setItem(projectConfigStorageKey, JSON.stringify(config));
+    else localStorage.removeItem(projectConfigStorageKey);
+  } catch {
+    return;
+  }
+};
 
 // A share link applies and saves its look, then drops the code from the URL.
 // The hash keeps the route, so the code lives in the query string.
@@ -30,7 +50,16 @@ if (!phoneFrame && !standalone) {
   const code = url.searchParams.get(shareParam);
   if (code !== null) {
     incomingLook = readShare(code, window.kisoAppearance, demoSchema);
-    if (incomingLook.settings) window.kisoAppearance.save(incomingLook.settings);
+    if (incomingLook.project) {
+      saveProject(incomingLook.project);
+      window.kisoAppearance.save(settingsFromProject(
+        incomingLook.project,
+        projectPreviewDefaults(window.kisoAppearance.options, window.kisoAppearance.read()),
+      ));
+    } else if (incomingLook.settings) {
+      saveProject(null);
+      window.kisoAppearance.save(incomingLook.settings);
+    }
     incomingDemos = incomingLook.demos;
     url.searchParams.delete(shareParam);
     window.history.replaceState(null, "", url);
@@ -42,7 +71,10 @@ if (!phoneFrame && !standalone) {
 let frameLook: AppearanceSettings | null = null;
 if (phoneFrame || standalone) {
   const code = new URLSearchParams(window.location.search).get(shareParam);
-  const look = code === null ? null : readShare(code, window.kisoAppearance, demoSchema).settings;
+  const result = code === null ? null : readShare(code, window.kisoAppearance, demoSchema);
+  const look = result?.project
+    ? settingsFromProject(result.project, projectPreviewDefaults(window.kisoAppearance.options, window.kisoAppearance.read()))
+    : result?.settings ?? null;
   if (look) frameLook = window.kisoAppearance.apply(look);
 }
 const readLook = () => frameLook ?? window.kisoAppearance.read();
@@ -59,8 +91,22 @@ function App() {
     () => window.location.hash.slice(1) || "intro"
   );
   const [settings, setSettings] = useState(window.kisoAppearance.read);
+  const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(readSavedProject);
   const [demos, setDemos] = useState(incomingDemos);
-  const update = useCallback((patch: Partial<AppearanceSettings>) => setSettings(current => ({ ...current, ...patch })), []);
+  const update = useCallback((patch: Partial<AppearanceSettings>) => {
+    setSettings(current => ({ ...current, ...patch }));
+    const exported = exportedPatch(patch);
+    if (Object.keys(exported).length) {
+      setProjectConfig(current => current ? applyPresetToProjectConfig(current, exported) : null);
+    }
+  }, []);
+  const applyPreset = useCallback((defined: Partial<AppearanceSettings>) => {
+    const exported = exportedPatch(defined);
+    if (Object.keys(exported).length) {
+      setSettings(current => ({ ...current, ...exported }));
+      setProjectConfig(current => current ? applyPresetToProjectConfig(current, exported) : null);
+    }
+  }, []);
   const onThemeChange = useCallback((theme: string) => update({ theme }), [update]);
   const onAccentChange = useCallback((accent: AppearanceSettings["accent"]) => update({ accent }), [update]);
   const example = <LayoutExamples route={route} accent={settings.accent} theme={settings.theme} onThemeChange={onThemeChange} />;
@@ -78,19 +124,44 @@ function App() {
   useLayoutEffect(() => {
     window.kisoAppearance.save(settings);
   }, [settings]);
+  useLayoutEffect(() => {
+    saveProject(projectConfig);
+  }, [projectConfig]);
   useEffect(() => {
-    const follow = (event: StorageEvent) => { if (event.key === null || event.key === "kiso-gallery-appearance") setSettings(window.kisoAppearance.read()); };
+    const follow = (event: StorageEvent) => {
+      if (event.key === null || event.key === "kiso-gallery-appearance") setSettings(window.kisoAppearance.read());
+      if (event.key === null || event.key === projectConfigStorageKey) setProjectConfig(readSavedProject());
+    };
     window.addEventListener("storage", follow);
     return () => window.removeEventListener("storage", follow);
   }, []);
-  const reset = () => { setSettings({ ...window.kisoAppearance.defaults }); setDemos({}); };
-  const applyShare = (next: AppearanceSettings, nextDemos: DemoOptions) => { update(next); setDemos(nextDemos); };
+  const reset = useCallback(() => {
+    setProjectConfig(null);
+    setSettings({ ...window.kisoAppearance.defaults });
+    setDemos({});
+  }, []);
+  const applyShare = useCallback((next: AppearanceSettings, nextDemos: DemoOptions, project?: ProjectConfig) => {
+    setProjectConfig(project ?? null);
+    setSettings(current => project
+      ? settingsFromProject(project, projectPreviewDefaults(window.kisoAppearance.options, current))
+      : next);
+    setDemos(nextDemos);
+  }, []);
+  const importProject = useCallback((config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => {
+    setProjectConfig(config);
+    setSettings(nextSettings);
+    setDemos(nextDemos);
+  }, []);
+  const clearProject = useCallback(() => {
+    setProjectConfig(null);
+  }, []);
   useEffect(() => {
     if (route === "appearance") window.location.replace("#theme");
   }, [route]);
 
   return (
-    <GallerySettings settings={settings} onChange={update} demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}
+    <GallerySettings settings={settings} onChange={update} onPreset={applyPreset} projectConfig={projectConfig} onClearProject={clearProject}
+      demos={demos} onDemosChange={setDemos} lookDisabled={route === "theme" || route === "appearance"}
       lookNote={route === "tui" || route.startsWith("tui/") ? "The terminal follows the accent and light or dark. Other settings change the page around it." : undefined}>
       {(panel, chip) => <ComponentGallery
         panel={panel}
@@ -108,7 +179,8 @@ function App() {
         terminalPages={terminalPages}
         intro={intro}
         accents={<Accents />}
-        generator={<ThemeGenerator settings={settings} onChange={update} onReset={reset} demos={demos} onShare={applyShare} />}
+        generator={<ThemeGenerator settings={settings} onChange={update} onPreset={applyPreset} onReset={reset} demos={demos} onShare={applyShare}
+          projectConfig={projectConfig} onImport={importProject} onClearProject={clearProject} />}
         settingsEnabled
       />}
     </GallerySettings>
@@ -137,6 +209,7 @@ function PhoneFrame() {
       }
     };
     const appearance = (event: StorageEvent) => { if (!frameLook && (event.key === null || event.key === "kiso-gallery-appearance")) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read())); };
+    if (!frameLook) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read()));
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };
@@ -157,6 +230,7 @@ function Standalone() {
   useEffect(() => {
     const navigate = () => setRoute(window.location.hash.slice(1));
     const appearance = (event: StorageEvent) => { if (!frameLook && (event.key === null || event.key === "kiso-gallery-appearance")) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read())); };
+    if (!frameLook) setSettings(window.kisoAppearance.apply(window.kisoAppearance.read()));
     window.addEventListener("hashchange", navigate);
     window.addEventListener("storage", appearance);
     return () => { window.removeEventListener("hashchange", navigate); window.removeEventListener("storage", appearance); };

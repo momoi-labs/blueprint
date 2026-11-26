@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
+import { Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@momoi-labs/kiso-react";
 import {
   AppWindow, ChartLine, CodeXml, FileText, Frame, Grid3x3, Layers, LayoutDashboard, Palette, PanelTop,
-  Scan, Settings, Smartphone, Sparkles, Square, SquareDashed, SwatchBook, Target, TriangleAlert,
+  Scan, Settings, Smartphone, Sparkles, Square, SquareDashed, SwatchBook, Target, TriangleAlert, X,
 } from "lucide-react";
 import { AppearanceControls, type AppearanceSectionId } from "./appearance";
 import type { AppearanceSettings } from "./appearance-settings";
+import { countProjectFields, type ProjectConfig } from "./project-config";
 
 export type LookTab = "look" | "layout" | "frame" | "canvas" | "phone" | "code" | "gallery";
 
@@ -39,6 +40,29 @@ const icons: Partial<Record<AppearanceSectionId, ReactNode>> = {
   charts: <ChartLine className="icon" aria-hidden="true" />,
   phone: <Smartphone className="icon" aria-hidden="true" />,
 };
+
+export function ProjectModeBar({ config, onClear, className }: {
+  config: ProjectConfig;
+  onClear: () => void;
+  className?: string;
+}) {
+  const fields = countProjectFields(config);
+  const preserved = config.rest?.length ?? 0;
+  const parts = [`${fields} ${fields === 1 ? "field" : "fields"}`];
+  if (preserved > 0) parts.push(`${preserved} preserved`);
+  if (config.tui) parts.push("TUI");
+  return (
+    <div className={className ? `gen-project-bar ${className}` : "gen-project-bar"} role="status">
+      <div className="gen-project-meta">
+        <Badge variant="info">Project config</Badge>
+        <span className="muted t-label">{parts.join(" · ")}</span>
+      </div>
+      <Button type="button" size="xs" variant="ghost" onClick={onClear}>
+        <X className="icon" aria-hidden="true" />Clear project
+      </Button>
+    </div>
+  );
+}
 
 export function LookSettings({ settings, onChange, onPreset, tab, onTabChange, idPrefix, variant, phoneHint, code }: {
   settings: AppearanceSettings;
