@@ -106,6 +106,8 @@ function App() {
   );
   const demosRef = useRef(demos);
   demosRef.current = demos;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const skipPersistRef = useRef(false);
   const setDemosSync = useCallback((next: DemoOptions) => {
     demosRef.current = next;
@@ -166,18 +168,18 @@ function App() {
   }, [projectConfig, settings]);
   useEffect(() => {
     const follow = (event: StorageEvent) => {
-      if (event.key === resetMarkerKey) {
-        skipPersistRef.current = true;
-        setProjectConfig(null);
-        setSettings(window.kisoAppearance.apply(window.kisoAppearance.read()));
-        setDemosSync({});
-        return;
-      }
+      const resetTriggered = event.key === resetMarkerKey;
       const appearanceChanged = event.key === null || event.key === "kiso-gallery-appearance";
       const projectChanged = event.key === null || event.key === projectConfigStorageKey;
-      if (!appearanceChanged && !projectChanged) return;
+      if (!resetTriggered && !appearanceChanged && !projectChanged) return;
       const savedProject = readSavedProject();
       skipPersistRef.current = true;
+      if (resetTriggered) {
+        setProjectConfig(savedProject);
+        setDemosSync(savedProject ? (savedProject.demos ?? {}) : {});
+        setSettings(window.kisoAppearance.apply(resolveSettings(window.kisoAppearance.read(), savedProject)));
+        return;
+      }
       if (projectChanged) {
         setProjectConfig(savedProject);
         if (savedProject) setDemosSync(savedProject.demos ?? {});
@@ -200,12 +202,18 @@ function App() {
   }, [setDemosSync]);
   const applyShare = useCallback((next: AppearanceSettings, nextDemos: DemoOptions, project?: ProjectConfig) => {
     skipPersistRef.current = false;
-    setProjectConfig(project ?? null);
-    setSettings(current => project ? resolveSettings(current, project) : next);
+    const nextProject = project ?? null;
+    const resolved = nextProject ? resolveSettings(settingsRef.current, nextProject) : next;
+    saveProject(nextProject);
+    window.kisoAppearance.save(resolved);
+    setProjectConfig(nextProject);
+    setSettings(resolved);
     setDemosSync(nextDemos);
   }, [setDemosSync]);
   const importProject = useCallback((config: ProjectConfig, nextSettings: AppearanceSettings, nextDemos: DemoOptions) => {
     skipPersistRef.current = false;
+    saveProject(config);
+    window.kisoAppearance.save(nextSettings);
     setProjectConfig(config);
     setSettings(nextSettings);
     setDemosSync(nextDemos);
