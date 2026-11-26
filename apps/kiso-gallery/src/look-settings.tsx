@@ -40,9 +40,10 @@ const icons: Partial<Record<AppearanceSectionId, ReactNode>> = {
   phone: <Smartphone className="icon" aria-hidden="true" />,
 };
 
-export function LookSettings({ settings, onChange, tab, onTabChange, idPrefix, variant, phoneHint, code }: {
+export function LookSettings({ settings, onChange, onPreset, tab, onTabChange, idPrefix, variant, phoneHint, code }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  onPreset?: (defined: Partial<AppearanceSettings>) => void;
   tab: LookTab;
   onTabChange: (tab: LookTab) => void;
   idPrefix: string;
@@ -73,7 +74,7 @@ export function LookSettings({ settings, onChange, tab, onTabChange, idPrefix, v
         </nav>}
       </div>
       {shown.map(item => <TabsContent key={item.id} value={item.id} className="gen-scroll">
-        {item.id === "code" ? code : <AppearanceControls settings={settings} onChange={onChange} sections={item.sections}
+        {item.id === "code" ? code : <AppearanceControls settings={settings} onChange={onChange} onPreset={onPreset} sections={item.sections}
           icons={icons} idPrefix={idPrefix} galleryOnly phoneHint={phoneHint} onJump={part => flash(part)} />}
       </TabsContent>)}
     </div>
