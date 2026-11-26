@@ -14,7 +14,12 @@
   .catalog-generator > .gen-workspace { flex: 1; min-height: 0; }
 }
 .gen-workspace > .card { min-height: 0; min-width: 0; padding: 0; }
-.gen-rail { display: grid; }
+.gen-rail { display: flex; flex-direction: column; }
+.gen-rail > .gen-tabs { flex: 1; }
+.gen-project-bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--spacing-xs) var(--spacing-sm); padding: var(--spacing-xs) var(--spacing-md); border-bottom: 1px solid var(--color-border); border-start-start-radius: inherit; border-start-end-radius: inherit; background: var(--color-muted); }
+.gen-project-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-xs); min-width: 0; }
+.gen-project-bar .btn { gap: var(--spacing-2xs); }
+.gen-import-input { font-family: var(--font-mono); font-size: var(--type-size-label); }
 .gen-tabs { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 0; min-width: 0; }
 
 .gen-nav.tabs { flex-direction: column; gap: var(--spacing-2xs); padding: var(--spacing-sm) var(--spacing-xs); border-bottom: 0; border-inline-end: 1px solid var(--color-border); overflow-x: hidden; overflow-y: auto; }
@@ -44,7 +49,7 @@
 .gen-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .gen-panel-head { flex: none; display: grid; gap: var(--spacing-sm); padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm); border-bottom: 1px solid var(--color-border); }
 .gen-panel-title { margin: 0; display: flex; align-items: center; gap: var(--spacing-sm); }
-.gen-panel-title .icon, .gen-export h3 .icon { color: var(--color-link); }
+.gen-panel-title .icon, .gen-export h3 .icon, .gen-export-json h3 .icon, .gen-export-rust h3 .icon { color: var(--color-link); }
 .gen-jumps { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
 .gen-jump { display: inline-flex; align-items: center; height: var(--size-control-xs); padding-inline: var(--spacing-sm); border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-background); color: var(--color-muted-foreground); font: inherit; font-size: var(--type-size-label); cursor: pointer; }
 .gen-jump:hover { color: var(--color-foreground); background: var(--color-accent-surface); }
@@ -66,7 +71,8 @@
 .appearance-sketch-part rect, .appearance-sketch-part path { pointer-events: all; }
 .appearance-sketch-part:hover > *, .appearance-sketch-part:focus-visible > * { stroke: var(--color-link); stroke-width: 2; }
 
-.gen-export { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.gen-export, .gen-export-json, .gen-export-rust { display: grid; gap: var(--spacing-sm); min-width: 0; }
+.gen-warnings { margin: 0; padding-inline-start: var(--spacing-md); display: grid; gap: var(--spacing-2xs); }
 .gen-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); }
 
 .gen-preview { display: flex; flex-direction: column; }

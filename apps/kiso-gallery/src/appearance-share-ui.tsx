@@ -11,6 +11,7 @@ import { toastShareOptions } from "../../../kiso/blocks/react-prototype/src/toas
 import type { DemoOptions } from "../../../kiso/blocks/react-prototype/src/demo-settings";
 import type { AppearanceSettings } from "./appearance-settings";
 import { readShare, settingsText, shareLink, type DemoSchema, type ShareResult } from "./appearance-share";
+import type { ProjectConfig } from "./project-config";
 
 // The demos whose options a shared look carries.
 export const demoSchema: DemoSchema = {
@@ -32,7 +33,7 @@ export function announceShare(result: ShareResult, notify: ToastNotify) {
 export function AppearanceShare({ settings, demos, onApply }: {
   settings: AppearanceSettings;
   demos: DemoOptions;
-  onApply: (settings: AppearanceSettings, demos: DemoOptions) => void;
+  onApply: (settings: AppearanceSettings, demos: DemoOptions, project?: ProjectConfig) => void;
 }) {
   const notify = useToast();
   async function copy(text: string, done: string) {
@@ -52,7 +53,7 @@ export function AppearanceShare({ settings, demos, onApply }: {
       return;
     }
     const result = readShare(text, window.kisoAppearance, demoSchema);
-    if (result.settings) onApply(result.settings, result.demos);
+    if (result.settings) onApply(result.settings, result.demos, result.project);
     announceShare(result, notify);
   }
   return (

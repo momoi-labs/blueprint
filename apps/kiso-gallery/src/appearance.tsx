@@ -55,7 +55,7 @@ const sameLook = (look: AppearanceSettings, settings: AppearanceSettings) =>
 
 export function presetLooks() {
   const base = { ...window.kisoAppearance.presetDefaults, cornerStyle: "square", cornerSize: "medium", backgroundStyle: "solid", visualStyle: "default", appShell: "inset", frameScope: "panels" } as AppearanceSettings;
-  return compositions.map(({ label, settings }) => ({ label, look: { ...base, ...settings } }));
+  return compositions.map(({ label, settings }) => ({ label, look: { ...base, ...settings }, defined: settings }));
 }
 
 export function presetName(settings: AppearanceSettings) {
@@ -144,9 +144,10 @@ export type AppearanceSectionId = "presets" | "colors" | "sketch" | "shell" | "h
 const phoneKeys = ["phoneShadowStyle", "phoneBackgroundStyle", "phoneBorderStyle", "phoneCornerStyle", "phoneCornerMarks", "phonePanelFill"] as const;
 const isExpressive = (border: string) => border === "manga" || border === "brush";
 
-export function AppearanceControls({ settings, onChange, sections: shown, collapsed = [], icons, idPrefix, onJump, galleryOnly = false, phoneHint = "Layouts > Phone shows the result." }: {
+export function AppearanceControls({ settings, onChange, onPreset, sections: shown, collapsed = [], icons, idPrefix, onJump, galleryOnly = false, phoneHint = "Layouts > Phone shows the result." }: {
   settings: AppearanceSettings;
   onChange: (patch: Partial<AppearanceSettings>) => void;
+  onPreset?: (defined: Partial<AppearanceSettings>) => void;
   sections: readonly AppearanceSectionId[];
   collapsed?: readonly AppearanceSectionId[];
   icons?: Partial<Record<AppearanceSectionId, ReactNode>>;
@@ -205,8 +206,8 @@ export function AppearanceControls({ settings, onChange, sections: shown, collap
   presets: <AppearanceSection {...head("presets")} title="Presets" collapsed={collapsed.includes("presets")}>
     <p className="muted t-label" role="status">Current look: <strong>{presetName(settings)}</strong></p>
     <div className="appearance-presets">
-      {presetLooks().map(({ label, look: next }) => {
-        return <Button key={label} variant="ghost" className="appearance-composition" aria-pressed={sameLook(next, settings)} onClick={() => onChange({ ...next, theme: settings.theme })}>
+      {presetLooks().map(({ label, look: next, defined }) => {
+        return <Button key={label} variant="ghost" className="appearance-composition" aria-pressed={sameLook(next, settings)} onClick={() => onPreset ? onPreset(defined) : onChange({ ...next, theme: settings.theme })}>
           <span className="appearance-composition-preview" data-accent={next.accent} data-preview-tone={next.paperTone} aria-hidden="true">
             <BackgroundPreview background={next.backgroundStyle} tone={next.paperTone} />
             <PanelPreview shadow={next.outerShadowStyle === "inherit" ? next.shadowStyle : next.outerShadowStyle} border={next.outerBorderStyle === "inherit" ? next.borderStyle : next.outerBorderStyle} corner={next.outerCornerStyle === "inherit" ? next.cornerStyle : next.outerCornerStyle} marks={next.outerCornerMarks === "inherit" ? next.cornerMarks : next.outerCornerMarks} size={next.cornerSize} markSize={next.markSize} detail={next.frameDetail} />
