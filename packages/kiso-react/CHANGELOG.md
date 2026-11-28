@@ -1,5 +1,21 @@
 # @momoi-labs/kiso-react
 
+## 0.38.0
+
+### Minor Changes
+
+- dca4afc: An overlay Alert takes a `side`: `top` (the default, as before), `middle` or `bottom`. A middle overlay is a bar centered over the content with no scrim, and a bottom overlay keeps the same inset as the top one. A loud overlay stays a full-width band at each side.
+
+### Patch Changes
+
+- 1d61827: Keep sidebar navigation icons and brand marks in the same position when collapsing and expanding the sidebar across default and inset shells, solid and patterned backgrounds, and separate and full brand bars. Group headings and expanded header/action slots above navigation now preserve their vertical space when collapsed instead of shifting icons upward, focus recovery handles visibility-hidden expanded controls, and inset sidebars keep a fixed start edge in both states.
+- Updated dependencies [dca4afc]
+- Updated dependencies [f15d3d5]
+- Updated dependencies [3f4f530]
+- Updated dependencies [f0cb8b6]
+- Updated dependencies [1d61827]
+  - @momoi-labs/kiso@1.16.0
+
 ## 0.37.0
 
 ### Minor Changes

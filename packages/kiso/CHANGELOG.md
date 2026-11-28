@@ -1,5 +1,18 @@
 # @momoi-labs/kiso
 
+## 1.16.0
+
+### Minor Changes
+
+- dca4afc: An overlay Alert takes a `side`: `top` (the default, as before), `middle` or `bottom`. A middle overlay is a bar centered over the content with no scrim, and a bottom overlay keeps the same inset as the top one. A loud overlay stays a full-width band at each side.
+
+### Patch Changes
+
+- f15d3d5: Restore `data-brand-bar="full"` on inset shells so the full-row brand fill covers from the top of the sidebar header (`inset-block: 0`) across the entire top edge, while keeping the `data-border-style="none"` 1px frame-top offset fix.
+- 3f4f530: Keep `.app-shell::before` pinned to the viewport height with sticky positioning so canvas backgrounds (`glow`, `enso`, `momoi`, and repeating patterns) remain visible at narrow widths (`< 1024px`) and on tall scrolling pages across default and inset shells without inflating or leaking out of nested `.app-shell[data-background-canvas]` previews.
+- f0cb8b6: Keep the sidebar header's block size on collapse when the brand has a fluid width, such as `<img style="width: 100%">`. The hidden `.sidebar-expanded-content` in the header now keeps its expanded inline size instead of `inline-size: 0`, so a brand sized by its container keeps its height and navigation icons stay in place.
+- 1d61827: Keep sidebar navigation icons and brand marks in the same position when collapsing and expanding the sidebar across default and inset shells, solid and patterned backgrounds, and separate and full brand bars. Group headings and expanded header/action slots above navigation now preserve their vertical space when collapsed instead of shifting icons upward, focus recovery handles visibility-hidden expanded controls, and inset sidebars keep a fixed start edge in both states.
+
 ## 1.15.0
 
 ### Minor Changes
