@@ -297,3 +297,40 @@ for (const [label, query, bg] of [
     }
   } finally { await page.close(); }
 });
+
+for (const [label, query] of [
+  ['sidebar toggle', ''],
+  ['header toggle', 'headerToggle'],
+  ['header toggle with a rail mark', 'headerToggle&brandMark'],
+  ['inset', 'variant=inset'],
+  ['shellLayout default', 'brandMark&shellLayout'],
+  ['shellLayout inset', 'brandMark&shellLayout&variant=inset'],
+]) test(`ApplicationShell icons keep their position on collapse with a fluid-width brand, ${label}`, async () => {
+  const page = await open(`fluidBrand&${query}`);
+  try {
+    const measure = () => page.evaluate(() => ({
+      header: document.querySelector('.sidebar-header').getBoundingClientRect().height,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      icons: [...document.querySelectorAll('.sidebar .nav-item .sidebar-link-icon')].map(el => {
+        const rect = (el.querySelector('svg') || el).getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        return { x: rect.x, y: rect.y, hit: el.closest('.nav-item').contains(hit) };
+      }),
+    }));
+    for (const width of [1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const before = await measure();
+      assert(before.icons.length >= 3);
+      await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+      const after = await measure();
+      assert(Math.abs(after.header - before.header) <= 0.5, `${label} ${width} header height changed by ${(after.header - before.header).toFixed(2)}`);
+      assert.equal(after.overflow, 0, `${label} ${width} scrolls sideways`);
+      for (let i = 0; i < before.icons.length; i++) {
+        assert(Math.abs(after.icons[i].x - before.icons[i].x) <= 0.5 && Math.abs(after.icons[i].y - before.icons[i].y) <= 0.5,
+          `${label} ${width} icon ${i} shifted (${(after.icons[i].x - before.icons[i].x).toFixed(2)}, ${(after.icons[i].y - before.icons[i].y).toFixed(2)})`);
+        assert(after.icons[i].hit, `${label} ${width} icon ${i} does not receive the pointer`);
+      }
+      await page.getByRole('button', { name: 'Expand sidebar' }).first().click();
+    }
+  } finally { await page.close(); }
+});
