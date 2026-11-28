@@ -1469,6 +1469,16 @@ table.table {
   .sidebar[data-collapsed="true"] > .sidebar-actions.sidebar-expanded-content {
     display: grid; visibility: hidden; pointer-events: none; overflow: hidden; white-space: nowrap; inline-size: 0; padding-inline: 0;
   }
+  .sidebar[data-collapsed="true"] > .sidebar-header > .sidebar-expanded-content {
+    --sidebar-expanded-inset: 0px;
+    clip-path: inset(50%);
+    inline-size: calc(100% + var(--size-sidebar) - var(--app-shell-sidebar-width, var(--size-sidebar)) - var(--sidebar-expanded-inset));
+  }
+  .sidebar[data-collapsed="true"] > .sidebar-header-collapsible > .sidebar-expanded-content { --sidebar-expanded-inset: calc(2 * var(--spacing-md) - var(--spacing-sm) + var(--size-control-sm)); }
+  @media (pointer: coarse) {
+    .sidebar[data-collapsed="true"] > .sidebar-header-collapsible > .sidebar-expanded-content { --sidebar-expanded-inset: calc(2 * var(--spacing-md) - var(--spacing-sm) + var(--size-touch-min)); }
+  }
+  .app-shell:has(> :is(main, [data-slot="app-shell-main"]) > .topbar .sidebar-toggle) > .sidebar[data-collapsed="true"] > .sidebar-header-collapsible > .sidebar-expanded-content { --sidebar-expanded-inset: calc(2 * var(--spacing-md) - 2 * var(--spacing-sm)); }
   .sidebar[data-collapsed="true"] .nav-group > .t-caps { visibility: hidden; white-space: nowrap; overflow: hidden; inline-size: 0; padding-inline: 0; }
   .sidebar[data-collapsed="true"] .sidebar-header-collapsible { grid-template-columns: minmax(0, 1fr); padding-inline: var(--spacing-sm); }
   .sidebar[data-collapsed="true"] .sidebar-header-collapsible > * { grid-area: 1 / 1; }

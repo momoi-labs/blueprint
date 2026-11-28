@@ -53,7 +53,9 @@ function Fixture() {
     variant: params.get('variant') || undefined,
     shellLayout: params.has('shellLayout') || undefined,
     headerVariant: params.get('headerVariant') || undefined,
-    brand: h('div', { className: 'brand' }, h(BrandMark, null, 'H'), h('span', { className: 't-label' }, 'self-host')),
+    brand: params.has('fluidBrand')
+      ? h('div', { 'data-fluid-brand': '', style: { width: '100%', aspectRatio: '2 / 1', background: 'var(--color-accent-surface)' } })
+      : h('div', { className: 'brand' }, h(BrandMark, null, 'H'), h('span', { className: 't-label' }, 'self-host')),
     primaryAction: h(Button, { variant: 'primary', onClick: () => setCollapsed(true) }, 'Create application'),
     header: params.has('noHeader') ? undefined : h('span', null, 'homelab / ', page),
   }, h('section', { className: 'page' },
